@@ -23,7 +23,40 @@
   </head>
 
   <body>
+  <style>
+      .flash-message {
+          padding: 0.75rem 1.25rem;
+          margin-bottom: 1rem;
+          border-radius: 0.25rem;
+          text-align: center;
+      }
+
+      .flash-notice {
+          background-color: #d1fae5;
+          color: #065f46;
+          border: 1px solid #a7f3d0;
+      }
+
+      .flash-alert {
+          background-color: #fee2e2;
+          color: #991b1b;
+          border: 1px solid #fecaca;
+      }
+  </style>
     <main class="">
+      <!-- Flash Messages -->
+      <% if flash[:notice] %>
+        <div class="flash-message flash-notice">
+          <%= flash[:notice] %>
+        </div>
+      <% end %>
+
+      <% if flash[:alert] %>
+        <div class="flash-message flash-alert">
+          <%= flash[:alert] %>
+        </div>
+      <% end %>
+
       <!-- Navigation -->
       <nav class="navbar">
         <div class="nav-container">
@@ -37,13 +70,23 @@
             <li><a href="#wall">Community</a></li>
           </ul>
           <div class="user-menu">
-            <!-- HOTWIRE: Notification count will update via Turbo Streams -->
-            <div class="notification-bell">
-              🔔
-              <span class="notification-count" id="notification-count">3</span>
-            </div>
-            <span>John Doe</span>
-            <a href="#logout" class="btn btn-outline btn-small">Logout</a>
+            <% if user_signed_in? %>
+              <!-- HOTWIRE: Notification count will update via Turbo Streams -->
+              <div class="notification-bell">
+                🔔
+                <span class="notification-count" id="notification-count">3</span>
+              </div>
+              <span><%= current_user.name %></span>
+              <%= button_to logout_path, method: :delete, class: "btn btn-outline btn-small" do %>
+                Logout
+              <% end %>
+            <% else %>
+              <%= link_to "Login", login_path, class: "btn btn-primary btn-small" %>
+              <%= button_to "/auth/google_oauth2", method: :post, class: "btn btn-outline btn-small", data: { turbo: false } do %>
+                <img src="https://www.google.com/favicon.ico" alt="Google" width="16" height="16" style="margin-right: 4px;">
+                Sign in
+              <% end %>
+            <% end %>
           </div>
         </div>
       </nav>
