@@ -18,12 +18,35 @@
     <link rel="apple-touch-icon" href="/icon.png">
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag :application, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
   <body>
     <main class="">
+      <!-- Navigation -->
+      <nav class="navbar">
+        <div class="nav-container">
+          <div class="logo">🏠 Community Hub</div>
+          <ul class="nav-links">
+            <li><%= link_to "Dashboard", dashboard_index_path %></li>
+            <li><%= link_to "Documents", documents_path %></li>
+            <li><a href="#tools">Tools</a></li>
+            <li><a href="#inventory">Kitchen</a></li>
+            <li><a href="#calendar">Spaces</a></li>
+            <li><a href="#wall">Community</a></li>
+          </ul>
+          <div class="user-menu">
+            <!-- HOTWIRE: Notification count will update via Turbo Streams -->
+            <div class="notification-bell">
+              🔔
+              <span class="notification-count" id="notification-count">3</span>
+            </div>
+            <span>John Doe</span>
+            <a href="#logout" class="btn btn-outline btn-small">Logout</a>
+          </div>
+        </div>
+      </nav>
       <%= yield %>
     </main>
   </body>
