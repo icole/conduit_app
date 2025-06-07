@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
-  resources :documents
+  resources :documents do
+    collection do
+      get :refresh_from_google_drive
+    end
+  end
   resources :dashboard, only: ["index"]
 
   # Temporary route for testing environment variables
@@ -13,6 +17,9 @@ Rails.application.routes.draw do
   # OmniAuth callback
   get 'auth/:provider/callback', to: 'sessions#omniauth'
   post 'auth/:provider/callback', to: 'sessions#omniauth'
+
+  # Google Drive OAuth2 callback
+  get 'oauth2callback', to: 'documents#oauth_callback'
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

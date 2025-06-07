@@ -8,11 +8,19 @@
     <%= document.description %>
   </div>
   <div>
-    <strong class="block font-medium mb-1">Google drive url:</strong>
-    <%= document.google_drive_url %>
+    <strong class="block font-medium mb-1">Google Drive Document:</strong>
+    <%= link_to "Open in Google Drive", document.google_drive_url, target: "_blank", class: "text-blue-600 hover:text-blue-800 underline" %>
   </div>
   <div>
     <strong class="block font-medium mb-1">Document type:</strong>
-    <%= document.document_type %>
+    <% badge_color = case document.document_type
+                     when 'Google Doc' then 'bg-blue-100 text-blue-800'
+                     when 'Google Sheet' then 'bg-green-100 text-green-800'
+                     when 'Google Slides' then 'bg-yellow-100 text-yellow-800'
+                     else 'bg-gray-100 text-gray-800'
+                     end %>
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= badge_color %>">
+      <%= document.document_type %>
+    </span>
   </div>
 </div>
