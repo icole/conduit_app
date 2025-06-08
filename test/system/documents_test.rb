@@ -3,6 +3,7 @@ require "application_system_test_case"
 class DocumentsTest < ApplicationSystemTestCase
   setup do
     @document = documents(:one)
+    sign_in_user
   end
 
   test "visiting the index" do
