@@ -52,7 +52,7 @@ class DocumentsController < ApplicationController
       query = "mimeType='application/vnd.google-apps.document' or mimeType='application/vnd.google-apps.spreadsheet' or mimeType='application/vnd.google-apps.presentation'"
 
       # Execute the query
-      response = service.list_files(q: query, fields: 'files(id, name, description, mimeType, webViewLink)')
+      response = service.list_files(q: query, fields: "files(id, name, description, mimeType, webViewLink)")
 
       # Process each file
       response.files.each do |file|
@@ -61,14 +61,14 @@ class DocumentsController < ApplicationController
 
         # Determine document type based on MIME type
         document_type = case file.mime_type
-                        when 'application/vnd.google-apps.document'
-                          'Google Doc'
-                        when 'application/vnd.google-apps.spreadsheet'
-                          'Google Sheet'
-                        when 'application/vnd.google-apps.presentation'
-                          'Google Slides'
+                        when "application/vnd.google-apps.document"
+                          "Google Doc"
+                        when "application/vnd.google-apps.spreadsheet"
+                          "Google Sheet"
+                        when "application/vnd.google-apps.presentation"
+                          "Google Slides"
                         else
-                          'Other'
+                          "Other"
                         end
 
         # Create a new document record

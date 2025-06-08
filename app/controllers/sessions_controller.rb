@@ -17,7 +17,7 @@ class SessionsController < ApplicationController
 
   def omniauth
     # Handle OAuth callback
-    user = User.from_omniauth(request.env['omniauth.auth'])
+    user = User.from_omniauth(request.env["omniauth.auth"])
 
     if user.save
       session[:user_id] = user.id

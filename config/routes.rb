@@ -7,19 +7,19 @@ Rails.application.routes.draw do
   resources :dashboard, only: ["index"]
 
   # Temporary route for testing environment variables
-  get 'test/env', to: 'test#env_test'
+  get "test/env", to: "test#env_test"
 
   # Authentication routes
-  get 'login', to: 'sessions#new'
-  post 'login', to: 'sessions#create'
-  delete 'logout', to: 'sessions#destroy'
+  get "login", to: "sessions#new"
+  post "login", to: "sessions#create"
+  delete "logout", to: "sessions#destroy"
 
   # OmniAuth callback
-  get 'auth/:provider/callback', to: 'sessions#omniauth'
-  post 'auth/:provider/callback', to: 'sessions#omniauth'
+  get "auth/:provider/callback", to: "sessions#omniauth"
+  post "auth/:provider/callback", to: "sessions#omniauth"
 
   # Google Drive OAuth2 callback
-  get 'oauth2callback', to: 'documents#oauth_callback'
+  get "oauth2callback", to: "documents#oauth_callback"
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
