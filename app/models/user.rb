@@ -15,4 +15,9 @@ class User < ApplicationRecord
       user.avatar_url = auth.info.image
     end
   end
+
+  def has_notifications?
+    # TODO: Implement logic to check if the user has notifications
+    false
+  end
 end

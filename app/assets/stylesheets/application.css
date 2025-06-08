@@ -408,10 +408,47 @@ body {
 
 /* Utility classes */
 .mb-1 { margin-bottom: 0.5rem; }
-.mb-2 { margin-bottom: 1rem; }
+
+.mb-2 {
+    margin-bottom: 0.75rem;
+}
+
+.mb-3 {
+    margin-bottom: 1rem;
+}
 .mb-4 { margin-bottom: 2rem; }
 .text-center { text-align: center; }
 .text-gray { color: #6b7280; }
 .text-sm { font-size: 0.875rem; }
 .font-bold { font-weight: bold; }
 .hidden { display: none; }
+
+.flash-message {
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.25rem;
+    text-align: center;
+}
+
+.flash-notice {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.flash-alert {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

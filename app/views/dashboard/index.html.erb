@@ -1,401 +1,401 @@
-<div class="container">
-  <!-- Main Content Grid -->
-  <div class="grid grid-2 mb-4">
-    <!-- Community Wall -->
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title">Community Wall</h2>
-        <button class="btn btn-primary btn-small">New Post</button>
-      </div>
-
-      <!-- HOTWIRE: New post form will be a Turbo Frame -->
-      <div id="new-post-form" class="hidden">
-        <form class="mb-4">
-          <div class="form-group">
-            <textarea class="form-input" rows="3" placeholder="What's happening in the community?"></textarea>
-          </div>
-          <div style="display: flex; gap: 0.5rem;">
-            <button class="btn btn-primary btn-small">Post</button>
-            <button class="btn btn-outline btn-small">Cancel</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- HOTWIRE: Posts will stream in real-time via Turbo Streams -->
-      <div id="community-posts">
-        <div class="post">
-          <div class="post-header">
-            <div class="avatar">JS</div>
-            <div class="post-meta">
-              <div class="post-author">Jane Smith</div>
-              <div class="post-time">2 hours ago</div>
-            </div>
-          </div>
-          <div class="post-content">
-            Just finished organizing the tool shed! Everything is labeled and ready to go. The new power drill is on the top shelf. 🔧
-          </div>
-          <div class="post-actions">
-            <a href="#" class="post-action">👍 Like (5)</a>
-            <a href="#" class="post-action">💬 Comment (2)</a>
-            <a href="#" class="post-action">📤 Share</a>
-          </div>
-
-          <!-- HOTWIRE: Comments will be added via Turbo Streams -->
-          <div id="post-1-comments" class="hidden">
-            <!-- Comments will go here -->
-          </div>
-        </div>
-
-        <div class="post">
-          <div class="post-header">
-            <div class="avatar">MD</div>
-            <div class="post-meta">
-              <div class="post-author">Mike Davis</div>
-              <div class="post-time">4 hours ago</div>
-            </div>
-          </div>
-          <div class="post-content">
-            Community dinner tonight at 7 PM! I'm making pasta. Please bring salad or dessert if you can. Kitchen is booked from 5-9 PM.
-          </div>
-          <div class="post-actions">
-            <a href="#" class="post-action">👍 Like (12)</a>
-            <a href="#" class="post-action">💬 Comment (8)</a>
-            <a href="#" class="post-action">📤 Share</a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Quick Actions & Notifications -->
-    <div>
-      <!-- Recent Activity -->
-      <div class="card mb-2">
-        <div class="card-header">
-          <h3 class="card-title">Recent Activity</h3>
-        </div>
-        <!-- HOTWIRE: Activity feed will update via Turbo Streams -->
-        <div id="activity-feed">
-          <div style="display: flex; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb;">
-            <div class="avatar" style="width: 32px; height: 32px; font-size: 0.75rem; margin-right: 0.75rem;">JD</div>
-            <div>
-              <div style="font-size: 0.875rem;">John checked out the lawn mower</div>
-              <div class="text-gray text-sm">10 minutes ago</div>
-            </div>
-          </div>
-          <div style="display: flex; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb;">
-            <div class="avatar" style="width: 32px; height: 32px; font-size: 0.75rem; margin-right: 0.75rem;">AS</div>
-            <div>
-              <div style="font-size: 0.875rem;">Anna shared olive oil with community</div>
-              <div class="text-gray text-sm">25 minutes ago</div>
-            </div>
-          </div>
-          <div style="display: flex; align-items: center; padding: 0.75rem 0;">
-            <div class="avatar" style="width: 32px; height: 32px; font-size: 0.75rem; margin-right: 0.75rem;">TB</div>
-            <div>
-              <div style="font-size: 0.875rem;">Tom booked the common house</div>
-              <div class="text-gray text-sm">1 hour ago</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Alerts -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">⚠️ Alerts</h3>
-        </div>
-        <!-- HOTWIRE: Alerts will appear via Turbo Streams -->
-        <div id="alerts-list">
-          <div style="background: #fef3c7; color: #92400e; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
-            <strong>Low Stock:</strong> Eggs (2 left)
-          </div>
-          <div style="background: #fee2e2; color: #991b1b; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
-            <strong>Overdue:</strong> Power drill (3 days)
-          </div>
-          <div style="background: #dbeafe; color: #1e40af; padding: 0.75rem; border-radius: 8px;">
-            <strong>Maintenance:</strong> Washing machine needs repair
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tools Library Section -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h2 class="card-title">🔧 Community Tools</h2>
-      <div style="display: flex; gap: 0.5rem;">
-        <!-- HOTWIRE: Search will use Stimulus for auto-complete -->
-        <input type="text" class="form-input" placeholder="Search tools..." id="tool-search" style="width: 200px;">
-        <button class="btn btn-primary btn-small">Add Tool</button>
-      </div>
-    </div>
-
-    <!-- HOTWIRE: Tool grid will update via Turbo Frames for individual tools -->
-    <div class="grid grid-3" id="tools-grid">
-      <!-- HOTWIRE: Each tool card will be a separate Turbo Frame -->
-      <div class="card" id="tool-1">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-          <h3 style="margin: 0;">Power Drill</h3>
-          <span class="status status-checked-out">Checked Out</span>
-        </div>
-        <p class="text-gray text-sm mb-2">Professional grade cordless drill with multiple bits</p>
-        <div class="text-sm text-gray mb-2">
-          <div>📍 Tool Shed - Shelf A</div>
-          <div>👤 Checked out by: Mike Davis</div>
-          <div>📅 Due: Dec 28, 2024</div>
-        </div>
-        <!-- HOTWIRE: Button states will change based on tool status -->
-        <button class="btn btn-warning btn-small" disabled>Checked Out</button>
-      </div>
-
-      <div class="card" id="tool-2">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-          <h3 style="margin: 0;">Lawn Mower</h3>
-          <span class="status status-available">Available</span>
-        </div>
-        <p class="text-gray text-sm mb-2">Electric lawn mower for the common areas</p>
-        <div class="text-sm text-gray mb-2">
-          <div>📍 Garden Shed</div>
-          <div>⭐ Rating: 4.8/5 (12 reviews)</div>
-          <div>🔧 Last serviced: Dec 15, 2024</div>
-        </div>
-        <!-- HOTWIRE: Check out will be handled by Turbo Frame -->
-        <button class="btn btn-success btn-small">Check Out</button>
-      </div>
-
-      <div class="card" id="tool-3">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-          <h3 style="margin: 0;">Pressure Washer</h3>
-          <span class="status status-maintenance">Maintenance</span>
-        </div>
-        <p class="text-gray text-sm mb-2">High-pressure washer for outdoor cleaning</p>
-        <div class="text-sm text-gray mb-2">
-          <div>📍 Tool Shed - Floor</div>
-          <div>🔧 Issue: Pump needs replacement</div>
-          <div>📅 Repair scheduled: Jan 2, 2025</div>
-        </div>
-        <button class="btn btn-outline btn-small" disabled>Under Repair</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Kitchen Inventory Section -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h2 class="card-title">🍳 Household Kitchen Inventory</h2>
-      <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <!-- HOTWIRE: Toggle will filter inventory via Stimulus -->
-        <div style="display: flex; gap: 1rem; align-items: center;">
-          <label style="display: flex; align-items: center; gap: 0.5rem;">
-            <input type="radio" name="inventory-view" value="my-household" checked>
-            My Household
-          </label>
-          <label style="display: flex; align-items: center; gap: 0.5rem;">
-            <input type="radio" name="inventory-view" value="shared">
-            Shared Items
-          </label>
-          <label style="display: flex; align-items: center; gap: 0.5rem;">
-            <input type="radio" name="inventory-view" value="all">
-            All Items
-          </label>
-        </div>
-        <button class="btn btn-primary btn-small">Add Item</button>
-        <button class="btn btn-outline btn-small">Suggest Recipes</button>
-      </div>
-    </div>
-
-    <!-- HOTWIRE: Inventory table will update in real-time via Turbo Streams -->
-    <div style="overflow-x: auto;">
-      <table class="table" id="inventory-table">
-        <thead>
-        <tr>
-          <th>Item</th>
-          <th>Household</th>
-          <th>Visibility</th>
-          <th>Quantity</th>
-          <th>Expiration</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- HOTWIRE: Each row will be updateable via Turbo Frames -->
-        <tr id="inventory-item-1" class="my-household">
-          <td><strong>Eggs</strong></td>
-          <td>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">JS</div>
-              Johnson Family
-            </div>
-          </td>
-          <td>
-            <!-- HOTWIRE: Toggle will update via Turbo Frame -->
-            <select class="form-input" style="width: auto; font-size: 0.75rem;">
-              <option value="private">🔒 Private</option>
-              <option value="public" selected>🌍 Shared</option>
-            </select>
-          </td>
-          <td>
-            <!-- HOTWIRE: Quantity will be editable inline -->
-            <span id="quantity-1">2</span> cartons
-          </td>
-          <td>Dec 30, 2024</td>
-          <td><span class="status status-low-stock">Low Stock</span></td>
-          <td>
-            <button class="btn btn-outline btn-small">Edit</button>
-            <button class="btn btn-primary btn-small">Restock</button>
-          </td>
-        </tr>
-        <tr id="inventory-item-2" class="shared">
-          <td><strong>Milk</strong></td>
-          <td>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">MD</div>
-              Davis Household
-            </div>
-          </td>
-          <td>
-            <span style="font-size: 0.75rem; color: #059669;">🌍 Shared</span>
-          </td>
-          <td><span id="quantity-2">4</span> gallons</td>
-          <td>Dec 29, 2024</td>
-          <td><span class="status status-available">In Stock</span></td>
-          <td>
-            <span class="text-gray text-sm">View only</span>
-          </td>
-        </tr>
-        <tr id="inventory-item-3" class="my-household">
-          <td><strong>Bread</strong></td>
-          <td>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">JS</div>
-              Johnson Family
-            </div>
-          </td>
-          <td>
-            <select class="form-input" style="width: auto; font-size: 0.75rem;">
-              <option value="private" selected>🔒 Private</option>
-              <option value="public">🌍 Shared</option>
-            </select>
-          </td>
-          <td><span id="quantity-3">2</span> loaves</td>
-          <td>Dec 31, 2024</td>
-          <td><span class="status status-available">In Stock</span></td>
-          <td>
-            <button class="btn btn-outline btn-small">Edit</button>
-          </td>
-        </tr>
-        <tr id="inventory-item-4" class="shared">
-          <td><strong>Olive Oil</strong></td>
-          <td>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">AS</div>
-              Smith Family
-            </div>
-          </td>
-          <td>
-            <span style="font-size: 0.75rem; color: #059669;">🌍 Shared</span>
-          </td>
-          <td><span id="quantity-4">1</span> bottle</td>
-          <td>Mar 15, 2025</td>
-          <td><span class="status status-low-stock">Low Stock</span></td>
-          <td>
-            <span class="text-gray text-sm">View only</span>
-          </td>
-        </tr>
-        <tr id="inventory-item-5" class="my-household">
-          <td><strong>Pasta</strong></td>
-          <td>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">JS</div>
-              Johnson Family
-            </div>
-          </td>
-          <td>
-            <select class="form-input" style="width: auto; font-size: 0.75rem;">
-              <option value="private" selected>🔒 Private</option>
-              <option value="public">🌍 Shared</option>
-            </select>
-          </td>
-          <td><span id="quantity-5">3</span> boxes</td>
-          <td>Jun 12, 2025</td>
-          <td><span class="status status-available">In Stock</span></td>
-          <td>
-            <button class="btn btn-outline btn-small">Edit</button>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; font-size: 0.875rem; color: #6b7280;">
-      <strong>💡 How it works:</strong>
-      <ul style="margin: 0.5rem 0 0 1rem;">
-        <li><strong>🔒 Private:</strong> Only your household can see these items</li>
-        <li><strong>🌍 Shared:</strong> Other households can see these items and might ask to use them</li>
-        <li><strong>Recipe suggestions</strong> will consider both your private items and available shared items</li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- Common House Booking Calendar -->
+<!-- Main Content Grid -->
+<div class="grid grid-2 mb-4">
+  <!-- Community Wall -->
   <div class="card">
     <div class="card-header">
-      <h2 class="card-title">🏠 Common House Bookings</h2>
-      <div style="display: flex; gap: 0.5rem;">
-        <button class="btn btn-primary btn-small">Book Common House</button>
-        <button class="btn btn-outline btn-small">My Bookings</button>
+      <h2 class="card-title">Community Wall</h2>
+      <button class="btn btn-primary btn-small">New Post</button>
+    </div>
+
+    <!-- HOTWIRE: New post form will be a Turbo Frame -->
+    <div id="new-post-form" class="hidden">
+      <form class="mb-4">
+        <div class="form-group">
+          <textarea class="form-input" rows="3" placeholder="What's happening in the community?"></textarea>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-primary btn-small">Post</button>
+          <button class="btn btn-outline btn-small">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- HOTWIRE: Posts will stream in real-time via Turbo Streams -->
+    <div id="community-posts">
+      <div class="post">
+        <div class="post-header">
+          <div class="avatar">JS</div>
+          <div class="post-meta">
+            <div class="post-author">Jane Smith</div>
+            <div class="post-time">2 hours ago</div>
+          </div>
+        </div>
+        <div class="post-content">
+          Just finished organizing the tool shed! Everything is labeled and ready to go. The new power drill is on the
+          top shelf. 🔧
+        </div>
+        <div class="post-actions">
+          <a href="#" class="post-action">👍 Like (5)</a>
+          <a href="#" class="post-action">💬 Comment (2)</a>
+          <a href="#" class="post-action">📤 Share</a>
+        </div>
+
+        <!-- HOTWIRE: Comments will be added via Turbo Streams -->
+        <div id="post-1-comments" class="hidden">
+          <!-- Comments will go here -->
+        </div>
+      </div>
+
+      <div class="post">
+        <div class="post-header">
+          <div class="avatar">MD</div>
+          <div class="post-meta">
+            <div class="post-author">Mike Davis</div>
+            <div class="post-time">4 hours ago</div>
+          </div>
+        </div>
+        <div class="post-content">
+          Community dinner tonight at 7 PM! I'm making pasta. Please bring salad or dessert if you can. Kitchen is
+          booked from 5-9 PM.
+        </div>
+        <div class="post-actions">
+          <a href="#" class="post-action">👍 Like (12)</a>
+          <a href="#" class="post-action">💬 Comment (8)</a>
+          <a href="#" class="post-action">📤 Share</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions & Notifications -->
+  <div>
+    <!-- Recent Activity -->
+    <div class="card mb-2">
+      <div class="card-header">
+        <h3 class="card-title">Recent Activity</h3>
+      </div>
+      <!-- HOTWIRE: Activity feed will update via Turbo Streams -->
+      <div id="activity-feed">
+        <div style="display: flex; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb;">
+          <div class="avatar" style="width: 32px; height: 32px; font-size: 0.75rem; margin-right: 0.75rem;">JD</div>
+          <div>
+            <div style="font-size: 0.875rem;">John checked out the lawn mower</div>
+            <div class="text-gray text-sm">10 minutes ago</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb;">
+          <div class="avatar" style="width: 32px; height: 32px; font-size: 0.75rem; margin-right: 0.75rem;">AS</div>
+          <div>
+            <div style="font-size: 0.875rem;">Anna shared olive oil with community</div>
+            <div class="text-gray text-sm">25 minutes ago</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; padding: 0.75rem 0;">
+          <div class="avatar" style="width: 32px; height: 32px; font-size: 0.75rem; margin-right: 0.75rem;">TB</div>
+          <div>
+            <div style="font-size: 0.875rem;">Tom booked the common house</div>
+            <div class="text-gray text-sm">1 hour ago</div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- HOTWIRE: Calendar will be interactive via Stimulus controller -->
-    <div class="calendar" id="booking-calendar">
-      <div class="calendar-header">
-        <button class="btn btn-outline btn-small" style="float: left;">&lt;</button>
-        December 2024
-        <button class="btn btn-outline btn-small" style="float: right;">&gt;</button>
+    <!-- Alerts -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">⚠️ Alerts</h3>
       </div>
-      <div class="calendar-grid">
-        <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Sun</div>
-        <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Mon</div>
-        <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Tue</div>
-        <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Wed</div>
-        <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Thu</div>
-        <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Fri</div>
-        <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Sat</div>
-
-        <!-- Calendar days - HOTWIRE: Will be generated dynamically and interactive -->
-        <div class="calendar-day">25</div>
-        <div class="calendar-day">26</div>
-        <div class="calendar-day has-event">
-          27
-          <div class="calendar-event">Common House: Mike (7-9pm)</div>
+      <!-- HOTWIRE: Alerts will appear via Turbo Streams -->
+      <div id="alerts-list">
+        <div style="background: #fef3c7; color: #92400e; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
+          <strong>Low Stock:</strong> Eggs (2 left)
         </div>
-        <div class="calendar-day">29</div>
-        <div class="calendar-day has-event">
-          30
-          <div class="calendar-event">Common House: Sarah (2-5pm)</div>
+        <div style="background: #fee2e2; color: #991b1b; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
+          <strong>Overdue:</strong> Power drill (3 days)
         </div>
-        <div class="calendar-day">31</div>
-        <div class="calendar-day">1</div>
-        <div class="calendar-day has-event">
-          2
-          <div class="calendar-event">Common House: Community Dinner (6-9pm)</div>
+        <div style="background: #dbeafe; color: #1e40af; padding: 0.75rem; border-radius: 8px;">
+          <strong>Maintenance:</strong> Washing machine needs repair
         </div>
-        <div class="calendar-day">3</div>
-        <div class="calendar-day">4</div>
       </div>
     </div>
+  </div>
+</div>
 
-    <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; font-size: 0.875rem; color: #6b7280;">
-      <strong>📅 Common House Booking Rules:</strong>
-      <ul style="margin: 0.5rem 0 0 1rem;">
-        <li>Maximum 4 hour bookings</li>
-        <li>Book up to 2 weeks in advance</li>
-        <li>Cancel at least 2 hours before your booking</li>
-        <li>Clean up after use - next person will appreciate it! 🧹</li>
-      </ul>
+<!-- Tools Library Section -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h2 class="card-title">🔧 Community Tools</h2>
+    <div style="display: flex; gap: 0.5rem;">
+      <!-- HOTWIRE: Search will use Stimulus for auto-complete -->
+      <input type="text" class="form-input" placeholder="Search tools..." id="tool-search" style="width: 200px;">
+      <button class="btn btn-primary btn-small">Add Tool</button>
     </div>
+  </div>
+
+  <!-- HOTWIRE: Tool grid will update via Turbo Frames for individual tools -->
+  <div class="grid grid-3" id="tools-grid">
+    <!-- HOTWIRE: Each tool card will be a separate Turbo Frame -->
+    <div class="card" id="tool-1">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">Power Drill</h3>
+        <span class="status status-checked-out">Checked Out</span>
+      </div>
+      <p class="text-gray text-sm mb-2">Professional grade cordless drill with multiple bits</p>
+      <div class="text-sm text-gray mb-2">
+        <div>📍 Tool Shed - Shelf A</div>
+        <div>👤 Checked out by: Mike Davis</div>
+        <div>📅 Due: Dec 28, 2024</div>
+      </div>
+      <!-- HOTWIRE: Button states will change based on tool status -->
+      <button class="btn btn-warning btn-small" disabled>Checked Out</button>
+    </div>
+
+    <div class="card" id="tool-2">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">Lawn Mower</h3>
+        <span class="status status-available">Available</span>
+      </div>
+      <p class="text-gray text-sm mb-2">Electric lawn mower for the common areas</p>
+      <div class="text-sm text-gray mb-2">
+        <div>📍 Garden Shed</div>
+        <div>⭐ Rating: 4.8/5 (12 reviews)</div>
+        <div>🔧 Last serviced: Dec 15, 2024</div>
+      </div>
+      <!-- HOTWIRE: Check out will be handled by Turbo Frame -->
+      <button class="btn btn-success btn-small">Check Out</button>
+    </div>
+
+    <div class="card" id="tool-3">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">Pressure Washer</h3>
+        <span class="status status-maintenance">Maintenance</span>
+      </div>
+      <p class="text-gray text-sm mb-2">High-pressure washer for outdoor cleaning</p>
+      <div class="text-sm text-gray mb-2">
+        <div>📍 Tool Shed - Floor</div>
+        <div>🔧 Issue: Pump needs replacement</div>
+        <div>📅 Repair scheduled: Jan 2, 2025</div>
+      </div>
+      <button class="btn btn-outline btn-small" disabled>Under Repair</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kitchen Inventory Section -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h2 class="card-title">🍳 Household Kitchen Inventory</h2>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+      <!-- HOTWIRE: Toggle will filter inventory via Stimulus -->
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <label style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="radio" name="inventory-view" value="my-household" checked>
+          My Household
+        </label>
+        <label style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="radio" name="inventory-view" value="shared">
+          Shared Items
+        </label>
+        <label style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="radio" name="inventory-view" value="all">
+          All Items
+        </label>
+      </div>
+      <button class="btn btn-primary btn-small">Add Item</button>
+      <button class="btn btn-outline btn-small">Suggest Recipes</button>
+    </div>
+  </div>
+
+  <!-- HOTWIRE: Inventory table will update in real-time via Turbo Streams -->
+  <div style="overflow-x: auto;">
+    <table class="table" id="inventory-table">
+      <thead>
+      <tr>
+        <th>Item</th>
+        <th>Household</th>
+        <th>Visibility</th>
+        <th>Quantity</th>
+        <th>Expiration</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <!-- HOTWIRE: Each row will be updateable via Turbo Frames -->
+      <tr id="inventory-item-1" class="my-household">
+        <td><strong>Eggs</strong></td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">JS</div>
+            Johnson Family
+          </div>
+        </td>
+        <td>
+          <!-- HOTWIRE: Toggle will update via Turbo Frame -->
+          <select class="form-input" style="width: auto; font-size: 0.75rem;">
+            <option value="private">🔒 Private</option>
+            <option value="public" selected>🌍 Shared</option>
+          </select>
+        </td>
+        <td>
+          <!-- HOTWIRE: Quantity will be editable inline -->
+          <span id="quantity-1">2</span> cartons
+        </td>
+        <td>Dec 30, 2024</td>
+        <td><span class="status status-low-stock">Low Stock</span></td>
+        <td>
+          <button class="btn btn-outline btn-small">Edit</button>
+          <button class="btn btn-primary btn-small">Restock</button>
+        </td>
+      </tr>
+      <tr id="inventory-item-2" class="shared">
+        <td><strong>Milk</strong></td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">MD</div>
+            Davis Household
+          </div>
+        </td>
+        <td>
+          <span style="font-size: 0.75rem; color: #059669;">🌍 Shared</span>
+        </td>
+        <td><span id="quantity-2">4</span> gallons</td>
+        <td>Dec 29, 2024</td>
+        <td><span class="status status-available">In Stock</span></td>
+        <td>
+          <span class="text-gray text-sm">View only</span>
+        </td>
+      </tr>
+      <tr id="inventory-item-3" class="my-household">
+        <td><strong>Bread</strong></td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">JS</div>
+            Johnson Family
+          </div>
+        </td>
+        <td>
+          <select class="form-input" style="width: auto; font-size: 0.75rem;">
+            <option value="private" selected>🔒 Private</option>
+            <option value="public">🌍 Shared</option>
+          </select>
+        </td>
+        <td><span id="quantity-3">2</span> loaves</td>
+        <td>Dec 31, 2024</td>
+        <td><span class="status status-available">In Stock</span></td>
+        <td>
+          <button class="btn btn-outline btn-small">Edit</button>
+        </td>
+      </tr>
+      <tr id="inventory-item-4" class="shared">
+        <td><strong>Olive Oil</strong></td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">AS</div>
+            Smith Family
+          </div>
+        </td>
+        <td>
+          <span style="font-size: 0.75rem; color: #059669;">🌍 Shared</span>
+        </td>
+        <td><span id="quantity-4">1</span> bottle</td>
+        <td>Mar 15, 2025</td>
+        <td><span class="status status-low-stock">Low Stock</span></td>
+        <td>
+          <span class="text-gray text-sm">View only</span>
+        </td>
+      </tr>
+      <tr id="inventory-item-5" class="my-household">
+        <td><strong>Pasta</strong></td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">JS</div>
+            Johnson Family
+          </div>
+        </td>
+        <td>
+          <select class="form-input" style="width: auto; font-size: 0.75rem;">
+            <option value="private" selected>🔒 Private</option>
+            <option value="public">🌍 Shared</option>
+          </select>
+        </td>
+        <td><span id="quantity-5">3</span> boxes</td>
+        <td>Jun 12, 2025</td>
+        <td><span class="status status-available">In Stock</span></td>
+        <td>
+          <button class="btn btn-outline btn-small">Edit</button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; font-size: 0.875rem; color: #6b7280;">
+    <strong>💡 How it works:</strong>
+    <ul style="margin: 0.5rem 0 0 1rem;">
+      <li><strong>🔒 Private:</strong> Only your household can see these items</li>
+      <li><strong>🌍 Shared:</strong> Other households can see these items and might ask to use them</li>
+      <li><strong>Recipe suggestions</strong> will consider both your private items and available shared items</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Common House Booking Calendar -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">🏠 Common House Bookings</h2>
+    <div style="display: flex; gap: 0.5rem;">
+      <button class="btn btn-primary btn-small">Book Common House</button>
+      <button class="btn btn-outline btn-small">My Bookings</button>
+    </div>
+  </div>
+
+  <!-- HOTWIRE: Calendar will be interactive via Stimulus controller -->
+  <div class="calendar" id="booking-calendar">
+    <div class="calendar-header">
+      <button class="btn btn-outline btn-small" style="float: left;">&lt;</button>
+      December 2024
+      <button class="btn btn-outline btn-small" style="float: right;">&gt;</button>
+    </div>
+    <div class="calendar-grid">
+      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Sun</div>
+      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Mon</div>
+      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Tue</div>
+      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Wed</div>
+      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Thu</div>
+      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Fri</div>
+      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Sat</div>
+
+      <!-- Calendar days - HOTWIRE: Will be generated dynamically and interactive -->
+      <div class="calendar-day">25</div>
+      <div class="calendar-day">26</div>
+      <div class="calendar-day has-event">
+        27
+        <div class="calendar-event">Common House: Mike (7-9pm)</div>
+      </div>
+      <div class="calendar-day">29</div>
+      <div class="calendar-day has-event">
+        30
+        <div class="calendar-event">Common House: Sarah (2-5pm)</div>
+      </div>
+      <div class="calendar-day">31</div>
+      <div class="calendar-day">1</div>
+      <div class="calendar-day has-event">
+        2
+        <div class="calendar-event">Common House: Community Dinner (6-9pm)</div>
+      </div>
+      <div class="calendar-day">3</div>
+      <div class="calendar-day">4</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; font-size: 0.875rem; color: #6b7280;">
+    <strong>📅 Common House Booking Rules:</strong>
+    <ul style="margin: 0.5rem 0 0 1rem;">
+      <li>Maximum 4 hour bookings</li>
+      <li>Book up to 2 weeks in advance</li>
+      <li>Cancel at least 2 hours before your booking</li>
+      <li>Clean up after use - next person will appreciate it! 🧹</li>
+    </ul>
   </div>
 </div>

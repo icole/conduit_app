@@ -1,32 +1,32 @@
 <div class="login-container">
   <div class="card" style="max-width: 400px; margin: 2rem auto; padding: 2rem;">
-    <h2 class="card-title text-center mb-4">Log in to Community Hub</h2>
+    <h2 class="card-title text-center mb-3">Log in to Community Hub</h2>
 
     <% if flash[:alert] %>
-      <div class="alert alert-danger mb-4">
+      <div class="alert alert-danger mb-3">
         <%= flash[:alert] %>
       </div>
     <% end %>
 
-    <%= form_with url: login_path, method: :post, class: "mb-4" do |f| %>
-      <div class="form-group mb-3">
-        <%= f.label :email, class: "form-label" %>
-        <%= f.email_field :email, class: "form-input", required: true, autofocus: true %>
-      </div>
+    <%#= form_with url: login_path, method: :post, class: "mb-4" do |f| %>
+    <!--      <div class="form-group mb-3">-->
+    <%#= f.label :email, class: "form-label" %>
+    <%#= f.email_field :email, class: "form-input", required: true, autofocus: true %>
+    <!--      </div>-->
 
-      <div class="form-group mb-4">
-        <%= f.label :password, class: "form-label" %>
-        <%= f.password_field :password, class: "form-input", required: true %>
-      </div>
+    <!--      <div class="form-group mb-4">-->
+    <%#= f.label :password, class: "form-label" %>
+    <%#= f.password_field :password, class: "form-input", required: true %>
+    <!--      </div>-->
 
-      <div class="form-group">
-        <%= f.submit "Log in", class: "btn btn-primary w-100" %>
-      </div>
-    <% end %>
+    <!--      <div class="form-group">-->
+    <%#= f.submit "Log in", class: "btn btn-primary w-100" %>
+    <!--      </div>-->
+    <%# end %>
 
-    <div class="divider">
-      <span>OR</span>
-    </div>
+    <!--    <div class="divider">-->
+    <!--      <span>OR</span>-->
+    <!--    </div>-->
 
     <%= button_to "/auth/google_oauth2", method: :post, class: "btn btn-outline w-100 google-btn", data: { turbo: false } do %>
       <img src="https://www.google.com/favicon.ico" alt="Google" width="20" height="20" style="margin-right: 8px;">
@@ -36,13 +36,6 @@
 </div>
 
 <style>
-    .login-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: calc(100vh - 80px);
-    }
-
     .divider {
         display: flex;
         align-items: center;
@@ -63,26 +56,7 @@
         font-size: 0.875rem;
     }
 
-    .google-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-top: 0.5rem;
-    }
-
-    .text-center {
-        text-align: center;
-    }
-
     .w-100 {
         width: 100%;
-    }
-
-    .mb-3 {
-        margin-bottom: 0.75rem;
-    }
-
-    .mb-4 {
-        margin-bottom: 1rem;
     }
 </style>
