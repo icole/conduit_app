@@ -4,7 +4,7 @@ Rails.application.routes.draw do
       get :refresh_from_google_drive
     end
   end
-  resources :dashboard, only: ["index"]
+  resources :dashboard, only: [ "index" ]
 
   # Temporary route for testing environment variables
   get "test/env", to: "test#env_test"

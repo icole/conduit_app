@@ -30,7 +30,7 @@ module GoogleDriveConfig
 
       authorizer = Google::Auth::UserAuthorizer.new(
         Google::Auth::ClientId.new(client_id, client_secret),
-        [Google::Apis::DriveV3::AUTH_DRIVE_READONLY],
+        [ Google::Apis::DriveV3::AUTH_DRIVE_READONLY ],
         Google::Auth::Stores::FileTokenStore.new(file: Rails.root.join("tmp", "token.yaml").to_s)
       )
 

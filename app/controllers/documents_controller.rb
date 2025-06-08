@@ -61,15 +61,15 @@ class DocumentsController < ApplicationController
 
         # Determine document type based on MIME type
         document_type = case file.mime_type
-                        when "application/vnd.google-apps.document"
+        when "application/vnd.google-apps.document"
                           "Google Doc"
-                        when "application/vnd.google-apps.spreadsheet"
+        when "application/vnd.google-apps.spreadsheet"
                           "Google Sheet"
-                        when "application/vnd.google-apps.presentation"
+        when "application/vnd.google-apps.presentation"
                           "Google Slides"
-                        else
+        else
                           "Other"
-                        end
+        end
 
         # Create a new document record
         Document.create!(
