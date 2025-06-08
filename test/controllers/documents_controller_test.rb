@@ -3,6 +3,7 @@ require "test_helper"
 class DocumentsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @document = documents(:one)
+    sign_in_user
   end
 
   test "should get index" do
