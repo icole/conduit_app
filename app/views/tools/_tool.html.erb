@@ -1,0 +1,22 @@
+<div id="<%= dom_id tool %>" class="card">
+<div style="">
+  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+      <h3 style="margin: 0;">  <%= tool.title %></h3>
+      <span class="status status-checked-out"><%= tool.status %></span>
+    </div>
+  </div>
+  <div>
+
+  </div>
+  <div>
+    <p class="text-gray text-sm mb-2">  <%= tool.description %></p>
+  </div>
+  <div class="text-sm text-gray mb-2">
+    <div>📍 <%= tool.location %></div>
+    <div>👤 Checked out by:  <%= tool.checked_out_by %></div>
+    <div>📅 Due: <%= tool.expected_return_by %></div>
+  </div>
+  <div>
+</div>
+</div>
+</div>
