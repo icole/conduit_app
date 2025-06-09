@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :tools
   resources :documents do
     collection do
       get :refresh_from_google_drive
