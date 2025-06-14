@@ -267,6 +267,7 @@ GEM
       activesupport (>= 7.0.0)
       rack
       railties (>= 7.0.0)
+    pstore (0.1.4)
     psych (5.2.6)
       date
       stringio
@@ -472,6 +473,7 @@ DEPENDENCIES
   omniauth-rails_csrf_protection (~> 1.0)
   pg (~> 1.1)
   propshaft
+  pstore
   puma (>= 5.0)
   rails (~> 8.0.2)
   rubocop-rails-omakase
