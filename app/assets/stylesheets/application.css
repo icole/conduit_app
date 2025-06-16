@@ -8,6 +8,8 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+*= require simple_calendar
+
 * {
     margin: 0;
     padding: 0;
