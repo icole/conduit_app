@@ -1,6 +1,6 @@
 class PostsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_post, only: [:update, :destroy]
+  before_action :set_post, only: [ :update, :destroy ]
 
   def index
     @posts = Post.order(created_at: :desc)
