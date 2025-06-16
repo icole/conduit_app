@@ -1,0 +1,21 @@
+<%= form_with(model: post, class: "mb-4") do |form| %>
+  <% if post.errors.any? %>
+    <div class="error-messages mb-4">
+      <h2><%= pluralize(post.errors.count, "error") %> prohibited this post from being saved:</h2>
+      <ul>
+        <% post.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= form.text_area :content, class: "form-input", rows: 3, placeholder: "What's happening in the community?" %>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem;">
+    <%= form.submit "Post", class: "btn btn-primary btn-small" %>
+    <button type="button" class="btn btn-outline btn-small" data-action="click->posts#cancelForm">Cancel</button>
+  </div>
+<% end %>

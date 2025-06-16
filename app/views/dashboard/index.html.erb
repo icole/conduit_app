@@ -1,69 +1,26 @@
 <!-- Main Content Grid -->
-<div class="grid grid-2 mb-4">
+<div class="grid grid-2 mb-4" data-controller="posts">
   <!-- Community Wall -->
   <div class="card">
     <div class="card-header">
       <h2 class="card-title">Community Wall</h2>
-      <button class="btn btn-primary btn-small">New Post</button>
+      <button class="btn btn-primary btn-small" data-action="click->posts#showForm">New Post</button>
     </div>
 
     <!-- HOTWIRE: New post form will be a Turbo Frame -->
-    <div id="new-post-form" class="hidden">
-      <form class="mb-4">
-        <div class="form-group">
-          <textarea class="form-input" rows="3" placeholder="What's happening in the community?"></textarea>
-        </div>
-        <div style="display: flex; gap: 0.5rem;">
-          <button class="btn btn-primary btn-small">Post</button>
-          <button class="btn btn-outline btn-small">Cancel</button>
-        </div>
-      </form>
+    <div id="new-post-form" class="<%= 'hidden' unless @post.errors.any? %>">
+      <%= render "posts/form", post: @post %>
     </div>
 
     <!-- HOTWIRE: Posts will stream in real-time via Turbo Streams -->
     <div id="community-posts">
-      <div class="post">
-        <div class="post-header">
-          <div class="avatar">JS</div>
-          <div class="post-meta">
-            <div class="post-author">Jane Smith</div>
-            <div class="post-time">2 hours ago</div>
-          </div>
+      <% if @posts.any? %>
+        <%= render @posts %>
+      <% else %>
+        <div class="text-center p-4 text-gray">
+          <p>No posts yet. Be the first to share something with the community!</p>
         </div>
-        <div class="post-content">
-          Just finished organizing the tool shed! Everything is labeled and ready to go. The new power drill is on the
-          top shelf. 🔧
-        </div>
-        <div class="post-actions">
-          <a href="#" class="post-action">👍 Like (5)</a>
-          <a href="#" class="post-action">💬 Comment (2)</a>
-          <a href="#" class="post-action">📤 Share</a>
-        </div>
-
-        <!-- HOTWIRE: Comments will be added via Turbo Streams -->
-        <div id="post-1-comments" class="hidden">
-          <!-- Comments will go here -->
-        </div>
-      </div>
-
-      <div class="post">
-        <div class="post-header">
-          <div class="avatar">MD</div>
-          <div class="post-meta">
-            <div class="post-author">Mike Davis</div>
-            <div class="post-time">4 hours ago</div>
-          </div>
-        </div>
-        <div class="post-content">
-          Community dinner tonight at 7 PM! I'm making pasta. Please bring salad or dessert if you can. Kitchen is
-          booked from 5-9 PM.
-        </div>
-        <div class="post-actions">
-          <a href="#" class="post-action">👍 Like (12)</a>
-          <a href="#" class="post-action">💬 Comment (8)</a>
-          <a href="#" class="post-action">📤 Share</a>
-        </div>
-      </div>
+      <% end %>
     </div>
   </div>
 
