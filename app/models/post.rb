@@ -1,5 +1,23 @@
 class Post < ApplicationRecord
   belongs_to :user
+  has_many :likes, dependent: :destroy
+  has_many :comments, dependent: :destroy
 
   validates :content, presence: true
+
+  def liked_by?(user)
+    likes.exists?(user: user)
+  end
+
+  def commented_by?(user)
+    comments.exists?(user: user)
+  end
+
+  def likes_count
+    likes.count
+  end
+
+  def comments_count
+    comments.count
+  end
 end
