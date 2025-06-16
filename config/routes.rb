@@ -7,6 +7,8 @@ Rails.application.routes.draw do
   end
   resources :dashboard, only: ["index"]
 
+  resources :calendar,  only: ["index"]
+
   # Temporary route for testing environment variables
   get 'test/env', to: 'test#env_test'
 
@@ -14,6 +16,8 @@ Rails.application.routes.draw do
   get 'login', to: 'sessions#new'
   post 'login', to: 'sessions#create'
   delete 'logout', to: 'sessions#destroy'
+
+
 
   # OmniAuth callback
   get 'auth/:provider/callback', to: 'sessions#omniauth'
