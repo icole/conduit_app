@@ -1,4 +1,4 @@
 <h1>hey im in the calendar</h1>
-<%= month_calendar do |date| %>
-  <%= date %>
+<%= month_calendar(partial: 'simple_calendar/month_calendar') do |date| %>
+  <%= date.day %>
 <% end %>
