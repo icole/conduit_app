@@ -8,8 +8,10 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
-*= require simple_calendar
 
+
+
+*= require simple_calendar
 * {
     margin: 0;
     padding: 0;
@@ -349,7 +351,13 @@ body {
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
-
+.calendar-nav {
+    color:white;
+}
+.calendar-nav:hover{
+    background: #f3f4f6;
+    color: #6b7280;
+}
 .calendar-header {
     background: #3b82f6;
     color: white;
