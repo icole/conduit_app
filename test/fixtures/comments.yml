@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+comment_one:
+  content: "Great job organizing the tool shed! It's so much easier to find things now."
+  user: two
+  post: post_one
+
+comment_two:
+  content: "I'll bring a salad for the community dinner tonight. Looking forward to it!"
+  user: one
+  post: post_two

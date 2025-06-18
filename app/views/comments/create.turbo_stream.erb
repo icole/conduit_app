@@ -1,0 +1,11 @@
+<%= turbo_stream.replace dom_id(@post) do %>
+  <%= render @post %>
+<% end %>
+
+<%= turbo_stream.prepend "post-#{@post.id}-comments-list" do %>
+  <%= render @comment %>
+<% end %>
+
+<%= turbo_stream.replace "new_comment_#{@post.id}" do %>
+  <%= render "comments/form", post: @post, comment: Comment.new %>
+<% end %>

@@ -10,11 +10,27 @@
     <%= post.content %>
   </div>
   <div class="post-actions">
-    <a href="#" class="post-action">👍 Like (0)</a>
-    <a href="#" class="post-action">💬 Comment (0)</a>
+    <% if post.liked_by?(current_user) %>
+      <%= button_to "👍 Unlike (#{post.likes_count})", post_like_path(post, post.likes.find_by(user: current_user)), method: :delete, class: "post-action" %>
+    <% else %>
+      <%= button_to "👍 Like (#{post.likes_count})", post_likes_path(post), method: :post, class: "post-action" %>
+    <% end %>
+    <button class="post-action" data-action="click->posts#toggleComments" data-posts-target="commentToggle" data-post-id="<%= post.id %>">
+      💬 Comment (<%= post.comments_count %>)
+    </button>
     <a href="#" class="post-action">📤 Share</a>
     <% if post.user == current_user %>
       <%= button_to "🗑️ Delete", post_path(post), method: :delete, class: "post-action", form: { data: { turbo_confirm: "Are you sure?" } } %>
     <% end %>
+  </div>
+
+  <div id="post-<%= post.id %>-comments" class="post-comments <%= 'hidden' unless post.commented_by?(current_user) %>" data-posts-target="commentSection">
+    <div id="post-<%= post.id %>-comments-list">
+      <%= render post.comments %>
+    </div>
+
+    <div id="new_comment_<%= post.id %>" class="mt-2">
+      <%= render "comments/form", post: post, comment: Comment.new %>
+    </div>
   </div>
 </div>

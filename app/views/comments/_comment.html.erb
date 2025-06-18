@@ -1,0 +1,17 @@
+<div class="comment" id="<%= dom_id comment %>">
+  <div class="comment-header">
+    <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;"><%= comment.user.name.split.map(&:first).join %></div>
+    <div class="comment-meta">
+      <div class="comment-author"><%= comment.user.name %></div>
+      <div class="comment-time"><%= time_ago_in_words(comment.created_at) %> ago</div>
+    </div>
+  </div>
+  <div class="comment-content">
+    <%= comment.content %>
+  </div>
+  <% if comment.user == current_user %>
+    <div class="comment-actions">
+      <%= button_to "🗑️", [comment.post, comment], method: :delete, class: "btn btn-small", form: { data: { turbo_confirm: "Are you sure?" } } %>
+    </div>
+  <% end %>
+</div>

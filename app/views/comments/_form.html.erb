@@ -1,0 +1,19 @@
+<%= form_with(model: [post, comment], class: "comment-form") do |form| %>
+  <% if comment.errors.any? %>
+    <div class="error-messages mb-2">
+      <ul>
+        <% comment.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= form.text_area :content, class: "form-input", rows: 2, placeholder: "Add a comment...", required: true %>
+  </div>
+
+  <div>
+    <%= form.submit "Comment", class: "btn btn-primary btn-small" %>
+  </div>
+<% end %>
