@@ -9,9 +9,6 @@
  * Consider organizing styles into separate files for maintainability.
  */
 
-
-
-*= require simple_calendar
 * {
     margin: 0;
     padding: 0;
@@ -345,6 +342,11 @@ body {
 }
 
 /* Calendar */
+.day {
+    border: 1px solid #e5e7eb;
+    min-height: 80px;
+}
+
 .calendar {
     background: white;
     border-radius: 12px;

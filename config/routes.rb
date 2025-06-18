@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   resources :dashboard, only: [ "index" ]
 
   resources :calendar,  only: ["index"]
+  resources :calendar_events
 
   # Temporary route for testing environment variables
   get "test/env", to: "test#env_test"

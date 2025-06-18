@@ -1,0 +1,38 @@
+<%= form_with(model: calendar_event) do |form| %>
+  <% if calendar_event.errors.any? %>
+    <div class="error-message">
+      <h2><%= pluralize(calendar_event.errors.count, "error") %> prohibited this event from being saved:</h2>
+
+      <ul>
+        <% calendar_event.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-4">
+    <%= form.label :title, class: "block text-sm font-medium text-gray-700" %>
+    <%= form.text_field :title, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" %>
+  </div>
+
+  <div class="mb-4">
+    <%= form.label :description, class: "block text-sm font-medium text-gray-700" %>
+    <%= form.text_area :description, rows: 3, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" %>
+  </div>
+
+  <div class="mb-4">
+    <%= form.label :start_time, class: "block text-sm font-medium text-gray-700" %>
+    <%= form.datetime_local_field :start_time, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" %>
+  </div>
+
+  <div class="mb-4">
+    <%= form.label :end_time, class: "block text-sm font-medium text-gray-700" %>
+    <%= form.datetime_local_field :end_time, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" %>
+  </div>
+
+  <div class="flex justify-end space-x-3">
+    <%= form.submit class: "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" %>
+    <%= link_to 'Cancel', calendar_index_path, class: "px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400" %>
+  </div>
+<% end %>
