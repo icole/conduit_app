@@ -1,4 +1,45 @@
-<h1>hey im in the calendar</h1>
-<%= month_calendar(partial: 'simple_calendar/month_calendar') do |date| %>
-  <%= date.day %>
-<% end %>
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">Calendar</h1>
+
+  <%= month_calendar(events: CalendarEvent.all) do |date, events| %>
+    <div class="flex justify-between items-center mb-1">
+      <div class="calendar-date"><%= date.day %></div>
+      <%= link_to "add",
+          new_calendar_event_path(calendar_event: { start_time: date.to_datetime }), 
+          data: { 
+            turbo: false
+          }, 
+          class: "text-xs px-1 py-0.5 bg-blue-500 text-white rounded hover:bg-blue-600",
+          title: "Add event" %>
+    </div>
+
+    <% events.each do |event| %>
+      <div class="calendar-event">
+        <%= link_to event.title, edit_calendar_event_path(event), 
+            data: { 
+              turbo: false
+            }, 
+            class: "text-sm truncate block" %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<style>
+  .calendar-date {
+    font-weight: bold;
+  }
+
+  .calendar-event {
+    padding: 0.25rem;
+    margin-bottom: 0.25rem;
+    background-color: #e0f2fe;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+  }
+
+  .simple-calendar td {
+    height: 100px;
+    vertical-align: top;
+  }
+</style>

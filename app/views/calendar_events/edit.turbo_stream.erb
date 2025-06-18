@@ -1,0 +1,5 @@
+<%= turbo_stream.update "modal" do %>
+  <%= render partial: "shared/modal", locals: { title: "Edit Calendar Event" } do %>
+    <%= render "form", calendar_event: @calendar_event %>
+  <% end %>
+<% end %>
