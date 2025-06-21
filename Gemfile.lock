@@ -132,8 +132,8 @@ GEM
       mutex_m
       representable (~> 3.0)
       retriable (>= 2.0, < 4.a)
-    google-apis-drive_v3 (0.14.0)
-      google-apis-core (>= 0.4, < 2.a)
+    google-apis-drive_v3 (0.66.0)
+      google-apis-core (>= 0.15.0, < 2.a)
     google-cloud-env (2.3.1)
       base64 (~> 0.2)
       faraday (>= 1.0, < 3.a)
@@ -463,7 +463,7 @@ DEPENDENCIES
   capybara
   debug
   dotenv-rails
-  google-apis-drive_v3 (~> 0.14.0)
+  google-apis-drive_v3 (~> 0.66.0)
   googleauth (~> 1.0)
   importmap-rails
   jbuilder
