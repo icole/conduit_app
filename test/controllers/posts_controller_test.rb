@@ -16,8 +16,9 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should get update" do
-    get posts_update_url
-    assert_response :success
+    patch post_url(@post), params: { post: { content: "Updated content" } }
+
+    assert_redirected_to dashboard_index_url
   end
 
   test "should get destroy" do
