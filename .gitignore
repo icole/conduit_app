@@ -11,6 +11,9 @@
 /.env*
 !/.env.sample
 
+# Ignore google keys
+wide-gamma-462206-r8-823649cf4ac3.json
+
 # Ignore all logfiles and tempfiles.
 /log/*
 /tmp/*
