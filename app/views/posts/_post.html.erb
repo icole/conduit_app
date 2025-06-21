@@ -18,7 +18,6 @@
     <button class="post-action" data-action="click->posts#toggleComments" data-posts-target="commentToggle" data-post-id="<%= post.id %>">
       💬 Comment (<%= post.comments_count %>)
     </button>
-    <a href="#" class="post-action">📤 Share</a>
     <% if post.user == current_user %>
       <%= button_to "🗑️ Delete", post_path(post), method: :delete, class: "post-action", form: { data: { turbo_confirm: "Are you sure?" } } %>
     <% end %>

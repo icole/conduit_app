@@ -5,5 +5,6 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     sign_in_user
     get dashboard_index_url
     assert_response :success
+    assert_equal 2, assigns(:posts).count
   end
 end
