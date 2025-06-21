@@ -55,3 +55,5 @@ class CalendarEventsController < ApplicationController
     params.require(:calendar_event).permit(:title, :description, :start_time, :end_time)
   end
 end
+
+
