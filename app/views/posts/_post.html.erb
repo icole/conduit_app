@@ -11,15 +11,15 @@
   </div>
   <div class="post-actions">
     <% if post.liked_by?(current_user) %>
-      <%= button_to "👍 Unlike (#{post.likes_count})", post_like_path(post, post.likes.find_by(user: current_user)), method: :delete, class: "post-action" %>
+      <%= button_to "👍 Unlike (#{post.likes_count})", post_like_path(post, post.likes.find_by(user: current_user)), method: :delete, class: "post-action", data: { testid: "unlike-button-#{post.id}" } %>
     <% else %>
-      <%= button_to "👍 Like (#{post.likes_count})", post_likes_path(post), method: :post, class: "post-action" %>
+      <%= button_to "👍 Like (#{post.likes_count})", post_likes_path(post), method: :post, class: "post-action", data: { testid: "like-button-#{post.id}" } %>
     <% end %>
-    <button class="post-action" data-action="click->posts#toggleComments" data-posts-target="commentToggle" data-post-id="<%= post.id %>">
+    <button class="post-action" data-action="click->posts#toggleComments" data-posts-target="commentToggle" data-post-id="<%= post.id %>" data-testid="comment-button-<%= post.id %>">
       💬 Comment (<%= post.comments_count %>)
     </button>
     <% if post.user == current_user %>
-      <%= button_to "🗑️ Delete", post_path(post), method: :delete, class: "post-action", form: { data: { turbo_confirm: "Are you sure?" } } %>
+      <%= button_to "🗑️ Delete", post_path(post), method: :delete, class: "post-action", form: { data: { turbo_confirm: "Are you sure?" } }, data: { testid: "delete-post-button-#{post.id}" } %>
     <% end %>
   </div>
 
