@@ -84,7 +84,7 @@ production:
     database: conduit_app_production
     username: conduit_app
     password: <%= ENV["CONDUIT_APP_DATABASE_PASSWORD"] %>
-    host: <%= ENV["CONDUIT_SERVER_IP"] %>  # Use the consistent variable name
+    host: conduit_app-db  # Use the consistent variable name
     port: 5432
   cache:
     <<: *primary_production
