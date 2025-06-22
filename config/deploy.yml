@@ -6,10 +6,10 @@ servers:
     - <%= ENV["CONDUIT_SERVER_IP"] %>
 
 ssh:
-  user: <%= ENV["CONDUIT_SSH_USER"] %>  # Your Google Cloud username
+  user: <%= ENV["SSH_USER"] %>
 
 proxy:
-  ssl: false  # Set to true if you have a domain
+  ssl: false
   host: <%= ENV["CONDUIT_SERVER_IP"] %>
 
 registry:
@@ -28,6 +28,23 @@ env:
 
 volumes:
   - "conduit_app_storage:/rails/storage"
+
+# Add PostgreSQL as an accessory
+accessories:
+  db:
+    image: postgres:15
+    host: <%= ENV["CONDUIT_SERVER_IP"] %>
+    port: 5432
+    env:
+      clear:
+        POSTGRES_USER: conduit_app
+        POSTGRES_DB: conduit_app_production
+      secret:
+        - CONDUIT_APP_DATABASE_PASSWORD
+    files:
+      - .kamal/postgres/init.sql:/docker-entrypoint-initdb.d/setup.sql
+    volumes:
+      - /var/lib/postgresql/data:/var/lib/postgresql/data
 
 builder:
   arch: amd64
