@@ -9,8 +9,8 @@ ssh:
   user: <%= ENV["CONDUIT_SSH_USER"] %>
 
 proxy:
-  ssl: false
-  host: <%= ENV["CONDUIT_SERVER_IP"] %>
+  ssl: true
+  host: <%= ENV["CONDUIT_DOMAIN"] %>
 
 registry:
   username: <%= ENV["DOCKER_USERNAME"] %>
