@@ -1,32 +1,24 @@
 #!/bin/bash
-echo "Setting up Docker and PostgreSQL on $KAMAL_HOSTS..."
+set -e
 
-# Install Docker if not present
-if ! command -v docker &> /dev/null; then
-    sudo apt update
-    sudo apt install -y docker.io docker-compose
-    sudo systemctl start docker
-    sudo systemctl enable docker
-fi
+echo "=== Debug Hook Start ==="
+echo "Current user: $(whoami)"
+echo "Current directory: $(pwd)"
+echo "PATH: $PATH"
+echo "Shell: $SHELL"
 
-# Fix Docker permissions
-sudo groupadd -f docker
-sudo usermod -aG docker $USER
-sudo chown root:docker /var/run/docker.sock
-sudo chmod 660 /var/run/docker.sock
+# Check for package managers
+echo "Checking for package managers..."
+which apt 2>/dev/null && echo "apt found at: $(which apt)" || echo "apt not found"
+which apt-get 2>/dev/null && echo "apt-get found at: $(which apt-get)" || echo "apt-get not found"
 
-# Install PostgreSQL
-if ! command -v psql &> /dev/null; then
-    sudo apt install -y postgresql postgresql-contrib
-    sudo systemctl start postgresql
-    sudo systemctl enable postgresql
+# Try to locate apt
+echo "Looking for apt..."
+ls -la /usr/bin/apt* 2>/dev/null || echo "No apt in /usr/bin"
+ls -la /bin/apt* 2>/dev/null || echo "No apt in /bin"
 
-    # Create user and databases
-    sudo -u postgres psql -c "CREATE USER conduit_app WITH PASSWORD '$CONDUIT_APP_DATABASE_PASSWORD';" || true
-    sudo -u postgres psql -c "CREATE DATABASE conduit_app_production OWNER conduit_app;" || true
-    sudo -u postgres psql -c "CREATE DATABASE conduit_app_production_cache OWNER conduit_app;" || true
-    sudo -u postgres psql -c "CREATE DATABASE conduit_app_production_queue OWNER conduit_app;" || true
-    sudo -u postgres psql -c "CREATE DATABASE conduit_app_production_cable OWNER conduit_app;" || true
-fi
+# Check OS
+echo "OS Information:"
+cat /etc/os-release
 
-echo "Setup complete!"
+echo "=== Debug Hook End ==="
