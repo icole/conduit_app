@@ -1,24 +1,52 @@
 #!/bin/bash
-set -e
 
-echo "=== Debug Hook Start ==="
-echo "Current user: $(whoami)"
-echo "Current directory: $(pwd)"
-echo "PATH: $PATH"
-echo "Shell: $SHELL"
+# Force all output to be shown
+exec > >(tee -a /tmp/kamal-hook-output.log) 2>&1
+set -x  # Show all commands being executed
+set -e  # Exit on any error
 
-# Check for package managers
-echo "Checking for package managers..."
-which apt 2>/dev/null && echo "apt found at: $(which apt)" || echo "apt not found"
-which apt-get 2>/dev/null && echo "apt-get found at: $(which apt-get)" || echo "apt-get not found"
+echo "========================================="
+echo "KAMAL DOCKER SETUP HOOK STARTING"
+echo "Date: $(date)"
+echo "User: $(whoami)"
+echo "Working directory: $(pwd)"
+echo "Environment variables:"
+echo "  CONDUIT_APP_DATABASE_PASSWORD: ${CONDUIT_APP_DATABASE_PASSWORD:+SET}"
+echo "========================================="
 
-# Try to locate apt
-echo "Looking for apt..."
-ls -la /usr/bin/apt* 2>/dev/null || echo "No apt in /usr/bin"
-ls -la /bin/apt* 2>/dev/null || echo "No apt in /bin"
+# Update system
+echo ">>> Updating package lists..."
+sudo apt update
 
-# Check OS
-echo "OS Information:"
-cat /etc/os-release
+echo ">>> Installing PostgreSQL..."
+sudo apt install -y postgresql postgresql-contrib
 
-echo "=== Debug Hook End ==="
+echo ">>> Installing Docker..."
+sudo apt install -y docker.io docker-compose
+
+echo ">>> Starting services..."
+sudo systemctl start postgresql docker
+sudo systemctl enable postgresql docker
+
+echo ">>> Configuring Docker permissions..."
+sudo usermod -aG docker $(whoami)
+
+echo ">>> Setting up PostgreSQL databases..."
+sudo -u postgres psql -c "CREATE USER conduit_app WITH PASSWORD '$CONDUIT_APP_DATABASE_PASSWORD';"
+sudo -u postgres psql -c "CREATE DATABASE conduit_app_production OWNER conduit_app;"
+sudo -u postgres psql -c "CREATE DATABASE conduit_app_production_cache OWNER conduit_app;"
+sudo -u postgres psql -c "CREATE DATABASE conduit_app_production_queue OWNER conduit_app;"
+sudo -u postgres psql -c "CREATE DATABASE conduit_app_production_cable OWNER conduit_app;"
+
+echo ">>> Configuring PostgreSQL for Docker access..."
+sudo sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
+echo "host all conduit_app 172.17.0.0/16 md5" | sudo tee -a /etc/postgresql/*/main/pg_hba.conf
+sudo systemctl restart postgresql
+
+echo ">>> Testing database connection..."
+sudo -u postgres psql -c "SELECT 'Database setup successful!' AS status;" conduit_app_production
+
+echo "========================================="
+echo "KAMAL DOCKER SETUP HOOK COMPLETED"
+echo "Date: $(date)"
+echo "========================================="
