@@ -6,7 +6,7 @@ servers:
     - <%= ENV["CONDUIT_SERVER_IP"] %>
 
 ssh:
-  user: <%= ENV["SSH_USER"] %>
+  user: <%= ENV["CONDUIT_SSH_USER"] %>
 
 proxy:
   ssl: false
@@ -41,6 +41,7 @@ accessories:
         POSTGRES_DB: conduit_app_production
       secret:
         - CONDUIT_APP_DATABASE_PASSWORD
+        - POSTGRES_PASSWORD
     files:
       - .kamal/postgres/init.sql:/docker-entrypoint-initdb.d/setup.sql
     volumes:
