@@ -4,8 +4,6 @@ image: <%= ENV["DOCKER_USERNAME"] %>/conduit_app
 servers:
   web:
     - <%= ENV["CONDUIT_SERVER_IP"] %>
-    options:
-      "readiness-delay": "60s"
 
 ssh:
   user: <%= ENV["CONDUIT_SSH_USER"] %>
