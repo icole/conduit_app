@@ -4,6 +4,8 @@ image: <%= ENV["DOCKER_USERNAME"] %>/conduit_app
 servers:
   web:
     - <%= ENV["CONDUIT_SERVER_IP"] %>
+    options:
+      "readiness-delay": "60s"
 
 ssh:
   user: <%= ENV["CONDUIT_SSH_USER"] %>
@@ -11,13 +13,6 @@ ssh:
 proxy:
   ssl: true
   host: <%= ENV["CONDUIT_DOMAIN"] %>
-  
-healthcheck:
-  path: "/up"
-  port: 3000
-  max_attempts: 20  # Increase from default (usually 7)
-  interval: 3s      # Check every 3 seconds
-  timeout: 60s      # Wait up to 60 seconds total
 
 registry:
   username: <%= ENV["DOCKER_USERNAME"] %>
