@@ -1,0 +1,14 @@
+<!-- Flash Messages -->
+<% if flash[:notice] %>
+  <div data-controller="flash" class="flash-message flash-notice">
+    <span class="flash-text"><%= flash[:notice] %></span>
+    <button data-action="click->flash#dismiss" class="flash-close" aria-label="Close">&times;</button>
+  </div>
+<% end %>
+
+<% if flash[:alert] %>
+  <div data-controller="flash" class="flash-message flash-alert">
+    <span class="flash-text"><%= flash[:alert] %></span>
+    <button data-action="click->flash#dismiss" class="flash-close" aria-label="Close">&times;</button>
+  </div>
+<% end %>
