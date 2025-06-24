@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  resources :posts, only: [ :index, :create, :update, :destroy ] do
+  resources :posts, only: [ :create, :update, :destroy ] do
     resources :likes, only: [ :create, :destroy ]
     resources :comments, only: [ :create, :destroy ]
   end
@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   end
   resources :dashboard, only: [ "index" ]
 
-  resources :calendar,  only: ["index"]
+  resources :calendar, only: [ "index" ]
   resources :calendar_events
 
   # Temporary route for testing environment variables
@@ -21,11 +21,12 @@ Rails.application.routes.draw do
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy"
 
-
-
   # OmniAuth callback
   get "auth/:provider/callback", to: "sessions#omniauth"
   post "auth/:provider/callback", to: "sessions#omniauth"
+
+  # Google Drive OAuth2 callback
+  get "oauth2callback", to: "documents#oauth_callback"
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

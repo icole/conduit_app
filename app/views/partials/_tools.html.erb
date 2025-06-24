@@ -1,0 +1,59 @@
+<!-- Tools Library Section -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h2 class="card-title">🔧 Community Tools</h2>
+    <div style="display: flex; gap: 0.5rem;">
+      <!-- HOTWIRE: Search will use Stimulus for auto-complete -->
+      <input type="text" class="form-input" placeholder="Search tools..." id="tool-search" style="width: 200px;">
+      <button class="btn btn-primary btn-small">Add Tool</button>
+    </div>
+  </div>
+
+  <!-- HOTWIRE: Tool grid will update via Turbo Frames for individual tools -->
+  <div class="grid grid-3" id="tools-grid">
+    <!-- HOTWIRE: Each tool card will be a separate Turbo Frame -->
+    <div class="card" id="tool-1">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">Power Drill</h3>
+        <span class="status status-checked-out">Checked Out</span>
+      </div>
+      <p class="text-gray text-sm mb-2">Professional grade cordless drill with multiple bits</p>
+      <div class="text-sm text-gray mb-2">
+        <div>📍 Tool Shed - Shelf A</div>
+        <div>👤 Checked out by: Mike Davis</div>
+        <div>📅 Due: Dec 28, 2024</div>
+      </div>
+      <!-- HOTWIRE: Button states will change based on tool status -->
+      <button class="btn btn-warning btn-small" disabled>Checked Out</button>
+    </div>
+
+    <div class="card" id="tool-2">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">Lawn Mower</h3>
+        <span class="status status-available">Available</span>
+      </div>
+      <p class="text-gray text-sm mb-2">Electric lawn mower for the common areas</p>
+      <div class="text-sm text-gray mb-2">
+        <div>📍 Garden Shed</div>
+        <div>⭐ Rating: 4.8/5 (12 reviews)</div>
+        <div>🔧 Last serviced: Dec 15, 2024</div>
+      </div>
+      <!-- HOTWIRE: Check out will be handled by Turbo Frame -->
+      <button class="btn btn-success btn-small">Check Out</button>
+    </div>
+
+    <div class="card" id="tool-3">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">Pressure Washer</h3>
+        <span class="status status-maintenance">Maintenance</span>
+      </div>
+      <p class="text-gray text-sm mb-2">High-pressure washer for outdoor cleaning</p>
+      <div class="text-sm text-gray mb-2">
+        <div>📍 Tool Shed - Floor</div>
+        <div>🔧 Issue: Pump needs replacement</div>
+        <div>📅 Repair scheduled: Jan 2, 2025</div>
+      </div>
+      <button class="btn btn-outline btn-small" disabled>Under Repair</button>
+    </div>
+  </div>
+</div>

@@ -1,11 +1,13 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
+  uid: 123456789
   name: Jane Smith
   email: jane@example.com
-  password_digest: <%= BCrypt::Password.create('password') %>
+  provider: google_oauth2
 
 two:
+  uid: 1234567890
   name: Mike Davis
   email: mike@example.com
-  password_digest: <%= BCrypt::Password.create('password') %>
+  provider: google_oauth2

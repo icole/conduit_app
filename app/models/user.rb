@@ -11,7 +11,16 @@ class User < ApplicationRecord
   # Allow OAuth users to not have a password
   validates :password, presence: true, length: { minimum: 6 }, if: -> { provider.blank? }
 
+  def self.allowed_emails
+    # Store allowed emails in environment variable
+    ENV["ALLOWED_EMAILS"]&.split(",")&.map(&:strip) || []
+  end
+
   def self.from_omniauth(auth)
+    unless Rails.env.test? || allowed_emails.include?(auth.info.email)
+      raise StandardError, "Access restricted to invited users only"
+    end
+
     where(provider: auth.provider, uid: auth.uid).first_or_initialize do |user|
       user.email = auth.info.email
       user.name = auth.info.name

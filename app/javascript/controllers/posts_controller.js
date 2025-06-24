@@ -21,7 +21,7 @@ export default class extends Controller {
         event.preventDefault()
         const postId = event.currentTarget.dataset.postId
         const commentSection = document.getElementById(`post-${postId}-comments`)
-
+        console.log("Toggling comments for post ID:", postId)
         if (commentSection) {
             commentSection.classList.toggle("hidden")
         }
