@@ -13,17 +13,17 @@ module ActiveSupport
     OmniAuth.config.test_mode = true
 
     def sign_in_user(user_attrs = {})
-      default_attrs = {
+      auth_attrs = {
         provider: "google_oauth2",
-        uid: "123456789",
+        uid: user_attrs[:uid] || "123456788",
         info: {
-          name: "Test User",
-          email: "test@example.com"
+          name: user_attrs[:name] || "Test User",
+          email: user_attrs[:email] || "test@example.com"
         }
       }
 
       OmniAuth.config.mock_auth[:google_oauth2] = OmniAuth::AuthHash.new(
-        default_attrs.merge(user_attrs)
+        auth_attrs
       )
 
       get "/auth/google_oauth2/callback"

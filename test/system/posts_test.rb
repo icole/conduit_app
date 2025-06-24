@@ -3,13 +3,11 @@ require "application_system_test_case"
 class PostsTest < ApplicationSystemTestCase
   setup do
     @user = users(:one)
-    @post = posts(:post_one)
+    @uncommented_post = posts(:one) # This post has no comments from user one
+    @post = posts(:two)
+    @user_comment = comments(:two) # This is a comment made by user one on post two
 
-    # Log in
-    visit login_url
-    fill_in "Email", with: @user.email
-    fill_in "Password", with: "password"
-    click_on "Log in"
+    sign_in_user
   end
 
   test "viewing posts on dashboard" do
@@ -31,28 +29,32 @@ class PostsTest < ApplicationSystemTestCase
   test "deleting a post" do
     visit dashboard_index_url
 
-    within "#post_#{@post.id}" do
-      click_on "🗑️ Delete"
+    within "#post_#{@uncommented_post.id}" do
+      assert_selector ".post-actions"
+      accept_confirm do
+        find("[data-testid='delete-post-button-#{@uncommented_post.id}']").click
+      end
     end
 
-    assert_no_selector "#post_#{@post.id}"
+    assert_no_selector "#post_#{@uncommented_post.id}"
   end
 
   test "liking and unliking a post" do
     visit dashboard_index_url
 
     within "#post_#{@post.id}" do
+      assert_selector ".post-actions"
       # Initially the post should show "Like (0)" or "Like (1)" depending on fixtures
       assert_selector "button", text: /👍 Like \(\d+\)/
 
       # Click the like button
-      click_on /👍 Like \(\d+\)/
+      find("[data-testid='like-button-#{@post.id}']").click
 
       # Now it should show "Unlike"
       assert_selector "button", text: /👍 Unlike \(\d+\)/
 
       # Click the unlike button
-      click_on /👍 Unlike \(\d+\)/
+      find("[data-testid='unlike-button-#{@post.id}']").click
 
       # Now it should show "Like" again
       assert_selector "button", text: /👍 Like \(\d+\)/
@@ -62,12 +64,12 @@ class PostsTest < ApplicationSystemTestCase
   test "commenting on a post" do
     visit dashboard_index_url
 
-    within "#post_#{@post.id}" do
+    within "#post_#{@uncommented_post.id}" do
       # Initially the comments section should be hidden
-      assert_selector ".post-comments.hidden"
+      assert_no_selector ".post-comments"
 
       # Click the comment button to show the comment form
-      click_on /💬 Comment \(\d+\)/
+      find("[data-testid='comment-button-#{@uncommented_post.id}']").click
 
       # Fill in and submit a new comment
       fill_in "comment_content", with: "This is a test comment."
@@ -77,7 +79,7 @@ class PostsTest < ApplicationSystemTestCase
       assert_selector ".comment-content", text: "This is a test comment."
 
       # The comments section should no longer have the hidden class
-      assert_no_selector ".post-comments.hidden"
+      assert_selector ".post-comments"
     end
   end
 
@@ -85,9 +87,6 @@ class PostsTest < ApplicationSystemTestCase
     visit dashboard_index_url
 
     within "#post_#{@post.id}" do
-      # Click the comment button to show the comment form
-      click_on /💬 Comment \(\d+\)/
-
       # Fill in and submit a new comment
       fill_in "comment_content", with: "This is a test comment for auto-expansion."
       click_on "Comment"
@@ -98,8 +97,25 @@ class PostsTest < ApplicationSystemTestCase
 
     # The comments section should be visible without clicking the comment button
     within "#post_#{@post.id}" do
-      assert_no_selector ".post-comments.hidden"
+      assert_selector ".post-comments"
       assert_selector ".comment-content", text: "This is a test comment for auto-expansion."
+    end
+  end
+
+  test "deleting a comment" do
+    visit dashboard_index_url
+
+    within "#post_#{@post.id}" do
+      # Ensure the comment exists
+      assert_selector ".comment-content", text: @user_comment.content
+
+      # Click the delete button for the comment
+      accept_confirm do
+        find("[data-testid='delete-comment-button-#{@user_comment.id}']").click
+      end
+
+      # The comment should no longer be visible
+      assert_no_selector ".comment-content", text: @user_comment.content
     end
   end
 end

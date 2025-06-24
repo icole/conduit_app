@@ -1,0 +1,158 @@
+<!-- Kitchen Inventory Section -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h2 class="card-title">🍳 Household Kitchen Inventory</h2>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+      <!-- HOTWIRE: Toggle will filter inventory via Stimulus -->
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <label style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="radio" name="inventory-view" value="my-household" checked>
+          My Household
+        </label>
+        <label style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="radio" name="inventory-view" value="shared">
+          Shared Items
+        </label>
+        <label style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="radio" name="inventory-view" value="all">
+          All Items
+        </label>
+      </div>
+      <button class="btn btn-primary btn-small">Add Item</button>
+      <button class="btn btn-outline btn-small">Suggest Recipes</button>
+    </div>
+  </div>
+
+  <!-- HOTWIRE: Inventory table will update in real-time via Turbo Streams -->
+  <div style="overflow-x: auto;">
+    <table class="table" id="inventory-table">
+      <thead>
+      <tr>
+        <th>Item</th>
+        <th>Household</th>
+        <th>Visibility</th>
+        <th>Quantity</th>
+        <th>Expiration</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <!-- HOTWIRE: Each row will be updateable via Turbo Frames -->
+      <tr id="inventory-item-1" class="my-household">
+        <td><strong>Eggs</strong></td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">JS</div>
+            Johnson Family
+          </div>
+        </td>
+        <td>
+          <!-- HOTWIRE: Toggle will update via Turbo Frame -->
+          <select class="form-input" style="width: auto; font-size: 0.75rem;">
+            <option value="private">🔒 Private</option>
+            <option value="public" selected>🌍 Shared</option>
+          </select>
+        </td>
+        <td>
+          <!-- HOTWIRE: Quantity will be editable inline -->
+          <span id="quantity-1">2</span> cartons
+        </td>
+        <td>Dec 30, 2024</td>
+        <td><span class="status status-low-stock">Low Stock</span></td>
+        <td>
+          <button class="btn btn-outline btn-small">Edit</button>
+          <button class="btn btn-primary btn-small">Restock</button>
+        </td>
+      </tr>
+      <tr id="inventory-item-2" class="shared">
+        <td><strong>Milk</strong></td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">MD</div>
+            Davis Household
+          </div>
+        </td>
+        <td>
+          <span style="font-size: 0.75rem; color: #059669;">🌍 Shared</span>
+        </td>
+        <td><span id="quantity-2">4</span> gallons</td>
+        <td>Dec 29, 2024</td>
+        <td><span class="status status-available">In Stock</span></td>
+        <td>
+          <span class="text-gray text-sm">View only</span>
+        </td>
+      </tr>
+      <tr id="inventory-item-3" class="my-household">
+        <td><strong>Bread</strong></td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">JS</div>
+            Johnson Family
+          </div>
+        </td>
+        <td>
+          <select class="form-input" style="width: auto; font-size: 0.75rem;">
+            <option value="private" selected>🔒 Private</option>
+            <option value="public">🌍 Shared</option>
+          </select>
+        </td>
+        <td><span id="quantity-3">2</span> loaves</td>
+        <td>Dec 31, 2024</td>
+        <td><span class="status status-available">In Stock</span></td>
+        <td>
+          <button class="btn btn-outline btn-small">Edit</button>
+        </td>
+      </tr>
+      <tr id="inventory-item-4" class="shared">
+        <td><strong>Olive Oil</strong></td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">AS</div>
+            Smith Family
+          </div>
+        </td>
+        <td>
+          <span style="font-size: 0.75rem; color: #059669;">🌍 Shared</span>
+        </td>
+        <td><span id="quantity-4">1</span> bottle</td>
+        <td>Mar 15, 2025</td>
+        <td><span class="status status-low-stock">Low Stock</span></td>
+        <td>
+          <span class="text-gray text-sm">View only</span>
+        </td>
+      </tr>
+      <tr id="inventory-item-5" class="my-household">
+        <td><strong>Pasta</strong></td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div class="avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">JS</div>
+            Johnson Family
+          </div>
+        </td>
+        <td>
+          <select class="form-input" style="width: auto; font-size: 0.75rem;">
+            <option value="private" selected>🔒 Private</option>
+            <option value="public">🌍 Shared</option>
+          </select>
+        </td>
+        <td><span id="quantity-5">3</span> boxes</td>
+        <td>Jun 12, 2025</td>
+        <td><span class="status status-available">In Stock</span></td>
+        <td>
+          <button class="btn btn-outline btn-small">Edit</button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; font-size: 0.875rem; color: #6b7280;">
+    <strong>💡 How it works:</strong>
+    <ul style="margin: 0.5rem 0 0 1rem;">
+      <li><strong>🔒 Private:</strong> Only your household can see these items</li>
+      <li><strong>🌍 Shared:</strong> Other households can see these items and might ask to use them</li>
+      <li><strong>Recipe suggestions</strong> will consider both your private items and available shared items</li>
+    </ul>
+  </div>
+</div>

@@ -1,9 +1,9 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-post_one:
+one:
   content: "Just finished organizing the tool shed! Everything is labeled and ready to go. The new power drill is on the top shelf. 🔧"
   user: one
 
-post_two:
+two:
   content: "Community dinner tonight at 7 PM! I'm making pasta. Please bring salad or dessert if you can. Kitchen is booked from 5-9 PM."
   user: two

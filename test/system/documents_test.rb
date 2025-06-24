@@ -3,6 +3,7 @@ require "application_system_test_case"
 class DocumentsTest < ApplicationSystemTestCase
   setup do
     @document = documents(:one)
+
     sign_in_user
   end
 
@@ -41,8 +42,11 @@ class DocumentsTest < ApplicationSystemTestCase
 
   test "should destroy Document" do
     visit document_url(@document)
-    accept_confirm { click_on "Destroy this document", match: :first }
-
+    accept_confirm do
+      find("[data-testid='delete-document-button-#{@document.id}']").click
+    end
+    # Assert that you are redirected to the index page
+    assert_current_path documents_path, wait: 30
     assert_text "Document was successfully destroyed"
   end
 end
