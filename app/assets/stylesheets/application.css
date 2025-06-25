@@ -264,7 +264,7 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.post-header {
+.post-header, .comment-header {
     display: flex;
     align-items: center;
     margin-bottom: 1rem;
@@ -283,21 +283,21 @@ body {
     margin-right: 1rem;
 }
 
-.post-meta {
+.post-meta, .comment-meta {
     flex: 1;
 }
 
-.post-author {
+.post-author, .comment-author {
     font-weight: 600;
     color: #1e293b;
 }
 
-.post-time {
+.post-time, .comment-time {
     color: #6b7280;
     font-size: 0.875rem;
 }
 
-.post-content {
+.post-content, .comment-content {
     margin-bottom: 1rem;
     line-height: 1.6;
 }
