@@ -12,6 +12,11 @@ proxy:
   ssl: true
   host: <%= ENV["CONDUIT_DOMAIN"] %>
 
+healthcheck:
+  interval: 10
+  path: /up
+  timeout: 120
+
 registry:
   username: <%= ENV["DOCKER_USERNAME"] %>
   password:
