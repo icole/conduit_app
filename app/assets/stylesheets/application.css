@@ -305,7 +305,7 @@ body {
 .post-actions {
     display: flex;
     gap: 1rem;
-    padding-top: 1rem;
+    padding: 1rem 0;
     border-top: 1px solid #e5e7eb;
 }
 
@@ -314,6 +314,7 @@ body {
     text-decoration: none;
     font-size: 0.875rem;
     transition: color 0.2s;
+    padding: 4px 8px;
 }
 
 .post-action:hover {
@@ -510,4 +511,13 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.comment {
+    padding: 1rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.comment-form {
+    padding-top: 1rem;
 }
