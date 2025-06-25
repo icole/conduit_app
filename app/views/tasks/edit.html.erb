@@ -1,0 +1,12 @@
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Edit Task</h2>
+    </div>
+    <div class="card-body">
+      <%= turbo_frame_tag dom_id(@task, "form") do %>
+        <%= render "tasks/form", task: @task %>
+      <% end %>
+    </div>
+  </div>
+</div>

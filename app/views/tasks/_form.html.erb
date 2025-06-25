@@ -1,0 +1,37 @@
+<%= form_with(model: task, id: dom_id(task, "form")) do |form| %>
+  <% if task.errors.any? %>
+    <div class="alert alert-danger">
+      <ul>
+        <% task.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group mb-3">
+    <%= form.label :title %>
+    <%= form.text_field :title, class: "form-control" %>
+  </div>
+
+  <div class="form-group mb-3">
+    <%= form.label :description %>
+    <%= form.text_area :description, class: "form-control", rows: 5 %>
+  </div>
+
+  <% if task.persisted? %>
+    <div class="form-group mb-3">
+      <%= form.label :status %>
+      <%= form.select :status, [['Pending', 'pending'], ['Completed', 'completed']], {}, class: "form-control" %>
+    </div>
+  <% end %>
+
+  <div class="form-actions">
+    <%= form.submit task.persisted? ? "Update Task" : "Create Task", class: "btn btn-primary" %>
+    <% if task.persisted? %>
+      <%= link_to "Cancel", dashboard_index_path, class: "btn btn-secondary" %>
+    <% else %>
+      <button type="button" class="btn btn-secondary" data-action="click->tasks#hideForm">Cancel</button>
+    <% end %>
+  </div>
+<% end %>

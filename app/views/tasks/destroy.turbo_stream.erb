@@ -1,0 +1,17 @@
+<% if @task.user.tasks.count.zero? %>
+  <%= turbo_stream.update "task-list" do %>
+    <% if request.referer&.include?('tasks') %>
+      <div class="text-center p-4 text-gray">
+        <p>No tasks found. <%= link_to "Create a new task", new_task_path %>.</p>
+      </div>
+    <% else %>
+      <p class="text-center p-4 text-gray">No tasks assigned yet.</p>
+    <% end %>
+  <% end %>
+<% else %>
+  <%= turbo_stream.remove dom_id(@task) %>
+<% end %>
+
+<%= turbo_stream.update "flash" do %>
+  <%= render "layouts/flash_messages" %>
+<% end %>

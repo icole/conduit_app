@@ -37,12 +37,45 @@
     </div>
 
     <!-- Tasks -->
-    <div class="card mb-2">
+    <div class="card mb-2 tasks-card" data-controller="tasks">
       <div class="card-header">
         <h3 class="card-title">Task Items</h3>
+        <div class="card-actions">
+          <%= link_to tasks_path, class: "icon-btn btn-secondary", title: "View All Tasks" do %>
+            <!-- List icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+            </svg>
+          <% end %>
+          <button class="icon-btn btn-primary" data-action="click->tasks#showForm" title="New Task">
+            <!-- Plus icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+            </svg>
+          </button>
+        </div>
       </div>
-      <div id="event-feed">
-        <p class="text-center p-4 text-gray">No tasks assigned yet.</p>
+
+      <!-- New task form -->
+      <div id="new-task-form" class="<%= 'hidden' unless @task.errors.any? %>">
+        <div class="p-3">
+          <%= turbo_frame_tag "new_task" do %>
+            <%= render "tasks/form", task: @task %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Task list -->
+      <div id="task-list" class="p-3">
+        <% if @tasks.any? %>
+          <ul id="task-list-items" class="task-list">
+            <% @tasks.each do |task| %>
+              <%= render "tasks/task", task: task %>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="text-center p-4 text-gray">No tasks assigned yet.</p>
+        <% end %>
       </div>
     </div>
   </div>

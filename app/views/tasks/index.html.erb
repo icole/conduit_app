@@ -1,0 +1,52 @@
+<div class="container mt-4" data-controller="tasks">
+  <div class="card tasks-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h2 class="card-title">My Tasks</h2>
+      <div class="card-actions">
+        <button class="icon-btn btn-primary" data-action="click->tasks#showForm" title="New Task">
+          <!-- Plus icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+          </svg>
+        </button>
+        <%= link_to dashboard_index_path, class: "icon-btn btn-secondary", title: "Back to Dashboard" do %>
+          <!-- Home icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4H2.5z"/>
+          </svg>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- New task form -->
+    <div id="new-task-form" class="<%= 'hidden' unless @task&.errors&.any? %>">
+      <div class="p-3">
+        <%= turbo_frame_tag "new_task" do %>
+          <%= render "tasks/form", task: Task.new %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="mb-3">
+        <div class="btn-group" role="group" aria-label="Filter tasks">
+          <%= link_to "All", tasks_path, class: "btn #{params[:status].blank? ? 'btn-primary' : 'btn-outline-primary'}" %>
+          <%= link_to "Pending", tasks_path(status: 'pending'), class: "btn #{params[:status] == 'pending' ? 'btn-primary' : 'btn-outline-primary'}" %>
+          <%= link_to "Completed", tasks_path(status: 'completed'), class: "btn #{params[:status] == 'completed' ? 'btn-primary' : 'btn-outline-primary'}" %>
+        </div>
+      </div>
+
+      <% if @tasks.any? %>
+        <ul id="task-list-items" class="task-list">
+          <% @tasks.each do |task| %>
+            <%= render "tasks/task", task: task %>
+          <% end %>
+        </ul>
+      <% else %>
+        <div class="text-center p-4 text-gray">
+          <p>No tasks found. <%= link_to "Create a new task", new_task_path %>.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

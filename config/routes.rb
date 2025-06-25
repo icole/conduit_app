@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :tasks
   resources :posts, only: [ :create, :update, :destroy ] do
     resources :likes, only: [ :create, :destroy ]
     resources :comments, only: [ :create, :destroy ]
