@@ -11,6 +11,7 @@ class GoogleCalendarApiService
     @calendar_service = Google::Apis::CalendarV3::CalendarService.new
     @calendar_service.client_options.application_name = "Community Hub"
     @calendar_service.authorization = auth_credentials
+    @calendar_id = ENV["GOOGLE_CALENDAR_ID"] || "primary"
   end
 
   # Create from OAuth2 token (typically from user session)
@@ -36,12 +37,12 @@ class GoogleCalendarApiService
   end
 
   # Get events from calendar within time range
-  def get_events(calendar_id: "primary", time_min: Time.now, time_max: nil, max_results: 100, search_query: nil)
+  def get_events(time_min: Time.now, time_max: nil, max_results: 100, search_query: nil)
     time_max ||= time_min + 90.days
 
     # Build request parameters
     params = {
-      calendar_id: calendar_id,
+      calendar_id: @calendar_id,
       single_events: true,
       order_by: "startTime",
       max_results: max_results,
@@ -75,9 +76,9 @@ class GoogleCalendarApiService
   end
 
   # Get a single event by ID
-  def get_event(calendar_id, event_id)
+  def get_event(event_id)
     begin
-      event = calendar_service.get_event(calendar_id, event_id)
+      event = calendar_service.get_event(@calendar_id, event_id)
       format_event(event)
     rescue Google::Apis::ClientError => e
       Rails.logger.error("Google Calendar API Client Error: #{e.message}")
@@ -138,7 +139,7 @@ class GoogleCalendarApiService
           access_role: calendar.access_role,
           selected: calendar.selected || false,
           hidden: calendar.hidden || false,
-          can_edit: [ "owner", "writer" ].include?(calendar.access_role),
+          can_edit: %w[ "owner", "writer" ].include?(calendar.access_role),
           can_share: calendar.access_role == "owner",
           can_read: true
         }
@@ -170,10 +171,10 @@ class GoogleCalendarApiService
   end
 
   # Get events for a specific date range (e.g., for a month view)
-  def get_month_events(calendar_id: "primary", date: Date.today)
+  def get_month_events(date: Date.today)
     start_date = date.beginning_of_month.beginning_of_week
     end_date = date.end_of_month.end_of_week
-    get_events(calendar_id: calendar_id, time_min: start_date.to_time, time_max: end_date.to_time, max_results: 2500)
+    get_events(time_min: start_date.to_time, time_max: end_date.to_time, max_results: 2500)
   end
 
   private
