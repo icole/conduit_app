@@ -1,0 +1,7 @@
+<%= turbo_stream.replace dom_id(@task) do %>
+  <%= render "tasks/task", task: @task %>
+<% end %>
+
+<%= turbo_stream.update "flash" do %>
+  <%= render "layouts/flash_messages" %>
+<% end %>
