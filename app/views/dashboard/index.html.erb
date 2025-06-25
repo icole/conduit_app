@@ -32,67 +32,18 @@
         <h3 class="card-title">Upcoming Events</h3>
       </div>
       <div id="event-feed">
+        <p class="text-center p-4 text-gray">No events yet.</p>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Common House Booking Calendar -->
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title">🏠 Common House Bookings</h2>
-    <div style="display: flex; gap: 0.5rem;">
-      <button class="btn btn-primary btn-small">Book Common House</button>
-      <button class="btn btn-outline btn-small">My Bookings</button>
-    </div>
-  </div>
-
-  <!-- HOTWIRE: Calendar will be interactive via Stimulus controller -->
-  <div class="calendar" id="booking-calendar">
-    <div class="calendar-header">
-      <button class="btn btn-outline btn-small" style="float: left;">&lt;</button>
-      December 2024
-      <button class="btn btn-outline btn-small" style="float: right;">&gt;</button>
-    </div>
-    <div class="calendar-grid">
-      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Sun</div>
-      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Mon</div>
-      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Tue</div>
-      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Wed</div>
-      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Thu</div>
-      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Fri</div>
-      <div style="padding: 0.5rem; background: #f8fafc; font-weight: 600; text-align: center; border: 1px solid #e5e7eb;">Sat</div>
-
-      <!-- Calendar days - HOTWIRE: Will be generated dynamically and interactive -->
-      <div class="calendar-day">25</div>
-      <div class="calendar-day">26</div>
-      <div class="calendar-day has-event">
-        27
-        <div class="calendar-event">Common House: Mike (7-9pm)</div>
+    <!-- Tasks -->
+    <div class="card mb-2">
+      <div class="card-header">
+        <h3 class="card-title">Task Items</h3>
       </div>
-      <div class="calendar-day">29</div>
-      <div class="calendar-day has-event">
-        30
-        <div class="calendar-event">Common House: Sarah (2-5pm)</div>
+      <div id="event-feed">
+        <p class="text-center p-4 text-gray">No tasks assigned yet.</p>
       </div>
-      <div class="calendar-day">31</div>
-      <div class="calendar-day">1</div>
-      <div class="calendar-day has-event">
-        2
-        <div class="calendar-event">Common House: Community Dinner (6-9pm)</div>
-      </div>
-      <div class="calendar-day">3</div>
-      <div class="calendar-day">4</div>
     </div>
-  </div>
-
-  <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; font-size: 0.875rem; color: #6b7280;">
-    <strong>📅 Common House Booking Rules:</strong>
-    <ul style="margin: 0.5rem 0 0 1rem;">
-      <li>Maximum 4 hour bookings</li>
-      <li>Book up to 2 weeks in advance</li>
-      <li>Cancel at least 2 hours before your booking</li>
-      <li>Clean up after use - next person will appreciate it! 🧹</li>
-    </ul>
   </div>
 </div>
