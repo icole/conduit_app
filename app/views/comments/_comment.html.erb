@@ -5,13 +5,13 @@
       <div class="comment-author"><%= comment.user.name %></div>
       <div class="comment-time"><%= time_ago_in_words(comment.created_at) %> ago</div>
     </div>
+    <% if comment.user == current_user %>
+      <div class="comment-actions">
+        <%= button_to "🗑️", post_comment_path(comment.post, comment), method: :delete, class: "btn btn-small", form: { data: { turbo_confirm: "Are you sure?" } }, data: { testid: "delete-comment-button-#{comment.id}" } %>
+      </div>
+    <% end %>
   </div>
   <div class="comment-content">
     <%= comment.content %>
   </div>
-  <% if comment.user == current_user %>
-    <div class="comment-actions">
-      <%= button_to "🗑️", post_comment_path(comment.post, comment), method: :delete, class: "btn btn-small", form: { data: { turbo_confirm: "Are you sure?" } }, data: { testid: "delete-comment-button-#{comment.id}" } %>
-    </div>
-  <% end %>
 </div>
