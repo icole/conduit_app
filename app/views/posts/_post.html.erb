@@ -73,7 +73,7 @@
         <%= render post.comments.reorder('created_at') %>
       </div>
 
-      <div id="new_comment_<%= post.id %>" class="mt-4">
+      <div id="new_comment_<%= post.id %>" class="mt-6">
         <%= render "comments/form", post: post, comment: Comment.new %>
       </div>
     </div>

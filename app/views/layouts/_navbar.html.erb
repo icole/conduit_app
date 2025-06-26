@@ -1,5 +1,5 @@
 <!-- Navigation -->
-<div class="navbar bg-neutral text-neutral-content px-4">
+<div class="navbar bg-accent text-neutral-content px-4">
   <div class="navbar-start flex items-center gap-8">
     <%= link_to root_path, class: "flex items-center" do %>
       <%= image_tag("crow-woods-logo.png", alt: "Logo", class: "max-w-[150px] h-auto") %>
@@ -11,5 +11,22 @@
       <%#= link_to "Documents", documents_path, class: "link link-hover font-medium" %>
       <%#= link_to "Calendar", calendar_index_path, class: "link link-hover font-medium" %>
     </div>
+  </div>
+
+  <div class="navbar-end">
+    <% if user_signed_in? %>
+      <%= button_to "Logout", logout_path, method: :delete, class: "btn m-4" %>
+      <div class="dropdown dropdown-end">
+        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+          <div class="bg-neutral text-neutral-content rounded-full w-10 h-10 flex items-center justify-center p-0 m-0">
+            <span class="text-sm font-medium leading-none m-0 p-0 flex items-center justify-center w-full h-full"><%= current_user.name.split.map(&:first).join %></span>
+          </div>
+        </div>
+        <ul tabindex="0" class="menu dropdown-content z-[1] p-2 shadow bg-base-100 text-base-content rounded-box w-52 mt-4">
+          <li><a href="#" class="py-2">Profile</a></li>
+          <li><a href="#" class="py-2">Settings</a></li>
+        </ul>
+      </div>
+    <% end %>
   </div>
 </div>

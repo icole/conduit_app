@@ -1,0 +1,36 @@
+/* Calendar styles using DaisyUI and Tailwind */
+
+.simple-calendar {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.simple-calendar th {
+  @apply bg-base-200 p-2 text-center font-medium;
+}
+
+.simple-calendar td {
+  @apply border border-base-300 p-2 align-top;
+  height: 100px;
+}
+
+.simple-calendar .today {
+  @apply bg-primary bg-opacity-10;
+}
+
+.simple-calendar .prev-month,
+.simple-calendar .next-month {
+  @apply bg-base-200 bg-opacity-50 text-base-content text-opacity-50;
+}
+
+.simple-calendar .calendar-heading {
+  @apply flex justify-between items-center mb-4;
+}
+
+.simple-calendar .calendar-heading a {
+  @apply btn btn-sm btn-ghost;
+}
+
+.simple-calendar .calendar-title {
+  @apply font-medium text-lg;
+}

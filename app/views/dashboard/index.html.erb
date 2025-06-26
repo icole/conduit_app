@@ -41,7 +41,7 @@
   <!-- Right Sidebar -->
   <div class="col-span-1">
     <!-- Upcoming Events -->
-    <div class="card bg-base-100 shadow-xl">
+    <div class="card bg-base-100 shadow-xl mb-6">
       <div class="card-body">
         <h3 class="card-title text-lg font-semibold">📅 Upcoming Events</h3>
         <div id="event-feed" class="mt-2">
@@ -55,13 +55,13 @@
     <!-- Tasks -->
     <div class="card bg-base-100 shadow-xl" data-controller="tasks">
       <div class="card-body">
-        <h3 class="card-title text-lg font-semibold">✅ Task Items</h3>
+        <h3 class="card-title text-lg font-semibold">✅ My Tasks</h3>
 
         <!-- Inline Task Form -->
         <div class="form-control w-full mt-2">
           <%= form_with(model: Task.new, class: "join w-full", data: { turbo_frame: "_top" }) do |form| %>
             <%= form.text_field :title,
-                class: "input input-bordered w-full join-item",
+                class: "input input-bordered w-full join-item focus:outline-none focus:border-base-300",
                 placeholder: "Add a new task...",
                 required: true,
                 autocomplete: "off" %>
@@ -72,7 +72,7 @@
         <!-- Task List -->
         <div id="task-list" class="mt-4">
           <% if @tasks.any? %>
-            <div id="task-list-items" class="flex flex-wrap gap-2">
+            <div id="task-list-items" class="rounded-lg border border-base-200 overflow-hidden">
               <% @tasks.each do |task| %>
                 <%= render "tasks/task", task: task %>
               <% end %>

@@ -1,21 +1,28 @@
-<%= form_with(model: post, class: "mb-4") do |form| %>
+<%= form_with(model: post) do |form| %>
   <% if post.errors.any? %>
-    <div class="error-messages mb-4">
-      <h2><%= pluralize(post.errors.count, "error") %> prohibited this post from being saved:</h2>
-      <ul>
-        <% post.errors.each do |error| %>
-          <li><%= error.full_message %></li>
-        <% end %>
-      </ul>
+    <div class="alert alert-error mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      <div>
+        <h3 class="font-bold">Please fix the following errors:</h3>
+        <ul class="list-disc list-inside">
+          <% post.errors.each do |error| %>
+            <li><%= error.full_message %></li>
+          <% end %>
+        </ul>
+      </div>
     </div>
   <% end %>
 
-  <div class="form-group">
-    <%= form.text_area :content, class: "form-input", rows: 3, placeholder: "What's happening in the community?" %>
+  <div class="form-control w-full">
+    <%= form.text_area :content, 
+        class: "textarea textarea-bordered w-full", 
+        rows: 4, 
+        placeholder: "What's happening in the community?",
+        required: true %>
   </div>
 
-  <div style="display: flex; gap: 0.5rem;">
-    <%= form.submit "Post", class: "btn btn-primary btn-small" %>
-    <button type="button" class="btn btn-outline btn-small" data-action="click->posts#cancelForm">Cancel</button>
+  <div class="flex justify-end gap-2 mt-4">
+    <button type="button" class="btn btn-ghost" data-action="click->posts#cancelForm">Cancel</button>
+    <%= form.submit "Post", class: "btn btn-primary" %>
   </div>
 <% end %>

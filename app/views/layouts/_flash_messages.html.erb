@@ -1,14 +1,24 @@
 <!-- Flash Messages -->
 <% if flash[:notice] %>
-  <div data-controller="flash" class="flash-message flash-notice">
-    <span class="flash-text"><%= flash[:notice] %></span>
-    <button data-action="click->flash#dismiss" class="flash-close" aria-label="Close">&times;</button>
+  <div data-controller="flash" class="alert alert-success shadow-sm mb-4 w-full py-4 rounded-none relative" role="alert">
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current inline-block h-5 w-5 mr-1 -mt-0.5" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <span><%= flash[:notice] %></span>
+      </div>
+    </div>
+    <button data-action="click->flash#dismiss" class="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2" aria-label="Close">✕</button>
   </div>
 <% end %>
 
 <% if flash[:alert] %>
-  <div data-controller="flash" class="flash-message flash-alert">
-    <span class="flash-text"><%= flash[:alert] %></span>
-    <button data-action="click->flash#dismiss" class="flash-close" aria-label="Close">&times;</button>
+  <div data-controller="flash" class="alert alert-error shadow-sm mb-4 w-full py-4 rounded-none relative" role="alert">
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current inline-block h-5 w-5 mr-1 -mt-0.5" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <span><%= flash[:alert] %></span>
+      </div>
+    </div>
+    <button data-action="click->flash#dismiss" class="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2" aria-label="Close">✕</button>
   </div>
 <% end %>
