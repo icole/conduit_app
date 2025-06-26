@@ -1,2 +1,9 @@
 <%= turbo_stream.prepend "community-posts", partial: "posts/post", locals: { post: @post } %>
-<%= turbo_stream.replace "new-post-form", partial: "posts/form", locals: { post: Post.new } %>
+<%= turbo_stream.replace "new-post-form" do %>
+  <div id="new-post-form" class="hidden">
+    <div class="card bg-base-200 p-4">
+      <h3 class="text-lg font-semibold mb-3">Create Post</h3>
+      <%= render "posts/form", post: Post.new %>
+    </div>
+  </div>
+<% end %>

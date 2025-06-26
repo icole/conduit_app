@@ -1,0 +1,23 @@
+/* Custom navbar styles */
+
+/* Make the logout button in dropdown fully clickable with proper cursor */
+.menu li form {
+  width: 100%;
+}
+
+.menu li button[type="submit"] {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+}
+
+.menu li button[type="submit"]:hover {
+  background-color: hsl(var(--b2));
+}
