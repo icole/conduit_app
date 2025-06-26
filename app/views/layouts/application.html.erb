@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="emerald">
 <head>
   <title><%= content_for(:title) || "Conduit App" %></title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -18,18 +18,16 @@
   <link rel="apple-touch-icon" href="/icon.png">
 
   <%# Includes all stylesheet files in app/assets/stylesheets %>
-  <%= stylesheet_link_tag :application, "data-turbo-track": "reload" %>
+  <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
   <%= javascript_importmap_tags %>
 </head>
 
 <body>
-<main>
+<main class="container w-screen max-w-screen">
   <%= render "layouts/navbar" %>
   <%= render "layouts/flash_messages" %>
 
-  <div class="container">
     <%= yield %>
-  </div>
 </main>
 </body>
 </html>

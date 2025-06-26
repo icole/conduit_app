@@ -1,19 +1,43 @@
-<%= form_with(model: [post, comment], class: "comment-form") do |form| %>
+<%= form_with(model: [post, comment], class: "space-y-3", data: { controller: "comment-form", action: "turbo:submit-end->comment-form#reset" }) do |form| %>
   <% if comment.errors.any? %>
-    <div class="error-messages mb-2">
-      <ul>
-        <% comment.errors.each do |error| %>
-          <li><%= error.full_message %></li>
-        <% end %>
-      </ul>
+    <div class="alert alert-error p-3 text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div>
+        <h3 class="font-bold">Please fix these issues:</h3>
+        <div class="text-xs">
+          <% comment.errors.each do |error| %>
+            <div>• <%= error.full_message %></div>
+          <% end %>
+        </div>
+      </div>
     </div>
   <% end %>
 
-  <div class="form-group">
-    <%= form.text_area :content, class: "form-input", rows: 2, placeholder: "Add a comment...", required: true %>
-  </div>
-
-  <div>
-    <%= form.submit "Comment", class: "btn btn-primary btn-small" %>
+  <div class="flex gap-2">
+    <div class="avatar placeholder flex-shrink-0">
+      <div class="bg-neutral text-neutral-content rounded-full w-8 h-8 flex items-center justify-center p-0 m-0">
+        <span class="text-xs font-medium leading-none m-0 p-0 flex items-center justify-center w-full h-full"><%= current_user.name.split.map(&:first).join %></span>
+      </div>
+    </div>
+    
+    <div class="flex-1 relative">
+      <%= form.text_area :content, 
+                        class: "textarea textarea-bordered w-full pr-16", 
+                        rows: 1,
+                        placeholder: "Write a comment...", 
+                        required: true,
+                        data: { 
+                          action: "input->comment-form#adjustHeight keydown.enter->comment-form#submitOnEnter",
+                          comment_form_target: "textarea"
+                        } %>
+      
+      <div class="absolute bottom-2 right-2">
+        <%= form.submit "Post", 
+                       class: "btn btn-primary btn-sm rounded-full",
+                       data: { comment_form_target: "submitButton" } %>
+      </div>
+    </div>
   </div>
 <% end %>

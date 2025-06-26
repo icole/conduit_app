@@ -41,3 +41,5 @@ wide-gamma-462206-r8-823649cf4ac3.json
 !/app/assets/builds/.keep
 
 .idea/
+
+/node_modules
