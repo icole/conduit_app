@@ -1,81 +1,98 @@
 <!-- Main Content Grid -->
-<div class="grid grid-2 mb-4" data-controller="posts">
-  <!-- Community Wall -->
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-title">Community Wall</h2>
-      <button class="btn btn-primary btn-small" data-action="click->posts#showForm">New Post</button>
-    </div>
-
-    <!-- HOTWIRE: New post form will be a Turbo Frame -->
-    <div id="new-post-form" class="<%= 'hidden' unless @post.errors.any? %>">
-      <%= render "posts/form", post: @post %>
-    </div>
-
-    <!-- HOTWIRE: Posts will stream in real-time via Turbo Streams -->
-    <div id="community-posts">
-      <% if @posts.any? %>
-        <%= render @posts %>
-      <% else %>
-        <div class="text-center p-4 text-gray">
-          <p>No posts yet. Be the first to share something with the community!</p>
+<div class="grid grid-cols-2 gap-6 p-4" data-controller="posts">
+  <!-- Posts Column -->
+  <div class="col-span-1">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="card-title text-2xl font-bold">Community Wall</h2>
+          <button class="btn btn-primary" data-action="click->posts#showForm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            New Post
+          </button>
         </div>
-      <% end %>
+
+        <!-- New Post Form -->
+        <div id="new-post-form" class="<%= 'hidden' unless @post.errors.any? %> mb-6">
+          <div class="card bg-base-200 p-4">
+            <h3 class="text-lg font-semibold mb-3">Create Post</h3>
+            <%= render "posts/form", post: @post %>
+          </div>
+        </div>
+
+        <!-- Posts Feed -->
+        <div id="community-posts" class="space-y-6">
+          <% if @posts.any? %>
+            <%= render @posts %>
+          <% else %>
+            <div class="text-center p-8 bg-base-200 rounded-lg">
+              <div class="text-5xl mb-4">📝</div>
+              <h3 class="text-xl font-medium mb-2">No posts yet</h3>
+              <p class="text-base-content/70">Be the first to share something with the community!</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Quick Actions & Notifications -->
-  <div>
+  <!-- Right Sidebar -->
+  <div class="col-span-1">
     <!-- Upcoming Events -->
-    <div class="card mb-2">
-      <div class="card-header">
-        <h3 class="card-title">Upcoming Events</h3>
-      </div>
-      <div id="event-feed">
-        <p class="text-center p-4 text-gray">No events yet.</p>
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h3 class="card-title text-lg font-semibold">📅 Upcoming Events</h3>
+        <div id="event-feed" class="mt-2">
+          <div class="text-center p-6 bg-base-200 rounded-lg">
+            <p class="text-base-content/70">No upcoming events scheduled.</p>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Tasks -->
-    <div class="card mb-2 tasks-card" data-controller="tasks">
-      <div class="card-header">
-        <h3 class="card-title">Task Items</h3>
-        <div class="card-actions">
-          <%= link_to tasks_path, class: "icon-btn btn-secondary", title: "View All Tasks" do %>
-            <!-- List icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
-            </svg>
-          <% end %>
-          <button class="icon-btn btn-primary" data-action="click->tasks#showForm" title="New Task">
-            <!-- Plus icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-            </svg>
-          </button>
-        </div>
-      </div>
+    <div class="card bg-base-100 shadow-xl" data-controller="tasks">
+      <div class="card-body">
+        <h3 class="card-title text-lg font-semibold">✅ Task Items</h3>
 
-      <!-- New task form -->
-      <div id="new-task-form" class="<%= 'hidden' unless @task.errors.any? %>">
-        <div class="p-3">
-          <%= turbo_frame_tag "new_task" do %>
-            <%= render "tasks/form", task: @task %>
+        <!-- Inline Task Form -->
+        <div class="form-control w-full mt-2">
+          <%= form_with(model: Task.new, class: "join w-full", data: { turbo_frame: "_top" }) do |form| %>
+            <%= form.text_field :title,
+                class: "input input-bordered w-full join-item",
+                placeholder: "Add a new task...",
+                required: true,
+                autocomplete: "off" %>
+            <%= form.submit "Add", class: "btn btn-primary join-item" %>
           <% end %>
         </div>
-      </div>
 
-      <!-- Task list -->
-      <div id="task-list" class="p-3">
-        <% if @tasks.any? %>
-          <ul id="task-list-items" class="task-list">
-            <% @tasks.each do |task| %>
-              <%= render "tasks/task", task: task %>
-            <% end %>
-          </ul>
-        <% else %>
-          <p class="text-center p-4 text-gray">No tasks assigned yet.</p>
-        <% end %>
+        <!-- Task List -->
+        <div id="task-list" class="mt-4">
+          <% if @tasks.any? %>
+            <div id="task-list-items" class="flex flex-wrap gap-2">
+              <% @tasks.each do |task| %>
+                <%= render "tasks/task", task: task %>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center p-6 bg-base-200 rounded-lg">
+              <p class="text-base-content/70">No tasks assigned yet. Add your first task above!</p>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- View All Tasks Link -->
+        <div class="mt-4 text-right">
+          <%= link_to tasks_path, class: "link link-hover text-sm flex items-center justify-end gap-1" do %>
+            <span>View all tasks</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          <% end %>
+        </div>
       </div>
     </div>
   </div>
