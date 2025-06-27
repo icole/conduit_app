@@ -1,0 +1,63 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h1 class="card-title text-2xl font-bold mb-6">Calendar Events</h1>
+
+      <% if @calendar_events && @calendar_events[:status] == :success %>
+        <div class="overflow-x-auto">
+          <table class="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Organizer</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if @calendar_events[:events].present? %>
+                <% @calendar_events[:events].each do |event| %>
+                  <tr>
+                    <td class="font-medium"><%= event[:summary] %></td>
+                    <td><%= event[:start_time].strftime("%a, %b %d, %Y") %></td>
+                    <td>
+                      <% if event[:all_day] %>
+                        All day
+                      <% else %>
+                        <%= event[:start_time].strftime("%I:%M %p") %> - <%= event[:end_time].strftime("%I:%M %p") %>
+                      <% end %>
+                    </td>
+                    <td><%= event[:organizer_name] || event[:organizer] %></td>
+                    <td>
+                      <a href="<%= event[:html_link] %>" target="_blank" class="btn btn-sm btn-outline btn-info">View</a>
+                    </td>
+                  </tr>
+                <% end %>
+              <% else %>
+                <tr>
+                  <td colspan="5" class="text-center py-4">No events found</td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-6">
+          <p>Total events: <%= @calendar_events[:count] %></p>
+        </div>
+      <% else %>
+        <div class="alert alert-warning">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          <span><%= @calendar_events[:error] || "Unable to load calendar events" %></span>
+        </div>
+      <% end %>
+
+      <div class="mt-6">
+        <%= link_to "Back to Calendar", calendar_index_path, class: "btn btn-outline" %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= stylesheet_link_tag "calendar", "data-turbo-track": "reload" %>
