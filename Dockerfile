@@ -39,7 +39,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
 
 # Install Node deps BEFORE copying full app (for caching)
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 RUN ls -al node_modules/daisyui || (echo "daisyui not found" && false)
 
