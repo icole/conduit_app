@@ -4,7 +4,13 @@ class CalendarEventsController < ApplicationController
   before_action :set_calendar_event, only: [ :show, :edit, :update, :destroy ]
 
   def index
-    @calendar_events = CalendarEvent.all
+
+    auth = Google::Auth::ServiceAccountCredentials.make_creds(
+      json_key_io: File.open('wide-gamma-462206-r8-823649cf4ac3.json'),
+      scope: Google::Apis::CalendarV3::AUTH_CALENDAR)
+    service = GoogleCalendarApiService.new(auth)
+
+    @calendar_events = service.get_events
   end
 
   def show
