@@ -85,6 +85,12 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install dependencies
+        run: yarn install
+
       - name: Run tests
         env:
           RAILS_ENV: test
