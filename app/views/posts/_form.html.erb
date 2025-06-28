@@ -14,15 +14,15 @@
   <% end %>
 
   <div class="form-control w-full">
-    <%= form.text_area :content, 
-        class: "textarea textarea-bordered w-full", 
-        rows: 4, 
+    <%= form.text_area :content,
+        class: "textarea textarea-bordered w-full",
+        rows: 4,
         placeholder: "What's happening in the community?",
         required: true %>
   </div>
 
   <div class="flex justify-end gap-2 mt-4">
     <button type="button" class="btn btn-ghost" data-action="click->posts#cancelForm">Cancel</button>
-    <%= form.submit "Post", class: "btn btn-primary" %>
+    <%= form.submit "Post", class: "btn btn-primary", data: { testid: "post-form-submit-button" } %>
   </div>
 <% end %>
