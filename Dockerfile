@@ -3,6 +3,8 @@
 
 ARG RUBY_VERSION=3.4.4
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
+ARG CACHE_BREAKER=1
+
 
 # Rails app lives here
 WORKDIR /rails
@@ -49,8 +51,12 @@ COPY . .
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
 
+RUN echo "🧪 node_modules exists:" && ls -la node_modules && \
+  echo "🧪 daisyui exists:" && ls -la node_modules/daisyui && \
+  echo "🧪 tailwind config:" && cat tailwind.config.js
+
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile --trace
 
 # Final stage for app image
 FROM base
