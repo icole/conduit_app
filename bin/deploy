@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Load deploy-time environment variables
+source .env.deploy
+
+VERSION=$(git rev-parse HEAD)
+echo "🚀 Deploying version $VERSION"
+
+# Ensure env secrets are available
+if [ -z "${RAILS_MASTER_KEY:-}" ]; then
+  echo "❌ RAILS_MASTER_KEY not set"
+  exit 1
+fi
+
+kamal build push --version "$VERSION"
+kamal deploy --version "$VERSION"
+
+echo "✅ Deployed $VERSION"
