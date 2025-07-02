@@ -34,7 +34,7 @@
       <%= button_to "Logout", logout_path, method: :delete, class: "btn btn-outline btn-sm" %>
 
       <div class="dropdown dropdown-end">
-        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder p-0 overflow-hidden">
           <div class="bg-neutral text-neutral-content rounded-full w-10 h-10 flex items-center justify-center p-0 m-0">
             <span class="text-sm font-medium leading-none m-0 p-0 flex items-center justify-center w-full h-full"><%= current_user.name.split.map(&:first).join %></span>
           </div>
