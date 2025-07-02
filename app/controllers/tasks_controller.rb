@@ -45,16 +45,14 @@ class TasksController < ApplicationController
   end
 
   def update
-    @redirect_path = request.referer&.include?("tasks") ? tasks_path : dashboard_index_path
+    # Get the return_to path from params or default to tasks_path
+    return_to = params[:return_to] || tasks_path
 
-    respond_to do |format|
-      if @task.update(task_params)
-        format.html { redirect_to @redirect_path, notice: "Task was successfully updated." }
-        format.turbo_stream
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(dom_id(@task, "form"), partial: "tasks/form", locals: { task: @task }) }
-      end
+    if @task.update(task_params)
+      # Explicitly redirect to the return_to path
+      redirect_to return_to, notice: "Task was successfully updated."
+    else
+      render :edit, status: :unprocessable_entity
     end
   end
 
