@@ -15,7 +15,24 @@
       </button>
     <% end %>
 
-    <span class="<%= task.status == 'completed' ? 'line-through' : '' %>" title="<%= task.title %>"><%= task.title %></span>
+    <div>
+      <span class="<%= task.status == 'completed' ? 'line-through' : '' %>" title="<%= task.title %>"><%= task.title %></span>
+      
+      <% if task.assigned_to_user.present? && controller_name == 'tasks' %>
+        <span class="text-xs badge badge-ghost ml-2" title="Assigned to <%= task.assigned_to_user.name %>">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <%= task.assigned_to_user.name %>
+        </span>
+      <% end %>
+      
+      <% if controller_name == 'tasks' && task.user != current_user %>
+        <span class="text-xs badge badge-outline ml-2" title="Created by <%= task.user.name %>">
+          by <%= task.user.name %>
+        </span>
+      <% end %>
+    </div>
   </div>
 
   <div class="flex gap-1">

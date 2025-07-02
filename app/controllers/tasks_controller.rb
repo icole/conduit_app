@@ -4,11 +4,22 @@ class TasksController < ApplicationController
 
   def index
     @tasks = if params[:status].present?
-               current_user.tasks.where(status: params[:status])
+      Task.where(status: params[:status])
     else
-               current_user.tasks
+      Task.all
     end
+             
+    # Filter by assignment if requested
+    if params[:assigned_to].present?
+      if params[:assigned_to] == 'unassigned'
+        @tasks = @tasks.where(assigned_to_user_id: nil)
+      else
+        @tasks = @tasks.where(assigned_to_user_id: params[:assigned_to])
+      end
+    end
+    
     @task = Task.new
+    @users = User.all
   end
 
   def new
@@ -64,6 +75,6 @@ class TasksController < ApplicationController
   end
 
   def task_params
-    params.require(:task).permit(:title, :description, :status)
+    params.require(:task).permit(:title, :description, :status, :assigned_to_user_id)
   end
 end

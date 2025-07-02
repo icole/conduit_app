@@ -1,13 +1,34 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  title: MyString
-  description: MyText
-  status: MyString
+  title: Complete Project Documentation
+  description: Update all READMEs and add code comments
+  status: pending
   user: one
 
 two:
-  title: MyString
-  description: MyText
-  status: MyString
+  title: Fix UI Bug in Dashboard
+  description: The sidebar collapses incorrectly on mobile
+  status: pending
   user: two
+  
+assigned_task:
+  title: Review Pull Request #42
+  description: Check the code quality and test coverage
+  status: pending
+  user: one
+  assigned_to_user: two
+
+received_task:
+  title: Setup Development Environment
+  description: Install all dependencies and configure local settings
+  status: pending
+  user: two
+  assigned_to_user: one
+
+completed_task:
+  title: Refactor Authentication System
+  description: Improve security and user experience
+  status: completed
+  user: one
+  assigned_to_user: two
