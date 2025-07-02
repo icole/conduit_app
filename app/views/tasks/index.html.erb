@@ -13,6 +13,48 @@
         </div>
       </div>
 
+      <div class="flex flex-wrap gap-2 mb-6">
+        <div class="dropdown">
+          <label tabindex="0" class="btn btn-outline btn-sm">
+            Status: <%= params[:status].present? ? params[:status].capitalize : 'All' %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </label>
+          <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+            <li><%= link_to "All", tasks_path(assigned_to: params[:assigned_to]) %></li>
+            <li><%= link_to "Pending", tasks_path(status: "pending", assigned_to: params[:assigned_to]) %></li>
+            <li><%= link_to "Completed", tasks_path(status: "completed", assigned_to: params[:assigned_to]) %></li>
+          </ul>
+        </div>
+
+        <div class="dropdown">
+          <label tabindex="0" class="btn btn-outline btn-sm">
+            Assigned To: <%= params[:assigned_to] == current_user.id.to_s ? 'Me' : (params[:assigned_to] == 'unassigned' ? 'Unassigned' : (User.find_by(id: params[:assigned_to])&.name || 'All')) %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </label>
+          <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+            <li><%= link_to "All", tasks_path(status: params[:status]) %></li>
+            <li><%= link_to "Me", tasks_path(status: params[:status], assigned_to: current_user.id) %></li>
+            <li><%= link_to "Unassigned", tasks_path(status: params[:status], assigned_to: "unassigned") %></li>
+            <% User.where.not(id: current_user.id).each do |user| %>
+              <li><%= link_to user.name, tasks_path(status: params[:status], assigned_to: user.id) %></li>
+            <% end %>
+          </ul>
+        </div>
+
+        <% if params[:status].present? || params[:assigned_to].present? %>
+          <%= link_to tasks_path, class: "btn btn-ghost btn-sm" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Clear Filters
+          <% end %>
+        <% end %>
+      </div>
+
       <!-- New task form -->
       <div id="new-task-form" class="<%= 'hidden' unless @task&.errors&.any? %> mb-6">
         <div class="card bg-base-100 border border-base-300 rounded-lg p-4">
@@ -22,12 +64,7 @@
         </div>
       </div>
 
-      <div class="mb-6">
-        <div class="tabs tabs-boxed">
-          <%= link_to "Pending", tasks_path(status: 'pending'), class: "tab #{params[:status] == 'pending' ? 'tab-active' : ''}" %>
-          <%= link_to "Completed", tasks_path(status: 'completed'), class: "tab #{params[:status] == 'completed' ? 'tab-active' : ''}" %>
-        </div>
-      </div>
+
 
       <% if @tasks.any? %>
         <div id="task-list-items" class="rounded-lg border border-base-200 overflow-hidden">
