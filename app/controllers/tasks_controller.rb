@@ -6,7 +6,8 @@ class TasksController < ApplicationController
     @tasks = if params[:status].present?
       Task.where(status: params[:status])
     else
-      Task.all
+      # Default to showing only pending tasks
+      Task.where(status: 'pending')
     end
              
     # Filter by assignment if requested
