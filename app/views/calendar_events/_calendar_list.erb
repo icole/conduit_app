@@ -5,8 +5,8 @@
     <ul class="divide-y divide-gray-200">
       <% calendar_events[:events].each do |event| %>
         <li class="py-3 flex items-start">
-          <div class="flex-grow justify-between py-2 px-3 border-b border-base-200 bg-base-100">
-            <p class="font-medium"><%= event[:summary] %></p>
+          <div class="flex-grow justify-between py-2 px-3">
+            <p class="font-medium"><%= event[:summary].capitalize %></p>
             <p class="text-xs text-gray-500"><%= event[:start_time].strftime('%B %d, %Y') %></p>
           </div>
         </li>
