@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'google/apis/calendar_v3'
-require 'googleauth'
+require "google/apis/calendar_v3"
+require "googleauth"
 
 # Service responsible for accessing Google Calendar API and returning events
 class GoogleCalendarApiService
@@ -9,15 +9,15 @@ class GoogleCalendarApiService
 
   def initialize(auth_credentials)
     @calendar_service = Google::Apis::CalendarV3::CalendarService.new
-    @calendar_service.client_options.application_name = 'Community Hub'
+    @calendar_service.client_options.application_name = "Community Hub"
     @calendar_service.authorization = auth_credentials
   end
 
   # Create from OAuth2 token (typically from user session)
   def self.from_oauth_token(access_token)
     credentials = Google::Auth::UserRefreshCredentials.new(
-      client_id: ENV['GOOGLE_CLIENT_ID'],
-      client_secret: ENV['GOOGLE_CLIENT_SECRET'],
+      client_id: ENV["GOOGLE_CLIENT_ID"],
+      client_secret: ENV["GOOGLE_CLIENT_SECRET"],
       scope: Google::Apis::CalendarV3::AUTH_CALENDAR_READONLY,
       access_token: access_token
     )
@@ -36,14 +36,14 @@ class GoogleCalendarApiService
   end
 
   # Get events from calendar within time range
-  def get_events(calendar_id: 'info@crowwoods.com', time_min: Time.now, time_max: nil, max_results: 100, search_query: nil)
+  def get_events(calendar_id: "info@crowwoods.com", time_min: Time.now, time_max: nil, max_results: 100, search_query: nil)
     time_max ||= time_min + 90.days
 
     # Build request parameters
     params = {
       calendar_id: calendar_id,
       single_events: true,
-      order_by: 'startTime',
+      order_by: "startTime",
       max_results: max_results,
       time_min: time_min.iso8601,
       time_max: time_max.iso8601
@@ -54,7 +54,7 @@ class GoogleCalendarApiService
 
     # Execute API request
     begin
-      events = calendar_service.list_events(params[:calendar_id], 
+      events = calendar_service.list_events(params[:calendar_id],
                                            max_results: params[:max_results],
                                            single_events: params[:single_events],
                                            order_by: params[:order_by],
@@ -114,7 +114,7 @@ class GoogleCalendarApiService
   def list_available_calendars
     begin
       # Get the raw calendar list from the API
-      calendar_list = calendar_service.list_calendar_lists(min_access_role: 'reader')
+      calendar_list = calendar_service.list_calendar_lists(min_access_role: "reader")
 
       # Process the results into a more useful format
       result = {
@@ -138,8 +138,8 @@ class GoogleCalendarApiService
           access_role: calendar.access_role,
           selected: calendar.selected || false,
           hidden: calendar.hidden || false,
-          can_edit: ['owner', 'writer'].include?(calendar.access_role),
-          can_share: calendar.access_role == 'owner',
+          can_edit: [ "owner", "writer" ].include?(calendar.access_role),
+          can_share: calendar.access_role == "owner",
           can_read: true
         }
 
@@ -155,22 +155,22 @@ class GoogleCalendarApiService
       # result[:calendars] = add_event_counts(result[:calendars])
 
       # Sort by primary first, then by name
-      result[:calendars].sort_by! { |c| [c[:primary] ? 0 : 1, c[:summary].downcase] }
+      result[:calendars].sort_by! { |c| [ c[:primary] ? 0 : 1, c[:summary].downcase ] }
 
       result
     rescue Google::Apis::ClientError, Google::Apis::ServerError, Google::Apis::AuthorizationError => e
       error_message = "Google Calendar API Error: #{e.message}"
       Rails.logger.error(error_message)
-      { 
-        error: error_message, 
+      {
+        error: error_message,
         status: e.class.name.demodulize.underscore,
-        calendars: [] 
+        calendars: []
       }
     end
   end
 
   # Get events for a specific date range (e.g., for a month view)
-  def get_month_events(calendar_id: 'primary', date: Date.today)
+  def get_month_events(calendar_id: "primary", date: Date.today)
     start_date = date.beginning_of_month.beginning_of_week
     end_date = date.end_of_month.end_of_week
     get_events(calendar_id: calendar_id, time_min: start_date.to_time, time_max: end_date.to_time, max_results: 2500)
@@ -210,7 +210,7 @@ class GoogleCalendarApiService
       created: event.created,
       updated: event.updated,
       color_id: event.color_id,
-      calendar_id: event.organizer&.email || 'primary'
+      calendar_id: event.organizer&.email || "primary"
     }
   end
 
