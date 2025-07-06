@@ -7,18 +7,18 @@ class TasksController < ApplicationController
       Task.where(status: params[:status])
     else
       # Default to showing only pending tasks
-      Task.where(status: 'pending')
+      Task.where(status: "pending")
     end
-             
+
     # Filter by assignment if requested
     if params[:assigned_to].present?
-      if params[:assigned_to] == 'unassigned'
+      if params[:assigned_to] == "unassigned"
         @tasks = @tasks.where(assigned_to_user_id: nil)
       else
         @tasks = @tasks.where(assigned_to_user_id: params[:assigned_to])
       end
     end
-    
+
     @task = Task.new
     @users = User.all
   end
