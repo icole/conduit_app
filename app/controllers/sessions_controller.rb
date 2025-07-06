@@ -19,13 +19,20 @@ class SessionsController < ApplicationController
 
   def omniauth
     # Handle OAuth callback
-    user = User.from_omniauth(request.env["omniauth.auth"])
+    invitation_token = session[:invitation_token]
 
-    if user.save
-      session[:user_id] = user.id
-      redirect_to root_path, notice: "Logged in with Google successfully!"
-    else
-      redirect_to login_path, alert: "Failed to log in with Google: #{user.errors.full_messages.join(', ')}"
+    begin
+      user = User.from_omniauth(request.env["omniauth.auth"], invitation_token)
+
+      if user.save
+        session[:user_id] = user.id
+        session.delete(:invitation_token) if invitation_token.present?
+        redirect_to root_path, notice: "Logged in with Google successfully!"
+      else
+        redirect_to login_path, alert: "Failed to log in with Google: #{user.errors.full_messages.join(', ')}"
+      end
+    rescue StandardError => e
+      redirect_to login_path, alert: "Authentication failed: #{e.message}"
     end
   end
 

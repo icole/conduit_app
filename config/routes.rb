@@ -22,6 +22,13 @@ Rails.application.routes.draw do
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy"
 
+  # Invitation routes
+  resources :invitations, only: [ :new, :create, :index ] do
+    member do
+      get :accept
+    end
+  end
+
   # OmniAuth callback
   get "auth/:provider/callback", to: "sessions#omniauth"
   post "auth/:provider/callback", to: "sessions#omniauth"

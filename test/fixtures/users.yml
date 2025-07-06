@@ -5,9 +5,25 @@ one:
   name: Jane Smith
   email: jane@example.com
   provider: google_oauth2
+  password_digest: <%= BCrypt::Password.create('password') %>
 
 two:
   uid: 1234567890
   name: Mike Davis
   email: mike@example.com
   provider: google_oauth2
+  password_digest: <%= BCrypt::Password.create('password') %>
+
+admin_user:
+  uid: 987654321
+  name: Admin User
+  email: admin@example.com
+  password_digest: <%= BCrypt::Password.create('password') %>
+  admin: true
+
+regular_user:
+  uid: 987654322
+  name: Regular User
+  email: regular@example.com
+  password_digest: <%= BCrypt::Password.create('password') %>
+  admin: false

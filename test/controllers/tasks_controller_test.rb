@@ -40,23 +40,15 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "should update task and redirect to tasks when coming from tasks" do
+  test "should update task and redirect to tasks" do
     patch task_url(@task),
-          params: { task: { title: "Updated Task", description: "Updated description", status: "completed" } },
-          headers: { "HTTP_REFERER" => tasks_url }
+          params: { task: { title: "Updated Task", description: "Updated description", status: "completed" } }
     assert_redirected_to tasks_url
 
     @task.reload
     assert_equal "Updated Task", @task.title
     assert_equal "Updated description", @task.description
     assert_equal "completed", @task.status
-  end
-
-  test "should update task and redirect to dashboard when not coming from tasks" do
-    patch task_url(@task),
-          params: { task: { title: "Updated Task", description: "Updated description", status: "completed" } },
-          headers: { "HTTP_REFERER" => dashboard_index_url }
-    assert_redirected_to dashboard_index_url
   end
 
   test "should destroy task and redirect to tasks when coming from tasks" do

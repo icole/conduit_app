@@ -43,13 +43,22 @@ class TasksTest < ApplicationSystemTestCase
   end
 
   test "filtering tasks by assignment on tasks index" do
-    visit tasks_url
+    # Visit tasks URL, but make sure we see all tasks regardless of status
+    visit tasks_path(status: "pending")
+
+    # Ensure the dropdown exists
+    assert_selector "label", text: /Assigned To/
 
     # Click the dropdown for Assigned To
     find("label", text: /Assigned To/).click
 
-    # Select to filter by current user
-    click_on "Me"
+    # Wait for dropdown to appear
+    assert_selector ".dropdown-content", visible: true
+
+    # Select to filter by current user using the correct selector
+    within(".dropdown-content") do
+      find("a", text: "Me").click
+    end
 
     # Should see only tasks assigned to current user
     assert_selector "div", text: @received_task.title
@@ -74,6 +83,8 @@ class TasksTest < ApplicationSystemTestCase
       fill_in "task[title]", with: "Test assigned task"
       fill_in "task[description]", with: "This is a test task with assignment"
       select @user_two.name, from: "task[assigned_to_user_id]"
+      # Explicitly set status to pending to match our default filter
+      select "Pending", from: "task[status]"
 
       # Submit the form using the input directly
       find('input[type="submit"]').click
@@ -99,6 +110,9 @@ class TasksTest < ApplicationSystemTestCase
   end
 
   test "editing task assignment" do
+    # Ensure the task has pending status to be visible in the default view
+    @task.update(status: "pending")
+
     visit tasks_url
 
     # Make sure the task exists before editing it
@@ -113,19 +127,19 @@ class TasksTest < ApplicationSystemTestCase
     assert_selector "h2.card-title", text: "Edit Task"
 
     # Change the assignment - make sure we're targeting the correct form field
-    select @user_two.name, from: "task_assigned_to_user_id"
+    select @user_two.name, from: "task[assigned_to_user_id]"
 
-    # Submit the form
-    find('input[type="submit"][value="Update Task"]').click
+    # Submit the form - use the button text instead of input value
+    click_button "Update Task"
 
-    # Manually visit the tasks page again to ensure we see the updated content
-    visit tasks_url
+    # Should be redirected back to the tasks list
+    assert_selector "h2.card-title", text: "Community Tasks"
 
-    # Use the task ID to find the specific task after the page reload
-    task_element = find("#task_#{@task.id}")
+    # The task should appear in the list - it might take a moment to load
+    assert_selector "#task_#{@task.id}"
 
-    # Verify the task now has the user assigned to it
-    within task_element do
+    # Now verify that the task shows the new assignment
+    within "#task_#{@task.id}" do
       assert_selector "span", text: @user_two.name
     end
   end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_02_071121) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_06_213326) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,6 +42,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_02_071121) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "invitations", force: :cascade do |t|
+    t.string "token"
+    t.datetime "used_at"
+    t.datetime "expires_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["token"], name: "index_invitations_on_token", unique: true
+  end
+
   create_table "likes", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "post_id", null: false
@@ -67,6 +76,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_02_071121) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "assigned_to_user_id"
+    t.index ["assigned_to_user_id"], name: "index_tasks_on_assigned_to_user_id"
     t.index ["user_id"], name: "index_tasks_on_user_id"
   end
 
@@ -79,7 +89,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_02_071121) do
     t.string "avatar_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "invitation_id"
+    t.boolean "admin", default: false
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["invitation_id"], name: "index_users_on_invitation_id"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
   end
 
@@ -89,4 +102,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_02_071121) do
   add_foreign_key "likes", "users"
   add_foreign_key "posts", "users"
   add_foreign_key "tasks", "users"
+  add_foreign_key "tasks", "users", column: "assigned_to_user_id"
 end
