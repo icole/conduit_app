@@ -83,8 +83,7 @@ class TasksTest < ApplicationSystemTestCase
       fill_in "task[title]", with: "Test assigned task"
       fill_in "task[description]", with: "This is a test task with assignment"
       select @user_two.name, from: "task[assigned_to_user_id]"
-      # Explicitly set status to pending to match our default filter
-      select "Pending", from: "task[status]"
+      # New tasks are automatically set to pending status by the model
 
       # Submit the form using the input directly
       find('input[type="submit"]').click
