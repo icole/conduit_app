@@ -45,8 +45,8 @@
       <div class="card-body">
         <h3 class="card-title text-lg font-semibold">📅 Upcoming Events</h3>
         <div id="event-feed" class="mt-2">
-          <div class="text-center p-6 bg-base-200 rounded-lg">
-            <p class="text-base-content/70">No upcoming events scheduled.</p>
+          <div class="text-center p-6 rounded-lg">
+            <%= render 'calendar_events/calendar_list',  calendar_events: @events  %>
           </div>
         </div>
       </div>
