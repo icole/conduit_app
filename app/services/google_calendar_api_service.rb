@@ -29,7 +29,7 @@ class GoogleCalendarApiService
     return nil unless File.exist?(key_file_path)
 
     credentials = Google::Auth::ServiceAccountCredentials.make_creds(
-      json_key_io: File.open(key_file_path),
+      json_key_io: CalendarCredentials.credentials_io,
       scope: Google::Apis::CalendarV3::AUTH_CALENDAR_READONLY
     )
     new(credentials)
