@@ -5,7 +5,7 @@ class CalendarEventsController < ApplicationController
 
   def index
     auth = Google::Auth::ServiceAccountCredentials.make_creds(
-      json_key_io: File.open(ENV["CALENDAR_CONFIG_FILE"]),
+      json_key_io: CalendarCredentials.credentials_io,
       scope: Google::Apis::CalendarV3::AUTH_CALENDAR)
     service = GoogleCalendarApiService.new(auth)
     @calendar_events = service.get_events
