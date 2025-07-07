@@ -1,18 +1,30 @@
-<div class="space-y-2 my-4">
-
-
+<div class="space-y-4 my-4">
   <% if calendar_events.present? %>
-    <ul class="divide-y divide-gray-200">
+    <ul class="space-y-3">
       <% calendar_events[:events].each do |event| %>
-        <li class="py-3 flex items-start">
-          <div class="flex-grow justify-between py-2 px-3">
-            <p class="font-medium"><%= event[:summary].capitalize %></p>
-            <p class="text-xs text-gray-500"><%= event[:start_time].strftime('%B %d, %Y') %></p>
+        <li class="bg-base-200 rounded-lg overflow-hidden transition-all hover:shadow-md">
+          <div class="flex items-center">
+            <div class="bg-primary text-primary-content p-3 flex flex-col items-center justify-center">
+              <span class="text-xl font-bold"><%= event[:start_time].strftime('%d') %></span>
+              <span class="text-xs uppercase"><%= event[:start_time].strftime('%b') %></span>
+            </div>
+            <div class="flex-grow p-3">
+              <p class="font-medium line-clamp-1"><%= event[:summary].capitalize %></p>
+              <div class="flex items-center text-xs text-base-content/70 mt-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <%= event[:start_time].strftime('%I:%M %p') %>
+              </div>
+            </div>
           </div>
         </li>
       <% end %>
     </ul>
   <% else %>
-    <p class="text-gray-500 italic">No upcoming events found</p>
+    <div class="text-center p-6 bg-base-200 rounded-lg">
+      <div class="text-4xl mb-2">📅</div>
+      <p class="text-base-content/70">No upcoming events found</p>
+    </div>
   <% end %>
 </div>

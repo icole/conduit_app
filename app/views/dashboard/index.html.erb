@@ -43,11 +43,17 @@
     <!-- Upcoming Events -->
     <div class="card bg-base-100 shadow-xl mb-6">
       <div class="card-body">
-        <h3 class="card-title text-lg font-semibold">📅 Upcoming Events</h3>
-        <div id="event-feed" class="mt-2">
-          <div class="text-center p-6 rounded-lg">
-            <%= render 'calendar_events/calendar_list',  calendar_events: @events  %>
-          </div>
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="card-title text-lg font-semibold flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Upcoming Events
+          </h3>
+          <span class="badge badge-primary badge-sm">Calendar</span>
+        </div>
+        <div id="event-feed">
+          <%= render 'calendar_events/calendar_list', calendar_events: @events %>
         </div>
       </div>
     </div>
