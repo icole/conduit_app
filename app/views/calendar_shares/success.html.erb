@@ -1,0 +1,30 @@
+<div class="max-w-2xl mx-auto my-10 p-6 bg-base-100 shadow-xl rounded-lg">
+  <div class="mb-6 text-center">
+    <h1 class="text-2xl font-bold mb-2">Calendar Access Granted!</h1>
+    <p>The calendar has been shared with your Google account (<%= current_user.email %>).</p>
+  </div>
+  <div class="bg-base-200 p-4 rounded-lg mb-6">
+    <p class="mb-2">Next steps:</p>
+    <ol class="list-decimal ml-5 space-y-2">
+      <li>Google Calendar will open in a new tab. If not, click the button below.</li>
+      <li>Look for "<%= ENV['GOOGLE_CALENDAR_NAME'] || 'Community Calendar' %>" in your calendar list.</li>
+      <li>If you don't see it, check "Other calendars" or refresh the page.</li>
+    </ol>
+  </div>
+  <div class="flex gap-3 justify-center">
+    <a href="https://calendar.google.com/calendar/render?cid=<%= CGI.escape(@calendar_id) %>" 
+       target="_blank" 
+       id="open-calendar-btn"
+       class="btn btn-primary">
+      Open Google Calendar
+    </a>
+    <a href="<%= root_path %>" class="btn btn-outline">Return to Dashboard</a>
+  </div>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(function() {
+      window.open('https://calendar.google.com/calendar/render?cid=<%= CGI.escape(@calendar_id) %>', '_blank');
+    }, 1000);
+  });
+</script>

@@ -24,7 +24,7 @@ class GoogleCalendarApiService
     new(credentials)
   end
 
-  # Create from service account key file
+  # Create from service account key file (read-only access)
   def self.from_service_account(key_file_path)
     return nil unless File.exist?(key_file_path)
 
@@ -35,8 +35,18 @@ class GoogleCalendarApiService
     new(credentials)
   end
 
+  # Create from service account key file (with ACL write access for sharing)
+  def self.from_service_account_with_acl_scope
+    # Using the proper scope for calendar ACL operations
+    credentials = Google::Auth::ServiceAccountCredentials.make_creds(
+      json_key_io: CalendarCredentials.credentials_io,
+      scope: "https://www.googleapis.com/auth/calendar"
+    )
+    new(credentials)
+  end
+
   # Get events from calendar within time range
-  def get_events(calendar_id: "info@crowwoods.com", time_min: Time.now, time_max: nil, max_results: 100, search_query: nil)
+  def get_events(calendar_id: ENV["GOOGLE_CALENDAR_ID"], time_min: Time.now, time_max: nil, max_results: 100, search_query: nil)
     time_max ||= time_min + 90.days
 
     # Build request parameters
@@ -174,6 +184,40 @@ class GoogleCalendarApiService
     start_date = date.beginning_of_month.beginning_of_week
     end_date = date.end_of_month.end_of_week
     get_events(calendar_id: calendar_id, time_min: start_date.to_time, time_max: end_date.to_time, max_results: 2500)
+  end
+
+  # Share a calendar with a specific user by email
+  def share_calendar_with_user(calendar_id:, email:, role: "reader")
+    begin
+      # Create a new access control rule
+      rule = Google::Apis::CalendarV3::AclRule.new(
+        scope: {
+          type: "user",
+          value: email
+        },
+        role: role # Possible values: "none", "reader", "writer", "owner"
+      )
+
+      # Insert the rule into the calendar's ACL
+      result = calendar_service.insert_acl(calendar_id, rule)
+
+      # Return success result
+      {
+        status: :success,
+        rule_id: result.id,
+        email: email,
+        role: role
+      }
+    rescue Google::Apis::ClientError => e
+      Rails.logger.error("Google Calendar API ACL Client Error: #{e.message}")
+      { error: e.message, status: :client_error }
+    rescue Google::Apis::ServerError => e
+      Rails.logger.error("Google Calendar API ACL Server Error: #{e.message}")
+      { error: e.message, status: :server_error }
+    rescue Google::Apis::AuthorizationError => e
+      Rails.logger.error("Google Calendar API ACL Authorization Error: #{e.message}")
+      { error: e.message, status: :auth_error }
+    end
   end
 
   private

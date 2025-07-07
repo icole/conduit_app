@@ -13,6 +13,11 @@ Rails.application.routes.draw do
 
   resources :calendar, only: [ "index" ]
   resources :calendar_events
+  resources :calendar_shares, only: [ :create ] do
+    collection do
+      get :success
+    end
+  end
 
   # Temporary route for testing environment variables
   get "test/env", to: "test#env_test"
