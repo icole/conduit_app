@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# This script helps prepare the calendar config file for Kamal deployment
+# Usage: bin/prepare_calendar_config path/to/calendar-config.json
+
+require 'base64'
+
+if ARGV.length != 1
+  puts "Usage: bin/prepare_calendar_config path/to/calendar-config.json"
+  exit 1
+end
+
+file_path = ARGV[0]
+
+unless File.exist?(file_path)
+  puts "Error: File '#{file_path}' does not exist"
+  exit 1
+end
+
+content = File.read(file_path)
+encoded = Base64.strict_encode64(content)
+
+puts "Encoded calendar config content:"
+puts encoded
+puts "\nTo set this in Kamal:"
+puts "kamal env set CALENDAR_CONFIG_CONTENT=#{encoded}"
+puts "\nOr add to your .env file:"
+puts "CALENDAR_CONFIG_CONTENT=#{encoded}"
