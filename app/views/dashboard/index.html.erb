@@ -50,7 +50,11 @@
             </svg>
             Upcoming Events
           </h3>
-          <span class="badge badge-primary badge-sm">Calendar</span>
+          <div class="flex items-center gap-1">
+            <%= button_to calendar_shares_path, method: :post, class: "badge badge-primary hover:badge-secondary cursor-pointer", title: "Subscribe to this calendar", form_class: "inline-block", data: { turbo: "false", turbo_confirm: "Subscribe to the community calendar? This will share it with your Google account." } do %>
+              Calendar <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 ml-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+            <% end %>
+          </div>
         </div>
         <div id="event-feed">
           <%= render 'calendar_events/calendar_list', calendar_events: @events %>
