@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require 'base64'
+
+require "base64"
 
 # Configure how to access calendar credentials based on environment
 module CalendarCredentials

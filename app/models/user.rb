@@ -15,16 +15,17 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 6 }, if: -> { provider.blank? }
 
   def self.from_omniauth(auth, invitation_token = nil)
-    # Skip invitation check if we're in test environment
-    if !Rails.env.test? && !valid_invitation?(invitation_token)
-      raise StandardError, "Access restricted to invited users only"
-    end
-
     user = where(provider: auth.provider, uid: auth.uid).first_or_initialize do |user|
       user.email = auth.info.email
       user.name = auth.info.name
       user.password = SecureRandom.hex(16) if user.new_record?
       user.avatar_url = auth.info.image
+    end
+
+    invitation_token ||= user.invitation&.token
+    # Skip invitation check if we're in test environment
+    if !Rails.env.test? && !valid_invitation?(invitation_token)
+      raise StandardError, "Access restricted to invited users only"
     end
 
     # Associate user with invitation if it exists and is valid
@@ -39,6 +40,6 @@ class User < ApplicationRecord
   end
 
   def self.valid_invitation?(token)
-    user.admin? || Invitation.find_by(token: token)&.valid_for_use?
+    Invitation.find_by(token: token)&.valid_for_use?
   end
 end
