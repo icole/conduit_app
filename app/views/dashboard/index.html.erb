@@ -70,9 +70,9 @@
 
         <!-- Inline Task Form -->
         <div class="form-control w-full mt-2">
-          <%= form_with(model: Task.new, class: "join w-full", data: { turbo_frame: "_top" }) do |form| %>
+          <%= form_with(model: Task.new, class: "join w-full", data: { controller: "reset-form", action: "turbo:submit-end->reset-form#reset" }) do |form| %>
             <%= form.hidden_field :assigned_to_user_id, value: current_user.id %>
-          <%= form.text_field :title,
+            <%= form.text_field :title,
                 class: "input input-bordered w-full join-item focus:outline-none focus:border-base-300",
                 placeholder: "Add a new task...",
                 required: true,
