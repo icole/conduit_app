@@ -3,8 +3,8 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   connect() {
     // Hide the form by default unless there are errors
-    if (!document.querySelector("#new-task-form .alert")) {
-      document.getElementById("new-task-form").classList.add("hidden");
+    if (!document.querySelector("#new-task-form .alert") && document.getElementById("new-task-form")) {
+      document.getElementById("new-task-form").classList.remove("hidden");
     }
   }
 
