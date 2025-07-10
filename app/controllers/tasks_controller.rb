@@ -31,10 +31,6 @@ class TasksController < ApplicationController
     @task = current_user.tasks.build(task_params)
     @redirect_path = request.referer&.include?("tasks") ? tasks_path : dashboard_index_path
 
-    # Only auto-assign if created from dashboard (not the tasks page)
-    unless request.referer&.include?("tasks")
-      @task.assigned_to_user_id ||= current_user.id
-    end
 
     respond_to do |format|
       if @task.save
@@ -75,7 +71,7 @@ class TasksController < ApplicationController
   private
 
   def set_task
-    @task = current_user.tasks.find(params[:id])
+    @task = Task.find(params[:id])
   end
 
   def task_params
