@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_06_213326) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_10_154108) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -48,7 +48,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_06_213326) do
     t.datetime "expires_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id"
     t.index ["token"], name: "index_invitations_on_token", unique: true
+    t.index ["user_id"], name: "index_invitations_on_user_id"
   end
 
   create_table "likes", force: :cascade do |t|
@@ -89,8 +91,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_06_213326) do
     t.string "avatar_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "invitation_id"
     t.boolean "admin", default: false
+    t.bigint "invitation_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["invitation_id"], name: "index_users_on_invitation_id"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
@@ -98,9 +100,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_06_213326) do
 
   add_foreign_key "comments", "posts"
   add_foreign_key "comments", "users"
+  add_foreign_key "invitations", "users"
   add_foreign_key "likes", "posts"
   add_foreign_key "likes", "users"
   add_foreign_key "posts", "users"
   add_foreign_key "tasks", "users"
   add_foreign_key "tasks", "users", column: "assigned_to_user_id"
+  add_foreign_key "users", "invitations"
 end
