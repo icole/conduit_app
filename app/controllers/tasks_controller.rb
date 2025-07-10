@@ -31,6 +31,11 @@ class TasksController < ApplicationController
     @task = current_user.tasks.build(task_params)
     @redirect_path = request.referer&.include?("tasks") ? tasks_path : dashboard_index_path
 
+    # Only auto-assign if created from dashboard (not the tasks page)
+    unless request.referer&.include?("tasks")
+      @task.assigned_to_user_id ||= current_user.id
+    end
+
     respond_to do |format|
       if @task.save
         format.html { redirect_to @redirect_path, notice: "Task was successfully created." }
