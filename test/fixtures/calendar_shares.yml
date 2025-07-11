@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+user_one_primary:
+  user: one
+  calendar_id: primary_calendar_id
+  shared_at: 2025-07-03 16:18:24
+
+user_two_community:
+  user: two
+  calendar_id: community_calendar_id
+  shared_at: 2025-07-08 16:18:24

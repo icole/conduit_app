@@ -51,8 +51,10 @@
             Upcoming Events
           </h3>
           <div class="flex items-center gap-1">
-            <%= button_to calendar_shares_path, method: :post, class: "badge badge-primary hover:badge-secondary cursor-pointer", title: "Subscribe to this calendar", form_class: "inline-block", data: { turbo: "false", turbo_confirm: "Subscribe to the community calendar? This will share it with your Google account." } do %>
-              Calendar <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 ml-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+            <% unless @calendar_already_shared %>
+              <%= button_to calendar_shares_path, method: :post, class: "badge badge-primary hover:badge-secondary cursor-pointer", title: "Subscribe to this calendar", form_class: "inline-block", data: { turbo: "false", turbo_confirm: "Subscribe to the community calendar? This will share it with your Google account." } do %>
+                Subscribe <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 ml-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+              <% end %>
             <% end %>
           </div>
         </div>

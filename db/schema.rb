@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_10_154108) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_10_235250) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,6 +21,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_10_154108) do
     t.datetime "end_time"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "calendar_shares", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "calendar_id"
+    t.datetime "shared_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_calendar_shares_on_user_id"
   end
 
   create_table "comments", force: :cascade do |t|
@@ -98,6 +107,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_10_154108) do
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
   end
 
+  add_foreign_key "calendar_shares", "users"
   add_foreign_key "comments", "posts"
   add_foreign_key "comments", "users"
   add_foreign_key "invitations", "users"

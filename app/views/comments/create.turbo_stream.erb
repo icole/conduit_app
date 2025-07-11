@@ -2,7 +2,7 @@
   <%= render @post %>
 <% end %>
 
-<%= turbo_stream.prepend "post-#{@post.id}-comments-list" do %>
+<%= turbo_stream.append "post-#{@post.id}-comments-list" do %>
   <%= render @comment %>
 <% end %>
 

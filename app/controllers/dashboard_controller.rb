@@ -10,6 +10,11 @@ class DashboardController < ApplicationController
     @tasks = @tasks.where(status: "pending") if params[:status].blank?
 
     @task = Task.new
+
+    # Check if the user already has a calendar share
+    calendar_id = ENV["GOOGLE_CALENDAR_ID"]
+    @calendar_already_shared = CalendarShare.calendar_shared_with_user?(calendar_id, current_user)
+
     if !Rails.env.test?
       auth = Google::Auth::ServiceAccountCredentials.make_creds(
         json_key_io: CalendarCredentials.credentials_io,
