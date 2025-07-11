@@ -39,17 +39,16 @@
 
   <div class="navbar-end gap-4">
     <% if user_signed_in? %>
-      <%= button_to "Logout", logout_path, method: :delete, class: "btn btn-outline btn-sm" %>
-
       <div class="dropdown dropdown-end">
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder p-0 overflow-hidden">
-          <div class="bg-neutral text-neutral-content rounded-full w-10 h-10 flex items-center justify-center p-0 m-0">
-            <span class="text-sm font-medium leading-none m-0 p-0 flex items-center justify-center w-full h-full"><%= current_user.name.split.map(&:first).join %></span>
+          <div class="flex-shrink-0 h-10 w-10">
+            <img class="h-10 w-10 rounded-full" src="<%= current_user.avatar_url %>" alt="<%= current_user.name %>">
           </div>
         </div>
         <ul tabindex="0" class="menu dropdown-content z-[1] p-2 shadow bg-base-100 text-base-content rounded-box w-52 mt-4">
-          <li><a href="#" class="py-2">Profile</a></li>
-          <li><a href="#" class="py-2">Settings</a></li>
+          <%# <li><a href="#" class="py-2">Profile</a></li>
+          <li><a href="#" class="py-2">Settings</a></li> %>
+          <li><%= link_to "Logout", logout_path, data: { turbo_method: :delete }, class: "py-2" %></li>
         </ul>
       </div>
     <% end %>
