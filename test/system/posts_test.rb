@@ -118,4 +118,39 @@ class PostsTest < ApplicationSystemTestCase
       assert_no_selector "[data-testid='comment-content']", text: @user_comment.content
     end
   end
+
+  test "new comments are appended to the end of the list" do
+    visit dashboard_index_url
+
+    # Use a post that doesn't have any comments yet
+    within "##{dom_id(@uncommented_post)}" do
+      # Click the comment button to show the comment form
+      find("[data-testid='comment-button-#{@uncommented_post.id}']").click
+
+      # Add first comment
+      fill_in "comment_content", with: "First test comment"
+      click_on "Post"
+
+      # Verify the first comment was added
+      assert_text "First test comment"
+
+      # Add second comment
+      fill_in "comment_content", with: "Second test comment"
+      click_on "Post"
+
+      # Verify the second comment was added
+      assert_text "Second test comment"
+
+      # Get all comment elements
+      comments = all("[data-testid='comment-content']")
+
+      # Verify that the second comment is the last one in the list (was appended)
+      assert_equal "Second test comment", comments.last.text
+
+      # Verify that the first comment comes before the second comment
+      first_index = comments.find_index { |c| c.text == "First test comment" }
+      second_index = comments.find_index { |c| c.text == "Second test comment" }
+      assert first_index < second_index, "First comment should appear before second comment"
+    end
+  end
 end
