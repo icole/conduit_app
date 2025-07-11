@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :users, only: [ :index, :edit, :update, :destroy ]
   resources :tasks, without: [ :show ]
   resources :posts, only: [ :create, :update, :destroy ] do
     resources :likes, only: [ :create, :destroy ]
