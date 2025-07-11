@@ -33,7 +33,7 @@ class CalendarSharesController < ApplicationController
       result = service.share_calendar_with_user(
         calendar_id: calendar_id,
         email: current_user.email,
-        role: "reader"
+        role: "writer"
       )
 
       Rails.logger.info("Calendar sharing result: #{result.inspect}")
