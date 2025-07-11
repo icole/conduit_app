@@ -15,6 +15,7 @@
         <li><%= link_to "Tasks", tasks_path %></li>
         <% if user_signed_in? && current_user.admin? %>
           <li><%= link_to "Invitations", invitations_path %></li>
+          <li><%= link_to "Users", users_path %></li>
         <% end %>
       </ul>
     </div>
@@ -30,6 +31,7 @@
         <li><%= link_to "Tasks", tasks_path, class: "btn btn-ghost btn-md #{'btn-active' if current_page?(tasks_path)}" %></li>
         <% if user_signed_in? && current_user.admin? %>
           <li><%= link_to "Invitations", invitations_path, class: "btn btn-ghost btn-md #{'btn-active' if current_page?(invitations_path)}" %></li>
+          <li><%= link_to "Users", users_path, class: "btn btn-ghost btn-md #{'btn-active' if controller_name == 'users'}" %></li>
         <% end %>
       </ul>
     </div>
