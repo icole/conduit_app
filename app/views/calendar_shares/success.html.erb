@@ -7,13 +7,12 @@
     <p class="mb-2">Next steps:</p>
     <ol class="list-decimal ml-5 space-y-2">
       <li>Google Calendar will open in a new tab. If not, click the button below.</li>
-      <li>Look for "<%= ENV['GOOGLE_CALENDAR_NAME'] || 'Community Calendar' %>" in your calendar list.</li>
-      <li>If you don't see it, check "Other calendars" or refresh the page.</li>
+      <li>Look for "<%= ENV['GOOGLE_CALENDAR_ID'] %>" in your calendar list.</li>
     </ol>
   </div>
   <div class="flex gap-3 justify-center">
-    <a href="https://calendar.google.com/calendar/render?cid=<%= CGI.escape(@calendar_id) %>" 
-       target="_blank" 
+    <a href="https://calendar.google.com/calendar/render?cid=<%= CGI.escape(@calendar_id) %>"
+       target="_blank"
        id="open-calendar-btn"
        class="btn btn-primary">
       Open Google Calendar
