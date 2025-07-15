@@ -1,0 +1,118 @@
+<div class="container mx-auto px-4 py-6">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold">Google Drive Folders</h1>
+    <p class="text-base-content/70">Manage access to Google Drive folders for your users.</p>
+  </div>
+
+  <% if @folder_results&.dig(:error).present? %>
+    <div class="alert alert-error shadow-lg mb-6">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span><%= @folder_results[:error] %></span>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="bg-base-100 rounded-lg shadow-lg p-6">
+    <div class="overflow-x-auto">
+      <table class="table w-full table-zebra">
+        <thead>
+          <tr>
+            <th>Folder Name</th>
+            <th>Description</th>
+            <th>Modified</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @folder_results&.dig(:folders)&.any? %>
+            <% @folder_results[:folders].each do |folder| %>
+              <tr>
+                <td>
+                  <div class="font-medium"><%= proper_title_case(folder[:name]) %></div>
+                  <div class="text-xs text-base-content/70">ID: <%= folder[:id] %></div>
+                </td>
+                <td>
+                  <%= folder[:description].present? ? folder[:description] : "-" %>
+                </td>
+                <td>
+                  <%= folder[:updated_at]&.to_s(:long) || "-" %>
+                </td>
+                <td class="text-right">
+                  <div class="flex justify-end space-x-2">
+                    <a href="<%= folder[:web_link] %>" target="_blank" class="btn btn-sm btn-outline" title="View in Google Drive">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+
+                    <!-- Button to generate access link -->
+                    <div class="dropdown dropdown-end">
+                      <label tabindex="0" class="btn btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                        </svg>
+                        <span class="ml-1">Share</span>
+                      </label>
+                      <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 z-[1]">
+                        <li>
+                          <a href="#" data-clipboard-text="<%= url_for(controller: 'drive_shares', action: 'create', folder_id: folder[:id], folder_name: folder[:name], only_path: false) %>" class="clipboard-btn">
+                            Copy Access URL
+                          </a>
+                        </li>
+                        <li>
+                          <%= link_to "Create Access Button", "#", onclick: "showEmbedCode('#{folder[:id]}', '#{folder[:name]}'); return false;" %>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="4" class="text-center py-8">
+                <div class="text-base-content/70">No folders found</div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal for embed code -->
+  <dialog id="embed-modal" class="modal">
+    <form method="dialog" class="modal-box">
+      <h3 class="font-bold text-lg">Embed Code</h3>
+      <p class="py-4">Copy this code to embed an access button in any page:</p>
+      <div class="bg-base-200 p-4 rounded-md mt-2">
+        <pre id="embed-code" class="whitespace-pre-wrap text-xs"></pre>
+      </div>
+      <div class="modal-action">
+        <button class="btn">Close</button>
+        <button class="btn btn-primary clipboard-btn" data-clipboard-target="#embed-code">Copy Code</button>
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+</div>
+
+<script>
+  function showEmbedCode(folderId, folderName) {
+    const embedCode = `<%= render partial: 'shared/drive_folder_access_button', locals: { folder_id: '${folderId}', folder_name: '${folderName}', button_text: 'Access Drive Folder' } %>`;
+    document.getElementById('embed-code').textContent = embedCode;
+    document.getElementById('embed-modal').showModal();
+  }
+
+  // Initialize clipboard.js for the copy buttons (requires clipboard.js to be included)
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof ClipboardJS !== 'undefined') {
+      new ClipboardJS('.clipboard-btn');
+    }
+  });
+</script>

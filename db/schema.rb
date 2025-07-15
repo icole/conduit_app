@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_10_235250) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_14_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -49,6 +49,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_10_235250) do
     t.string "document_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "drive_shares", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "folder_id", null: false
+    t.string "folder_name"
+    t.string "permission_id"
+    t.string "role", default: "reader"
+    t.datetime "shared_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["folder_id", "user_id"], name: "index_drive_shares_on_folder_id_and_user_id", unique: true
+    t.index ["user_id"], name: "index_drive_shares_on_user_id"
   end
 
   create_table "invitations", force: :cascade do |t|
@@ -110,6 +123,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_10_235250) do
   add_foreign_key "calendar_shares", "users"
   add_foreign_key "comments", "posts"
   add_foreign_key "comments", "users"
+  add_foreign_key "drive_shares", "users"
   add_foreign_key "invitations", "users"
   add_foreign_key "likes", "posts"
   add_foreign_key "likes", "users"

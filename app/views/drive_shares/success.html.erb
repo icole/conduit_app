@@ -1,0 +1,32 @@
+<div class="container max-w-xl mx-auto px-4 py-8">
+  <div class="bg-base-100 rounded-box shadow-lg p-6 text-center">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+
+    <h1 class="font-bold text-2xl mt-6">Access Granted!</h1>
+    <p class="text-base-content/70 mt-3">You now have access to the <%= proper_title_case(@folder_name) %> Google Drive folder.</p>
+
+    <div class="mt-6 bg-base-200 p-4 rounded-lg">
+      <h3 class="font-semibold">Next steps:</h3>
+      <ol class="text-left list-decimal list-inside mt-2 space-y-2">
+        <li>Google Drive will open in a new tab. If not, click the button below.</li>
+        <li>The shared folder should now be available in your "Shared with me" section.</li>
+        <li>You can access these files anytime by visiting Google Drive directly.</li>
+      </ol>
+    </div>
+
+    <div class="mt-8">
+      <a href="https://drive.google.com/drive/folders/<%= @folder_id %>" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+        Open Google Drive
+      </a>
+    </div>
+
+    <div class="mt-6">
+      <a href="<%= root_path %>" class="link link-primary">Return to Dashboard</a>
+    </div>
+  </div>
+</div>
