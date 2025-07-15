@@ -2,6 +2,7 @@
 
 require "google/apis/drive_v3"
 require "googleauth"
+require "set"
 
 # Service responsible for accessing Google Drive API and managing folder access
 class GoogleDriveApiService
@@ -88,6 +89,60 @@ class GoogleDriveApiService
     end
   end
 
+  # Get recent files in a folder and all its subfolders
+  def list_recent_files(folder_id, max_results: 5)
+    begin
+      # To search recursively through all subfolders, we need to use a different approach
+      # since Drive API doesn't directly support recursive searches in a single query
+
+      # We'll collect all files and then manually sort them
+      all_files = []
+      fields = "files(id, name, mimeType, createdTime, modifiedTime, webViewLink, iconLink, fileExtension, size, parents)"
+
+      # Start with files in the main folder
+      query = "mimeType != 'application/vnd.google-apps.folder' and trashed = false and '#{folder_id}' in parents"
+      top_level_response = drive_service.list_files(
+        q: query,
+        fields: fields
+      )
+      all_files.concat(top_level_response.files) if top_level_response.files
+
+      # Get a list of all subfolders
+      subfolders = list_all_subfolders(folder_id)
+
+      # Add files from each subfolder
+      subfolders.each do |subfolder|
+        begin
+          query = "mimeType != 'application/vnd.google-apps.folder' and trashed = false and '#{subfolder[:id]}' in parents"
+          folder_response = drive_service.list_files(
+            q: query,
+            fields: fields
+          )
+          all_files.concat(folder_response.files) if folder_response.files
+        rescue => e
+          Rails.logger.warn("Error getting files from subfolder #{subfolder[:id]}: #{e.message}")
+        end
+      end
+
+      # Sort all files by modified time (most recent first)
+      all_files.sort_by! { |file| file.modified_time || Time.at(0) }.reverse!
+
+      # Take only the max_results most recent files
+      all_files = all_files.first(max_results)
+
+      format_files(all_files)
+    rescue Google::Apis::ClientError => e
+      Rails.logger.error("Google Drive API Client Error: #{e.message}")
+      { error: e.message, status: :client_error, files: [] }
+    rescue Google::Apis::ServerError => e
+      Rails.logger.error("Google Drive API Server Error: #{e.message}")
+      { error: e.message, status: :server_error, files: [] }
+    rescue Google::Apis::AuthorizationError => e
+      Rails.logger.error("Google Drive API Authorization Error: #{e.message}")
+      { error: e.message, status: :auth_error, files: [] }
+    end
+  end
+
   # Share a folder with a specific user by email
   def share_folder_with_user(folder_id:, email:, role: "reader")
     begin
@@ -152,5 +207,61 @@ class GoogleDriveApiService
         role: p.role
       }}
     }
+  end
+
+  # Format a collection of files for easier consumption
+  def format_files(files)
+    formatted_files = files.map { |file| format_file(file) }
+    { files: formatted_files, count: formatted_files.length, status: :success }
+  end
+
+  # Format a single file for easier consumption
+  def format_file(file)
+    return nil if file.nil?
+
+    {
+      id: file.id,
+      name: file.name,
+      mime_type: file.mime_type,
+      created_at: file.created_time,
+      updated_at: file.modified_time,
+      web_link: file.web_view_link,
+      icon_link: file.icon_link,
+      file_extension: file.file_extension,
+      size: file.size
+    }
+  end
+
+  # Helper method to list all subfolders recursively
+  def list_all_subfolders(folder_id)
+    all_subfolders = []
+    folders_to_process = [ folder_id ]
+    processed_folders = Set.new
+
+    until folders_to_process.empty?
+      current_folder = folders_to_process.shift
+      next if processed_folders.include?(current_folder)
+      processed_folders.add(current_folder)
+
+      begin
+        # Get direct subfolders of the current folder
+        query = "mimeType = 'application/vnd.google-apps.folder' and trashed = false and '#{current_folder}' in parents"
+        response = drive_service.list_files(
+          q: query,
+          fields: "files(id, name)"
+        )
+
+        if response.files && response.files.any?
+          response.files.each do |subfolder|
+            all_subfolders << { id: subfolder.id, name: subfolder.name }
+            folders_to_process << subfolder.id
+          end
+        end
+      rescue => e
+        Rails.logger.warn("Error getting subfolders for folder #{current_folder}: #{e.message}")
+      end
+    end
+
+    all_subfolders
   end
 end
