@@ -10,7 +10,7 @@ class UsersController < ApplicationController
   end
 
   def update
-    if @user.update(user_params)
+    if update_user
       redirect_to users_path, notice: "User was successfully updated."
     else
       render :edit, status: :unprocessable_entity
@@ -41,6 +41,17 @@ class UsersController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:name, :email, :admin)
+    params.require(:user).permit(:name, :email)
+  end
+
+  def update_user
+    result = @user.update(user_params)
+
+    # Handle admin status separately from mass assignment
+    if params[:user] && !params[:user][:admin].nil?
+      @user.update(admin: params[:user][:admin] == "1" || params[:user][:admin] == true)
+    end
+
+    result
   end
 end
