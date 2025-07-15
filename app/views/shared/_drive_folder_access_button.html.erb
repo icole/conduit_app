@@ -1,0 +1,35 @@
+<%
+  folder_id ||= ENV["GOOGLE_DRIVE_FOLDER_ID"]
+  folder_name ||= "Shared Documents"
+  button_text ||= "Get Access"
+  button_class ||= "btn btn-primary btn-sm"
+  icon ||= true
+  already_shared = current_user && DriveShare.folder_shared_with_user?(folder_id, current_user)
+%>
+
+<% if folder_id.present? %>
+  <% if already_shared %>
+    <a href="https://drive.google.com/drive/folders/<%= folder_id %>" target="_blank" class="<%= button_class %> inline-flex items-center" title="Open folder in Google Drive">
+      <% if icon %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+      <% end %>
+      Open in Drive
+    </a>
+  <% else %>
+    <%= form_with url: drive_shares_path, method: :post, class: "inline" do %>
+      <%= hidden_field_tag :folder_id, folder_id %>
+      <%= hidden_field_tag :folder_name, folder_name %>
+      <%= hidden_field_tag :role, "reader" %>
+      <button type="submit" class="<%= button_class %> inline-flex items-center">
+        <% if icon %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        <% end %>
+        <%= button_text %>
+      </button>
+    <% end %>
+  <% end %>
+<% end %>

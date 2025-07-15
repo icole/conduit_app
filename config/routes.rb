@@ -20,6 +20,12 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :drive_shares, only: [ :create, :index ] do
+    collection do
+      get :success
+    end
+  end
+
   # Temporary route for testing environment variables
   get "test/env", to: "test#env_test"
 
