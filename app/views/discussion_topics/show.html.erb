@@ -1,0 +1,164 @@
+<div class="container mx-auto max-w-4xl px-4 py-8">
+  <!-- Topic Header -->
+  <div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+      <div class="flex justify-between items-start mb-4">
+        <h2 class="card-title text-2xl font-bold"><%= proper_title_case(@discussion_topic.title) %></h2>
+        <div class="flex gap-2">
+          <% if @discussion_topic.user == current_user %>
+            <%= link_to edit_discussion_topic_path(@discussion_topic), class: "btn btn-ghost btn-sm" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit
+            <% end %>
+            <%= link_to discussion_topic_path(@discussion_topic), 
+                        method: :delete, 
+                        data: { confirm: "Are you sure you want to delete this topic?" }, 
+                        class: "btn btn-error btn-sm" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Delete
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+      
+      <div class="prose max-w-none mb-4">
+        <%= simple_format(@discussion_topic.description) %>
+      </div>
+      
+      <div class="flex items-center justify-between mt-4">
+        <div class="flex items-center gap-4 text-sm opacity-75">
+          <span>by <span class="font-medium"><%= @discussion_topic.user.name %></span></span>
+          <span><%= time_ago_in_words(@discussion_topic.created_at) %> ago</span>
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+            </svg>
+            <%= @discussion_topic.comments_count %>
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm opacity-75"><%= @discussion_topic.likes_count %> likes</span>
+          <% if @discussion_topic.liked_by?(current_user) %>
+            <%= link_to discussion_topic_likes_path(@discussion_topic), method: :delete, local: true, class: "text-error" do %>
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            <% end %>
+          <% else %>
+            <%= link_to discussion_topic_likes_path(@discussion_topic), method: :post, local: true, class: "text-base-content/50 hover:text-error" do %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+              </svg>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Comment Form -->
+  <div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+      <h3 class="card-title text-lg">Add a Comment</h3>
+      <%= form_with(model: [@discussion_topic, @topic_comment], local: true) do |form| %>
+        <% if @topic_comment.errors.any? %>
+          <div class="alert alert-error mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div>
+              <h3 class="font-bold">Please fix the errors:</h3>
+              <ul class="list-disc list-inside">
+                <% @topic_comment.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        <% end %>
+        <div class="form-control w-full mb-4">
+          <%= form.text_area :content, rows: 4, placeholder: "Share your thoughts...", 
+                           class: "textarea textarea-bordered w-full" %>
+        </div>
+        <div class="flex justify-end">
+          <%= form.submit "Post Comment", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Comments -->
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h3 class="card-title text-lg">Comments (<%= @discussion_topic.comments_count %>)</h3>
+      
+      <% if @topic_comments.any? %>
+        <div class="divide-y divide-base-200">
+          <% @topic_comments.each do |comment| %>
+            <div class="py-4 first:pt-0 last:pb-0">
+              <div class="flex justify-between items-start mb-3">
+                <div class="flex items-center gap-3">
+                  <span class="font-medium"><%= comment.user.name %></span>
+                  <span class="text-sm opacity-75"><%= time_ago_in_words(comment.created_at) %> ago</span>
+                </div>
+                <div>
+                  <% if comment.user == current_user || current_user.admin? %>
+                    <%= link_to discussion_topic_topic_comment_path(@discussion_topic, comment), 
+                                method: :delete, 
+                                data: { confirm: "Are you sure you want to delete this comment?" },
+                                class: "btn btn-error btn-xs" do %>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+              
+              <div class="prose max-w-none mb-3">
+                <%= simple_format(comment.content) %>
+              </div>
+              
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm opacity-75"><%= comment.likes_count %> likes</span>
+                  <% if comment.liked_by?(current_user) %>
+                    <%= link_to discussion_topic_topic_comment_likes_path(@discussion_topic, comment), method: :delete, local: true, class: "text-error" do %>
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                      </svg>
+                    <% end %>
+                  <% else %>
+                    <%= link_to discussion_topic_topic_comment_likes_path(@discussion_topic, comment), method: :post, local: true, class: "text-base-content/50 hover:text-error" do %>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                      </svg>
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="alert alert-info">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>No comments yet. Be the first to share your thoughts!</span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="mt-6 flex justify-between items-center">
+    <%= link_to discussion_topics_path, class: "btn btn-outline" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      Back to Discussions
+    <% end %>
+  </div>
+</div>

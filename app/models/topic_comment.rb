@@ -1,22 +1,17 @@
-class Post < ApplicationRecord
+class TopicComment < ApplicationRecord
   belongs_to :user
+  belongs_to :discussion_topic
   has_many :likes, as: :likeable, dependent: :destroy
-  has_many :comments, -> { order(:created_at) }, dependent: :destroy
+
   validates :content, presence: true
+
+  scope :recent, -> { order(created_at: :desc) }
 
   def liked_by?(user)
     likes.exists?(user: user)
   end
 
-  def commented_by?(user)
-    comments.exists?(user: user)
-  end
-
   def likes_count
     likes.count
-  end
-
-  def comments_count
-    comments.count
   end
 end
