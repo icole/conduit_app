@@ -5,6 +5,13 @@ Rails.application.routes.draw do
     resources :likes, only: [ :create, :destroy ]
     resources :comments, only: [ :create, :destroy ]
   end
+
+  resources :discussion_topics do
+    resources :topic_comments, only: [ :create, :destroy ] do
+      resources :likes, only: [ :create, :destroy ]
+    end
+    resources :likes, only: [ :create, :destroy ]
+  end
   resources :documents do
     collection do
       get :refresh_from_google_drive

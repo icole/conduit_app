@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_14_190000) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_16_061002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_14_190000) do
     t.datetime "updated_at", null: false
     t.index ["post_id"], name: "index_comments_on_post_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
+  create_table "discussion_topics", force: :cascade do |t|
+    t.string "title"
+    t.text "description"
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "last_activity_at"
+    t.index ["user_id"], name: "index_discussion_topics_on_user_id"
   end
 
   create_table "documents", force: :cascade do |t|
@@ -77,10 +87,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_14_190000) do
 
   create_table "likes", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.bigint "post_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["post_id"], name: "index_likes_on_post_id"
+    t.string "likeable_type"
+    t.bigint "likeable_id"
+    t.index ["likeable_type", "likeable_id"], name: "index_likes_on_likeable_type_and_likeable_id"
     t.index ["user_id"], name: "index_likes_on_user_id"
   end
 
@@ -104,6 +115,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_14_190000) do
     t.index ["user_id"], name: "index_tasks_on_user_id"
   end
 
+  create_table "topic_comments", force: :cascade do |t|
+    t.text "content"
+    t.bigint "user_id", null: false
+    t.bigint "discussion_topic_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discussion_topic_id"], name: "index_topic_comments_on_discussion_topic_id"
+    t.index ["user_id"], name: "index_topic_comments_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "name", null: false
     t.string "email", null: false
@@ -123,12 +144,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_14_190000) do
   add_foreign_key "calendar_shares", "users"
   add_foreign_key "comments", "posts"
   add_foreign_key "comments", "users"
+  add_foreign_key "discussion_topics", "users"
   add_foreign_key "drive_shares", "users"
   add_foreign_key "invitations", "users"
-  add_foreign_key "likes", "posts"
   add_foreign_key "likes", "users"
   add_foreign_key "posts", "users"
   add_foreign_key "tasks", "users"
   add_foreign_key "tasks", "users", column: "assigned_to_user_id"
+  add_foreign_key "topic_comments", "discussion_topics"
+  add_foreign_key "topic_comments", "users"
   add_foreign_key "users", "invitations"
 end
