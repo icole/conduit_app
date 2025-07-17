@@ -19,14 +19,17 @@ class DashboardController < ApplicationController
     folder_id = ENV["GOOGLE_DRIVE_FOLDER_ID"]
     @drive_folder_already_shared = folder_id.present? ? DriveShare.folder_shared_with_user?(folder_id, current_user) : false
 
-    # Get recent drive files if user has access to the folder
+    # Get recent drive files from cache or trigger background job
+    @drive_sync_loading = false
     if !Rails.env.test? && @drive_folder_already_shared && folder_id.present?
-      begin
-        drive_service = GoogleDriveApiService.from_service_account
-        @recent_files = drive_service.list_recent_files(folder_id)
-      rescue StandardError => e
-        Rails.logger.error("Failed to fetch recent drive files: #{e.message}")
-        @recent_files = { error: e.message, status: :error, files: [] }
+      cache_key = "drive_files_#{current_user.id}"
+      @recent_files = Rails.cache.read(cache_key)
+
+      # If cache is empty or expired, trigger background job
+      if @recent_files.nil?
+        GoogleDriveSyncJob.perform_later(current_user.id)
+        @recent_files = { status: :loading, files: [] }
+        @drive_sync_loading = true
       end
     end
 
@@ -38,6 +41,17 @@ class DashboardController < ApplicationController
       @events = service.get_events
     else
       @events = { events: [], status: :success }
+    end
+  end
+
+  def refresh_drive_files
+    folder_id = ENV["GOOGLE_DRIVE_FOLDER_ID"]
+
+    if folder_id.present? && DriveShare.folder_shared_with_user?(folder_id, current_user)
+      GoogleDriveSyncJob.perform_later(current_user.id)
+      render json: { status: "success", message: "Refresh started" }
+    else
+      render json: { status: "error", message: "Access denied" }, status: :forbidden
     end
   end
 end
