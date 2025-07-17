@@ -24,7 +24,7 @@ class GoogleDriveSyncJob < ApplicationJob
 
       # Render the files list HTML server-side
       files_html = ApplicationController.render(
-        partial: 'dashboard/files_list',
+        partial: "dashboard/files_list",
         locals: { files: recent_files[:files] }
       )
 

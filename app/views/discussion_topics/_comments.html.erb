@@ -1,0 +1,11 @@
+<% if topic_comments.any? %>
+  <div class="divide-y divide-base-200">
+    <% topic_comments.each do |comment| %>
+      <%= render 'topic_comments/comment', comment: comment %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="text-center py-8 text-base-content/60">
+    <p>No comments yet. Be the first to share your thoughts!</p>
+  </div>
+<% end %>

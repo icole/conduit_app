@@ -1,29 +1,41 @@
 <div class="container mx-auto px-4 py-8">
   <div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div class="p-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6">Edit Discussion Topic</h1>
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h1 class="card-title text-2xl mb-6">Edit Discussion Topic</h1>
         
         <%= form_with(model: @discussion_topic, local: true, class: "space-y-6") do |form| %>
-          <div>
-            <%= form.label :title, class: "block text-sm font-medium text-gray-700" %>
-            <%= form.text_field :title, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
-            <% if @discussion_topic.errors[:title].any? %>
-              <p class="mt-1 text-sm text-red-600"><%= @discussion_topic.errors[:title].first %></p>
+          <% if @discussion_topic.errors.any? %>
+            <div class="alert alert-error">
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <div>
+                <h3 class="font-bold">Please fix the errors:</h3>
+                <ul class="list-disc list-inside">
+                  <% @discussion_topic.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          <% end %>
+
+          <div class="form-control w-full">
+            <%= form.label :title, class: "label" do %>
+              <span class="label-text font-medium">Title</span>
             <% end %>
+            <%= form.text_field :title, class: "input input-bordered w-full focus:outline-none focus:border-base-300" %>
           </div>
 
-          <div>
-            <%= form.label :description, class: "block text-sm font-medium text-gray-700" %>
-            <%= form.text_area :description, rows: 6, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
-            <% if @discussion_topic.errors[:description].any? %>
-              <p class="mt-1 text-sm text-red-600"><%= @discussion_topic.errors[:description].first %></p>
+          <div class="form-control w-full">
+            <%= form.label :description, class: "label" do %>
+              <span class="label-text font-medium">Description</span>
             <% end %>
+            <%= form.text_area :description, rows: 6, class: "textarea textarea-bordered w-full focus:outline-none focus:border-base-300 p-3" %>
           </div>
 
-          <div class="flex justify-end space-x-3">
-            <%= link_to "Cancel", @discussion_topic, class: "bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg" %>
-            <%= form.submit "Update Topic", class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg" %>
+          <div class="flex justify-end gap-3">
+            <%= link_to "Cancel", @discussion_topic, class: "btn btn-ghost" %>
+            <%= form.submit "Update Topic", class: "btn btn-primary" %>
           </div>
         <% end %>
       </div>
