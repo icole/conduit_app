@@ -10,7 +10,11 @@ Rails.application.routes.draw do
       get :refresh_from_google_drive
     end
   end
-  resources :dashboard, only: [ "index" ]
+  resources :dashboard, only: [ "index" ] do
+    collection do
+      post :refresh_drive_files
+    end
+  end
 
   resources :calendar, only: [ "index" ]
   resources :calendar_events

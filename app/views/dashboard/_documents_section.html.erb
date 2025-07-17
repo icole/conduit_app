@@ -1,5 +1,5 @@
 <!-- Documents/Files Section -->
-<div class="card bg-base-100 shadow-xl mb-6">
+<div class="card bg-base-100 shadow-xl mb-6" data-controller="drive-sync">
   <div class="card-body">
     <div class="flex justify-between items-center mb-2">
       <h3 class="card-title text-lg font-semibold flex items-center gap-2">
@@ -8,7 +8,18 @@
         </svg>
         Community Documents
       </h3>
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-2">
+        <% if @drive_folder_already_shared %>
+          <button data-drive-sync-target="refreshButton"
+                  data-action="click->drive-sync#refresh"
+                  class="btn btn-sm btn-ghost">
+            <span class="loading loading-spinner loading-xs hidden"></span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span class="button-text">Refresh</span>
+          </button>
+        <% end %>
         <%= render partial: 'shared/drive_folder_access_button', locals: {
           folder_id: ENV["GOOGLE_DRIVE_FOLDER_ID"],
           folder_name: "Community Files",
@@ -19,42 +30,44 @@
     </div>
     <p class="text-xs text-base-content/70 mb-4">Access shared community files and resources</p>
 
-    <% if @drive_folder_already_shared && @recent_files && @recent_files[:status] == :success && @recent_files[:files].any? %>
+    <% if @drive_folder_already_shared %>
       <div class="space-y-2">
         <h4 class="font-medium text-sm">Recent Files</h4>
-        <div class="divide-y divide-base-200 rounded-lg border border-base-200 overflow-hidden">
-          <% @recent_files[:files].each do |file| %>
-            <a href="<%= file[:web_link] %>" target="_blank" rel="noopener noreferrer"
-               class="flex items-center gap-3 p-2 hover:bg-base-200 transition-colors">
-              <div class="flex-shrink-0">
-                <% if file[:icon_link].present? %>
-                  <img src="<%= file[:icon_link] %>" alt="File icon" class="h-6 w-6" />
-                <% else %>
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                <% end %>
-              </div>
-              <div class="flex-grow min-w-0">
-                <p class="font-medium text-sm line-clamp-1"><%= proper_title_case(file[:name]) %></p>
-                <p class="text-xs text-base-content/60">
-                  Updated <%= time_ago_in_words(file[:updated_at]) %> ago
-                </p>
-              </div>
-              <div class="flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </div>
-            </a>
-          <% end %>
+
+        <!-- Loading State -->
+        <div data-drive-sync-target="loadingState" class="<%= @drive_sync_loading ? '' : 'hidden' %>">
+          <div class="flex items-center justify-center py-8">
+            <span class="loading loading-spinner loading-md"></span>
+            <span class="ml-2 text-sm text-base-content/60">Loading files...</span>
+          </div>
         </div>
+
+        <!-- Error State -->
+        <div data-drive-sync-target="errorState" class="hidden">
+          <!-- Error content will be populated by JavaScript -->
+        </div>
+
+        <!-- Files List -->
+        <div data-drive-sync-target="filesList" class="<%= !@drive_sync_loading && @recent_files && @recent_files[:status] == :success && @recent_files[:files].any? ? '' : 'hidden' %>">
+          <%= render 'files_list', files: @recent_files&.dig(:files) %>
+        </div>
+
+        <!-- Empty State (when no loading and no files) -->
+        <% if !@drive_sync_loading && (!@recent_files || @recent_files[:files].empty?) %>
+          <div class="text-center py-8 text-base-content/60">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="text-sm">No recent files found</p>
+            <p class="text-xs text-base-content/40 mt-1">Try clicking refresh to load files</p>
+          </div>
+        <% end %>
       </div>
     <% else %>
       <div class="bg-base-200 p-4 rounded-lg flex items-center gap-3">
         <div class="bg-primary/10 p-3 rounded-full">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2-2z" />
           </svg>
         </div>
         <div>
