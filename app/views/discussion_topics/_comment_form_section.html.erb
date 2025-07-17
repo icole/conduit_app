@@ -1,0 +1,13 @@
+<div class="mt-6 pt-6 border-t border-base-200">
+  <button class="btn btn-primary" data-action="click->comments#showForm">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+    </svg>
+    Add Comment
+  </button>
+</div>
+
+<div id="comment-form" class="<%= 'hidden' unless topic_comment&.errors&.any? %> mt-4">
+  <h4 class="text-lg font-medium mb-4">Add a Comment</h4>
+  <%= render 'discussion_topics/comment_form', discussion_topic: discussion_topic, topic_comment: topic_comment %>
+</div>
