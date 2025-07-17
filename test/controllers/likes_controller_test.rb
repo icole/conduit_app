@@ -18,7 +18,7 @@ class LikesControllerTest < ActionDispatch::IntegrationTest
 
   test "should get destroy" do
     assert_difference("Like.count", -1) do
-      delete post_like_url(id: @like.id, post_id: @like.post_id)
+      delete post_like_url(id: @like.id, post_id: @like.likeable_id)
     end
 
     assert_redirected_to dashboard_index_url
