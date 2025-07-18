@@ -6,6 +6,9 @@ class DiscussionTopicsController < ApplicationController
     @discussion_topics = DiscussionTopic.includes(:user, :topic_comments)
                                        .by_activity
                                        .limit(15)
+  end
+
+  def new
     @discussion_topic = DiscussionTopic.new
   end
 
@@ -23,8 +26,7 @@ class DiscussionTopicsController < ApplicationController
     if @discussion_topic.save
       redirect_to @discussion_topic, notice: "Discussion topic was successfully created."
     else
-      @discussion_topics = DiscussionTopic.includes(:user, :topic_comments).by_activity.limit(15)
-      render :index, status: :unprocessable_entity
+      render :new, status: :unprocessable_entity
     end
   end
 

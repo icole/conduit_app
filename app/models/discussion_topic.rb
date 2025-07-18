@@ -2,6 +2,7 @@ class DiscussionTopic < ApplicationRecord
   belongs_to :user
   has_many :topic_comments, -> { order(:created_at) }, dependent: :destroy
   has_many :likes, as: :likeable, dependent: :destroy
+  has_rich_text :description
 
   validates :title, presence: true
   validates :description, presence: true
