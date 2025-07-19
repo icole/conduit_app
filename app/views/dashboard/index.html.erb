@@ -1,16 +1,17 @@
-<!-- Main Content Grid -->
-<div class="grid grid-cols-2 gap-6 p-4" data-controller="posts">
+<!-- Main Content Grid - Mobile First Responsive -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-4" data-controller="posts">
   <!-- Posts Column -->
-  <div class="col-span-1">
+  <div class="col-span-1 lg:col-span-1 order-1">
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="card-title text-2xl font-bold">Community Wall</h2>
-          <button class="btn btn-primary" data-action="click->posts#showForm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-6">
+          <h2 class="card-title text-xl sm:text-2xl font-bold">Community Wall</h2>
+          <button class="btn btn-primary w-full sm:w-auto min-h-[44px]" data-action="click->posts#showForm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:mr-1" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
             </svg>
-            New Post
+            <span class="hidden sm:inline">New Post</span>
+            <span class="sm:hidden">Post</span>
           </button>
         </div>
 
@@ -39,21 +40,25 @@
   </div>
 
   <!-- Right Sidebar -->
-  <div class="col-span-1">
+  <div class="col-span-1 lg:col-span-1 order-2 space-y-4 sm:space-y-6">
     <!-- Upcoming Events -->
-    <div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
-        <div class="flex justify-between items-center mb-2">
-          <h3 class="card-title text-lg font-semibold flex items-center gap-2">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 mb-2">
+          <h3 class="card-title text-base sm:text-lg font-semibold flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             Upcoming Events
           </h3>
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-1 w-full sm:w-auto justify-end">
             <% unless @calendar_already_shared %>
-              <%= button_to calendar_shares_path, method: :post, class: "badge badge-primary hover:badge-secondary cursor-pointer", title: "Subscribe to this calendar", form_class: "inline-block", data: { turbo: "false", turbo_confirm: "Subscribe to the community calendar? This will share it with your Google account." } do %>
-                Subscribe <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 ml-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+              <%= button_to calendar_shares_path, method: :post, class: "badge badge-primary hover:badge-secondary cursor-pointer min-h-[44px] px-3", title: "Subscribe to this calendar", form_class: "inline-block", data: { turbo: "false", turbo_confirm: "Subscribe to the community calendar? This will share it with your Google account." } do %>
+                <span class="hidden sm:inline">Subscribe</span>
+                <span class="sm:hidden">Sub</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 ml-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
               <% end %>
             <% end %>
           </div>
@@ -70,7 +75,7 @@
     <!-- Tasks -->
     <div class="card bg-base-100 shadow-xl" data-controller="tasks">
       <div class="card-body">
-        <h3 class="card-title text-lg font-semibold">✅ My Tasks</h3>
+        <h3 class="card-title text-base sm:text-lg font-semibold">✅ My Tasks</h3>
         <p class="text-xs text-base-content/70">Tasks assigned to you</p>
 
         <!-- Inline Task Form -->
@@ -78,11 +83,11 @@
           <%= form_with(model: Task.new, class: "join w-full", data: { controller: "reset-form", action: "turbo:submit-end->reset-form#reset" }) do |form| %>
             <%= form.hidden_field :assigned_to_user_id, value: current_user.id %>
             <%= form.text_field :title,
-                class: "input input-bordered w-full join-item focus:outline-none focus:border-base-300",
+                                class: "input input-bordered w-full join-item focus:outline-none focus:border-base-300 min-h-[44px]",
                 placeholder: "Add a new task...",
                 required: true,
                 autocomplete: "off" %>
-            <%= form.submit "Add", class: "btn btn-primary join-item" %>
+            <%= form.submit "Add", class: "btn btn-primary join-item min-h-[44px] px-4" %>
           <% end %>
         </div>
 
