@@ -47,13 +47,13 @@ class PostsTest < ApplicationSystemTestCase
       assert_selector "button", text: /Like \(\d+\)/
 
       # Click the like button
-      find("[data-testid='like-button-#{@post.id}']").click
+      find("[data-testid='like-post-button-#{@post.id}']").click
 
       # Now it should show "Liked"
       assert_selector "button", text: /Liked \(\d+\)/
 
       # Click the unlike button
-      find("[data-testid='unlike-button-#{@post.id}']").click
+      find("[data-testid='unlike-post-button-#{@post.id}']").click
 
       # Now it should show "Like" again
       assert_selector "button", text: /Like \(\d+\)/
