@@ -1,0 +1,25 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  title: "Community Garden Planning"
+  description: "Let's discuss the layout and plant selection for our new community garden. I'm thinking we should focus on vegetables that everyone can use."
+  user: one
+  created_at: <%= 2.days.ago %>
+  updated_at: <%= 2.days.ago %>
+  last_activity_at: <%= 1.day.ago %>
+
+two:
+  title: "Tool Sharing Guidelines"
+  description: "We need to establish clear guidelines for borrowing and returning tools from the shared workshop. What are your thoughts on a check-out system?"
+  user: two
+  created_at: <%= 1.week.ago %>
+  updated_at: <%= 1.week.ago %>
+  last_activity_at: <%= 3.days.ago %>
+
+three:
+  title: "Monthly Community Meeting"
+  description: "Planning our next monthly community meeting. What topics should we cover? Please share your suggestions and availability."
+  user: admin_user
+  created_at: <%= 3.days.ago %>
+  updated_at: <%= 3.days.ago %>
+  last_activity_at: <%= 2.days.ago %>

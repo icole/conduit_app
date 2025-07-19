@@ -3,7 +3,9 @@ Rails.application.routes.draw do
   resources :tasks, without: [ :show ]
   resources :posts, only: [ :create, :update, :destroy ] do
     resources :likes, only: [ :create, :destroy ]
-    resources :comments, only: [ :create, :destroy ]
+    resources :comments, only: [ :create, :destroy ] do
+      resources :likes, only: [ :create, :destroy ]
+    end
   end
 
   resources :discussion_topics do

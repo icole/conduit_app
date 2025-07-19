@@ -1,6 +1,6 @@
 <%= turbo_frame_tag dom_id(topic, :like_section) do %>
   <div class="flex items-center justify-between w-full gap-4">
     <%= render 'discussion_topics/like_stats', topic: topic %>
-    <%= render 'discussion_topics/like_button', topic: topic %>
+    <%= render 'shared/like_button', likeable: topic, style: :topic %>
   </div>
 <% end %>
