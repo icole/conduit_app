@@ -35,9 +35,7 @@
           <span>by <span class="font-medium"><%= @discussion_topic.user.name %></span></span>
           <span><%= time_ago_in_words(@discussion_topic.created_at) %> ago</span>
         </div>
-        <div id="<%= dom_id(@discussion_topic, :like_section) %>" class="flex items-center gap-2">
-          <%= render 'like_button', topic: @discussion_topic %>
-        </div>
+        <%= render 'like_section', topic: @discussion_topic %>
       </div>
     </div>
   </div>
