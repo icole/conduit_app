@@ -3,7 +3,7 @@
 <% when Post %>
     <%= render 'posts/like_button', post: @likeable %>
   <% when DiscussionTopic %>
-    <%= render 'discussion_topics/like_button', topic: @likeable %>
+    <%= render 'discussion_topics/like_section', topic: @likeable %>
   <% else %>
     <%= render 'posts/like_button', post: @likeable %>
   <% end %>
