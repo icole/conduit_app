@@ -7,7 +7,7 @@ class LikesController < ApplicationController
 
     respond_to do |format|
       if @like.save
-        format.turbo_stream
+        format.turbo_stream { render :toggle }
         format.html { redirect_back(fallback_location: fallback_location, notice: "#{@likeable.class.name} liked!") }
       else
         format.html { redirect_back(fallback_location: fallback_location, alert: "Could not like #{@likeable.class.name.downcase}: #{@like.errors.full_messages.join(', ')}") }
@@ -21,7 +21,7 @@ class LikesController < ApplicationController
     if @like
       @like.destroy
       respond_to do |format|
-        format.turbo_stream
+        format.turbo_stream { render :toggle }
         format.html { redirect_back(fallback_location: fallback_location, notice: "#{@likeable.class.name} unliked!") }
       end
     else
