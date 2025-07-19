@@ -1,0 +1,41 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  content: "I love the idea of a community garden! We should definitely include tomatoes and herbs - they're easy to grow and everyone uses them."
+  user: two
+  discussion_topic: one
+  parent: 
+  created_at: <%= 1.day.ago %>
+  updated_at: <%= 1.day.ago %>
+
+two:
+  content: "A check-out system sounds great! Maybe we could use a simple sign-out sheet with return dates?"
+  user: one
+  discussion_topic: two
+  parent: 
+  created_at: <%= 3.days.ago %>
+  updated_at: <%= 3.days.ago %>
+
+three:
+  content: "I agree with the tomatoes suggestion! What about adding some peppers too?"
+  user: admin_user
+  discussion_topic: one
+  parent: one
+  created_at: <%= 12.hours.ago %>
+  updated_at: <%= 12.hours.ago %>
+
+four:
+  content: "For the monthly meeting, we should discuss the upcoming maintenance schedule and budget planning."
+  user: one
+  discussion_topic: three
+  parent: 
+  created_at: <%= 2.days.ago %>
+  updated_at: <%= 2.days.ago %>
+
+five:
+  content: "Good point about the sign-out sheet. We could also add a column for condition notes when returning tools."
+  user: admin_user
+  discussion_topic: two
+  parent: two
+  created_at: <%= 2.days.ago %>
+  updated_at: <%= 2.days.ago %>

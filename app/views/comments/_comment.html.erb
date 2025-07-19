@@ -36,5 +36,11 @@
     </div>
 
     <p class="text-sm whitespace-pre-line" data-testid="comment-content"><%= comment.content %></p>
+    
+    <!-- Comment Actions -->
+    <div class="flex items-center gap-4 text-xs mt-2">
+      <!-- Like Button -->
+      <%= render "shared/like_button", likeable: comment, style: :comment %>
+    </div>
   </div>
 </div>

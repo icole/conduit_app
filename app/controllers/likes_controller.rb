@@ -34,7 +34,9 @@ class LikesController < ApplicationController
   private
 
   def set_likeable
-    if params[:post_id]
+    if params[:comment_id]
+      @likeable = Comment.find(params[:comment_id])
+    elsif params[:post_id]
       @likeable = Post.find(params[:post_id])
     elsif params[:topic_comment_id]
       @likeable = TopicComment.find(params[:topic_comment_id])
