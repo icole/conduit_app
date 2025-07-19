@@ -9,7 +9,12 @@
   </div>
   <div>
     <strong class="block font-medium mb-1">Google Drive Document:</strong>
-    <%= link_to "Open in Google Drive", document.google_drive_url, target: "_blank", class: "text-blue-600 hover:text-blue-800 underline" %>
+    <% safe_link = safe_google_drive_link(document) %>
+    <% if safe_link %>
+      <%= safe_link %>
+    <% else %>
+      <span class="text-gray-500">Invalid or missing Google Drive URL</span>
+    <% end %>
   </div>
   <div>
     <strong class="block font-medium mb-1">Document type:</strong>
