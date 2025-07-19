@@ -48,4 +48,24 @@ module ApplicationHelper
     # Clean up extra whitespace and normalize spaces
     text.gsub(/\s+/, " ").strip
   end
+
+  # Safely generates a Google Drive link, ensuring URL is valid and safe
+  # Returns nil if the URL is invalid or unsafe
+  def safe_google_drive_link(document, link_text = "Open in Google Drive", options = {})
+    return nil unless document&.safe_google_drive_url
+
+    safe_url = document.safe_google_drive_url
+    return nil if safe_url.blank?
+
+    # Additional safety check - ensure URL is properly formatted
+    begin
+      uri = URI.parse(safe_url)
+      return nil unless uri.scheme == "https" && uri.host&.end_with?("google.com")
+    rescue URI::InvalidURIError
+      return nil
+    end
+
+    default_options = { target: "_blank", class: "text-blue-600 hover:text-blue-800 underline" }
+    link_to(link_text, safe_url, default_options.merge(options))
+  end
 end
