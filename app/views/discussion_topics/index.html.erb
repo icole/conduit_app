@@ -26,16 +26,17 @@
                     <h3 class="font-medium text-lg">
                       <%= link_to proper_title_case(topic.title), topic, class: "hover:text-primary" %>
                     </h3>
-                    <span class="text-sm opacity-75"><%= time_ago_in_words(topic.latest_activity) %> ago</span>
+                    <div>
+                      <span class="text-sm opacity-75"><%= time_ago_in_words(topic.latest_activity) %> ago</span>
+                      <span class="text-sm opacity-75">by <span class="font-medium"><%= topic.user.name %></span></span>
+                    </div>
                   </div>
 
                   <p class="opacity-75 mb-3 line-clamp-2"><%= truncate(strip_actiontext_for_preview(topic.description), length: 150) %></p>
 
                   <div class="flex items-center justify-between w-full">
                     <%= render 'like_stats', topic: topic %>
-                    <div id="<%= dom_id(topic, :like_section) %>" class="flex items-center gap-2">
-                      <%= render 'like_button', topic: topic %>
-                    </div>
+                    <%= render 'like_button', topic: topic %>
                   </div>
                 </div>
               </div>
