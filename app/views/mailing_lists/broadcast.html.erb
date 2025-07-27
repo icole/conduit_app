@@ -1,0 +1,55 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-2xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-2xl font-bold">Send Email to <%= @mailing_list.name %></h1>
+        <p class="text-gray-600">This will send an email to all <%= @mailing_list.users.count %> members</p>
+      </div>
+      <%= link_to "← Back to List", @mailing_list, class: "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" %>
+    </div>
+
+    <div class="bg-white shadow-md rounded p-6">
+      <%= form_with url: send_broadcast_mailing_list_path(@mailing_list), method: :post, local: true do |form| %>
+        <% if flash[:alert] %>
+          <div class="alert alert-error mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+              <h3 class="font-bold">Error:</h3>
+              <span><%= flash[:alert] %></span>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="form-control w-full mb-4">
+          <%= form.label :subject, class: "label" %>
+          <%= form.text_field :subject, class: "input input-bordered w-full", required: true,
+                              placeholder: "Enter email subject" %>
+        </div>
+
+        <div class="form-control w-full mb-4">
+          <%= form.label :message, class: "label" %>
+          <%= form.text_area :message, class: "textarea textarea-bordered w-full", rows: 10, required: true,
+                             placeholder: "Write your message here..." %>
+        </div>
+
+        <div class="bg-blue-50 p-4 rounded mb-4">
+          <h3 class="font-semibold text-blue-800 mb-2">Email Preview</h3>
+          <p class="text-sm text-blue-600">
+            <strong>From:</strong> <%= @mailing_list.email_address %><br>
+            <strong>To:</strong> <%= @mailing_list.users.count %> members<br>
+            <strong>Subject:</strong> [<%= @mailing_list.name %>] [Your subject here]
+          </p>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-6">
+          <%= link_to "Cancel", @mailing_list, class: "btn btn-ghost" %>
+          <%= form.submit "Send Email to #{@mailing_list.users.count} Members",
+                          class: "btn btn-primary",
+                          data: { confirm: "Are you sure you want to send this email to #{@mailing_list.users.count} members?" } %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

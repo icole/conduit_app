@@ -1,0 +1,12 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-2xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">New Mailing List</h1>
+      <%= link_to "← Back to Lists", mailing_lists_path, class: "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" %>
+    </div>
+
+    <div class="bg-white shadow-md rounded p-6">
+      <%= render "form", mailing_list: @mailing_list %>
+    </div>
+  </div>
+</div>
