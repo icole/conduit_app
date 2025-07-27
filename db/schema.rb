@@ -10,11 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_17_223417) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_27_034437) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
-  create_table "action_text_rich_texts", force: :cascade do |t|
+	create_table "action_mailbox_inbound_emails", force: :cascade do |t|
+		t.integer "status", default: 0, null: false
+		t.string "message_id", null: false
+		t.string "message_checksum", null: false
+		t.datetime "created_at", null: false
+		t.datetime "updated_at", null: false
+		t.index ["message_id", "message_checksum"], name: "index_action_mailbox_inbound_emails_uniqueness", unique: true
+	end
+
+	create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
     t.string "record_type", null: false
@@ -133,7 +142,27 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_17_223417) do
     t.index ["user_id"], name: "index_likes_on_user_id"
   end
 
-  create_table "posts", force: :cascade do |t|
+	create_table "mailing_list_memberships", force: :cascade do |t|
+		t.bigint "mailing_list_id", null: false
+		t.bigint "user_id", null: false
+		t.datetime "created_at", null: false
+		t.datetime "updated_at", null: false
+		t.index ["mailing_list_id", "user_id"], name: "index_memberships_on_list_and_user", unique: true
+		t.index ["mailing_list_id"], name: "index_mailing_list_memberships_on_mailing_list_id"
+		t.index ["user_id"], name: "index_mailing_list_memberships_on_user_id"
+	end
+
+	create_table "mailing_lists", force: :cascade do |t|
+		t.string "name", null: false
+		t.text "description"
+		t.boolean "active", default: true, null: false
+		t.datetime "created_at", null: false
+		t.datetime "updated_at", null: false
+		t.index ["active"], name: "index_mailing_lists_on_active"
+		t.index ["name"], name: "index_mailing_lists_on_name", unique: true
+	end
+
+	create_table "posts", force: :cascade do |t|
     t.text "content"
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
@@ -201,6 +230,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_17_223417) do
   add_foreign_key "drive_shares", "users"
   add_foreign_key "invitations", "users"
   add_foreign_key "likes", "users"
+	add_foreign_key "mailing_list_memberships", "mailing_lists"
+	add_foreign_key "mailing_list_memberships", "users"
   add_foreign_key "posts", "users"
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "tasks", "users"
