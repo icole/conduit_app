@@ -1,31 +1,33 @@
 <div class="simple-calendar calendar">
-  <div class="calendar-heading calendar-header" >
-    <div class="flex justify-between items-center mb-4">
-      <h2 style="margin-top: 0px;">
+  <div class="calendar-heading calendar-header mb-6">
+    <div class="flex justify-center items-center mb-4">
+      <h2 class="text-xl font-bold">
         <time datetime="<%= start_date.strftime('%Y-%m') %>" class="calendar-title"><%= t('date.month_names')[start_date.month] %> <%= start_date.year %></time>
       </h2>
-
-      <%= link_to new_calendar_event_path, 
-          data: { 
-            turbo: false
-          },
-          class: "btn btn-primary" do %>
-        <span>Add Event</span>
-      <% end %>
     </div>
 
-    <nav>
-      <%= link_to t('simple_calendar.previous', default: 'Previous'), calendar.url_for_previous_view, class: 'btn btn-outline btn-small calendar-nav', style:'float: left;' %>
-      <%= link_to t('simple_calendar.today', default: 'Today'), calendar.url_for_today_view, class:'btn btn-outline btn-small calendar-nav' %>
-      <%= link_to t('simple_calendar.next', default: 'Next'), calendar.url_for_next_view, class: 'btn btn-outline btn-small calendar-nav', style:'float: right;' %>
+    <nav class="flex justify-center items-center gap-6 mb-4">
+      <%= link_to calendar.url_for_previous_view, class: 'btn btn-ghost btn-sm' do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+        </svg>
+      <% end %>
+
+      <%= link_to t('simple_calendar.today', default: 'Today'), calendar.url_for_today_view, class: 'btn btn-outline btn-sm' %>
+
+      <%= link_to calendar.url_for_next_view, class: 'btn btn-ghost btn-sm' do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+      <% end %>
     </nav>
   </div>
 
-  <table class="table table-striped">
+  <table class="w-full border-collapse border-t border-l border-base-300 table-fixed">
     <thead>
     <tr>
       <% date_range.slice(0, 7).each do |day| %>
-        <th><%= t('date.abbr_day_names')[day.wday] %></th>
+        <th class="border-r border-b border-base-300 bg-base-200 p-2 text-sm font-medium text-center w-1/7"><%= t('date.abbr_day_names')[day.wday] %></th>
       <% end %>
     </tr>
     </thead>
@@ -34,7 +36,7 @@
     <% date_range.each_slice(7) do |week| %>
       <tr>
         <% week.each do |day| %>
-          <%= content_tag :td, class: calendar.td_classes_for(day) do %>
+          <%= content_tag :td, class: "#{calendar.td_classes_for(day)} p-0 w-1/7", style: "vertical-align: top;" do %>
             <% instance_exec(day, calendar.sorted_events_for(day), &passed_block) %>
           <% end %>
         <% end %>
