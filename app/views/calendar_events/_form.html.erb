@@ -1,38 +1,68 @@
-<%= form_with(model: calendar_event) do |form| %>
-  <% if calendar_event.errors.any? %>
-    <div class="error-message">
-      <h2><%= pluralize(calendar_event.errors.count, "error") %> prohibited this event from being saved:</h2>
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <%= form_with(model: calendar_event, data: { turbo: false }) do |form| %>
+      <% if calendar_event.errors.any? %>
+        <div class="alert alert-error mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            <h3 class="font-bold">Please fix the following errors:</h3>
+            <ul class="list-disc list-inside mt-2">
+              <% calendar_event.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      <% end %>
 
-      <ul>
-        <% calendar_event.errors.each do |error| %>
-          <li><%= error.full_message %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
+      <div class="form-control w-full mb-4">
+        <%= form.label :title, "Event Title *", class: "label label-text font-medium" %>
+        <%= form.text_field :title, class: "input input-bordered w-full", required: true, placeholder: "Enter event title" %>
+      </div>
 
-  <div class="mb-4">
-    <%= form.label :title, class: "block text-sm font-medium text-gray-700" %>
-    <%= form.text_field :title, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" %>
+      <div class="form-control w-full mb-4">
+        <%= form.label :description, "Description", class: "label label-text font-medium" %>
+        <%= form.text_area :description, class: "textarea textarea-bordered w-full", rows: 3, placeholder: "Add event description..." %>
+      </div>
+
+      <div class="form-control w-full mb-4">
+        <%= form.label :location, "Location", class: "label label-text font-medium" %>
+        <%= form.text_field :location, class: "input input-bordered w-full", placeholder: "Event location" %>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="form-control w-full">
+          <%= form.label :start_time, "Start Time *", class: "label label-text font-medium" %>
+          <%= form.datetime_field :start_time, class: "input input-bordered w-full", required: true %>
+          <div class="label">
+            <span class="label-text-alt text-base-content/60">Enter time in Pacific Time (PT)</span>
+          </div>
+        </div>
+
+        <div class="form-control w-full">
+          <%= form.label :end_time, "End Time *", class: "label label-text font-medium" %>
+          <%= form.datetime_field :end_time, class: "input input-bordered w-full", required: true %>
+          <div class="label">
+            <span class="label-text-alt text-base-content/60">Enter time in Pacific Time (PT)</span>
+          </div>
+        </div>
+      </div>
+
+      <% if calendar_event.persisted? && calendar_event.synced_with_google? %>
+        <div class="alert alert-info mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>This event is synced with Google Calendar</span>
+        </div>
+      <% end %>
+
+      <div class="flex justify-end gap-3 mt-6">
+        <%= link_to 'Cancel', calendar_index_path, class: "btn btn-ghost" %>
+        <%= form.submit class: "btn btn-primary" %>
+      </div>
+    <% end %>
   </div>
-
-  <div class="mb-4">
-    <%= form.label :description, class: "block text-sm font-medium text-gray-700" %>
-    <%= form.text_area :description, rows: 3, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" %>
-  </div>
-
-  <div class="mb-4">
-    <%= form.label :start_time, class: "block text-sm font-medium text-gray-700" %>
-    <%= form.datetime_local_field :start_time, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" %>
-  </div>
-
-  <div class="mb-4">
-    <%= form.label :end_time, class: "block text-sm font-medium text-gray-700" %>
-    <%= form.datetime_local_field :end_time, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" %>
-  </div>
-
-  <div class="flex justify-end space-x-3">
-    <%= form.submit class: "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" %>
-    <%= link_to 'Cancel', calendar_index_path, class: "px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400" %>
-  </div>
-<% end %>
+</div>

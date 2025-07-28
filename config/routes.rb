@@ -43,7 +43,7 @@ Rails.application.routes.draw do
   end
 
   resources :calendar, only: [ "index" ]
-  resources :calendar_events
+  resources :calendar_events, only: [ :new, :create, :show ]
   resources :calendar_shares, only: [ :create ] do
     collection do
       get :success
