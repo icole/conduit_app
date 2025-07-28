@@ -11,7 +11,13 @@ Rails.application.routes.draw do
     end
   end
   resources :users, only: [ :index, :edit, :update, :destroy ]
-  resources :tasks, without: [ :show ]
+  resources :tasks, without: [ :show ] do
+    member do
+      patch :prioritize
+      patch :move_to_backlog
+      patch :reorder
+    end
+  end
   resources :posts, only: [ :create, :update, :destroy ] do
     resources :likes, only: [ :create, :destroy ]
     resources :comments, only: [ :create, :destroy ] do

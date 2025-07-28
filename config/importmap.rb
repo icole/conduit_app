@@ -9,3 +9,4 @@ pin_all_from "app/javascript/controllers", under: "controllers"
 pin_all_from "app/javascript/channels", under: "channels"
 pin "trix"
 pin "@rails/actiontext", to: "actiontext.esm.js"
+pin "sortablejs" # @1.15.6

@@ -3,26 +3,28 @@
 one:
   title: Complete Project Documentation
   description: Update all READMEs and add code comments
-  status: pending
+  status: backlog
   user: one
 
 two:
   title: Fix UI Bug in Dashboard
   description: The sidebar collapses incorrectly on mobile
-  status: pending
+  status: backlog
   user: two
   
 assigned_task:
   title: Review Pull Request #42
   description: Check the code quality and test coverage
-  status: pending
+  status: active
+  priority_order: 1
   user: one
   assigned_to_user: two
 
 received_task:
   title: Setup Development Environment
   description: Install all dependencies and configure local settings
-  status: pending
+  status: active
+  priority_order: 2
   user: two
   assigned_to_user: one
 

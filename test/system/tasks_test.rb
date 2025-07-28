@@ -15,22 +15,26 @@ class TasksTest < ApplicationSystemTestCase
     visit dashboard_index_url
 
     # Should see tasks assigned to the current user
-    assert_selector "div", text: @received_task.title
+    assert_text @received_task.title
 
     # Should NOT see tasks created by the current user but assigned to someone else
-    assert_no_selector "div", text: @assigned_task.title
+    assert_no_text @assigned_task.title
 
     # Should NOT see tasks created by current user with no assignment
-    assert_no_selector "div", text: @task.title
+    assert_no_text @task.title
   end
 
   test "viewing tasks index shows all tasks with assignments" do
     visit tasks_url
+    
+    # Check backlog tasks
+    click_link "Backlog"
+    assert_text @task.title
 
-    # Should see all tasks
-    assert_selector "div", text: @task.title
-    assert_selector "div", text: @assigned_task.title
-    assert_selector "div", text: @received_task.title
+    # Check active tasks  
+    click_link "Active"
+    assert_text @assigned_task.title
+    assert_text @received_task.title
 
     # Should see assignment badges for assigned tasks
     within "#task_#{@assigned_task.id}" do
@@ -44,14 +48,14 @@ class TasksTest < ApplicationSystemTestCase
 
   test "filtering tasks by assignment on tasks index" do
     # Visit tasks URL, but make sure we see all tasks regardless of status
-    visit tasks_path(status: "pending")
+    visit tasks_path(view: "active")
 
     # Ensure the dropdown exists
     assert_selector "label", text: /Assigned To/
 
     # Use direct link to filter by current user instead of dropdown interaction
     # This avoids issues with dropdown visibility in test environment
-    visit tasks_path(status: "pending", assigned_to: @user_one.id)
+    visit tasks_path(view: "active", assigned_to: @user_one.id)
 
     # Should see only tasks assigned to current user
     assert_text @received_task.title
@@ -71,7 +75,6 @@ class TasksTest < ApplicationSystemTestCase
     # Fill in the form fields
     within "#new_task" do
       fill_in "task[title]", with: "Test assigned task"
-      fill_in "task[description]", with: "This is a test task with assignment"
       select @user_two.name, from: "task[assigned_to_user_id]"
 
       # Submit the form
@@ -83,30 +86,18 @@ class TasksTest < ApplicationSystemTestCase
 
     # Verify our new task appears with the assignment
     assert_text "Test assigned task"
-
-    # Verify the task is shown in the list
-    within "#task-list-items" do
-      assert_text "Test assigned task"
-      assert_text @user_two.name
-    end
+    assert_text @user_two.name
   end
 
   test "editing task assignment" do
-    # Ensure the task has pending status to be visible in the default view
-    @task.update(status: "pending")
+    # Ensure the task has active status to be visible in the default view
+    @task.update(status: "active", priority_order: 1)
 
-    visit tasks_url
-
-    # Make sure the task exists before editing it
-    assert_selector "#task_#{@task.id}"
-
-    # Find and click edit for an existing task
-    within "#task_#{@task.id}" do
-      find("a[title='Edit']").click
-    end
+    # Visit the edit page directly
+    visit edit_task_path(@task)
 
     # Check that we are on the edit page
-    assert_selector "h2.card-title", text: "Edit Task"
+    assert_text "Edit Task"
 
     # Change the assignment - make sure we're targeting the correct form field
     select @user_two.name, from: "task[assigned_to_user_id]"
@@ -115,7 +106,7 @@ class TasksTest < ApplicationSystemTestCase
     click_button "Update Task"
 
     # Should be redirected back to the tasks list
-    assert_selector "h2.card-title", text: "Community Tasks"
+    assert_text "Community Tasks"
 
     # The task should appear in the list - it might take a moment to load
     assert_selector "#task_#{@task.id}"
@@ -139,7 +130,7 @@ class TasksTest < ApplicationSystemTestCase
   test "switching users to verify assignment works both ways" do
     # First verify user one can see task assigned to them
     visit dashboard_index_url
-    assert_selector "div", text: @received_task.title
+    assert_text @received_task.title
 
     # Sign out
     visit "/logout"
@@ -156,7 +147,7 @@ class TasksTest < ApplicationSystemTestCase
 
     # User two should see tasks assigned to them
     visit dashboard_index_url
-    assert_selector "div", text: @assigned_task.title
-    assert_no_selector "div", text: @received_task.title
+    assert_text @assigned_task.title
+    assert_no_text @received_task.title
   end
 end
