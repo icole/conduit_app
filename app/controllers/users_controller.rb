@@ -3,7 +3,7 @@ class UsersController < ApplicationController
   before_action :set_user, only: [ :edit, :update, :destroy ]
 
   def index
-    @users = User.all.order(created_at: :desc)
+    @users = User.all.order(last_active_at: :desc, created_at: :desc)
   end
 
   def edit

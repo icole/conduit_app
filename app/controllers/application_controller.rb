@@ -3,6 +3,7 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
 
   before_action :authenticate_user!
+  before_action :update_last_active, if: :user_signed_in?
 
   helper_method :current_user, :user_signed_in?
 
@@ -25,6 +26,13 @@ class ApplicationController < ActionController::Base
   def authorize_admin!
     unless current_user&.admin?
       redirect_to root_path, alert: "You are not authorized to access this page."
+    end
+  end
+
+  def update_last_active
+    # Only update if the last update was more than 5 minutes ago to avoid too many DB writes
+    if current_user.last_active_at.nil? || current_user.last_active_at < 5.minutes.ago
+      current_user.update_column(:last_active_at, Time.current)
     end
   end
 end

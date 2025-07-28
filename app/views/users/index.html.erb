@@ -13,6 +13,7 @@
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
           <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
         </tr>
       </thead>
@@ -50,6 +51,22 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               <%= user.created_at.strftime("%b %d, %Y") %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <% if user.last_active_at %>
+                <% time_ago = time_ago_in_words(user.last_active_at) %>
+                <% if user.last_active_at > 5.minutes.ago %>
+                  <span class="text-green-600 font-medium">Online</span>
+                <% elsif user.last_active_at > 1.day.ago %>
+                  <span class="text-gray-900"><%= time_ago %> ago</span>
+                <% elsif user.last_active_at > 7.days.ago %>
+                  <span class="text-gray-600"><%= time_ago %> ago</span>
+                <% else %>
+                  <span class="text-gray-400"><%= user.last_active_at.strftime("%b %d, %Y") %></span>
+                <% end %>
+              <% else %>
+                <span class="text-gray-400">Never</span>
+              <% end %>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <%= link_to "Edit", edit_user_path(user), class: "text-indigo-600 hover:text-indigo-900" %>
