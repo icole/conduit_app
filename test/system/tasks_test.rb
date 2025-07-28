@@ -26,12 +26,12 @@ class TasksTest < ApplicationSystemTestCase
 
   test "viewing tasks index shows all tasks with assignments" do
     visit tasks_url
-    
+
     # Check backlog tasks
     click_link "Backlog"
     assert_text @task.title
 
-    # Check active tasks  
+    # Check active tasks
     click_link "Active"
     assert_text @assigned_task.title
     assert_text @received_task.title
