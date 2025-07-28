@@ -1,8 +1,8 @@
 <div id="<%= dom_id task %>" class="flex items-center justify-between py-2 px-3 border-b border-base-200 <%= task.status == 'completed' ? 'bg-base-200 text-base-content/70' : 'bg-base-100' %>">
   <div class="flex items-center gap-2">
     <%= form_with(model: task, method: :patch, class: "inline-flex") do |form| %>
-      <%= form.hidden_field :status, value: task.status == 'completed' ? 'pending' : 'completed' %>
-      <button type="submit" class="p-1 hover:bg-base-200 rounded-full" title="<%= task.status == 'completed' ? 'Mark Pending' : 'Complete' %>">
+      <%= form.hidden_field :status, value: task.status == 'completed' ? 'active' : 'completed' %>
+      <button type="submit" class="p-1 hover:bg-base-200 rounded-full" title="<%= task.status == 'completed' ? 'Mark Active' : 'Complete' %>">
         <% if task.status == 'completed' %>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

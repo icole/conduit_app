@@ -18,9 +18,10 @@
     <%= form.text_field :title, class: "input input-bordered w-full", required: true %>
   </div>
 
-  <div class="form-control w-full mb-4">
-    <%= form.label :description, class: "label" %>
-    <%= form.text_area :description, class: "textarea textarea-bordered w-full", rows: 4 %>
+
+  <div class="form-control w-full mb-4" data-controller="date-field">
+    <%= form.label :due_date, "Due Date (optional)", class: "label" %>
+    <%= form.date_field :due_date, class: "input input-bordered w-full cursor-pointer", data: { date_field_target: "input", action: "click->date-field#openDatePicker" } %>
   </div>
 
   <%# Only show user assignment on tasks page, not on dashboard %>
@@ -37,7 +38,7 @@
   <% if task.persisted? %>
     <div class="form-control w-full mb-4">
       <%= form.label :status, class: "label" %>
-      <%= form.select :status, [['Pending', 'pending'], ['Completed', 'completed']], {}, class: "select select-bordered w-full" %>
+      <%= form.select :status, [['Backlog', 'backlog'], ['Active', 'active'], ['Completed', 'completed']], {}, class: "select select-bordered w-full" %>
     </div>
   <% end %>
 

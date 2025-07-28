@@ -7,7 +7,7 @@ class DashboardController < ApplicationController
 
     # Show tasks created by the current user OR assigned to them
     @tasks = Task.where("assigned_to_user_id = ?", current_user.id)
-    @tasks = @tasks.where(status: "pending") if params[:status].blank?
+    @tasks = @tasks.where(status: "active") if params[:status].blank?
 
     @task = Task.new
 

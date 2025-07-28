@@ -34,6 +34,9 @@ wide-gamma-462206-r8-823649cf4ac3.json
 
 /public/assets
 
+# Ignore importmap-managed vendor files
+/vendor/javascript
+
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 
@@ -51,3 +54,4 @@ wide-gamma-462206-r8-823649cf4ac3.json
 .claude-on-rails/sessions/
 .claude-swarm/
 claude-swarm.log
+server.log
