@@ -10,8 +10,8 @@
 }
 
 .simple-calendar td {
-  @apply border border-base-300 p-2 align-top;
-  height: 100px;
+  @apply border border-base-300 p-0 align-top;
+  /* Height is controlled by Tailwind classes in the template */
 }
 
 .simple-calendar .today {

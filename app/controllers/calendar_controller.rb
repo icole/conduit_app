@@ -2,6 +2,16 @@
 
 class CalendarController < ApplicationController
   def index
+    # Set the calendar date if provided
+    begin
+      @date = params[:start_date] ? Date.parse(params[:start_date]) : Date.current
+    rescue Date::Error
+      @date = Date.current
+    end
+
+    # Create filtered params for simple_calendar
+    @calendar_params = params.except(:start_date, :date).to_unsafe_h
+
     # Get Google Calendar events and convert them to objects compatible with simple_calendar
     begin
       if !Rails.env.test?
@@ -10,7 +20,6 @@ class CalendarController < ApplicationController
           scope: Google::Apis::CalendarV3::AUTH_CALENDAR)
         service = GoogleCalendarApiService.new(auth)
         @google_events_result = service.get_events
-        Rails.logger.info "Google events result status: #{@google_events_result[:status]}"
 
         # Convert Google Calendar events to objects that work with simple_calendar
         if @google_events_result[:status] == :success && @google_events_result[:events].any?
@@ -43,8 +52,6 @@ class CalendarController < ApplicationController
         else
           @calendar_events = []
         end
-
-        Rails.logger.info "Google Calendar events loaded for calendar: #{@calendar_events.count}"
       else
         @google_events_result = { events: [], status: :success }
         @calendar_events = []
@@ -55,6 +62,18 @@ class CalendarController < ApplicationController
       @google_events_result = { events: [], status: :error }
       @calendar_events = []
     end
+  end
+
+  def show_event
+    # Get the event ID and date
+    @event_id = params[:event_id]
+    @date = params[:start_date] ? Date.parse(params[:start_date]) : Date.current
+
+    # Set a flash message that will trigger the modal
+    flash[:open_event_modal] = @event_id
+
+    # Redirect to the calendar page
+    redirect_to calendar_index_path(start_date: @date.to_s)
   end
 
   private
