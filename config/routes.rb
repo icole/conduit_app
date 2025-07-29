@@ -42,8 +42,18 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :calendar, only: [ "index" ]
-  resources :calendar_events, only: [ :new, :create, :show ]
+  resources :calendar, only: [ "index" ] do
+    collection do
+      get "show_event/:event_id", action: :show_event, as: :show_event
+    end
+  end
+  resources :calendar_events, only: [ :new, :create, :show, :edit, :update, :destroy ] do
+    collection do
+      post :import_from_google
+      get :edit, path: "edit_google/:google_event_id", action: :edit, as: :edit_google
+      delete :destroy, path: "delete_google/:google_event_id", action: :destroy, as: :delete_google
+    end
+  end
   resources :calendar_shares, only: [ :create ] do
     collection do
       get :success
@@ -56,8 +66,6 @@ Rails.application.routes.draw do
     end
   end
 
-  # Temporary route for testing environment variables
-  get "test/env", to: "test#env_test"
 
   # Authentication routes
   get "login", to: "sessions#new"

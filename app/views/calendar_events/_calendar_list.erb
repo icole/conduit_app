@@ -3,36 +3,39 @@
     <ul class="space-y-3">
       <% calendar_events[:events].each do |event| %>
         <li class="bg-base-200 rounded-lg overflow-hidden transition-all hover:shadow-md">
-          <div class="flex items-stretch">
-            <div class="bg-primary text-primary-content p-3 flex flex-col items-center justify-center">
-              <span class="text-xl font-bold"><%= event[:start_time].strftime('%d') %></span>
-              <span class="text-xs uppercase"><%= event[:start_time].strftime('%b') %></span>
-            </div>
-            <div class="flex-grow p-3">
-              <p class="font-medium line-clamp-1"><%= proper_title_case(event[:summary]) %></p>
-              <div class="flex items-center text-xs text-base-content/70 mt-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <% if event[:all_day] %>
-                  All day
-                <% else %>
-                  <%= event[:start_time].strftime('%I:%M %p') %> - <%= event[:end_time].strftime('%I:%M %p') %>
+          <%= link_to show_event_calendar_index_path(event_id: event[:id], start_date: event[:start_time].strftime('%Y-%m-%d')), 
+                     class: "block" do %>
+            <div class="flex items-stretch">
+              <div class="bg-primary text-primary-content p-3 flex flex-col items-center justify-center">
+                <span class="text-xl font-bold"><%= event[:start_time].strftime('%d') %></span>
+                <span class="text-xs uppercase"><%= event[:start_time].strftime('%b') %></span>
+              </div>
+              <div class="flex-grow p-3">
+                <p class="font-medium line-clamp-1"><%= proper_title_case(event[:summary]) %></p>
+                <div class="flex items-center text-xs text-base-content/70 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <% if event[:all_day] %>
+                    All day
+                  <% else %>
+                    <%= event[:start_time].strftime('%I:%M %p') %> - <%= event[:end_time].strftime('%I:%M %p') %>
+                  <% end %>
+                </div>
+                <% if event[:location].present? %>
+                <div class="flex items-center text-xs text-base-content/70 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span class="hover:text-primary hover:underline">
+                    <%= event[:location] %>
+                  </span>
+                </div>
                 <% end %>
               </div>
-              <% if event[:location].present? %>
-              <div class="flex items-center text-xs text-base-content/70 mt-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <a href="https://maps.google.com/?q=<%= URI.encode_www_form_component(event[:location]) %>" target="_blank" class="hover:text-primary hover:underline" title="Open in Google Maps">
-                  <%= event[:location] %>
-                </a>
-              </div>
-              <% end %>
             </div>
-          </div>
+          <% end %>
         </li>
       <% end %>
     </ul>
