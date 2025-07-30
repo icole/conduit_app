@@ -2,21 +2,6 @@
   <% if flash[:open_event_modal].present? %>
     <div data-controller="calendar-modal" data-calendar-modal-event-id-value="<%= flash[:open_event_modal] %>"></div>
   <% end %>
-  <div class="flex justify-between items-center mb-6">
-    <div>
-      <h1 class="text-2xl font-bold">Community Calendar</h1>
-      <p class="text-base-content/70 mt-1">Create and manage events synced with Google Calendar</p>
-    </div>
-    <div class="flex gap-2">
-      <%= link_to new_calendar_event_path, class: "btn btn-primary" do %>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
-        </svg>
-        New Event
-      <% end %>
-    </div>
-  </div>
-
   <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
     <!-- Calendar View -->
     <div class="xl:col-span-3">
@@ -65,6 +50,16 @@
 
     <!-- Sidebar -->
     <div class="space-y-6">
+      <!-- New Event Button -->
+      <div class="mt-6">
+        <%= link_to new_calendar_event_path, class: "btn btn-primary" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+          </svg>
+          New Event
+        <% end %>
+      </div>
+      
       <!-- Upcoming Events -->
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
@@ -106,27 +101,6 @@
                 <p class="text-sm">No upcoming events</p>
               </div>
             <% end %>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Stats -->
-      <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-          <h3 class="card-title text-lg">Statistics</h3>
-          <div class="space-y-3">
-            <div class="flex justify-between">
-              <span class="text-sm">Total Events</span>
-              <span class="badge badge-success"><%= @calendar_events.count %></span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-sm">This Month</span>
-              <span class="badge badge-secondary">
-                <%= @calendar_events.select { |event|
-                  event.start_time >= Date.current.beginning_of_month && event.start_time <= Date.current.end_of_month.end_of_day
-                }.count %>
-              </span>
-            </div>
           </div>
         </div>
       </div>
