@@ -87,6 +87,9 @@ class PostsTest < ApplicationSystemTestCase
     visit dashboard_index_url
 
     within "##{dom_id(@post)}" do
+      # Expand comments section first
+      find("[data-testid='comment-button-#{@post.id}']").click
+      
       # Fill in and submit a new comment
       fill_in "comment_content", with: "This is a test comment for auto-expansion."
       click_on "Post"
@@ -106,6 +109,11 @@ class PostsTest < ApplicationSystemTestCase
     visit dashboard_index_url
 
     within "##{dom_id(@post)}" do
+      # Expand comments section if needed
+      if has_selector?("[data-testid='comment-button-#{@post.id}']")
+        find("[data-testid='comment-button-#{@post.id}']").click
+      end
+
       # Ensure the comment exists
       assert_selector "[data-testid='comment-content']", text: @user_comment.content
 

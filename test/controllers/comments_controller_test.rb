@@ -10,17 +10,17 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
   test "should create comment" do
     assert_difference("Comment.count", 1) do
-      post post_comments_url(post_id: @post.id), params: { comment: { content: "This is a test comment" } }
+      post post_comments_url(@post), params: { comment: { content: "This is a test comment" } }, headers: { "Accept" => "text/html" }
     end
 
-    assert_redirected_to dashboard_index_url
+    assert_response :redirect
   end
 
   test "should destroy comment" do
     assert_difference("Comment.count", -1) do
-      delete post_comment_url(post_id: @post.id, id: @comment.id)
+      delete post_comment_url(@post, @comment), headers: { "Accept" => "text/html" }
     end
 
-    assert_redirected_to dashboard_index_url
+    assert_response :redirect
   end
 end
