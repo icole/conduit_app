@@ -11,7 +11,7 @@ class User < ApplicationRecord
   has_many :mailing_list_memberships, dependent: :destroy
   has_many :mailing_lists, through: :mailing_list_memberships
   belongs_to :invitation, optional: true
-  
+
   # Chores associations
   has_many :proposed_chores, class_name: "Chore", foreign_key: "proposed_by_id", dependent: :destroy
   has_many :chore_assignments, dependent: :destroy
