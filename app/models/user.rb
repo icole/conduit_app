@@ -11,6 +11,12 @@ class User < ApplicationRecord
   has_many :mailing_list_memberships, dependent: :destroy
   has_many :mailing_lists, through: :mailing_list_memberships
   belongs_to :invitation, optional: true
+  
+  # Chores associations
+  has_many :proposed_chores, class_name: "Chore", foreign_key: "proposed_by_id", dependent: :destroy
+  has_many :chore_assignments, dependent: :destroy
+  has_many :assigned_chores, through: :chore_assignments, source: :chore
+  has_many :chore_completions, foreign_key: "completed_by_id", dependent: :destroy
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true

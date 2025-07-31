@@ -1,11 +1,12 @@
-<%= turbo_stream.replace dom_id(@post) do %>
-  <%= render @post %>
-<% end %>
+<% if @post %>
+  <%= turbo_stream.append "post-#{@post.id}-comments-list" do %>
+    <%= render @comment %>
+  <% end %>
 
-<%= turbo_stream.append "post-#{@post.id}-comments-list" do %>
-  <%= render @comment %>
-<% end %>
-
-<%= turbo_stream.replace "new_comment_#{@post.id}" do %>
-  <%= render "comments/form", post: @post, comment: Comment.new %>
+  <%= turbo_stream.replace "new_comment_#{@post.id}" do %>
+    <%= render "comments/form", post: @post, comment: Comment.new %>
+  <% end %>
+<% else %>
+  <!-- For chores and other commentables, redirect to the page -->
+  <%= turbo_stream.action :redirect, polymorphic_path(@commentable) %>
 <% end %>

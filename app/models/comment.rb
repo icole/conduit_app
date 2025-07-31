@@ -1,6 +1,7 @@
 class Comment < ApplicationRecord
   belongs_to :user
-  belongs_to :post
+  belongs_to :commentable, polymorphic: true
+  belongs_to :post, optional: true # Keep for backward compatibility during transition
   has_many :likes, as: :likeable, dependent: :destroy
 
   validates :content, presence: true

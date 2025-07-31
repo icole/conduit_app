@@ -62,10 +62,6 @@ class MailingListMailer < ApplicationMailer
 
   def build_text_content
     content = []
-    content << "From: #{@original_sender}"
-    content << "To: #{@mailing_list.email_address}"
-    content << "Subject: #{@original_subject}"
-    content << ""
     content << @text_content
     content << ""
     content << "---"

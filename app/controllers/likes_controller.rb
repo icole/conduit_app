@@ -42,6 +42,8 @@ class LikesController < ApplicationController
       @likeable = TopicComment.find(params[:topic_comment_id])
     elsif params[:discussion_topic_id]
       @likeable = DiscussionTopic.find(params[:discussion_topic_id])
+    elsif params[:chore_id]
+      @likeable = Chore.find(params[:chore_id])
     else
       redirect_back(fallback_location: root_path, alert: "Invalid like target.")
     end
@@ -54,6 +56,16 @@ class LikesController < ApplicationController
       @likeable
     elsif @likeable.is_a?(TopicComment)
       @likeable.discussion_topic
+    elsif @likeable.is_a?(Comment)
+      if @likeable.commentable.is_a?(Chore)
+        @likeable.commentable
+      elsif @likeable.commentable.is_a?(Post)
+        dashboard_index_path
+      else
+        root_path
+      end
+    elsif @likeable.is_a?(Chore)
+      chores_path(view: "proposed")
     else
       root_path
     end

@@ -1,0 +1,366 @@
+<div class="container mx-auto max-w-7xl px-4 py-8">
+  <!-- Header Section -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">Community Chores</h1>
+      <p class="text-base-content/70 mt-1">Recurring responsibilities that keep our community running smoothly</p>
+    </div>
+    <div class="flex gap-2">
+      <%= link_to bulk_import_chores_path, class: "btn btn-outline" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+        </svg>
+        Bulk Import
+      <% end %>
+      <%= link_to new_chore_path, class: "btn btn-primary" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+        </svg>
+        New Chore
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tabs tabs-boxed mb-6 w-fit">
+    <%= link_to chores_path(view: "my_responsibilities"), 
+        class: "tab #{'tab-active' if @current_view == 'my_responsibilities'}" do %>
+      My Responsibilities
+    <% end %>
+    <%= link_to chores_path(view: "all_chores"), 
+        class: "tab #{'tab-active' if @current_view == 'all_chores'}" do %>
+      All Chores
+    <% end %>
+    <%= link_to chores_path(view: "proposed"), 
+        class: "tab #{'tab-active' if @current_view == 'proposed'}" do %>
+      Proposed (<%= Chore.proposed.count %>)
+    <% end %>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column - Active Chores -->
+    <div class="lg:col-span-2 space-y-6">
+      <% if @current_view == "my_responsibilities" %>
+        <!-- My Responsibilities Section -->
+        <div class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <h3 class="card-title text-lg mb-4">
+              My Responsibilities
+              <% if @my_chores.present? %>
+                <span class="badge badge-primary"><%= @my_chores.count %> assigned</span>
+              <% end %>
+            </h3>
+
+            <% if @my_chores.present? %>
+              <div class="space-y-4">
+                <% @my_chores.each do |chore| %>
+                  <% 
+                    is_due_today = chore.next_due_date == Date.current
+                    is_overdue = chore.next_due_date && chore.next_due_date < Date.current
+                    border_class = is_overdue ? "border-error" : (is_due_today ? "border-warning" : "border-base-300")
+                  %>
+                  <div class="border-l-4 <%= border_class %> bg-base-200 rounded-lg p-4">
+                    <div class="flex justify-between items-start">
+                      <div class="flex-1">
+                        <h4 class="font-semibold text-lg"><%= chore.name %></h4>
+                        <div class="flex gap-4 mt-2 text-sm text-base-content/70">
+                          <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <% if is_overdue %>
+                              Overdue (<%= time_ago_in_words(chore.next_due_date) %> ago)
+                            <% elsif is_due_today %>
+                              Due Today
+                            <% elsif chore.next_due_date %>
+                              Due <%= chore.next_due_date.strftime("%B %d") %>
+                            <% else %>
+                              No due date set
+                            <% end %>
+                          </span>
+                          <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <%= chore.frequency&.humanize || "TBD" %>
+                          </span>
+                        </div>
+                        <% if chore.description.present? %>
+                          <p class="text-sm mt-2 text-base-content/60"><%= chore.description %></p>
+                        <% end %>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <%= button_to complete_chore_path(chore), method: :post, 
+                            class: "btn btn-success btn-sm",
+                            data: { confirm: "Mark this chore as complete?" } do %>
+                          Mark Complete
+                        <% end %>
+                        <%= link_to chore_path(chore), class: "btn btn-ghost btn-sm" do %>
+                          View Details
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="text-center p-8 text-base-content/50">
+                <div class="text-4xl mb-4">✨</div>
+                <h4 class="text-lg font-medium mb-2">No chores assigned</h4>
+                <p class="text-base-content/70 mb-4">You don't have any active chores assigned to you.</p>
+                <%= link_to chores_path(view: "all_chores"), class: "btn btn-outline" do %>
+                  View All Chores
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <% if @current_view == "proposed" %>
+        <!-- Proposed Chores Section -->
+        <div class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <h3 class="card-title text-lg mb-4">
+              Proposed Chores
+              <% if @proposed_chores.present? %>
+                <span class="badge badge-ghost"><%= @proposed_chores.count %> pending review</span>
+              <% end %>
+            </h3>
+            
+            <div class="text-sm text-base-content/60 mb-4">
+              These chores have been suggested by community members and are awaiting review. Vote or comment to help decide which ones we should implement.
+            </div>
+
+            <% if @proposed_chores.present? %>
+              <!-- Proposed Chore Cards -->
+              <div class="space-y-4">
+                <% @proposed_chores.each do |chore| %>
+                  <div class="bg-base-200 rounded-lg p-4 border-l-4 border-info">
+                    <div class="flex justify-between items-start">
+                      <div class="flex-1">
+                        <h4 class="font-semibold text-lg"><%= chore.name %></h4>
+                        <% if chore.description.present? %>
+                          <p class="text-sm mt-1 text-base-content/60"><%= chore.description %></p>
+                        <% end %>
+                        <div class="flex gap-4 mt-3 text-sm text-base-content/70">
+                          <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            Proposed by: <%= chore.proposed_by.name %>
+                          </span>
+                          <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Suggested: <%= chore.frequency&.humanize || "TBD" %>
+                          </span>
+                          <span class="flex items-center gap-1">
+                            <%= render 'shared/like_button', likeable: chore, style: :topic %>
+                          </span>
+                          <span class="flex items-center gap-1">
+<!--                            <%#= chore.comments_count %> comments-->
+                          </span>
+                        </div>
+                      </div>
+                      <!-- Action buttons -->
+                      <div class="flex gap-2">
+                        <!-- Edit Button -->
+                        <%= link_to edit_chore_path(chore), class: "p-1 hover:bg-base-400 rounded-full", title: "Edit" do %>
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        <% end %>
+
+                        <!-- Delete Button -->
+                        <%= button_to chore_path(chore), method: :delete,
+                                      class: "p-1 hover:bg-base-400 rounded-full",
+                                      title: "Delete",
+                                      form: { data: { turbo_confirm: 'Are you sure?' } } do %>
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        <% end %>
+
+                        <!-- Approve Button -->
+                        <%= button_to approve_chore_path(chore), method: :post,
+                            class: "btn btn-primary btn-sm",
+                            data: { confirm: "Approve this chore and make it active?" } do %>
+                          Approve
+                        <% end %>
+                        <%#= link_to chore_path(chore), class: "btn btn-ghost btn-sm" do %>
+<!--                          Discuss-->
+                        <%# end %>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+
+              <div class="mt-6 text-center space-x-2">
+                <%= link_to new_chore_path, class: "btn btn-outline btn-sm" do %>
+                  Propose New Chore
+                <% end %>
+                <%= link_to bulk_import_chores_path, class: "btn btn-ghost btn-sm" do %>
+                  Bulk Import
+                <% end %>
+              </div>
+            <% else %>
+              <div class="text-center p-8 text-base-content/50">
+                <div class="text-4xl mb-4">💡</div>
+                <h4 class="text-lg font-medium mb-2">No proposed chores</h4>
+                <p class="text-base-content/70 mb-4">Be the first to suggest a new community responsibility!</p>
+                <%= link_to new_chore_path, class: "btn btn-primary" do %>
+                  Propose New Chore
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- All Community Chores Section -->
+      <% unless @current_view == "proposed" %>
+        <div class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <h3 class="card-title text-lg mb-4">
+              <%= @current_view == "my_responsibilities" ? "Other Community Chores" : "All Community Chores" %>
+            </h3>
+          
+            <% chores_to_show = @current_view == "all_chores" ? @all_chores : @other_chores %>
+            <% if chores_to_show.present? %>
+              <!-- Chore List Table -->
+              <div class="overflow-x-auto">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Chore</th>
+                      <th>Responsible</th>
+                      <th>Schedule</th>
+                      <th>Next Due</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% chores_to_show.each do |chore| %>
+                      <tr>
+                        <td>
+                          <div class="font-bold"><%= chore.name %></div>
+                          <% if chore.description.present? %>
+                            <div class="text-sm opacity-50"><%= truncate(chore.description, length: 50) %></div>
+                          <% end %>
+                        </td>
+                        <td>
+                          <% if chore.current_champion.present? %>
+                            <div class="flex items-center gap-2">
+                              <div class="avatar">
+                                <div class="w-8 h-8 rounded-full bg-primary text-primary-content">
+                                  <span class="text-xs flex items-center justify-center h-full">
+                                    <%= chore.current_champion.name.first(2).upcase %>
+                                  </span>
+                                </div>
+                              </div>
+                              <span><%= chore.current_champion.name %></span>
+                            </div>
+                          <% else %>
+                            <div class="flex items-center gap-2">
+                              <span class="text-warning">⚠️</span>
+                              <span class="text-warning">Needs volunteer</span>
+                            </div>
+                          <% end %>
+                        </td>
+                        <td><%= chore.frequency&.humanize || "TBD" %></td>
+                        <td>
+                          <% if chore.next_due_date %>
+                            <% if chore.next_due_date < Date.current %>
+                              <span class="text-error">Overdue</span>
+                            <% elsif chore.next_due_date == Date.current %>
+                              <span class="text-warning">Today</span>
+                            <% else %>
+                              <%= chore.next_due_date.strftime("%b %d") %>
+                            <% end %>
+                          <% else %>
+                            <span class="text-base-content/50">Not set</span>
+                          <% end %>
+                        </td>
+                        <td>
+                          <% if chore.needs_volunteer? %>
+                            <span class="badge badge-error badge-sm">No one assigned</span>
+                          <% elsif chore.next_due_date && chore.next_due_date < Date.current %>
+                            <span class="badge badge-warning badge-sm">Overdue</span>
+                          <% elsif chore.next_due_date == Date.current %>
+                            <span class="badge badge-warning badge-sm">Due Today</span>
+                          <% elsif chore.last_completed_at && chore.last_completed_at.to_date == Date.current %>
+                            <span class="badge badge-info badge-sm">Completed today</span>
+                          <% else %>
+                            <span class="badge badge-success badge-sm">On Schedule</span>
+                          <% end %>
+                        </td>
+                        <td>
+                          <div class="flex gap-1">
+                            <% if chore.needs_volunteer? %>
+                              <%= button_to volunteer_chore_path(chore), method: :post, 
+                                  class: "btn btn-primary btn-xs",
+                                  data: { confirm: "Volunteer for this chore?" } do %>
+                                Volunteer
+                              <% end %>
+                            <% else %>
+                              <%= link_to chore_path(chore), class: "btn btn-ghost btn-xs" do %>
+                                Details
+                              <% end %>
+                            <% end %>
+                          </div>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% else %>
+              <div class="text-center p-8 text-base-content/50">
+                <div class="text-4xl mb-4">📋</div>
+                <h4 class="text-lg font-medium mb-2">No chores found</h4>
+                <p class="text-base-content/70">There are no active chores to display.</p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Right Column - Info & Actions -->
+    <div class="space-y-4">
+      <!-- Quick Actions -->
+<!--      <div class="card bg-base-100 shadow-xl">-->
+<!--        <div class="card-body">-->
+<!--          <h3 class="card-title text-lg">Quick Actions</h3>-->
+<!--          <div class="space-y-2">-->
+<!--            <button class="btn btn-outline btn-sm w-full justify-start">-->
+<!--              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">-->
+<!--                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>-->
+<!--              </svg>-->
+<!--              Request Coverage-->
+<!--            </button>-->
+<!--            <button class="btn btn-outline btn-sm w-full justify-start">-->
+<!--              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">-->
+<!--                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>-->
+<!--              </svg>-->
+<!--              View My History-->
+<!--            </button>-->
+<!--            <button class="btn btn-outline btn-sm w-full justify-start">-->
+<!--              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">-->
+<!--                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>-->
+<!--              </svg>-->
+<!--              Volunteer for Open Chores-->
+<!--            </button>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+
+      <!-- Help Needed -->
+    </div>
+  </div>
+</div>
