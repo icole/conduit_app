@@ -4,7 +4,7 @@
   <% end %>
 
   <%= turbo_stream.replace "new_comment_#{@post.id}" do %>
-    <%= render "comments/form", post: @post, comment: Comment.new %>
+    <%= render "comments/form", commentable: @post, comment: Comment.new %>
   <% end %>
 <% else %>
   <!-- For chores and other commentables, redirect to the page -->

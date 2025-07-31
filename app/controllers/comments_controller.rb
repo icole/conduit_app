@@ -4,7 +4,8 @@ class CommentsController < ApplicationController
   before_action :set_comment, only: [ :destroy ]
 
   def create
-    @comment = @commentable.comments.new(comment_params)
+    @comment = Comment.new(comment_params)
+    @comment.commentable = @commentable
     @comment.user = current_user
 
     respond_to do |format|

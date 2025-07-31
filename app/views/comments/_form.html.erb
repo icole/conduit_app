@@ -1,17 +1,24 @@
 <% 
   # Determine the commentable object from available variables
-  commentable = if defined?(post) && post
+  # Support both old (post:, chore:) and new (commentable:) parameter styles
+  commentable_obj = if local_assigns[:commentable]
+    commentable
+  elsif local_assigns[:post] 
     post
-  elsif defined?(chore) && chore
+  elsif local_assigns[:chore]
     chore
   elsif defined?(commentable) && commentable
     commentable
+  elsif defined?(post) && post
+    post
+  elsif defined?(chore) && chore
+    chore
   else
     # Fallback: try to infer from comment if it exists
     comment&.commentable
   end
 %>
-<%= form_with(model: [commentable, comment], class: "space-y-3", data: { controller: "comment-form", action: "turbo:submit-end->comment-form#reset" }) do |form| %>
+<%= form_with(model: [commentable_obj, comment], class: "space-y-3", data: { controller: "comment-form", action: "turbo:submit-end->comment-form#reset" }) do |form| %>
   <% if comment.errors.any? %>
     <div class="alert alert-error p-3 text-sm">
       <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
