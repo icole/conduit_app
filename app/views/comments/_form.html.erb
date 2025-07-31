@@ -1,4 +1,17 @@
-<%= form_with(model: [post, comment], class: "space-y-3", data: { controller: "comment-form", action: "turbo:submit-end->comment-form#reset" }) do |form| %>
+<% 
+  # Determine the commentable object from available variables
+  commentable = if defined?(post) && post
+    post
+  elsif defined?(chore) && chore
+    chore
+  elsif defined?(commentable) && commentable
+    commentable
+  else
+    # Fallback: try to infer from comment if it exists
+    comment&.commentable
+  end
+%>
+<%= form_with(model: [commentable, comment], class: "space-y-3", data: { controller: "comment-form", action: "turbo:submit-end->comment-form#reset" }) do |form| %>
   <% if comment.errors.any? %>
     <div class="alert alert-error p-3 text-sm">
       <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">

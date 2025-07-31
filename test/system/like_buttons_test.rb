@@ -51,6 +51,9 @@ class LikeButtonsTest < ApplicationSystemTestCase
   test "can like and unlike a post comment" do
     visit dashboard_index_path
 
+    # Expand comments section first
+    find("[data-testid='comment-button-#{@post.id}']").click
+
     # Like the comment
     find("[data-testid='like-comment-button-#{@comment.id}']").click
     assert find("[data-testid='unlike-comment-button-#{@comment.id}']").visible?

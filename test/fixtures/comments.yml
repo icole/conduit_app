@@ -3,9 +3,9 @@
 one:
   content: "Great job organizing the tool shed! It's so much easier to find things now."
   user: two
-  post: one
+  commentable: one (Post)
 
 two:
   content: "I'll bring a salad for the community dinner tonight. Looking forward to it!"
   user: one
-  post: two
+  commentable: two (Post)
