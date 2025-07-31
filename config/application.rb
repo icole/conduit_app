@@ -23,7 +23,7 @@ module ConduitApp
     #
     config.time_zone = "America/Los_Angeles"
     # config.eager_load_paths << Rails.root.join("extras")
-    
+
     # Configure ActionMailbox to use Mailgun
     config.action_mailbox.ingress = :mailgun
   end

@@ -11,6 +11,6 @@ class CreateChoreAssignments < ActiveRecord::Migration[8.0]
     end
 
     add_index :chore_assignments, :active
-    add_index :chore_assignments, [:chore_id, :active]
+    add_index :chore_assignments, [ :chore_id, :active ]
   end
 end

@@ -10,6 +10,6 @@ class CreateChoreCompletions < ActiveRecord::Migration[8.0]
     end
 
     add_index :chore_completions, :completed_at
-    add_index :chore_completions, [:chore_id, :completed_at]
+    add_index :chore_completions, [ :chore_id, :completed_at ]
   end
 end
