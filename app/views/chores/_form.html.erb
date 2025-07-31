@@ -1,0 +1,84 @@
+<%= form_with(model: @chore, local: true, class: "space-y-6") do |form| %>
+  <% if @chore.errors.any? %>
+    <div class="alert alert-error">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div>
+        <h3 class="font-bold">Please fix the errors:</h3>
+        <ul class="list-disc list-inside mt-2">
+          <% @chore.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="form-control w-full">
+    <%= form.label :name, class: "label" do %>
+      <span class="label-text font-medium">Chore Name *</span>
+    <% end %>
+    <%= form.text_field :name, class: "input input-bordered w-full focus:outline-none focus:border-base-300",
+                        placeholder: "e.g., Kitchen Deep Clean", required: true %>
+  </div>
+
+  <div class="form-control w-full">
+    <%= form.label :description, class: "label" do %>
+      <span class="label-text font-medium">Description</span>
+    <% end %>
+    <%= form.text_area :description, rows: 4, class: "textarea textarea-bordered w-full focus:outline-none focus:border-base-300",
+                       placeholder: "Describe what needs to be done, any special instructions, or supplies needed..." %>
+    <div class="label">
+      <span class="label-text-alt text-base-content/60">Help others understand what this chore involves</span>
+    </div>
+  </div>
+
+  <div class="form-control w-full">
+    <%= form.label :frequency, class: "label" do %>
+      <span class="label-text font-medium">Frequency (optional)</span>
+    <% end %>
+    <%= form.select :frequency,
+                    options_for_select([
+                                         ["Daily", "daily"],
+                                         ["Weekly", "weekly"],
+                                         ["Bi-weekly", "biweekly"],
+                                         ["Monthly", "monthly"]
+                                       ]),
+                    { prompt: "Select frequency (can be decided during approval)" },
+                    class: "select select-bordered w-full focus:outline-none focus:border-base-300" %>
+    <div class="label">
+      <span class="label-text-alt text-base-content/60">The community can decide on frequency during review if not specified</span>
+    </div>
+  </div>
+
+  <div class="form-control w-full">
+    <%= form.label :proposed_by_id, class: "label" do %>
+      <span class="label-text font-medium">Proposed By</span>
+    <% end %>
+    <%= form.select :proposed_by_id,
+                    User.all.map { |u| [u.name, u.id] },
+                    { selected: current_user.id },
+                    class: "select select-bordered w-full focus:outline-none focus:border-base-300" %>
+    <div class="label">
+      <span class="label-text-alt text-base-content/60">Select who is proposing this chore</span>
+    </div>
+  </div>
+
+  <div class="bg-base-200/50 rounded-lg p-4">
+    <div class="flex items-start gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-info mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div class="text-sm text-base-content/70">
+        <p class="font-medium mb-1">About Proposed Chores</p>
+        <p>Your proposed chore will be reviewed by the community. Others can vote and comment before it becomes an active chore that people can volunteer for.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-3 mt-6">
+    <%= link_to "Cancel", chores_path, class: "btn btn-ghost" %>
+    <%= form.submit @chore.persisted? ? "Update Chore" : "Propose Chore", class: "btn btn-primary" %>
+  </div>
+<% end %>

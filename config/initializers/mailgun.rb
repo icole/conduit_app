@@ -1,5 +1,5 @@
 # Mailgun configuration for ActionMailer
-if Rails.env.production?
+if Rails.env.production? || Rails.env.development?
   require "mailgun-ruby"
 
   Rails.application.configure do
@@ -9,10 +9,13 @@ if Rails.env.production?
       address: "smtp.mailgun.org",
       port: 587,
       domain: ENV["MAILGUN_DOMAIN"],
-      user_name: "postmaster@#{ENV['MAILGUN_DOMAIN']}",
-      password: ENV["MAILGUN_API_KEY"],
+      user_name: ENV["MAILGUN_SMTP_USERNAME"],
+      password: ENV["MAILGUN_SMTP_PASSWORD"],
       authentication: :plain,
       enable_starttls_auto: true
     }
+
+    # Enable delivery errors in development
+    config.action_mailer.raise_delivery_errors = true if Rails.env.development?
   end
 end

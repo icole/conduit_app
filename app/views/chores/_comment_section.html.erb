@@ -1,0 +1,59 @@
+<div class="card bg-base-100 shadow-sm">
+  <div class="card-body">
+    <h3 class="card-title text-lg mb-4">
+      Discussion
+      <span class="badge badge-ghost"><%= @comments.count %> comments</span>
+    </h3>
+
+    <!-- Comment Form -->
+    <div class="mb-6">
+      <%= form_with model: [@chore, @comment], local: true, class: "space-y-4" do |form| %>
+        <div class="form-control">
+          <%= form.text_area :content, rows: 3, class: "textarea textarea-bordered w-full",
+                             placeholder: "Share your thoughts about this chore..." %>
+        </div>
+        <div class="flex justify-end">
+          <%= form.submit "Post Comment", class: "btn btn-primary btn-sm" %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Comments List -->
+    <% if @comments.any? %>
+      <div class="space-y-4">
+        <% @comments.each do |comment| %>
+          <div class="border-l-2 border-base-300 pl-4">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="avatar placeholder">
+                <div class="bg-neutral text-neutral-content w-8 h-8 rounded-full">
+                  <span class="text-xs"><%= comment.user.name.first(2).upcase %></span>
+                </div>
+              </div>
+              <strong class="text-sm"><%= comment.user.name %></strong>
+              <span class="text-xs text-base-content/60"><%= time_ago_in_words(comment.created_at) %> ago</span>
+            </div>
+            <div class="prose prose-sm max-w-none mb-2">
+              <p><%= simple_format(comment.content) %></p>
+            </div>
+            <div class="flex items-center gap-4">
+              <%= render 'shared/like_button', likeable: comment, style: :comment %>
+              <% if comment.user == current_user %>
+                <%= button_to [@chore, comment], method: :delete,
+                              class: "btn btn-ghost btn-xs text-error",
+                              data: { confirm: "Delete this comment?" } do %>
+                  Delete
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center p-8 text-base-content/50">
+        <div class="text-4xl mb-4">💬</div>
+        <h4 class="text-lg font-medium mb-2">No comments yet</h4>
+        <p class="text-base-content/70">Be the first to share your thoughts about this chore!</p>
+      </div>
+    <% end %>
+  </div>
+</div>

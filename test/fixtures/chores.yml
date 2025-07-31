@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  description: MyText
+  frequency: MyString
+  frequency_details: 
+  status: MyString
+  proposed_by: one
+  next_due_date: 2025-07-29
+
+two:
+  name: MyString
+  description: MyText
+  frequency: MyString
+  frequency_details: 
+  status: MyString
+  proposed_by: two
+  next_due_date: 2025-07-29

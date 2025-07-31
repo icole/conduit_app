@@ -1,4 +1,19 @@
 Rails.application.routes.draw do
+  resources :chores do
+    member do
+      post :complete
+      post :volunteer
+      post :approve
+    end
+    collection do
+      get :bulk_import
+      post :bulk_create
+    end
+    resources :likes, only: [ :create, :destroy ]
+    resources :comments, only: [ :create, :destroy ] do
+      resources :likes, only: [ :create, :destroy ]
+    end
+  end
   # ActionMailbox routes for inbound email processing
   mount ActionMailbox::Engine => "/rails/action_mailbox"
 

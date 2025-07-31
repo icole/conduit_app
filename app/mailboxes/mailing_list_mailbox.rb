@@ -13,14 +13,16 @@ class MailingListMailbox < ApplicationMailbox
       # Forward email to all list members except the sender
       sender_email = mail.from.first.downcase
 
+      user_count = 0
       mailing_list.users.each do |user|
         # Don't send email back to the original sender
         next if user.email.downcase == sender_email
 
         MailingListMailer.forward_email(user, mail, mailing_list).deliver_now
+        user_count += 1
       end
 
-      Rails.logger.info "Forwarded email to #{mailing_list.name} list (#{mailing_list.users.count - 1} recipients)"
+      Rails.logger.info "Forwarded email to #{mailing_list.name} list (#{user_count} recipients)"
     else
       Rails.logger.warn "Received email for unknown or inactive mailing list: #{list_name}"
     end

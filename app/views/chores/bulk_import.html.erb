@@ -1,0 +1,156 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header Section -->
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Bulk Import Chores</h1>
+      <div class="flex gap-2">
+        <%= link_to chores_path, class: "btn btn-outline btn-sm" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+          </svg>
+          Back to Chores
+        <% end %>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Main Form -->
+      <div class="lg:col-span-2">
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body">
+            <%= form_with url: bulk_create_chores_path, local: true, class: "space-y-6" do |form| %>
+              <div class="form-control w-full">
+                <%= form.label :chores_text, class: "label" do %>
+                  <span class="label-text font-medium">Chore List *</span>
+                <% end %>
+                <%= form.text_area :chores_text, rows: 20, class: "textarea textarea-bordered w-full focus:outline-none focus:border-base-300 font-mono text-sm", 
+                    placeholder: "Paste your chore list here...\n\nExamples:\n• Kitchen Deep Clean\n• Bathroom Cleaning - Scrub tiles and clean mirrors\n1. Garden Watering: Check soil moisture levels\n- Trash Collection | Move bins to curb on collection day", required: true %>
+                <div class="label">
+                  <span class="label-text-alt text-base-content/60">Each line will become a separate chore. See formatting examples on the right →</span>
+                </div>
+              </div>
+
+              <div class="form-control w-full">
+                <%= form.label :default_frequency, class: "label" do %>
+                  <span class="label-text font-medium">Default Frequency (optional)</span>
+                <% end %>
+                <%= form.select :default_frequency, 
+                    options_for_select([
+                      ["Daily", "daily"],
+                      ["Weekly", "weekly"],
+                      ["Bi-weekly", "biweekly"],
+                      ["Monthly", "monthly"]
+                    ]),
+                    { prompt: "Leave blank to decide during approval" },
+                    class: "select select-bordered w-full focus:outline-none focus:border-base-300" %>
+                <div class="label">
+                  <span class="label-text-alt text-base-content/60">If specified, this frequency will be applied to all imported chores. Otherwise, frequency can be decided during community review.</span>
+                </div>
+              </div>
+
+              <div class="form-control w-full">
+                <%= form.label :proposed_by_id, class: "label" do %>
+                  <span class="label-text font-medium">Proposed By</span>
+                <% end %>
+                <%= form.select :proposed_by_id,
+                                User.all.map { |u| [u.name, u.id] },
+                                { selected: current_user.id },
+                                class: "select select-bordered w-full focus:outline-none focus:border-base-300" %>
+                <div class="label">
+                  <span class="label-text-alt text-base-content/60">Select who is proposing these chores</span>
+                </div>
+              </div>
+
+              <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div class="flex items-start gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div class="text-sm text-amber-800">
+                    <p class="font-medium mb-1">Review Before Importing</p>
+                    <p>All imported chores will be created as <strong>proposed chores</strong> and will need community approval before becoming active. You can edit individual chores after import if needed.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex justify-end gap-3 mt-6">
+                <%= link_to "Cancel", chores_path, class: "btn btn-ghost" %>
+                <%= form.submit "Import Chores", class: "btn btn-primary" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Help & Examples -->
+      <div class="space-y-4">
+        <!-- Format Guide -->
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body">
+            <h3 class="card-title text-lg mb-4">Formatting Guide</h3>
+            
+            <div class="space-y-4 text-sm">
+              <div>
+                <h4 class="font-semibold text-base-content mb-2">Supported Formats</h4>
+                <div class="space-y-2">
+                  <div class="bg-base-200 rounded p-2 font-mono text-xs">
+                    Kitchen Deep Clean<br>
+                    Bathroom Cleaning<br>
+                    Garden Watering
+                  </div>
+                  <p class="text-base-content/70">Simple list (one chore per line)</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold text-base-content mb-2">With Descriptions</h4>
+                <div class="space-y-2">
+                  <div class="bg-base-200 rounded p-2 font-mono text-xs">
+                    Kitchen Clean - Deep clean all surfaces<br>
+                    Bathroom: Scrub tiles and mirrors<br>
+                    Garden | Water plants and check soil
+                  </div>
+                  <p class="text-base-content/70">Use <code>-</code>, <code>:</code>, or <code>|</code> to separate name from description</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold text-base-content mb-2">Numbered/Bulleted Lists</h4>
+                <div class="space-y-2">
+                  <div class="bg-base-200 rounded p-2 font-mono text-xs">
+                    1. Kitchen Deep Clean<br>
+                    2. Bathroom Cleaning<br>
+                    • Garden Watering<br>
+                    * Trash Collection
+                  </div>
+                  <p class="text-base-content/70">Numbers and bullets are automatically removed</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body">
+            <h3 class="card-title text-lg">Alternative Options</h3>
+            <div class="space-y-2">
+              <%= link_to new_chore_path, class: "btn btn-outline btn-sm w-full justify-start" do %>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Create Single Chore
+              <% end %>
+              <%= link_to chores_path(view: "proposed"), class: "btn btn-outline btn-sm w-full justify-start" do %>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                View Proposed Chores
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

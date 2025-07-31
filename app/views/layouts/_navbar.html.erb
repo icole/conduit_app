@@ -15,6 +15,7 @@
         <li><%= link_to "Tasks", tasks_path %></li>
         <li><%= link_to "Discussions", discussion_topics_path %></li>
         <li><%= link_to "Calendar", calendar_index_path %></li>
+        <li><%= link_to "Chores", chores_path %></li>
         <% if user_signed_in? && current_user.admin? %>
           <li>
             <details>
@@ -41,27 +42,32 @@
         <li><%= link_to "Tasks", tasks_path, class: "btn btn-ghost btn-md #{'btn-active' if current_page?(tasks_path)}" %></li>
         <li><%= link_to "Discussions", discussion_topics_path, class: "btn btn-ghost btn-md #{'btn-active' if controller_name == 'discussion_topics'}" %></li>
         <li><%= link_to "Calendar", calendar_index_path, class: "btn btn-ghost btn-md #{'btn-active' if controller_name == 'calendar' || controller_name == 'calendar_events'}" %></li>
-        <% if user_signed_in? && current_user.admin? %>
-          <li class="dropdown dropdown-hover">
-            <div tabindex="0" role="button" class="btn btn-ghost btn-md #{'btn-active' if controller_name.in?(['invitations', 'users', 'mailing_lists'])}">
-              Admin
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 text-base-content rounded-box w-52">
-              <li><%= link_to "Mailing Lists", mailing_lists_path, class: "#{'active' if controller_name == 'mailing_lists'}" %></li>
-              <li><%= link_to "Invitations", invitations_path, class: "#{'active' if current_page?(invitations_path)}" %></li>
-              <li><%= link_to "Users", users_path, class: "#{'active' if controller_name == 'users'}" %></li>
-            </ul>
-          </li>
-        <% end %>
+        <li><%= link_to "Chores", chores_path, class: "btn btn-ghost btn-md #{'btn-active' if controller_name == 'chores'}" %></li>
       </ul>
     </div>
   </div>
 
   <div class="navbar-end gap-4">
     <% if user_signed_in? %>
+      <% if current_user.admin? %>
+        <div class="hidden lg:flex gap-2">
+          <ul class="px-1 gap-2">
+            <li class="dropdown dropdown-hover">
+              <div tabindex="0" role="button" class="btn btn-ghost btn-md #{'btn-active' if controller_name.in?(['invitations', 'users', 'mailing_lists'])}">
+                Admin
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 text-base-content rounded-box w-52">
+                <li><%= link_to "Mailing Lists", mailing_lists_path, class: "#{'active' if controller_name == 'mailing_lists'}" %></li>
+                <li><%= link_to "Invitations", invitations_path, class: "#{'active' if current_page?(invitations_path)}" %></li>
+                <li><%= link_to "Users", users_path, class: "#{'active' if controller_name == 'users'}" %></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      <% end %>
       <div class="dropdown dropdown-end">
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder p-0 overflow-hidden">
           <div class="flex-shrink-0 h-10 w-10">
