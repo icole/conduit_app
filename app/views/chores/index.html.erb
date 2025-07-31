@@ -38,7 +38,8 @@
   </div>
 
   <!-- Main Grid -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Change to lg:grid-cols-3 when we have a sidebar -->
+  <div class="grid grid-cols-1 gap-6">
     <!-- Left Column - Active Chores -->
     <div class="lg:col-span-2 space-y-6">
       <% if @current_view == "my_responsibilities" %>
@@ -332,7 +333,7 @@
     </div>
 
     <!-- Right Column - Info & Actions -->
-    <div class="space-y-4">
+<!--    <div class="space-y-4">-->
       <!-- Quick Actions -->
 <!--      <div class="card bg-base-100 shadow-xl">-->
 <!--        <div class="card-body">-->
@@ -361,6 +362,6 @@
 <!--      </div>-->
 
       <!-- Help Needed -->
-    </div>
+<!--    </div>-->
   </div>
 </div>
