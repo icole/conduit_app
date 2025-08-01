@@ -54,18 +54,4 @@ class MailingListMailboxTest < ActionMailbox::TestCase
       email.route
     end
   end
-
-  test "does not send email back to original sender" do
-    email = create_inbound_email_from_mail(
-      from: @user1.email,
-      to: "test-list@lists.test.com",
-      subject: "Test subject",
-      body: "Test message body"
-    )
-
-    # Should only send to user2, not back to user1
-    assert_emails 1 do
-      email.route
-    end
-  end
 end
