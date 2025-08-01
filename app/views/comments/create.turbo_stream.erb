@@ -13,6 +13,9 @@
       <%= render "shared/comment", comment: @comment %>
     <% end %>
     
+    <!-- Remove "no comments" message if this is the first comment -->
+    <%= turbo_stream.remove "post-#{@post.id}-no-comments" %>
+    
     <!-- Always reset the main comment form -->
     <%= turbo_stream.replace "new_comment_#{@post.id}" do %>
       <%= render "shared/comment_form", commentable: @post, comment: Comment.new %>
@@ -33,6 +36,9 @@
       <%= render "shared/comment", comment: @comment %>
     <% end %>
     
+    <!-- Remove "no comments" message if this is the first comment -->
+    <%= turbo_stream.remove "discussiontopic-#{@discussion_topic.id}-no-comments" %>
+    
     <!-- Always reset the main comment form -->
     <%= turbo_stream.replace "new_comment_discussiontopic_#{@discussion_topic.id}" do %>
       <%= render "shared/comment_form", commentable: @discussion_topic, comment: Comment.new %>
@@ -52,6 +58,9 @@
     <%= turbo_stream.append "chore-#{@chore.id}-comments-list" do %>
       <%= render "shared/comment", comment: @comment %>
     <% end %>
+    
+    <!-- Remove "no comments" message if this is the first comment -->
+    <%= turbo_stream.remove "chore-#{@chore.id}-no-comments" %>
     
     <!-- Always reset the main comment form -->
     <%= turbo_stream.replace "new_comment_chore_#{@chore.id}" do %>
