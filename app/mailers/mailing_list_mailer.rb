@@ -9,8 +9,8 @@ class MailingListMailer < ApplicationMailer
     @text_content = extract_text_content(original_mail)
     @html_content = extract_html_content(original_mail)
 
-    # Create subject with list prefix
-    subject = "[#{mailing_list.name}] #{original_mail.subject}"
+    # Create subject with list prefix, avoiding double prefixing
+    subject = build_subject_with_prefix(original_mail.subject, mailing_list.name)
 
     # Forward with list email as sender
     mail(
@@ -73,5 +73,33 @@ class MailingListMailer < ApplicationMailer
     content << "To reply to this message, send an email to #{@mailing_list.email_address}"
 
     content.join("\n")
+  end
+
+  def build_subject_with_prefix(original_subject, list_name)
+    # Remove any existing list prefix from the subject
+    clean_subject = remove_list_prefix(original_subject, list_name)
+    
+    # Add the list prefix to the clean subject
+    "[#{list_name}] #{clean_subject}"
+  end
+
+  def remove_list_prefix(subject, list_name)
+    # Remove the list prefix pattern: [listname] at the beginning
+    # This handles both "[listname] Subject" and "Re: [listname] Subject" cases
+    prefix_pattern = /^\[#{Regexp.escape(list_name)}\]\s*/i
+    
+    # Also handle cases where Re: comes before the list prefix
+    re_prefix_pattern = /^(Re:\s*)?\[#{Regexp.escape(list_name)}\]\s*/i
+    
+    if subject.match(re_prefix_pattern)
+      # If it's a reply with list prefix, keep the "Re:" but remove the list prefix
+      subject.gsub(re_prefix_pattern, '\1')
+    elsif subject.match(prefix_pattern)
+      # If it's just a list prefix, remove it entirely
+      subject.gsub(prefix_pattern, '')
+    else
+      # No list prefix found, return as-is
+      subject
+    end
   end
 end

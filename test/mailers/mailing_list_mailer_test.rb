@@ -52,4 +52,41 @@ class MailingListMailerTest < ActionMailer::TestCase
     assert_match "Original message content", text_part.body.to_s
     assert_match "original@example.com", text_part.body.to_s
   end
+
+  test "subject prefix handling avoids double prefixing" do
+    mailer = MailingListMailer.new
+    
+    # Test original subject without prefix
+    assert_equal "[test-list] Hello World", 
+                 mailer.send(:build_subject_with_prefix, "Hello World", "test-list")
+    
+    # Test subject that already has the prefix
+    assert_equal "[test-list] Hello World", 
+                 mailer.send(:build_subject_with_prefix, "[test-list] Hello World", "test-list")
+    
+    # Test reply subject with prefix (should preserve Re:)
+    assert_equal "[test-list] Re: Hello World", 
+                 mailer.send(:build_subject_with_prefix, "Re: [test-list] Hello World", "test-list")
+    
+    # Test reply subject without prefix
+    assert_equal "[test-list] Re: Hello World", 
+                 mailer.send(:build_subject_with_prefix, "Re: Hello World", "test-list")
+  end
+
+  test "forward_email with reply subject avoids double prefix" do
+    # Create a mock reply email with existing list prefix
+    original_mail = Mail.new do
+      from "replier@example.com"
+      to "test-list@lists.test.com"
+      subject "Re: [test-list] Original Topic"
+      body "This is a reply message"
+    end
+
+    email = MailingListMailer.forward_email(@user, original_mail, @mailing_list)
+    
+    # Should not have double prefix
+    assert_equal "[test-list] Re: Original Topic", email.subject
+    assert_equal [ @user.email ], email.to
+    assert_equal @mailing_list.email_address, email.from.first
+  end
 end
