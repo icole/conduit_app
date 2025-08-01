@@ -1,8 +1,9 @@
 <% if @post %>
   <% if @comment.reply? %>
-    <!-- For replies, we need to reload the parent comment to show the new reply -->
-    <%= turbo_stream.replace dom_id(@comment.parent) do %>
-      <%= render "shared/comment", comment: @comment.parent %>
+    <!-- For replies, we need to reload the root comment to show the new nested reply -->
+    <% root_comment = @comment.root_comment %>
+    <%= turbo_stream.replace dom_id(root_comment) do %>
+      <%= render "shared/comment", comment: root_comment %>
     <% end %>
     
     <!-- Hide the reply form after successful submission -->
@@ -23,9 +24,10 @@
   <% end %>
 <% elsif @discussion_topic %>
   <% if @comment.reply? %>
-    <!-- For replies, we need to reload the parent comment to show the new reply -->
-    <%= turbo_stream.replace dom_id(@comment.parent) do %>
-      <%= render "shared/comment", comment: @comment.parent %>
+    <!-- For replies, we need to reload the root comment to show the new nested reply -->
+    <% root_comment = @comment.root_comment %>
+    <%= turbo_stream.replace dom_id(root_comment) do %>
+      <%= render "shared/comment", comment: root_comment %>
     <% end %>
     
     <!-- Hide the reply form after successful submission -->
@@ -46,9 +48,10 @@
   <% end %>
 <% elsif @chore %>
   <% if @comment.reply? %>
-    <!-- For replies, we need to reload the parent comment to show the new reply -->
-    <%= turbo_stream.replace dom_id(@comment.parent) do %>
-      <%= render "shared/comment", comment: @comment.parent %>
+    <!-- For replies, we need to reload the root comment to show the new nested reply -->
+    <% root_comment = @comment.root_comment %>
+    <%= turbo_stream.replace dom_id(root_comment) do %>
+      <%= render "shared/comment", comment: root_comment %>
     <% end %>
     
     <!-- Hide the reply form after successful submission -->

@@ -1,10 +1,31 @@
 <%
-  # Safe check for reply status
-  is_reply = comment.respond_to?(:parent_id) && comment.parent_id.present?
-  is_top_level = !is_reply
+  # Handle depth and nesting
+  depth = local_assigns[:depth] || 0
+  max_depth = 8 # Maximum visual nesting depth
+  actual_depth = comment.depth
+  visual_depth = [actual_depth, max_depth].min
+  
+  # Calculate indentation - use standard Tailwind classes
+  indent_class = if visual_depth > 0
+    "ml-8 border-l-2 border-base-200 pl-4"  # ml-8 = 32px, standard Tailwind class
+  else
+    ""
+  end
+  
+  # Background becomes lighter as depth increases
+  bg_class = case visual_depth
+  when 0
+    "bg-base-100"
+  when 1..2
+    "bg-base-50"
+  when 3..4
+    "bg-base-content/5"
+  else
+    "bg-base-content/10"
+  end
 %>
-<div class="<%= is_reply ? 'ml-8 border-l-2 border-base-200 pl-4' : '' %>" id="<%= dom_id comment %>">
-  <div class="flex gap-3 p-4 <%= is_reply ? 'bg-base-50' : 'bg-base-100' %> rounded-lg">
+<div class="<%= indent_class %>" id="<%= dom_id comment %>">
+  <div class="flex gap-3 p-4 <%= bg_class %> rounded-lg">
     <!-- Avatar -->
     <div class="avatar <%= comment.user.avatar_url.blank? ? 'placeholder' : '' %> flex-shrink-0">
       <% if comment.user.avatar_url.present? %>
@@ -48,35 +69,31 @@
         <!-- Like Button -->
         <%= render "shared/like_button", likeable: comment, style: :comment %>
         
-        <!-- Reply Button (only for top-level comments) -->
-        <% if is_top_level %>
-          <button class="btn btn-ghost btn-xs gap-1"
-                  data-action="click->comments#showReplyForm"
-                  data-comment-id="<%= comment.id %>">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-            </svg>
-            Reply
-          </button>
-        <% end %>
+        <!-- Reply Button (available at any level) -->
+        <button class="btn btn-ghost btn-xs gap-1"
+                data-action="click->comments#showReplyForm"
+                data-comment-id="<%= comment.id %>">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          </svg>
+          Reply
+        </button>
       </div>
 
     </div>
   </div>
 
-  <!-- Replies -->
-  <% if is_top_level && comment.respond_to?(:replies) && comment.replies.any? %>
-    <div class="ml-8 mt-2 space-y-2">
+  <!-- Replies (recursive rendering for any level) -->
+  <% if comment.respond_to?(:replies) && comment.replies.any? %>
+    <div class="mt-2 space-y-2">
       <% comment.replies.reorder(created_at: :asc).each do |reply| %>
-        <%= render "shared/comment", comment: reply %>
+        <%= render "shared/comment", comment: reply, depth: depth + 1 %>
       <% end %>
     </div>
   <% end %>
 
-  <!-- Reply Form (hidden by default, appears after replies) -->
-  <% if is_top_level %>
-    <div id="reply-form-<%= comment.id %>" class="hidden mt-4 ml-8">
-      <%= render "shared/comment_form", commentable: comment.commentable, comment: Comment.new, parent_comment: comment %>
-    </div>
-  <% end %>
+  <!-- Reply Form (hidden by default, available at any level) -->
+  <div id="reply-form-<%= comment.id %>" class="hidden mt-4">
+    <%= render "shared/comment_form", commentable: comment.commentable, comment: Comment.new, parent_comment: comment %>
+  </div>
 </div>

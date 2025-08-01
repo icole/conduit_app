@@ -31,4 +31,38 @@ class Comment < ApplicationRecord
   def replies_count
     replies.count
   end
+
+  # Calculate the depth of this comment in the reply tree
+  def depth
+    return 0 if parent_id.nil?
+    1 + (parent&.depth || 0)
+  end
+
+  # Get all descendants (replies and replies to replies, etc.)
+  def all_descendants
+    return Comment.none if replies.empty?
+
+    direct_replies = replies.includes(:user, :replies)
+    descendant_ids = direct_replies.pluck(:id)
+
+    # Recursively find all nested replies
+    loop do
+      next_level = Comment.where(parent_id: descendant_ids).pluck(:id)
+      break if next_level.empty?
+      descendant_ids += next_level
+    end
+
+    Comment.where(id: descendant_ids).includes(:user, :replies)
+  end
+
+  # Get the root comment (top-level parent)
+  def root_comment
+    return self if parent_id.nil?
+    parent&.root_comment || self
+  end
+
+  # Check if this comment has any descendants
+  def has_descendants?
+    replies.exists? || replies.joins(:replies).exists?
+  end
 end
