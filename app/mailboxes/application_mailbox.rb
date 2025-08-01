@@ -4,5 +4,10 @@ class ApplicationMailbox < ActionMailbox::Base
   subdomain = Rails.application.credentials.mailing_list_subdomain || ENV["MAILING_LIST_SUBDOMAIN"] || "lists"
   base_domain = Rails.application.credentials.mailing_list_domain || ENV["MAILING_LIST_DOMAIN"] || "example.com"
 
+  # Route mailing list emails
   routing(/@#{Regexp.escape("#{subdomain}.#{base_domain}")}$/i => :mailing_list)
+  
+  # Catch-all route for debugging - routes all unmatched emails to mailing list handler
+  # This helps debug what emails are coming in that don't match the expected domain
+  routing :all => :mailing_list
 end
