@@ -14,17 +14,17 @@
   <h3 class="text-lg font-semibold">Comments (<%= comment_count %>)</h3>
   
   <!-- Comments List -->
-  <% if comments.any? %>
-    <div class="space-y-4" id="<%= "#{commentable.class.name.downcase}-#{commentable.id}-comments-list" %>">
+  <div class="space-y-4" id="<%= "#{commentable.class.name.downcase}-#{commentable.id}-comments-list" %>">
+    <% if comments.any? %>
       <% comments.each do |comment| %>
         <%= render "shared/comment", comment: comment %>
       <% end %>
-    </div>
-  <% else %>
-    <div class="text-center py-8 text-base-content/60">
-      <p>No comments yet. Be the first to share your thoughts!</p>
-    </div>
-  <% end %>
+    <% else %>
+      <div class="text-center py-8 text-base-content/60" id="<%= "#{commentable.class.name.downcase}-#{commentable.id}-no-comments" %>">
+        <p>No comments yet. Be the first to share your thoughts!</p>
+      </div>
+    <% end %>
+  </div>
 
   <!-- Add Comment Form -->
   <div class="border-t border-base-200 pt-4" id="<%= "new_comment_#{commentable.class.name.downcase}_#{commentable.id}" %>">

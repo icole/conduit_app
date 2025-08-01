@@ -1,6 +1,10 @@
 <% if @post %>
   <%= turbo_stream.remove dom_id(@comment) %>
+<% elsif @discussion_topic %>
+  <%= turbo_stream.remove dom_id(@comment) %>
+<% elsif @chore %>
+  <%= turbo_stream.remove dom_id(@comment) %>
 <% else %>
-  <!-- For chores and other commentables, redirect to the page -->
+  <!-- For other commentables, redirect to the page -->
   <%= turbo_stream.action :redirect, polymorphic_path(@commentable) %>
 <% end %>
