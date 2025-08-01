@@ -1,65 +1,71 @@
 <div class="container mx-auto px-4 py-8">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">Invitation Link</h1>
-    <% if @active_invitation.nil? %>
-      <%= link_to "Generate New Invitation Link", new_invitation_path, class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" %>
-    <% end %>
   </div>
 
   <% if @active_invitation.present? %>
-    <div class="bg-white shadow-md rounded my-6 p-6">
-      <div class="flex flex-col space-y-6">
-        <div>
-          <h2 class="text-lg font-semibold mb-4">Active Invitation Link</h2>
-          <p class="text-gray-600 mb-4">
-            Share this link with people you want to invite to Conduit. Anyone with this link can sign up.
-          </p>
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="space-y-6">
+          <div>
+            <h2 class="card-title">Active Invitation Link</h2>
+            <p class="text-base-content/70 mb-4">
+              Share this link with people you want to invite to Conduit. Anyone with this link can sign up.
+            </p>
 
-          <div class="flex items-center mb-2">
-            <input type="text" value="<%= accept_invitation_url(@active_invitation.token) %>"
-                   readonly class="text-sm bg-gray-100 border px-3 py-2 rounded-l w-full"
-                   id="invitation-link" />
-            <button onclick="copyToClipboard('invitation-link')"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r">
-              Copy
-            </button>
+            <div class="join w-full mb-2">
+              <input type="text" value="<%= accept_invitation_url(@active_invitation.token) %>"
+                     readonly class="input input-bordered join-item flex-1"
+                     id="invitation-link" />
+              <button onclick="copyToClipboard('invitation-link')"
+                      class="btn btn-primary join-item" id="copy-button">
+                Copy
+              </button>
+            </div>
+            <p class="text-sm text-base-content/60">This invitation link expires on <%= @active_invitation.expires_at.strftime("%B %d, %Y") %></p>
           </div>
-          <p class="text-xs text-gray-500">This invitation link expires on <%= @active_invitation.expires_at.strftime("%B %d, %Y") %></p>
-        </div>
 
-        <div class="border-t border-gray-200 pt-6">
-          <h3 class="text-md font-semibold mb-2">Stats</h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-blue-50 p-4 rounded">
-              <p class="text-sm text-gray-500">Users registered</p>
-              <p class="text-2xl font-semibold text-blue-700"><%= @active_invitation.users.count %></p>
-            </div>
-            <div class="bg-green-50 p-4 rounded">
-              <p class="text-sm text-gray-500">Created on</p>
-              <p class="text-md font-semibold text-green-700"><%= @active_invitation.created_at.strftime("%B %d, %Y") %></p>
-            </div>
-            <div class="bg-purple-50 p-4 rounded">
-              <p class="text-sm text-gray-500">Days remaining</p>
-              <p class="text-2xl font-semibold text-purple-700"><%= ((@active_invitation.expires_at - Time.current) / 1.day).to_i %></p>
+          <div class="divider"></div>
+          
+          <div>
+            <h3 class="text-lg font-semibold mb-4">Stats</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="stat bg-primary/10 rounded-lg">
+                <div class="stat-title">Users registered</div>
+                <div class="stat-value text-primary"><%= @active_invitation.users.count %></div>
+              </div>
+              <div class="stat bg-success/10 rounded-lg">
+                <div class="stat-title">Created on</div>
+                <div class="stat-value text-success text-lg"><%= @active_invitation.created_at.strftime("%b %d, %Y") %></div>
+              </div>
+              <div class="stat bg-secondary/10 rounded-lg">
+                <div class="stat-title">Days remaining</div>
+                <div class="stat-value text-secondary"><%= ((@active_invitation.expires_at - Time.current) / 1.day).to_i %></div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="border-t border-gray-200 pt-6">
-          <div class="flex justify-between items-center">
-            <h3 class="text-md font-semibold">Actions</h3>
-            <%= link_to "Generate New Link", new_invitation_path, class: "text-blue-500 hover:text-blue-700 text-sm" %>
+          <div class="divider"></div>
+          
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-lg font-semibold">Actions</h3>
+              <%= link_to "Generate New Link", new_invitation_path, class: "btn btn-outline btn-sm" %>
+            </div>
+            <p class="text-sm text-base-content/60">Generating a new link will not invalidate this link, but gives you the option to create an alternative invitation.</p>
           </div>
-          <p class="text-sm text-gray-500 mt-2">Generating a new link will not invalidate this link, but gives you the option to create an alternative invitation.</p>
         </div>
       </div>
     </div>
   <% else %>
-    <div class="bg-white shadow-md rounded p-8 text-center">
-      <p class="text-gray-600">No active invitation link found.</p>
-      <p class="mt-4">
-        <%= link_to "Generate an invitation link", new_invitation_path, class: "text-blue-500 hover:underline" %>
-      </p>
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body text-center">
+        <div class="text-4xl mb-4">🔗</div>
+        <p class="text-base-content/70">No active invitation link found.</p>
+        <div class="mt-4">
+          <%= link_to "Generate an invitation link", new_invitation_path, class: "btn btn-primary" %>
+        </div>
+      </div>
     </div>
   <% end %>
 </div>
@@ -70,17 +76,17 @@ function copyToClipboard(elementId) {
   copyText.select();
   document.execCommand("copy");
 
-  // Show feedback
-  var button = copyText.nextElementSibling;
+  // Show feedback with DaisyUI classes
+  var button = document.getElementById("copy-button");
   var originalText = button.innerText;
   button.innerText = "Copied!";
-  button.classList.add("bg-green-500");
-  button.classList.remove("bg-blue-500", "hover:bg-blue-700");
+  button.classList.remove("btn-primary");
+  button.classList.add("btn-success");
 
   setTimeout(function() {
     button.innerText = originalText;
-    button.classList.remove("bg-green-500");
-    button.classList.add("bg-blue-500", "hover:bg-blue-700");
+    button.classList.remove("btn-success");
+    button.classList.add("btn-primary");
   }, 2000);
 }
 </script>

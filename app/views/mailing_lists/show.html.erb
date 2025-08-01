@@ -2,74 +2,106 @@
   <div class="flex justify-between items-center mb-6">
     <div>
       <h1 class="text-2xl font-bold"><%= @mailing_list.name %></h1>
-      <p class="text-gray-600 font-mono text-lg"><%= @mailing_list.email_address %></p>
+      <p class="text-base-content/70 font-mono text-lg"><%= @mailing_list.email_address %></p>
     </div>
-    <div class="flex space-x-2">
-      <%= link_to "← Back to Lists", mailing_lists_path, class: "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" %>
-      <%= link_to "Send Email", broadcast_mailing_list_path(@mailing_list), class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" %>
-      <%= link_to "Edit", edit_mailing_list_path(@mailing_list), class: "bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded" %>
+    <div class="flex gap-2">
+      <%= link_to "← Back to Lists", mailing_lists_path, class: "btn btn-outline" %>
+      <%= link_to "Send Email", broadcast_mailing_list_path(@mailing_list), class: "btn btn-primary" %>
+      <%= link_to "Edit", edit_mailing_list_path(@mailing_list), class: "btn btn-secondary" %>
     </div>
   </div>
 
-  <div class="bg-white shadow-md rounded mb-6 p-6">
-    <h2 class="text-lg font-semibold mb-2">Description</h2>
-    <p class="text-gray-700"><%= @mailing_list.description %></p>
+  <div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+      <h2 class="card-title">Description</h2>
+      <p><%= @mailing_list.description %></p>
+    </div>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Current Members -->
-    <div class="bg-white shadow-md rounded p-6">
-      <h2 class="text-lg font-semibold mb-4">Members (<%= @members.count %>)</h2>
-      <% if @members.any? %>
-        <div class="space-y-2">
-          <% @members.each do |member| %>
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-              <div class="flex items-center">
-                <% if member.avatar_url.present? %>
-                  <img class="h-8 w-8 rounded-full mr-3" src="<%= member.avatar_url %>" alt="<%= member.name %>">
-                <% end %>
-                <div>
-                  <div class="font-medium text-gray-900"><%= member.name %></div>
-                  <div class="text-sm text-gray-500"><%= member.email %></div>
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">Members (<%= @members.count %>)</h2>
+        <% if @members.any? %>
+          <div class="space-y-2">
+            <% @members.each do |member| %>
+              <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                <div class="flex items-center gap-3">
+                  <% if member.avatar_url.present? %>
+                    <div class="avatar">
+                      <div class="w-8 h-8 rounded-full">
+                        <img src="<%= member.avatar_url %>" alt="<%= member.name %>">
+                      </div>
+                    </div>
+                  <% else %>
+                    <div class="avatar placeholder">
+                      <div class="bg-neutral text-neutral-content w-8 h-8 rounded-full">
+                        <span class="text-xs"><%= member.name.first(2).upcase %></span>
+                      </div>
+                    </div>
+                  <% end %>
+                  <div>
+                    <div class="font-medium"><%= member.name %></div>
+                    <div class="text-sm text-base-content/70"><%= member.email %></div>
+                  </div>
                 </div>
+                <%= button_to "Remove", remove_member_mailing_list_path(@mailing_list, user_id: member.id),
+                              method: :delete,
+                              data: { confirm: "Remove #{member.name} from #{@mailing_list.name}?" },
+                              class: "btn btn-ghost btn-sm text-error" %>
               </div>
-              <%= button_to "Remove", remove_member_mailing_list_path(@mailing_list, user_id: member.id),
-                            method: :delete,
-                            data: { confirm: "Remove #{member.name} from #{@mailing_list.name}?" },
-                            class: "text-red-600 hover:text-red-800 text-sm font-medium bg-transparent border-0 p-0 cursor-pointer" %>
-            </div>
-          <% end %>
-        </div>
-      <% else %>
-        <p class="text-gray-500 text-center py-4">No members yet.</p>
-      <% end %>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-8">
+            <div class="text-4xl mb-2">👥</div>
+            <p class="text-base-content/60">No members yet.</p>
+          </div>
+        <% end %>
+      </div>
     </div>
 
     <!-- Add Members -->
-    <div class="bg-white shadow-md rounded p-6">
-      <h2 class="text-lg font-semibold mb-4">Add Members</h2>
-      <% if @non_members.any? %>
-        <div class="space-y-2">
-          <% @non_members.each do |user| %>
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-              <div class="flex items-center">
-                <% if user.avatar_url.present? %>
-                  <img class="h-8 w-8 rounded-full mr-3" src="<%= user.avatar_url %>" alt="<%= user.name %>">
-                <% end %>
-                <div>
-                  <div class="font-medium text-gray-900"><%= user.name %></div>
-                  <div class="text-sm text-gray-500"><%= user.email %></div>
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">Add Members</h2>
+        <% if @non_members.any? %>
+          <div class="space-y-2">
+            <% @non_members.each do |user| %>
+              <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                <div class="flex items-center gap-3">
+                  <% if user.avatar_url.present? %>
+                    <div class="avatar">
+                      <div class="w-8 h-8 rounded-full">
+                        <img src="<%= user.avatar_url %>" alt="<%= user.name %>">
+                      </div>
+                    </div>
+                  <% else %>
+                    <div class="avatar placeholder">
+                      <div class="bg-neutral text-neutral-content w-8 h-8 rounded-full">
+                        <span class="text-xs"><%= user.name.first(2).upcase %></span>
+                      </div>
+                    </div>
+                  <% end %>
+                  <div>
+                    <div class="font-medium"><%= user.name %></div>
+                    <div class="text-sm text-base-content/70"><%= user.email %></div>
+                  </div>
                 </div>
+                <%= button_to "Add", add_member_mailing_list_path(@mailing_list, user_id: user.id),
+                              method: :post,
+                              class: "btn btn-ghost btn-sm text-primary" %>
               </div>
-              <%= button_to "Add", add_member_mailing_list_path(@mailing_list, user_id: user.id),
-                            method: :post,
-                            class: "text-blue-600 hover:text-blue-800 text-sm font-medium bg-transparent border-0 p-0 cursor-pointer" %>
-            </div>
-          <% end %>
-        </div>
-      <% else %>
-        <p class="text-gray-500 text-center py-4">All users are already members of this mailing list.</p>
-      <% end %>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-8">
+            <div class="text-4xl mb-2">✅</div>
+            <p class="text-base-content/60">All users are already members of this mailing list.</p>
+          </div>
+        <% end %>
+      </div>
     </div>
   </div>
 </div>

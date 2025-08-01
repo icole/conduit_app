@@ -1,26 +1,39 @@
-<div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg mt-10">
-  <h1 class="text-2xl font-bold mb-6">Create Invitation</h1>
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-md mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h1 class="card-title">Create Invitation</h1>
 
-  <%= form_with(model: @invitation, local: true) do |form| %>
-    <% if @invitation.errors.any? %>
-      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-        <h2 class="font-bold"><%= pluralize(@invitation.errors.count, "error") %> prohibited this invitation from being saved:</h2>
-        <ul class="list-disc ml-5">
-          <% @invitation.errors.full_messages.each do |message| %>
-            <li><%= message %></li>
+        <%= form_with(model: @invitation, local: true) do |form| %>
+          <% if @invitation.errors.any? %>
+            <div class="alert alert-error mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h3 class="font-bold"><%= pluralize(@invitation.errors.count, "error") %> prohibited this invitation from being saved:</h3>
+                <ul class="list-disc pl-5 mt-2">
+                  <% @invitation.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
           <% end %>
-        </ul>
+
+          <div class="form-control mb-4">
+            <%= form.label :expires_at, class: "label" do %>
+              <span class="label-text">Expiration Date</span>
+            <% end %>
+            <%= form.date_field :expires_at, class: "input input-bordered w-full", placeholder: "Enter expiration date" %>
+          </div>
+
+          <div class="flex items-center justify-between gap-4">
+            <%= form.submit "Create", class: "btn btn-primary" %>
+            <%= link_to "Cancel", invitations_path, class: "btn btn-outline" %>
+          </div>
+        <% end %>
       </div>
-    <% end %>
-
-    <div class="mb-4">
-      <%= form.label :expires_at, class: "block text-gray-700 text-sm font-bold mb-2" %>
-      <%= form.date_field :expires_at, class: "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline", placeholder: "Enter expiration date" %>
     </div>
-
-    <div class="flex items-center justify-between">
-      <%= form.submit "Create", class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" %>
-      <%= link_to "Cancel", invitations_path, class: "text-blue-500 hover:text-blue-700" %>
-    </div>
-  <% end %>
+  </div>
 </div>

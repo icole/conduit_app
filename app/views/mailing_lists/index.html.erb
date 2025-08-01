@@ -1,58 +1,63 @@
 <div class="container mx-auto px-4 py-8">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">Mailing Lists</h1>
-    <%= link_to "New Mailing List", new_mailing_list_path, class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" %>
+    <%= link_to "New Mailing List", new_mailing_list_path, class: "btn btn-primary" %>
   </div>
 
-  <div class="bg-white shadow-md rounded my-6 p-6">
-    <% if @mailing_lists.any? %>
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-        <tr>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email
-            Address
-          </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Members</th>
-          <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-        </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-        <% @mailing_lists.each do |mailing_list| %>
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-medium text-gray-900"><%= mailing_list.name %></div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900 font-mono"><%= mailing_list.email_address %></div>
-            </td>
-            <td class="px-6 py-4">
-              <div class="text-sm text-gray-900"><%= truncate(mailing_list.description, length: 100) %></div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                  <%= mailing_list.member_count %> members
-                </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <%= link_to "View", mailing_list_path(mailing_list), class: "text-indigo-600 hover:text-indigo-900 mr-3" %>
-              <%= link_to "Edit", edit_mailing_list_path(mailing_list), class: "text-yellow-600 hover:text-yellow-900 mr-3" %>
-              <%= button_to "Delete", mailing_list_path(mailing_list), method: :delete,
-                            data: { confirm: "Are you sure you want to delete #{mailing_list.name}?" },
-                            class: "text-red-600 hover:text-red-900 bg-transparent border-0 p-0 cursor-pointer inline" %>
-            </td>
-          </tr>
-        <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <div class="text-center py-8">
-        <p class="text-gray-500 text-lg">No mailing lists found.</p>
-        <p class="text-gray-400 mt-2">
-          <%= link_to "Create your first mailing list", new_mailing_list_path, class: "text-blue-600 hover:text-blue-800" %>
-        </p>
-      </div>
-    <% end %>
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <% if @mailing_lists.any? %>
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email Address</th>
+                <th>Description</th>
+                <th>Members</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @mailing_lists.each do |mailing_list| %>
+                <tr class="hover">
+                  <td>
+                    <div class="font-medium"><%= mailing_list.name %></div>
+                  </td>
+                  <td>
+                    <div class="font-mono text-sm"><%= mailing_list.email_address %></div>
+                  </td>
+                  <td>
+                    <div><%= truncate(mailing_list.description, length: 100) %></div>
+                  </td>
+                  <td>
+                    <span class="badge badge-primary">
+                      <%= mailing_list.member_count %> members
+                    </span>
+                  </td>
+                  <td>
+                    <div class="flex gap-2">
+                      <%= link_to "View", mailing_list_path(mailing_list), class: "btn btn-ghost btn-sm" %>
+                      <%= link_to "Edit", edit_mailing_list_path(mailing_list), class: "btn btn-ghost btn-sm" %>
+                      <%= button_to "Delete", mailing_list_path(mailing_list), method: :delete,
+                                    data: { confirm: "Are you sure you want to delete #{mailing_list.name}?" },
+                                    class: "btn btn-ghost btn-sm text-error" %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-8">
+          <div class="text-4xl mb-4">📧</div>
+          <p class="text-base-content/60 text-lg">No mailing lists found.</p>
+          <p class="text-base-content/50 mt-2">
+            <%= link_to "Create your first mailing list", new_mailing_list_path, class: "link link-primary" %>
+          </p>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>
