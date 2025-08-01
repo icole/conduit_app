@@ -21,12 +21,6 @@
     like_path = discussion_topic_likes_path(likeable)
     user_like = likeable.likes.find_by(user: current_user)
     unlike_path = user_like ? discussion_topic_like_path(likeable, user_like) : nil
-  when TopicComment
-    # Need to find the discussion topic for nested routes
-    topic = likeable.discussion_topic
-    like_path = discussion_topic_topic_comment_likes_path(topic, likeable)
-    user_like = likeable.likes.find_by(user: current_user)
-    unlike_path = user_like ? discussion_topic_topic_comment_like_path(topic, likeable, user_like) : nil
   when Comment
     # Polymorphic comments - need to find the commentable for nested routes
     if likeable.commentable.is_a?(Post)
@@ -34,6 +28,11 @@
       like_path = post_comment_likes_path(post, likeable)
       user_like = likeable.likes.find_by(user: current_user)
       unlike_path = user_like ? post_comment_like_path(post, likeable, user_like) : nil
+    elsif likeable.commentable.is_a?(DiscussionTopic)
+      topic = likeable.commentable
+      like_path = discussion_topic_comment_likes_path(topic, likeable)
+      user_like = likeable.likes.find_by(user: current_user)
+      unlike_path = user_like ? discussion_topic_comment_like_path(topic, likeable, user_like) : nil
     elsif likeable.commentable.is_a?(Chore)
       chore = likeable.commentable
       like_path = chore_comment_likes_path(chore, likeable)
@@ -47,7 +46,7 @@
     user_like = likeable.likes.find_by(user: current_user)
     unlike_path = user_like ? chore_like_path(likeable, user_like) : nil
   else
-    raise ArgumentError, "Unsupported likeable type: #{likeable.class.name}. Supported types: Post, DiscussionTopic, TopicComment, Comment, Chore"
+    raise ArgumentError, "Unsupported likeable type: #{likeable.class.name}. Supported types: Post, DiscussionTopic, Comment, Chore"
   end
 
   # Style configurations

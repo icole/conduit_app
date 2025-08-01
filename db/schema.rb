@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_30_190612) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_31_200457) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -131,7 +131,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_190612) do
     t.datetime "updated_at", null: false
     t.string "commentable_type"
     t.bigint "commentable_id"
+    t.bigint "parent_id"
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable_type_and_commentable_id"
+    t.index ["parent_id"], name: "index_comments_on_parent_id"
     t.index ["post_id"], name: "index_comments_on_post_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
@@ -281,6 +283,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_190612) do
   add_foreign_key "chore_completions", "chores"
   add_foreign_key "chore_completions", "users", column: "completed_by_id"
   add_foreign_key "chores", "users", column: "proposed_by_id"
+  add_foreign_key "comments", "comments", column: "parent_id"
   add_foreign_key "comments", "posts"
   add_foreign_key "comments", "users"
   add_foreign_key "discussion_topics", "users"

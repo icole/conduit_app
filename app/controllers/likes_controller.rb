@@ -38,8 +38,6 @@ class LikesController < ApplicationController
       @likeable = Comment.find(params[:comment_id])
     elsif params[:post_id]
       @likeable = Post.find(params[:post_id])
-    elsif params[:topic_comment_id]
-      @likeable = TopicComment.find(params[:topic_comment_id])
     elsif params[:discussion_topic_id]
       @likeable = DiscussionTopic.find(params[:discussion_topic_id])
     elsif params[:chore_id]
@@ -54,13 +52,13 @@ class LikesController < ApplicationController
       dashboard_index_path
     elsif @likeable.is_a?(DiscussionTopic)
       @likeable
-    elsif @likeable.is_a?(TopicComment)
-      @likeable.discussion_topic
     elsif @likeable.is_a?(Comment)
       if @likeable.commentable.is_a?(Chore)
         @likeable.commentable
       elsif @likeable.commentable.is_a?(Post)
         dashboard_index_path
+      elsif @likeable.commentable.is_a?(DiscussionTopic)
+        @likeable.commentable
       else
         root_path
       end

@@ -9,3 +9,28 @@ two:
   content: "I'll bring a salad for the community dinner tonight. Looking forward to it!"
   user: one
   commentable: two (Post)
+
+# Discussion topic comments (migrated from TopicComments)
+three:
+  content: "I love the idea of a community garden! We should definitely include tomatoes and herbs - they're easy to grow and everyone uses them."
+  user: two
+  commentable: one (DiscussionTopic)
+  parent_id: 
+  created_at: <%= 1.day.ago %>
+  updated_at: <%= 1.day.ago %>
+
+four:
+  content: "A check-out system sounds great! Maybe we could use a simple sign-out sheet with return dates?"
+  user: one
+  commentable: two (DiscussionTopic)
+  parent_id: 
+  created_at: <%= 3.days.ago %>
+  updated_at: <%= 3.days.ago %>
+
+five:
+  content: "I agree with the tomatoes suggestion! What about adding some peppers too?"
+  user: admin_user
+  commentable: one (DiscussionTopic)
+  parent_id: <%= ActiveRecord::FixtureSet.identify(:three) %>
+  created_at: <%= 12.hours.ago %>
+  updated_at: <%= 12.hours.ago %>

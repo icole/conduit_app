@@ -3,7 +3,7 @@ class DiscussionTopicsController < ApplicationController
   before_action :set_discussion_topic, only: [ :show, :edit, :update, :destroy ]
 
   def index
-    @discussion_topics = DiscussionTopic.includes(:user, :topic_comments)
+    @discussion_topics = DiscussionTopic.includes(:user, :comments)
                                        .by_activity
                                        .limit(15)
   end
@@ -13,10 +13,7 @@ class DiscussionTopicsController < ApplicationController
   end
 
   def show
-    @topic_comments = @discussion_topic.topic_comments.top_level
-                                                    .includes(:user, :likes, replies: [ :user, :likes ])
-                                                    .order(created_at: :asc)
-    @topic_comment = TopicComment.new
+    # Comments are now handled by the shared comments_section partial
   end
 
   def create

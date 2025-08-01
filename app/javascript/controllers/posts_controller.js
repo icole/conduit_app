@@ -21,9 +21,13 @@ export default class extends Controller {
         event.preventDefault()
         const postId = event.currentTarget.dataset.postId
         const commentSection = document.getElementById(`post-${postId}-comments`)
-        console.log("Toggling comments for post ID:", postId)
+        console.log("Toggling comments for post ID:", postId, "found section:", !!commentSection)
         if (commentSection) {
+            const wasHidden = commentSection.classList.contains("hidden")
             commentSection.classList.toggle("hidden")
+            console.log("Comments section", wasHidden ? "expanded" : "collapsed")
+        } else {
+            console.error("Could not find comment section with ID:", `post-${postId}-comments`)
         }
     }
 }

@@ -45,25 +45,7 @@
   <!-- Comments -->
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
-      <h3 class="card-title text-lg mb-4">Comments (<%= @discussion_topic.comments_count %>)</h3>
-      <%= turbo_frame_tag "comments" do %>
-        <% if @topic_comments.any? %>
-          <div class="divide-y divide-base-200">
-            <% @topic_comments.each do |comment| %>
-              <%= render 'topic_comments/comment', comment: comment %>
-            <% end %>
-          </div>
-        <% else %>
-          <div class="text-center py-8 text-base-content/60">
-            <p>No comments yet. Be the first to share your thoughts!</p>
-          </div>
-        <% end %>
-      <% end %>
-
-      <!-- Add Comment Section -->
-      <%= turbo_frame_tag "comment-form", data: { controller: "comments" } do %>
-        <%= render 'comment_form_section', discussion_topic: @discussion_topic, topic_comment: @topic_comment %>
-      <% end %>
+      <%= render "shared/comments_section", commentable: @discussion_topic %>
     </div>
   </div>
 

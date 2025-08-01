@@ -1,4 +1,4 @@
-<div class="card bg-base-100 shadow-sm mb-6" id="<%= dom_id post %>">
+<div class="card bg-base-100 shadow-sm mb-6" id="<%= dom_id post %>" data-controller="posts">
   <div class="card-body p-4">
     <!-- Post Header -->
     <div class="flex items-center gap-3 mb-4">
@@ -56,13 +56,15 @@
     </div>
 
     <!-- Comments Section -->
-    <div id="post-<%= post.id %>-comments" class="mt-4 <%= 'hidden' unless post.commented_by?(current_user) %>" data-posts-target="commentSection">
+    <div id="post-<%= post.id %>-comments" class="mt-4 <%= 'hidden' unless post.commented_by?(current_user) %>" data-posts-target="commentSection" data-controller="comments">
       <div id="post-<%= post.id %>-comments-list" class="space-y-4">
-        <%= render post.comments.reorder('created_at') %>
+        <% post.comments.top_level.includes(:user, :likes, replies: [:user, :likes]).reorder(created_at: :asc).each do |comment| %>
+          <%= render "shared/comment", comment: comment %>
+        <% end %>
       </div>
 
       <div id="new_comment_<%= post.id %>" class="mt-6">
-        <%= render "comments/form", commentable: post, comment: Comment.new %>
+        <%= render "shared/comment_form", commentable: post, comment: Comment.new %>
       </div>
     </div>
   </div>
