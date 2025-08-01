@@ -109,3 +109,9 @@ Use MCP tools to:
 - Reference proper HTTP status codes and when to use them
 - Find security best practices for the current Rails version
 - Understand request/response format handling
+
+## Code Quality Standards
+
+- **Rubocop Compliance**: Always run `rubocop -f github -A` after making changes
+- **Follow Ruby Style Guide**: Ensure all code conforms to the project's Rubocop configuration
+- **No Lint Errors**: Code must pass all style checks before completion
