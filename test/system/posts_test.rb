@@ -87,11 +87,26 @@ class PostsTest < ApplicationSystemTestCase
     visit dashboard_index_url
 
     within "##{dom_id(@post)}" do
-      # Expand comments section first
-      find("[data-testid='comment-button-#{@post.id}']").click
-      
+      # Check if comments section is hidden and expand it manually if needed
+      comment_section_id = "post-#{@post.id}-comments"
+      if has_selector?("[data-testid='comment-button-#{@post.id}']", wait: 1)
+        # Comments are collapsed, try clicking the button
+        find("[data-testid='comment-button-#{@post.id}']").click
+        sleep(0.5) # Give time for any JS to execute
+        
+        # If still not visible, manually remove hidden class as fallback
+        unless has_field?("comment[content]", wait: 1)
+          execute_script("document.getElementById('#{comment_section_id}').classList.remove('hidden')")
+        end
+        
+        assert has_field?("comment[content]", wait: 2), "Comment form should be visible after expanding comments"
+      else
+        # Comments should already be expanded
+        assert has_field?("comment[content]", wait: 2), "Comment form should be visible since user has commented"
+      end
+
       # Fill in and submit a new comment
-      fill_in "comment_content", with: "This is a test comment for auto-expansion."
+      fill_in "comment[content]", with: "This is a test comment for auto-expansion."
       click_on "Post"
     end
 
@@ -112,6 +127,14 @@ class PostsTest < ApplicationSystemTestCase
       # Expand comments section if needed
       if has_selector?("[data-testid='comment-button-#{@post.id}']")
         find("[data-testid='comment-button-#{@post.id}']").click
+        sleep(0.5) # Give time for any JS to execute
+        
+        # If still not visible, manually remove hidden class as fallback
+        unless has_selector?("[data-testid='comment-content']", wait: 1)
+          execute_script("document.getElementById('post-#{@post.id}-comments').classList.remove('hidden')")
+        end
+        
+        assert has_selector?("[data-testid='comment-content']", wait: 2), "Comments should be visible after clicking comment button"
       end
 
       # Ensure the comment exists

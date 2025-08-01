@@ -4,8 +4,6 @@
     <%= render "shared/like_button", likeable: @likeable, style: :post %>
   <% when DiscussionTopic %>
     <%= render "discussion_topics/like_section", topic: @likeable %>
-  <% when TopicComment %>
-    <%= render "shared/like_button", likeable: @likeable, style: :comment %>
   <% when Comment %>
     <%= render "shared/like_button", likeable: @likeable, style: :comment %>
   <% when Chore %>

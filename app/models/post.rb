@@ -1,7 +1,7 @@
 class Post < ApplicationRecord
   belongs_to :user
   has_many :likes, as: :likeable, dependent: :destroy
-  has_many :comments, -> { order(:created_at) }, dependent: :destroy
+  has_many :comments, as: :commentable, dependent: :destroy
   validates :content, presence: true
 
   def liked_by?(user)

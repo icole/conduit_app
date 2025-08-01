@@ -1,0 +1,34 @@
+<%
+  # Extract commentable object
+  commentable = local_assigns[:commentable] || 
+                local_assigns[:post] || 
+                local_assigns[:chore] || 
+                local_assigns[:discussion_topic]
+  
+  # Get comments (top-level only, replies are handled within each comment)
+  comments = commentable.comments.top_level.includes(:user, :likes, replies: [:user, :likes]).reorder(created_at: :asc)
+  comment_count = commentable.comments.count
+%>
+
+<div class="space-y-4" data-controller="comments">
+  <h3 class="text-lg font-semibold">Comments (<%= comment_count %>)</h3>
+  
+  <!-- Comments List -->
+  <% if comments.any? %>
+    <div class="space-y-4" id="<%= "#{commentable.class.name.downcase}-#{commentable.id}-comments-list" %>">
+      <% comments.each do |comment| %>
+        <%= render "shared/comment", comment: comment %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-8 text-base-content/60">
+      <p>No comments yet. Be the first to share your thoughts!</p>
+    </div>
+  <% end %>
+
+  <!-- Add Comment Form -->
+  <div class="border-t border-base-200 pt-4" id="<%= "new_comment_#{commentable.class.name.downcase}_#{commentable.id}" %>">
+    <h4 class="text-md font-medium mb-3">Add a Comment</h4>
+    <%= render "shared/comment_form", commentable: commentable, comment: Comment.new %>
+  </div>
+</div>

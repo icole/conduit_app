@@ -1,0 +1,86 @@
+<% 
+  # Determine the commentable object from available variables
+  # Support both old (post:, chore:) and new (commentable:) parameter styles
+  commentable_obj = if local_assigns[:commentable]
+    commentable
+  elsif local_assigns[:post] 
+    post
+  elsif local_assigns[:chore]
+    chore
+  elsif defined?(commentable) && commentable
+    commentable
+  elsif defined?(post) && post
+    post
+  elsif defined?(chore) && chore
+    chore
+  else
+    # Fallback: try to infer from comment if it exists
+    comment&.commentable
+  end
+
+  # Handle parent comment for replies
+  parent_comment = local_assigns[:parent_comment]
+  is_reply = parent_comment.present?
+%>
+
+<%= form_with(model: [commentable_obj, comment], class: "space-y-3", data: { controller: "comment-form comment-reply", action: "turbo:submit-end->comment-form#reset" }) do |form| %>
+  <% if comment.errors.any? %>
+    <div class="alert alert-error p-3 text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div>
+        <h3 class="font-bold">Please fix these issues:</h3>
+        <div class="text-xs">
+          <% comment.errors.each do |error| %>
+            <div>• <%= error.full_message %></div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <% if is_reply %>
+    <%= form.hidden_field :parent_id, value: parent_comment.id %>
+  <% end %>
+
+  <div class="flex gap-2">
+    <div class="avatar <%= current_user.avatar_url.blank? ? 'placeholder' : '' %> flex-shrink-0">
+      <% if current_user.avatar_url.present? %>
+        <div class="w-8 h-8 rounded-full overflow-hidden">
+          <img src="<%= current_user.avatar_url %>" alt="<%= current_user.name %>" class="w-full h-full object-cover">
+        </div>
+      <% else %>
+        <div class="bg-neutral text-neutral-content rounded-full w-8 h-8 flex items-center justify-center p-0 m-0">
+          <span class="text-xs font-medium leading-none m-0 p-0 flex items-center justify-center w-full h-full"><%= current_user.name.split.map(&:first).join %></span>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="flex-1 relative">
+      <%= form.text_area :content,
+                        class: "textarea textarea-bordered w-full pr-16",
+                        rows: is_reply ? 1 : 2,
+                        placeholder: is_reply ? "Write a reply..." : "Write a comment...",
+                        required: true,
+                        data: {
+                          action: "input->comment-form#adjustHeight keydown.enter->comment-form#submitOnEnter",
+                          comment_form_target: "textarea"
+                        } %>
+
+      <div class="absolute bottom-2 right-2 flex gap-1">
+        <% if is_reply %>
+          <button type="button" 
+                  class="btn btn-ghost btn-sm rounded-full"
+                  data-action="click->comments#hideReplyForm"
+                  data-comment-id="<%= parent_comment.id %>">
+            Cancel
+          </button>
+        <% end %>
+        <%= form.submit is_reply ? "Reply" : "Post",
+                       class: "btn btn-primary btn-sm rounded-full",
+                       data: { comment_form_target: "submitButton" } %>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -64,7 +64,9 @@
                   <div class="border-l-4 <%= border_class %> bg-base-200 rounded-lg p-4">
                     <div class="flex justify-between items-start">
                       <div class="flex-1">
-                        <h4 class="font-semibold text-lg"><%= chore.name %></h4>
+                        <h4 class="font-semibold text-lg">
+                          <%= link_to chore.name, chore_path(chore), class: "link link-hover" %>
+                        </h4>
                         <div class="flex gap-4 mt-2 text-sm text-base-content/70">
                           <span class="flex items-center gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,8 +99,8 @@
                             data: { confirm: "Mark this chore as complete?" } do %>
                           Mark Complete
                         <% end %>
-                        <%= link_to chore_path(chore), class: "btn btn-ghost btn-sm" do %>
-                          View Details
+                        <%= link_to chore_path(chore, anchor: "comments"), class: "btn btn-ghost btn-sm" do %>
+                          Discuss
                         <% end %>
                       </div>
                     </div>
@@ -141,7 +143,9 @@
                   <div class="bg-base-200 rounded-lg p-4 border-l-4 border-info">
                     <div class="flex justify-between items-start">
                       <div class="flex-1">
-                        <h4 class="font-semibold text-lg"><%= chore.name %></h4>
+                        <h4 class="font-semibold text-lg">
+                          <%= link_to chore.name, chore_path(chore), class: "link link-hover" %>
+                        </h4>
                         <% if chore.description.present? %>
                           <p class="text-sm mt-1 text-base-content/60"><%= chore.description %></p>
                         <% end %>
@@ -167,9 +171,9 @@
                         </div>
                       </div>
                       <!-- Action buttons -->
-                      <div class="flex gap-2">
+                      <div class="flex gap-2 items-center">
                         <!-- Edit Button -->
-                        <%= link_to edit_chore_path(chore), class: "p-1 hover:bg-base-400 rounded-full", title: "Edit" do %>
+                        <%= link_to edit_chore_path(chore), class: "btn btn-ghost btn-sm btn-square", title: "Edit" do %>
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
@@ -177,7 +181,7 @@
 
                         <!-- Delete Button -->
                         <%= button_to chore_path(chore), method: :delete,
-                                      class: "p-1 hover:bg-base-400 rounded-full",
+                                      class: "btn btn-ghost btn-sm btn-square",
                                       title: "Delete",
                                       form: { data: { turbo_confirm: 'Are you sure?' } } do %>
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -185,15 +189,15 @@
                           </svg>
                         <% end %>
 
+                        <%= link_to chore_path(chore, anchor: "comments"), class: "btn btn-ghost btn-sm" do %>
+                          Discuss
+                        <% end %>
                         <!-- Approve Button -->
                         <%= button_to approve_chore_path(chore), method: :post,
                             class: "btn btn-primary btn-sm",
                             data: { confirm: "Approve this chore and make it active?" } do %>
                           Approve
                         <% end %>
-                        <%#= link_to chore_path(chore), class: "btn btn-ghost btn-sm" do %>
-<!--                          Discuss-->
-                        <%# end %>
                       </div>
                     </div>
                   </div>
@@ -249,7 +253,9 @@
                     <% chores_to_show.each do |chore| %>
                       <tr>
                         <td>
-                          <div class="font-bold"><%= chore.name %></div>
+                          <div class="font-bold">
+                            <%= link_to chore.name, chore_path(chore), class: "link link-hover" %>
+                          </div>
                           <% if chore.description.present? %>
                             <div class="text-sm opacity-50"><%= truncate(chore.description, length: 50) %></div>
                           <% end %>

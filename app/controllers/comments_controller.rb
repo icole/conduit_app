@@ -44,6 +44,8 @@ class CommentsController < ApplicationController
       @commentable = Post.find(params[:post_id])
     elsif params[:chore_id]
       @commentable = Chore.find(params[:chore_id])
+    elsif params[:discussion_topic_id]
+      @commentable = DiscussionTopic.find(params[:discussion_topic_id])
     else
       redirect_back(fallback_location: root_path, alert: "Invalid comment target.")
     end
@@ -54,7 +56,7 @@ class CommentsController < ApplicationController
   end
 
   def comment_params
-    params.require(:comment).permit(:content)
+    params.require(:comment).permit(:content, :parent_id)
   end
 
   def fallback_location
@@ -62,6 +64,8 @@ class CommentsController < ApplicationController
       dashboard_index_path
     elsif @commentable.is_a?(Chore)
       chores_path(view: "proposed")
+    elsif @commentable.is_a?(DiscussionTopic)
+      discussion_topic_path(@commentable)
     else
       root_path
     end
@@ -73,6 +77,8 @@ class CommentsController < ApplicationController
       @post = @commentable
     elsif @commentable.is_a?(Chore)
       @chore = @commentable
+    elsif @commentable.is_a?(DiscussionTopic)
+      @discussion_topic = @commentable
     end
   end
 end

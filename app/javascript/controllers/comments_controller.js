@@ -3,6 +3,19 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["form"]
 
+  connect() {
+    // If page loads with #comments anchor, focus the comment textarea
+    if (window.location.hash === '#comments') {
+      setTimeout(() => {
+        const textarea = this.element.querySelector('textarea')
+        if (textarea) {
+          textarea.focus()
+          textarea.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 100)
+    }
+  }
+
   showForm() {
     const form = this.element.querySelector("#comment-form")
     const button = this.element.querySelector("button[data-action*='showForm']")

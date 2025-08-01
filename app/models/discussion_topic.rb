@@ -1,6 +1,6 @@
 class DiscussionTopic < ApplicationRecord
   belongs_to :user
-  has_many :topic_comments, -> { order(:created_at) }, dependent: :destroy
+  has_many :comments, as: :commentable, dependent: :destroy
   has_many :likes, as: :likeable, dependent: :destroy
   has_rich_text :description
 
@@ -19,11 +19,16 @@ class DiscussionTopic < ApplicationRecord
   end
 
   def comments_count
-    topic_comments.count
+    comments.count
   end
 
   def latest_activity
-    latest_comment = topic_comments.order(created_at: :desc).first
+    latest_comment = comments.order(created_at: :desc).first
     latest_comment ? latest_comment.created_at : created_at
+  end
+
+  # Helper method to check if user has commented (for UI state)
+  def commented_by?(user)
+    comments.exists?(user: user)
   end
 end
