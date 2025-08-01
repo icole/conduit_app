@@ -1,4 +1,5 @@
 module ApplicationHelper
+  include Heroicon::ApplicationHelper
   # Converts a string to title case, keeping small words lowercase
   # Example: "meeting with john and jane at the office" becomes "Meeting with John and Jane at the Office"
   def proper_title_case(text)
