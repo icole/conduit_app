@@ -1,5 +1,26 @@
 class MigrateTopicCommentsToComments < ActiveRecord::Migration[8.0]
+  # Define TopicComment inline since the model may not exist when this migration runs
+  def self.topic_comment_class
+    Class.new(ActiveRecord::Base) do
+      self.table_name = 'topic_comments'
+    end
+  end
+
   def up
+    # Check if topic_comments table exists
+    unless table_exists?(:topic_comments)
+      say "topic_comments table doesn't exist, skipping migration"
+      return
+    end
+
+    topic_comment_class = self.class.topic_comment_class
+
+    # Check if there are any records to migrate
+    if topic_comment_class.count == 0
+      say "No topic comments to migrate"
+      return
+    end
+
     # Migrate existing TopicComments to Comments table
     say "Migrating TopicComments to Comments table..."
 
@@ -7,7 +28,7 @@ class MigrateTopicCommentsToComments < ActiveRecord::Migration[8.0]
     id_mapping = {}
 
     # First, migrate top-level comments (parent_id is null)
-    TopicComment.where(parent_id: nil).find_each do |tc|
+    topic_comment_class.where(parent_id: nil).find_each do |tc|
       new_comment = Comment.create!(
         content: tc.content,
         user_id: tc.user_id,
@@ -21,7 +42,7 @@ class MigrateTopicCommentsToComments < ActiveRecord::Migration[8.0]
     end
 
     # Then migrate replies, mapping parent_id to new Comment IDs
-    TopicComment.where.not(parent_id: nil).find_each do |tc|
+    topic_comment_class.where.not(parent_id: nil).find_each do |tc|
       new_parent_id = id_mapping[tc.parent_id]
       next unless new_parent_id # Skip if parent wasn't migrated
 
