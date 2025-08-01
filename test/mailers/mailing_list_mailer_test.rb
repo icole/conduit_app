@@ -39,7 +39,17 @@ class MailingListMailerTest < ActionMailer::TestCase
     assert_equal [ @user.email ], email.to
     assert_equal @mailing_list.email_address, email.from.first
     assert_equal "[test-list] Original Subject", email.subject
-    assert_match "Original message content", email.body.to_s
-    assert_match "original@example.com", email.body.to_s
+
+    # Check HTML part contains the original content
+    html_part = email.html_part
+    assert html_part, "Email should have HTML part"
+    assert_match "Original message content", html_part.body.to_s
+    assert_match "original@example.com", html_part.body.to_s
+
+    # Check text part contains the original content
+    text_part = email.text_part
+    assert text_part, "Email should have text part"
+    assert_match "Original message content", text_part.body.to_s
+    assert_match "original@example.com", text_part.body.to_s
   end
 end
