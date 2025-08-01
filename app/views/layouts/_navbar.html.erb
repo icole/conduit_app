@@ -4,11 +4,7 @@
     <!-- Mobile hamburger menu -->
     <div class="dropdown lg:hidden">
       <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round"
-                stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
+        <%= heroicon "bars-3", variant: :outline, options: { class: "h-5 w-5" } %>
       </div>
       <ul tabindex="0" class="menu dropdown-content z-[1] p-2 shadow bg-base-100 text-base-content rounded-box w-52 mt-4">
         <li><%= link_to "Dashboard", dashboard_index_path %></li>
@@ -55,9 +51,7 @@
             <li class="dropdown dropdown-hover">
               <div tabindex="0" role="button" class="btn btn-ghost btn-md #{'btn-active' if controller_name.in?(['invitations', 'users', 'mailing_lists'])}">
                 Admin
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
+                <%= heroicon "chevron-down", variant: :outline, options: { class: "h-4 w-4 ml-1" } %>
               </div>
               <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 text-base-content rounded-box w-52">
                 <li><%= link_to "Mailing Lists", mailing_lists_path, class: "#{'active' if controller_name == 'mailing_lists'}" %></li>

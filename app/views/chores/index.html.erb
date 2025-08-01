@@ -234,14 +234,14 @@
       <% end %>
 
       <!-- All Community Chores Section -->
-      <% unless @current_view == "proposed" %>
+      <% if @current_view == "all_chores" %>
         <div class="card bg-base-100 shadow-xl">
           <div class="card-body">
             <h3 class="card-title text-lg mb-4">
-              <%= @current_view == "my_responsibilities" ? "Other Community Chores" : "All Community Chores" %>
+              All Community Chores
             </h3>
           
-            <% chores_to_show = @current_view == "all_chores" ? @all_chores : @other_chores %>
+            <% chores_to_show = @all_chores %>
             <% if chores_to_show.present? %>
               <!-- Chore List Table -->
               <div class="overflow-x-auto">
@@ -337,7 +337,10 @@
               <div class="text-center p-8 text-base-content/50">
                 <div class="text-4xl mb-4">📋</div>
                 <h4 class="text-lg font-medium mb-2">No chores found</h4>
-                <p class="text-base-content/70">There are no active chores to display.</p>
+                <p class="text-base-content/70 mb-4">There are no active chores to display.</p>
+                <%= link_to chores_path(view: "proposed"), class: "btn btn-outline" do %>
+                  Propose a Chore
+                <% end %>
               </div>
             <% end %>
           </div>

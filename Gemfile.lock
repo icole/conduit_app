@@ -227,6 +227,8 @@ GEM
       os (>= 0.9, < 2.0)
       signet (>= 0.16, < 2.a)
     hashie (5.0.0)
+    heroicon (1.0.0)
+      rails (>= 5.2)
     httpclient (2.9.0)
       mutex_m
     i18n (1.14.7)
@@ -580,6 +582,7 @@ DEPENDENCIES
   google-apis-calendar_v3 (~> 0.48.0)
   google-apis-drive_v3 (~> 0.67.0)
   googleauth (~> 1.0)
+  heroicon
   image_processing (~> 1.2)
   importmap-rails
   jbuilder
