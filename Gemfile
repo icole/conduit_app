@@ -53,7 +53,7 @@ gem "image_processing", "~> 1.2"
 gem "mailgun-ruby", "~> 1.2"
 
 # Google Drive API - Using specific service gem as recommended
-gem "google-apis-drive_v3", "~> 0.67.0"
+gem "google-apis-drive_v3", "~> 0.68.0"
 gem "googleauth", "~> 1.0"
 gem "google-apis-calendar_v3", "~> 0.48.0"
 
