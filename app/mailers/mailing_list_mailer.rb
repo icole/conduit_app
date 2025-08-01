@@ -46,7 +46,8 @@ class MailingListMailer < ApplicationMailer
       text_part&.body&.decoded || ""
     else
       content_type = mail.content_type || "text/plain"
-      content_type.start_with?("text/plain") ? mail.body.decoded : mail.body.decoded
+      # For non-multipart emails, assume it's text content and decode the body
+      mail.body.decoded
     end
   end
 
