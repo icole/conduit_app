@@ -93,12 +93,12 @@ class PostsTest < ApplicationSystemTestCase
         # Comments are collapsed, try clicking the button
         find("[data-testid='comment-button-#{@post.id}']").click
         sleep(0.5) # Give time for any JS to execute
-        
+
         # If still not visible, manually remove hidden class as fallback
         unless has_field?("comment[content]", wait: 1)
           execute_script("document.getElementById('#{comment_section_id}').classList.remove('hidden')")
         end
-        
+
         assert has_field?("comment[content]", wait: 2), "Comment form should be visible after expanding comments"
       else
         # Comments should already be expanded
@@ -128,12 +128,12 @@ class PostsTest < ApplicationSystemTestCase
       if has_selector?("[data-testid='comment-button-#{@post.id}']")
         find("[data-testid='comment-button-#{@post.id}']").click
         sleep(0.5) # Give time for any JS to execute
-        
+
         # If still not visible, manually remove hidden class as fallback
         unless has_selector?("[data-testid='comment-content']", wait: 1)
           execute_script("document.getElementById('post-#{@post.id}-comments').classList.remove('hidden')")
         end
-        
+
         assert has_selector?("[data-testid='comment-content']", wait: 2), "Comments should be visible after clicking comment button"
       end
 
