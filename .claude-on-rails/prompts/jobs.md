@@ -270,4 +270,8 @@ end
 ```
 
 Remember: Background jobs should be idempotent, handle errors gracefully, and be designed for reliability and
-performance.
+performance.## Code Quality Standards
+
+- **Rubocop Compliance**: Always run `rubocop -f github -A` after making changes
+- **Follow Ruby Style Guide**: Ensure all code conforms to the project's Rubocop configuration
+- **No Lint Errors**: Code must pass all style checks before completion

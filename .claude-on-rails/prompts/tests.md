@@ -158,4 +158,8 @@ Always test:
 - Don't test Rails framework itself
 - Focus on business logic coverage
 
-Remember: Good tests are documentation. They should clearly show what the code is supposed to do.
+Remember: Good tests are documentation. They should clearly show what the code is supposed to do.## Code Quality Standards
+
+- **Rubocop Compliance**: Always run `rubocop -f github -A` after making changes
+- **Follow Ruby Style Guide**: Ensure all code conforms to the project's Rubocop configuration
+- **No Lint Errors**: Code must pass all style checks before completion

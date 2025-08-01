@@ -99,4 +99,10 @@ Use MCP tools to:
 - Check association options and their performance implications
 - Reference database-specific features (PostgreSQL, MySQL, etc.)
 
+## Code Quality Standards
+
+- **Rubocop Compliance**: Always run `rubocop -f github -A` after making changes
+- **Follow Ruby Style Guide**: Ensure all code conforms to the project's Rubocop configuration
+- **No Lint Errors**: Code must pass all style checks before completion
+
 Remember: Focus on data integrity, performance, and following Rails conventions.

@@ -129,4 +129,8 @@ If the project uses Hotwire:
 - Keep interactions smooth
 
 Remember: Views should be clean, semantic, and focused on presentation. Business logic belongs in models or service
-objects, not in views.
+objects, not in views.## Code Quality Standards
+
+- **Rubocop Compliance**: Always run `rubocop -f github -A` after making changes
+- **Follow Ruby Style Guide**: Ensure all code conforms to the project's Rubocop configuration
+- **No Lint Errors**: Code must pass all style checks before completion

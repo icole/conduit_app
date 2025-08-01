@@ -184,4 +184,8 @@ end
 ```
 
 Remember: Services should be the workhorses of your application, handling complex operations while keeping controllers
-and models clean.
+and models clean.## Code Quality Standards
+
+- **Rubocop Compliance**: Always run `rubocop -f github -A` after making changes
+- **Follow Ruby Style Guide**: Ensure all code conforms to the project's Rubocop configuration
+- **No Lint Errors**: Code must pass all style checks before completion
