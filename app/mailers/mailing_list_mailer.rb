@@ -20,7 +20,7 @@ class MailingListMailer < ApplicationMailer
       subject: subject
     ) do |format|
       format.text { render plain: build_text_content }
-      format.html { render "forward_email" } if @html_content.present?
+      format.html { render "forward_email" }
     end
   end
 
