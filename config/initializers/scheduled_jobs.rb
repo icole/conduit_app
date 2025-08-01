@@ -6,7 +6,7 @@
 
 Rails.application.config.after_initialize do
   if Rails.env.production? || Rails.env.development?
-    Rails.logger.info "SolidQueue recurring tasks should be configured via config/schedule.yml or similar"
+    Rails.logger.info "SolidQueue recurring tasks configured via config/recurring.yml"
 
     # For now, let's just ensure the job can be run manually
     # You can trigger it with: ScheduledDriveSyncJob.perform_later

@@ -39,7 +39,7 @@ class MailingListMailbox < ApplicationMailbox
     end
 
     unless recipient_email.end_with?("@#{mailing_list_domain}")
-      Rails.logger.error "Email not for our mailing list domain: #{recipient_email}"
+      Rails.logger.error "Email not for our mailing list domain (expected: #{mailing_list_domain}, received: #{recipient_email})"
       return false
     end
 
