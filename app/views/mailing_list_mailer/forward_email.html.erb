@@ -37,7 +37,11 @@
 </div>
 
 <div class="email-content">
-  <%= raw @html_content %>
+  <% if @html_content.present? %>
+    <%= raw @html_content %>
+  <% else %>
+    <%= simple_format(@text_content) %>
+  <% end %>
 </div>
 
 <div class="email-footer">
