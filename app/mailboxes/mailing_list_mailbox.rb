@@ -15,9 +15,6 @@ class MailingListMailbox < ApplicationMailbox
 
       user_count = 0
       mailing_list.users.each do |user|
-        # Don't send email back to the original sender
-        next if user.email.downcase == sender_email
-
         MailingListMailer.forward_email(user, mail, mailing_list).deliver_now
         user_count += 1
       end

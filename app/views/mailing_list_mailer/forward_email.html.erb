@@ -9,13 +9,6 @@
           color: #333;
       }
 
-      .email-header {
-          background: #f5f5f5;
-          padding: 15px;
-          border-left: 4px solid #007cba;
-          margin-bottom: 20px;
-      }
-
       .email-content {
           margin: 20px 0;
       }
@@ -30,11 +23,6 @@
   </style>
 </head>
 <body>
-<div class="email-header">
-  <strong>From:</strong> <%= @original_sender %><br>
-  <strong>To:</strong> <%= @mailing_list.email_address %><br>
-  <strong>Subject:</strong> <%= @original_subject %>
-</div>
 
 <div class="email-content">
   <%= raw @html_content %>
