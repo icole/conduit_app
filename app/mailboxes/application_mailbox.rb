@@ -6,8 +6,8 @@ class ApplicationMailbox < ActionMailbox::Base
 
   # Route mailing list emails
   routing(/@#{Regexp.escape("#{subdomain}.#{base_domain}")}$/i => :mailing_list)
-  
+
   # Catch-all route for debugging - routes all unmatched emails to mailing list handler
   # This helps debug what emails are coming in that don't match the expected domain
-  routing :all => :mailing_list
+  routing all: :mailing_list
 end

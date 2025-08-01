@@ -1,23 +1,15 @@
-# Schedule recurring jobs
+# Configure SolidQueue recurring tasks
+# This should be configured via Rails configuration, not by creating records directly
+
+# For SolidQueue recurring tasks, they should be configured in application.rb or environment-specific files
+# rather than creating database records directly
+
 Rails.application.config.after_initialize do
-  # Schedule the drive sync job to run every hour
-  # This will proactively refresh the cache for all users
   if Rails.env.production? || Rails.env.development?
-    begin
-      # Clear any existing scheduled jobs with the same name to avoid duplicates
-      SolidQueue::RecurringTask.where(key: "scheduled_drive_sync").destroy_all
+    Rails.logger.info "SolidQueue recurring tasks should be configured via config/schedule.yml or similar"
 
-      # Schedule the job to run every hour
-      SolidQueue::RecurringTask.create!(
-        key: "scheduled_drive_sync",
-        class_name: "ScheduledDriveSyncJob",
-        cron: "0 * * * *", # Every hour at minute 0
-        queue_name: "default"
-      )
-
-      Rails.logger.info "Scheduled ScheduledDriveSyncJob to run every hour"
-    rescue => e
-      Rails.logger.error "Failed to schedule ScheduledDriveSyncJob: #{e.message}"
-    end
+    # For now, let's just ensure the job can be run manually
+    # You can trigger it with: ScheduledDriveSyncJob.perform_later
+    Rails.logger.info "ScheduledDriveSyncJob is available for manual execution"
   end
 end
