@@ -167,7 +167,7 @@ GEM
     et-orbi (1.2.11)
       tzinfo
     event_stream_parser (1.0.0)
-    faraday (2.13.2)
+    faraday (2.13.4)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
@@ -204,15 +204,15 @@ GEM
       activesupport (>= 6.1)
     google-apis-calendar_v3 (0.48.0)
       google-apis-core (>= 0.15.0, < 2.a)
-    google-apis-core (0.18.0)
-      addressable (~> 2.5, >= 2.5.1)
-      googleauth (~> 1.9)
-      httpclient (>= 2.8.3, < 3.a)
-      mini_mime (~> 1.0)
-      mutex_m
+    google-apis-core (1.0.1)
+      addressable (~> 2.8, >= 2.8.7)
+      faraday (~> 2.13)
+      faraday-follow_redirects (~> 0.3)
+      googleauth (~> 1.14)
+      mini_mime (~> 1.1)
       representable (~> 3.0)
-      retriable (>= 2.0, < 4.a)
-    google-apis-drive_v3 (0.67.0)
+      retriable (~> 3.1)
+    google-apis-drive_v3 (0.70.0)
       google-apis-core (>= 0.15.0, < 2.a)
     google-cloud-env (2.3.1)
       base64 (~> 0.2)
@@ -229,8 +229,6 @@ GEM
     hashie (5.0.0)
     heroicon (1.0.0)
       rails (>= 5.2)
-    httpclient (2.9.0)
-      mutex_m
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     image_processing (1.14.0)
@@ -249,7 +247,7 @@ GEM
     jbuilder (2.13.0)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
-    json (2.13.0)
+    json (2.13.2)
     jwt (2.10.2)
       base64
     kamal (2.7.0)
@@ -294,7 +292,6 @@ GEM
     multi_xml (0.7.2)
       bigdecimal (~> 3.1)
     multipart-post (2.4.1)
-    mutex_m (0.3.0)
     net-http (0.6.0)
       uri
     net-imap (0.5.8)
@@ -480,10 +477,10 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
-    signet (0.20.0)
+    signet (0.21.0)
       addressable (~> 2.8)
       faraday (>= 0.17.5, < 3.a)
-      jwt (>= 1.5, < 3.0)
+      jwt (>= 1.5, < 4.0)
       multi_json (~> 1.10)
     simple_calendar (3.1.0)
       rails (>= 6.1)
@@ -580,7 +577,7 @@ DEPENDENCIES
   debug
   dotenv-rails
   google-apis-calendar_v3 (~> 0.48.0)
-  google-apis-drive_v3 (~> 0.67.0)
+  google-apis-drive_v3 (~> 0.70.0)
   googleauth (~> 1.0)
   heroicon
   image_processing (~> 1.2)
