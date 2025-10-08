@@ -33,13 +33,13 @@ class User < ApplicationRecord
     end
 
     invitation_token ||= user.invitation&.token
-    # Skip invitation check if we're in test environment
-    if !Rails.env.test? && !valid_invitation?(invitation_token)
+    # Skip invitation check if we're in test environment or if user already exists
+    if !Rails.env.test? && user.new_record? && !valid_invitation?(invitation_token)
       raise StandardError, "Access restricted to invited users only"
     end
 
-    # Associate user with invitation if it exists and is valid
-    if invitation_token.present?
+    # Associate user with invitation if it exists and is valid (only for new users)
+    if user.new_record? && invitation_token.present?
       invitation = Invitation.find_by(token: invitation_token)
       if invitation&.valid_for_use?
         user.invitation = invitation
