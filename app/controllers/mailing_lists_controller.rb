@@ -80,12 +80,13 @@ class MailingListsController < ApplicationController
       return
     end
 
-    # Send email to all list members
-    @mailing_list.users.each do |user|
-      MailingListMailer.broadcast_email(user, @mailing_list, subject, message, current_user).deliver_now
+    # Send email via Mailgun mailing list
+    if @mailing_list.send_message(current_user.name, subject, message)
+      redirect_to @mailing_list, notice: "Email sent to #{@mailing_list.users.count} members via Mailgun."
+    else
+      flash[:alert] = "Failed to send email. Please check the logs for details."
+      render :broadcast, status: :unprocessable_entity
     end
-
-    redirect_to @mailing_list, notice: "Email sent to #{@mailing_list.users.count} members."
   end
 
   private
