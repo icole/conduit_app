@@ -5,15 +5,15 @@ class DocumentsController < ApplicationController
   # GET /documents or /documents.json
   def index
     # Sortable columns
-    sort_column = params[:sort] || 'created_at'
-    sort_direction = params[:direction] || 'desc'
+    sort_column = params[:sort] || "created_at"
+    sort_direction = params[:direction] || "desc"
 
     # Validate sort column to prevent SQL injection
     allowed_columns = %w[title document_type created_at updated_at]
-    sort_column = 'created_at' unless allowed_columns.include?(sort_column)
+    sort_column = "created_at" unless allowed_columns.include?(sort_column)
 
     # Validate sort direction
-    sort_direction = 'desc' unless %w[asc desc].include?(sort_direction)
+    sort_direction = "desc" unless %w[asc desc].include?(sort_direction)
 
     @documents = Document.all.order("#{sort_column} #{sort_direction}")
   end
