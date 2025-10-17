@@ -14,7 +14,7 @@ class DocumentsTest < ApplicationSystemTestCase
 
   test "should create document" do
     visit documents_url
-    click_on "New document"
+    click_on "Add Document"
 
     fill_in "Description", with: @document.description
     fill_in "Document type", with: @document.document_type
