@@ -4,17 +4,17 @@ class MailgunService
   def initialize
     @api_key = ENV["MAILGUN_API_KEY"]
     @domain = ENV["MAILGUN_DOMAIN"]
-    
+
     unless @api_key && @domain
       raise MailgunError, "MAILGUN_API_KEY and MAILGUN_DOMAIN must be set"
     end
-    
+
     @client = Mailgun::Client.new(@api_key)
   end
 
   def create_mailing_list(name, description)
     list_address = "#{name}@#{@domain}"
-    
+
     begin
       @client.post("lists", {
         address: list_address,
@@ -22,7 +22,7 @@ class MailgunService
         description: description,
         access_level: "members"
       })
-      
+
       Rails.logger.info "Created Mailgun mailing list: #{list_address}"
       list_address
     rescue Mailgun::CommunicationError => e
@@ -35,9 +35,9 @@ class MailgunService
     params = {}
     params[:name] = name if name
     params[:description] = description if description
-    
+
     return list_address if params.empty?
-    
+
     begin
       @client.put("lists/#{list_address}", params)
       Rails.logger.info "Updated Mailgun mailing list: #{list_address}"
@@ -65,7 +65,7 @@ class MailgunService
       subscribed: "yes"
     }
     params[:name] = name if name
-    
+
     begin
       @client.post("lists/#{list_address}/members", params)
       Rails.logger.info "Added member #{email_address} to #{list_address}"
@@ -89,7 +89,7 @@ class MailgunService
 
   def send_message(list_address, from_name, subject, text_body, html_body = nil)
     from_address = "#{from_name} <#{list_address}>"
-    
+
     params = {
       from: from_address,
       to: list_address,
@@ -97,7 +97,7 @@ class MailgunService
       text: text_body
     }
     params[:html] = html_body if html_body
-    
+
     begin
       result = @client.post("#{@domain}/messages", params)
       Rails.logger.info "Sent message to #{list_address}: #{subject}"

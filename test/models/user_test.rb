@@ -29,10 +29,10 @@ class UserTest < ActiveSupport::TestCase
   test "from_omniauth creates new user with valid invitation" do
     invitation = invitations(:user_one_invitation)
     auth_hash = create_auth_hash("new_user_uid", "newuser@example.com", "New User")
-    
+
     user = User.from_omniauth(auth_hash, invitation.token)
     user.save!
-    
+
     assert user.persisted?
     assert_equal "newuser@example.com", user.email
     assert_equal "New User", user.name
@@ -43,7 +43,7 @@ class UserTest < ActiveSupport::TestCase
     # Temporarily set Rails environment to production to test invitation validation
     original_env = Rails.env
     Rails.env = ActiveSupport::EnvironmentInquirer.new("production")
-    
+
     begin
       auth_hash = create_auth_hash("production_user_uid", "production@example.com", "Production User")
       assert_raises(StandardError, "Access restricted to invited users only") do
@@ -60,9 +60,9 @@ class UserTest < ActiveSupport::TestCase
       token: "original_token_expired",
       expires_at: 2.weeks.from_now
     )
-    
+
     auth_hash = create_auth_hash("expired_invitation_user", "expired@example.com", "Expired User")
-    
+
     existing_user = User.create!(
       provider: "google_oauth2",
       uid: "expired_invitation_user",
@@ -77,7 +77,7 @@ class UserTest < ActiveSupport::TestCase
 
     # User should still be able to log in
     user = User.from_omniauth(auth_hash)
-    
+
     assert_equal existing_user, user
     assert user.persisted?
     assert_equal "expired@example.com", user.email
@@ -89,9 +89,9 @@ class UserTest < ActiveSupport::TestCase
       token: "original_token_replaced",
       expires_at: 2.weeks.from_now
     )
-    
+
     auth_hash = create_auth_hash("replaced_invitation_user", "replaced@example.com", "Replaced User")
-    
+
     existing_user = User.create!(
       provider: "google_oauth2",
       uid: "replaced_invitation_user",
@@ -109,7 +109,7 @@ class UserTest < ActiveSupport::TestCase
 
     # User should still be able to log in with their original OAuth credentials
     user = User.from_omniauth(auth_hash)
-    
+
     assert_equal existing_user, user
     assert user.persisted?
     assert_equal "replaced@example.com", user.email
@@ -123,9 +123,9 @@ class UserTest < ActiveSupport::TestCase
       token: "original_token_not_associated",
       expires_at: 2.weeks.from_now
     )
-    
+
     auth_hash = create_auth_hash("not_associated_user", "notassociated@example.com", "Not Associated User")
-    
+
     existing_user = User.create!(
       provider: "google_oauth2",
       uid: "not_associated_user",
@@ -143,7 +143,7 @@ class UserTest < ActiveSupport::TestCase
 
     # Try to log in with the new invitation token
     user = User.from_omniauth(auth_hash, new_invitation.token)
-    
+
     assert_equal existing_user, user
     # User should still be associated with their original invitation, not the new one
     assert_equal original_invitation, user.invitation

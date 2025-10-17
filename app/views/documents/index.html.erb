@@ -93,11 +93,7 @@
                     </span>
                   </td>
                   <td>
-                    <% if document.safe_google_drive_url %>
-                      <%= link_to "Open", document.safe_google_drive_url, target: "_blank", class: "btn btn-xs btn-outline btn-info" %>
-                    <% else %>
-                      <span class="text-base-content/50">-</span>
-                    <% end %>
+                    <%= safe_google_drive_link(document, "Open", target: "_blank", class: "btn btn-xs btn-outline btn-info") || content_tag(:span, "-", class: "text-base-content/50") %>
                   </td>
                   <td class="text-sm text-base-content/70">
                     <%= document.created_at.strftime("%b %d, %Y") %>

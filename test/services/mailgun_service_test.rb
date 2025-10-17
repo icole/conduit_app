@@ -10,18 +10,18 @@ class MailgunServiceTest < ActiveSupport::TestCase
   end
 
   test "raises error when environment variables are missing" do
-    original_api_key = ENV['MAILGUN_API_KEY']
-    original_domain = ENV['MAILGUN_DOMAIN']
+    original_api_key = ENV["MAILGUN_API_KEY"]
+    original_domain = ENV["MAILGUN_DOMAIN"]
 
-    ENV['MAILGUN_API_KEY'] = nil
-    ENV['MAILGUN_DOMAIN'] = nil
+    ENV["MAILGUN_API_KEY"] = nil
+    ENV["MAILGUN_DOMAIN"] = nil
 
     assert_raises(MailgunService::MailgunError) do
       MailgunService.new
     end
   ensure
-    ENV['MAILGUN_API_KEY'] = original_api_key
-    ENV['MAILGUN_DOMAIN'] = original_domain
+    ENV["MAILGUN_API_KEY"] = original_api_key
+    ENV["MAILGUN_DOMAIN"] = original_domain
   end
 
   # Note: These tests would require Mailgun API credentials to run fully

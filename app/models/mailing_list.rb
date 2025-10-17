@@ -23,9 +23,9 @@ class MailingList < ApplicationRecord
   def add_user(user)
     transaction do
       return false if users.include?(user)
-      
+
       users << user
-      
+
       if mailgun_list_address.present?
         begin
           mailgun_service.add_member(mailgun_list_address, user.email, name: user.name)
@@ -34,7 +34,7 @@ class MailingList < ApplicationRecord
           raise ActiveRecord::Rollback
         end
       end
-      
+
       true
     end
   end
@@ -42,9 +42,9 @@ class MailingList < ApplicationRecord
   def remove_user(user)
     transaction do
       return false unless users.include?(user)
-      
+
       users.delete(user)
-      
+
       if mailgun_list_address.present?
         begin
           mailgun_service.remove_member(mailgun_list_address, user.email)
@@ -53,7 +53,7 @@ class MailingList < ApplicationRecord
           raise ActiveRecord::Rollback
         end
       end
-      
+
       true
     end
   end
@@ -64,7 +64,7 @@ class MailingList < ApplicationRecord
 
   def send_message(from_name, subject, text_body, html_body = nil)
     return false unless mailgun_list_address.present?
-    
+
     begin
       mailgun_service.send_message(mailgun_list_address, from_name, subject, text_body, html_body)
       true
@@ -88,11 +88,11 @@ class MailingList < ApplicationRecord
 
   def create_mailgun_list
     return unless active?
-    
+
     begin
       list_address = mailgun_service.create_mailing_list(name, description)
       update_column(:mailgun_list_address, list_address)
-      
+
       # Add existing members to the Mailgun list
       users.find_each do |user|
         mailgun_service.add_member(list_address, user.email, name: user.name)
@@ -105,7 +105,7 @@ class MailingList < ApplicationRecord
   def update_mailgun_list
     return unless mailgun_list_address.present? && active?
     return unless saved_change_to_name? || saved_change_to_description?
-    
+
     begin
       mailgun_service.update_mailing_list(
         mailgun_list_address,
@@ -119,7 +119,7 @@ class MailingList < ApplicationRecord
 
   def delete_mailgun_list
     return unless mailgun_list_address.present?
-    
+
     begin
       mailgun_service.delete_mailing_list(mailgun_list_address)
     rescue MailgunService::MailgunError => e
