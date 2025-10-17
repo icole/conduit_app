@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class CalendarEvent < ApplicationRecord
+  has_and_belongs_to_many :documents
+  has_many :decisions, dependent: :nullify
+
   validates :title, presence: true
   validates :start_time, presence: true
   validates :end_time, presence: true

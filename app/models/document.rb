@@ -1,4 +1,7 @@
 class Document < ApplicationRecord
+  has_and_belongs_to_many :calendar_events
+  has_many :decisions, dependent: :nullify
+
   validates :google_drive_url, presence: true, format: {
     with: /\Ahttps:\/\/(?:docs|drive)\.google\.com\/.*\z/,
     message: "must be a valid Google Drive URL"

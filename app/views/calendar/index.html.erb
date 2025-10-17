@@ -176,15 +176,17 @@
 
             <div class="flex justify-end gap-3">
               <% if event.respond_to?(:google_event) && event.google_event %>
-                <!-- Google Calendar event - edit with auto-import -->
-                <%= link_to edit_google_calendar_events_path(google_event_id: event.google_event_id), 
+                <!-- Google Calendar event - import to view details or edit -->
+                <%= button_to "View Details", import_from_google_calendar_events_path(google_event_id: event.google_event_id),
+                             class: "btn btn-primary btn-sm" %>
+                <%= link_to edit_google_calendar_events_path(google_event_id: event.google_event_id),
                            class: "btn btn-secondary btn-sm" do %>
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
                   </svg>
                   Edit
                 <% end %>
-                <%= link_to delete_google_calendar_events_path(google_event_id: event.google_event_id), 
+                <%= link_to delete_google_calendar_events_path(google_event_id: event.google_event_id),
                            method: :delete,
                            class: "btn btn-error btn-sm",
                            data: {
@@ -197,7 +199,8 @@
                   Delete
                 <% end %>
               <% else %>
-                <!-- Local CalendarEvent - can edit and delete normally -->
+                <!-- Local CalendarEvent - view details, edit, or delete -->
+                <%= link_to "View Details", calendar_event_path(event), class: "btn btn-primary btn-sm" %>
                 <%= link_to edit_calendar_event_path(event), class: "btn btn-secondary btn-sm" do %>
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>

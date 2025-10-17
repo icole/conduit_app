@@ -1,0 +1,211 @@
+<div class="container mx-auto max-w-6xl px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold"><%= @calendar_event.title %></h1>
+    <div class="flex gap-2">
+      <%= link_to calendar_index_path, class: "btn btn-outline btn-sm" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+        </svg>
+        Back to Calendar
+      <% end %>
+
+      <%= link_to edit_calendar_event_path(@calendar_event), class: "btn btn-primary btn-sm" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+        </svg>
+        Edit Event
+      <% end %>
+
+      <%= button_to calendar_event_path(@calendar_event), method: :delete,
+                    class: "btn btn-error btn-outline btn-sm",
+                    title: "Delete Event",
+                    form: { data: { turbo_confirm: 'Are you sure you want to delete this event? This will also remove it from Google Calendar.' } } do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+        Delete
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Event Details Card -->
+  <div class="card bg-base-100 shadow-xl mb-12">
+    <div class="card-body">
+      <h2 class="card-title text-xl mb-4">Event Details</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="font-semibold text-sm text-base-content/70 mb-1">Time</h3>
+          <p class="text-base"><%= @calendar_event.time_range %></p>
+        </div>
+
+        <% if @calendar_event.location.present? %>
+          <div>
+            <h3 class="font-semibold text-sm text-base-content/70 mb-1">Location</h3>
+            <p class="text-base"><%= @calendar_event.location %></p>
+          </div>
+        <% end %>
+
+        <% if @calendar_event.duration_hours %>
+          <div>
+            <h3 class="font-semibold text-sm text-base-content/70 mb-1">Duration</h3>
+            <p class="text-base"><%= @calendar_event.duration_hours %> hours</p>
+          </div>
+        <% end %>
+
+        <% if @calendar_event.synced_with_google? %>
+          <div>
+            <h3 class="font-semibold text-sm text-base-content/70 mb-1">Google Calendar</h3>
+            <div class="badge badge-success gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Synced
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <% if @calendar_event.description.present? %>
+        <div class="mt-6">
+          <h3 class="font-semibold text-sm text-base-content/70 mb-2">Description</h3>
+          <p class="text-base whitespace-pre-wrap"><%= @calendar_event.description %></p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Meeting Notes Section -->
+  <div class="card bg-base-100 shadow-xl mb-12">
+    <div class="card-body">
+      <h2 class="card-title">Meeting Notes</h2>
+
+      <% if @calendar_event.documents.any? %>
+        <div class="space-y-2 mt-4">
+          <% @calendar_event.documents.each do |document| %>
+            <div class="flex justify-between items-center p-4 bg-base-200 rounded-lg">
+              <div class="flex-1">
+                <p class="font-medium"><%= document.title || "Google Doc" %></p>
+                <% if document.description.present? %>
+                  <p class="text-sm text-base-content/70 mt-1"><%= document.description %></p>
+                <% end %>
+              </div>
+              <div class="flex gap-2">
+                <%= link_to "View", document.safe_google_drive_url, target: "_blank", class: "btn btn-sm btn-outline btn-info" %>
+                <%= button_to "Unlink", calendar_event_document_link_path(@calendar_event, document), method: :delete, class: "btn btn-sm btn-outline btn-error", data: { turbo_confirm: "Unlink this document?" } %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-base-content/70 mt-2">No meeting notes linked yet.</p>
+      <% end %>
+
+      <div class="divider">Link a Document</div>
+
+      <% available_documents = Document.order(created_at: :asc).limit(100) %>
+      <% if available_documents.any? %>
+        <%= form_with url: calendar_event_document_links_path(@calendar_event), method: :post, class: "flex gap-2 items-start" do |form| %>
+          <div class="flex-1 relative"
+               data-controller="document-selector"
+               data-action="click@window->document-selector#clickOutside">
+            <%= form.text_field :document_search,
+                placeholder: "Search documents...",
+                class: "input input-bordered w-full",
+                autocomplete: "off",
+                data: {
+                  document_selector_target: "searchInput",
+                  action: "focus->document-selector#showDropdown input->document-selector#filterOnInput"
+                } %>
+            <%= form.hidden_field :document_id, data: { document_selector_target: "hiddenInput" } %>
+
+            <!-- Custom dropdown -->
+            <div class="absolute z-50 w-full mt-1 bg-base-100 border border-base-300 rounded-lg shadow-lg max-h-40 overflow-y-auto hidden"
+                 data-document-selector-target="dropdown">
+              <% available_documents.each_with_index do |doc, index| %>
+                <% display_text = doc.title.present? ? doc.title : doc.google_drive_url&.truncate(60) %>
+                <div class="px-4 py-2 hover:bg-base-200 cursor-pointer border-b border-base-300 last:border-b-0 <%= 'initially-hidden' if index >= 6 %>"
+                     data-id="<%= doc.id %>"
+                     data-title="<%= display_text %>"
+                     data-document-selector-target="option"
+                     data-action="click->document-selector#selectOption">
+                  <%= display_text %>
+                </div>
+              <% end %>
+              <% if available_documents.count > 6 %>
+                <div class="px-4 py-2 text-sm text-base-content/60 italic border-t border-base-300"
+                     data-document-selector-target="moreIndicator">
+                  ... <%= available_documents.count - 6 %> more documents (type to search)
+                </div>
+              <% end %>
+            </div>
+
+            <p class="text-xs text-base-content/60 mt-1">Type to search, then select from the list</p>
+          </div>
+          <%= form.submit "Link Document", class: "btn btn-primary" %>
+        <% end %>
+      <% else %>
+        <div class="alert alert-warning">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <h3 class="font-bold">No documents available</h3>
+            <p class="text-sm">Create documents first from the <%= link_to "Documents page", documents_path, class: "link" %> to link them to this meeting.</p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Decisions Section -->
+  <div class="card bg-base-100 shadow-xl mb-12">
+    <div class="card-body">
+      <div class="flex justify-between items-center">
+        <h2 class="card-title">Decisions from this Meeting</h2>
+        <%= link_to "Add Decision", new_decision_path(calendar_event_id: @calendar_event.id), class: "btn btn-sm btn-primary" %>
+      </div>
+
+      <% if @calendar_event.decisions.any? %>
+        <div class="overflow-x-auto mt-4">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Decision</th>
+                <th>Date</th>
+                <th>Notes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @calendar_event.decisions.each do |decision| %>
+                <tr>
+                  <td>
+                    <div class="font-medium"><%= link_to decision.title, decision_path(decision), class: "link link-hover" %></div>
+                    <% if decision.description.present? %>
+                      <div class="text-sm text-base-content/70 mt-1 line-clamp-2"><%= decision.description %></div>
+                    <% end %>
+                  </td>
+                  <td><%= decision.formatted_date %></td>
+                  <td>
+                    <% if decision.document %>
+                      <%= link_to "View Notes", decision.document.safe_google_drive_url, target: "_blank", class: "btn btn-xs btn-outline btn-info" %>
+                    <% else %>
+                      <span class="text-base-content/60">-</span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <%= link_to "View", decision_path(decision), class: "btn btn-xs btn-outline" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="text-base-content/70 mt-4">No decisions recorded for this meeting yet.</p>
+      <% end %>
+    </div>
+  </div>
+</div>

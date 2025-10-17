@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :decisions
   resources :chores do
     member do
       post :complete
@@ -63,6 +64,7 @@ Rails.application.routes.draw do
     end
   end
   resources :calendar_events, only: [ :new, :create, :show, :edit, :update, :destroy ] do
+    resources :document_links, only: [ :create, :destroy ], module: :calendar_events
     collection do
       post :import_from_google
       get :edit, path: "edit_google/:google_event_id", action: :edit, as: :edit_google

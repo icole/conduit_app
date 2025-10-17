@@ -43,6 +43,8 @@ class CalendarEventsController < ApplicationController
   end
 
   def show
+    # Preload associations for the show page
+    @calendar_event = CalendarEvent.includes(:documents, :decisions).find(params[:id])
   end
 
   def new
@@ -63,7 +65,7 @@ class CalendarEventsController < ApplicationController
       # Try to sync with Google Calendar
       sync_to_google_calendar(@calendar_event, :create)
 
-      redirect_to calendar_index_path, notice: "Event was successfully created."
+      redirect_to calendar_event_path(@calendar_event), notice: "Event was successfully created."
     else
       Rails.logger.error "Event save failed: #{@calendar_event.errors.full_messages}"
       render :new, status: :unprocessable_entity
@@ -97,7 +99,7 @@ class CalendarEventsController < ApplicationController
       # Try to sync with Google Calendar
       sync_to_google_calendar(@calendar_event, :update)
 
-      redirect_to calendar_index_path, notice: "Event was successfully updated."
+      redirect_to calendar_event_path(@calendar_event), notice: "Event was successfully updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -144,7 +146,7 @@ class CalendarEventsController < ApplicationController
       )
 
       if @calendar_event.save
-        redirect_to edit_calendar_event_path(@calendar_event)
+        redirect_to calendar_event_path(@calendar_event)
       else
         redirect_to calendar_index_path, alert: "Failed to import event: #{@calendar_event.errors.full_messages.join(', ')}"
       end

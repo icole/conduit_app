@@ -1,4 +1,5 @@
 require "test_helper"
+require "minitest/mock"
 
 class MailingListsControllerTest < ActionDispatch::IntegrationTest
   setup do
@@ -19,7 +20,18 @@ class MailingListsControllerTest < ActionDispatch::IntegrationTest
       password: "password123",
       admin: false
     )
-    @mailing_list = MailingList.create!(name: "test-list-#{timestamp}", description: "Test mailing list")
+
+    # Stub MailgunService to prevent actual API calls during mailing list creation
+    @mailgun_service_stub = Object.new
+    def @mailgun_service_stub.create_mailing_list(name, *args); "#{name}@lists.example.com"; end
+    def @mailgun_service_stub.update_mailing_list(*args); true; end
+    def @mailgun_service_stub.delete_mailing_list(*args); true; end
+    def @mailgun_service_stub.add_member(*args); true; end
+    def @mailgun_service_stub.remove_member(*args); true; end
+
+    MailgunService.stub :new, @mailgun_service_stub do
+      @mailing_list = MailingList.create!(name: "test-list-#{timestamp}", description: "Test mailing list")
+    end
   end
 
   test "should get index when admin" do
@@ -57,14 +69,16 @@ class MailingListsControllerTest < ActionDispatch::IntegrationTest
   test "should create mailing list when admin" do
     sign_in_as(@admin)
 
-    assert_difference("MailingList.count") do
-      post mailing_lists_path, params: {
-        mailing_list: {
-          name: "new-list-#{Time.current.to_i}",
-          description: "A new test list",
-          active: true
+    MailgunService.stub :new, @mailgun_service_stub do
+      assert_difference("MailingList.count") do
+        post mailing_lists_path, params: {
+          mailing_list: {
+            name: "new-list-#{Time.current.to_i}",
+            description: "A new test list",
+            active: true
+          }
         }
-      }
+      end
     end
 
     assert_redirected_to mailing_list_path(MailingList.last)
@@ -79,11 +93,15 @@ class MailingListsControllerTest < ActionDispatch::IntegrationTest
 
   test "should update mailing list when admin" do
     sign_in_as(@admin)
-    patch mailing_list_path(@mailing_list), params: {
-      mailing_list: {
-        description: "Updated description"
+
+    MailgunService.stub :new, @mailgun_service_stub do
+      patch mailing_list_path(@mailing_list), params: {
+        mailing_list: {
+          description: "Updated description"
+        }
       }
-    }
+    end
+
     assert_redirected_to @mailing_list
     @mailing_list.reload
     assert_equal "Updated description", @mailing_list.description
@@ -92,8 +110,10 @@ class MailingListsControllerTest < ActionDispatch::IntegrationTest
   test "should destroy mailing list when admin" do
     sign_in_as(@admin)
 
-    assert_difference("MailingList.count", -1) do
-      delete mailing_list_path(@mailing_list)
+    MailgunService.stub :new, @mailgun_service_stub do
+      assert_difference("MailingList.count", -1) do
+        delete mailing_list_path(@mailing_list)
+      end
     end
 
     assert_redirected_to mailing_lists_path
@@ -102,23 +122,30 @@ class MailingListsControllerTest < ActionDispatch::IntegrationTest
   test "should add member when admin" do
     sign_in_as(@admin)
 
-    assert_difference("@mailing_list.users.count") do
-      post add_member_mailing_list_path(@mailing_list), params: { user_id: @regular_user.id }
+    MailgunService.stub :new, @mailgun_service_stub do
+      assert_difference("@mailing_list.users.count") do
+        post add_member_mailing_list_path(@mailing_list), params: { user_id: @regular_user.id }
+      end
     end
 
     assert_redirected_to @mailing_list
+    @mailing_list.reload
     assert @mailing_list.member?(@regular_user)
   end
 
   test "should remove member when admin" do
     sign_in_as(@admin)
-    @mailing_list.add_user(@regular_user)
 
-    assert_difference("@mailing_list.users.count", -1) do
-      delete remove_member_mailing_list_path(@mailing_list), params: { user_id: @regular_user.id }
+    MailgunService.stub :new, @mailgun_service_stub do
+      @mailing_list.add_user(@regular_user)
+
+      assert_difference("@mailing_list.users.count", -1) do
+        delete remove_member_mailing_list_path(@mailing_list), params: { user_id: @regular_user.id }
+      end
     end
 
     assert_redirected_to @mailing_list
+    @mailing_list.reload
     assert_not @mailing_list.member?(@regular_user)
   end
 

@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  title: Team Meeting
+  description: Weekly team sync
+  start_time: <%= Time.current + 1.day %>
+  end_time: <%= Time.current + 1.day + 1.hour %>
+  location: Conference Room A
+
+two:
+  title: Planning Session
+  description: Quarterly planning
+  start_time: <%= Time.current + 7.days %>
+  end_time: <%= Time.current + 7.days + 2.hours %>
+  location: Office
