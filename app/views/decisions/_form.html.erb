@@ -1,0 +1,61 @@
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <%= form_with(model: decision, data: { turbo: false }) do |form| %>
+      <% if decision.errors.any? %>
+        <div class="alert alert-error mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            <h3 class="font-bold">Please fix the following errors:</h3>
+            <ul class="list-disc list-inside mt-2">
+              <% decision.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="form-control w-full mb-4">
+        <%= form.label :title, "Decision Title *", class: "label label-text font-medium" %>
+        <%= form.text_field :title, class: "input input-bordered w-full", required: true, placeholder: "Enter decision title" %>
+      </div>
+
+      <div class="form-control w-full mb-4">
+        <%= form.label :description, "Description", class: "label label-text font-medium" %>
+        <%= form.text_area :description, class: "textarea textarea-bordered w-full", rows: 4, placeholder: "Add details about the decision..." %>
+      </div>
+
+      <div class="form-control w-full mb-4">
+        <%= form.label :decision_date, "Decision Date", class: "label label-text font-medium" %>
+        <%= form.date_field :decision_date, class: "input input-bordered w-full" %>
+      </div>
+
+      <div class="form-control w-full mb-4">
+        <%= form.label :calendar_event_id, "Related Meeting (optional)", class: "label label-text font-medium" %>
+        <%= form.collection_select :calendar_event_id, @calendar_events, :id, :title,
+            { prompt: "Select a meeting...", include_blank: true },
+            { class: "select select-bordered w-full" } %>
+        <div class="label">
+          <span class="label-text-alt text-base-content/60">Link this decision to a specific meeting</span>
+        </div>
+      </div>
+
+      <div class="form-control w-full mb-4">
+        <%= form.label :document_id, "Meeting Notes (optional)", class: "label label-text font-medium" %>
+        <%= form.collection_select :document_id, @documents, :id, :title,
+            { prompt: "Select meeting notes...", include_blank: true },
+            { class: "select select-bordered w-full" } %>
+        <div class="label">
+          <span class="label-text-alt text-base-content/60">Link this decision to meeting notes in Google Drive</span>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-6">
+        <%= link_to 'Cancel', decisions_path, class: "btn btn-ghost" %>
+        <%= form.submit class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_08_033927) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_17_033059) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -70,6 +70,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_08_033927) do
     t.datetime "updated_at", null: false
     t.string "google_event_id"
     t.string "location"
+  end
+
+  create_table "calendar_events_documents", force: :cascade do |t|
+    t.bigint "calendar_event_id", null: false
+    t.bigint "document_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["calendar_event_id", "document_id"], name: "index_calendar_events_documents_uniqueness", unique: true
+    t.index ["calendar_event_id"], name: "index_calendar_events_documents_on_calendar_event_id"
+    t.index ["document_id"], name: "index_calendar_events_documents_on_document_id"
   end
 
   create_table "calendar_shares", force: :cascade do |t|
@@ -136,6 +146,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_08_033927) do
     t.index ["parent_id"], name: "index_comments_on_parent_id"
     t.index ["post_id"], name: "index_comments_on_post_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
+  create_table "decisions", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "description"
+    t.date "decision_date"
+    t.bigint "calendar_event_id"
+    t.bigint "document_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["calendar_event_id"], name: "index_decisions_on_calendar_event_id"
+    t.index ["decision_date"], name: "index_decisions_on_decision_date"
+    t.index ["document_id"], name: "index_decisions_on_document_id"
   end
 
   create_table "discussion_topics", force: :cascade do |t|
@@ -279,6 +302,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_08_033927) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "calendar_events_documents", "calendar_events"
+  add_foreign_key "calendar_events_documents", "documents"
   add_foreign_key "calendar_shares", "users"
   add_foreign_key "chore_assignments", "chores"
   add_foreign_key "chore_assignments", "users"
@@ -288,6 +313,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_08_033927) do
   add_foreign_key "comments", "comments", column: "parent_id"
   add_foreign_key "comments", "posts"
   add_foreign_key "comments", "users"
+  add_foreign_key "decisions", "calendar_events"
+  add_foreign_key "decisions", "documents"
   add_foreign_key "discussion_topics", "users"
   add_foreign_key "drive_shares", "users"
   add_foreign_key "invitations", "users"

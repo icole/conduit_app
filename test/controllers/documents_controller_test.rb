@@ -4,14 +4,6 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @document = documents(:one)
     sign_in_user
-    # Save original method and stub it
-    @original_fetch_method = DocumentsController.instance_method(:fetch_google_drive_documents)
-    DocumentsController.define_method(:fetch_google_drive_documents) { }
-  end
-
-  teardown do
-    # Restore original method
-    DocumentsController.define_method(:fetch_google_drive_documents, @original_fetch_method)
   end
 
   test "should get index" do

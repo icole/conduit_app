@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  title: First Decision
+  description: This is the first decision made in our meeting
+  decision_date: <%= Date.today - 7.days %>
+
+two:
+  title: Second Decision
+  description: This is the second decision made in our meeting
+  decision_date: <%= Date.today - 3.days %>

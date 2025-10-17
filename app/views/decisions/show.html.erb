@@ -1,0 +1,66 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <div class="flex justify-between items-start mb-4">
+        <h1 class="card-title text-2xl font-bold"><%= @decision.title %></h1>
+        <div class="flex gap-2">
+          <%= link_to "Edit", edit_decision_path(@decision), class: "btn btn-sm btn-outline" %>
+          <%= button_to "Delete", decision_path(@decision), method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "btn btn-sm btn-outline btn-error" %>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="font-semibold text-lg mb-2">Decision Date</h3>
+          <p class="text-base-content/80"><%= @decision.formatted_date %></p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-lg mb-2">Created</h3>
+          <p class="text-base-content/80"><%= @decision.created_at.strftime("%B %d, %Y at %I:%M %p") %></p>
+        </div>
+      </div>
+
+      <% if @decision.description.present? %>
+        <div class="mt-6">
+          <h3 class="font-semibold text-lg mb-2">Description</h3>
+          <p class="text-base-content/80 whitespace-pre-wrap"><%= @decision.description %></p>
+        </div>
+      <% end %>
+
+      <% if @decision.calendar_event.present? %>
+        <div class="mt-6">
+          <h3 class="font-semibold text-lg mb-2">Related Meeting</h3>
+          <div class="card bg-base-200">
+            <div class="card-body p-4">
+              <p class="font-medium"><%= @decision.calendar_event.title %></p>
+              <p class="text-sm text-base-content/70"><%= @decision.calendar_event.time_range %></p>
+              <%= link_to "View Meeting", calendar_event_path(@decision.calendar_event), class: "btn btn-sm btn-outline mt-2" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <% if @decision.document.present? %>
+        <div class="mt-6">
+          <h3 class="font-semibold text-lg mb-2">Meeting Notes</h3>
+          <div class="card bg-base-200">
+            <div class="card-body p-4">
+              <p class="font-medium"><%= @decision.document.title || "Google Doc" %></p>
+              <% if @decision.document.description.present? %>
+                <p class="text-sm text-base-content/70"><%= @decision.document.description %></p>
+              <% end %>
+              <%= link_to "View in Google Drive", @decision.document.safe_google_drive_url, target: "_blank", class: "btn btn-sm btn-outline btn-info mt-2" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="mt-8">
+        <%= link_to "Back to Decision Log", decisions_path, class: "btn btn-outline" %>
+      </div>
+    </div>
+  </div>
+</div>

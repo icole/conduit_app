@@ -4,87 +4,76 @@ class DocumentsController < ApplicationController
 
   # GET /documents or /documents.json
   def index
-    # Fetch documents from the database
-    @documents = Document.all
+    # Sortable columns
+    sort_column = params[:sort] || 'created_at'
+    sort_direction = params[:direction] || 'desc'
 
-    # Fetch documents from Google Drive
-    fetch_google_drive_documents
-  end
+    # Validate sort column to prevent SQL injection
+    allowed_columns = %w[title document_type created_at updated_at]
+    sort_column = 'created_at' unless allowed_columns.include?(sort_column)
 
-  # Handle OAuth2 callback
-  def oauth_callback
-    # Store the authorization code
-    session[:google_auth_code] = params[:code]
+    # Validate sort direction
+    sort_direction = 'desc' unless %w[asc desc].include?(sort_direction)
 
-    # Redirect to documents index
-    redirect_to documents_path, notice: "Google Drive authorization successful!"
+    @documents = Document.all.order("#{sort_column} #{sort_direction}")
   end
 
   # Refresh documents from Google Drive
   def refresh_from_google_drive
-    # Fetch documents from Google Drive
-    fetch_google_drive_documents
+    folder_id = ENV["GOOGLE_DRIVE_FOLDER_ID"]
 
-    # If we got here, the fetch was successful (no redirect)
-    redirect_to documents_path, notice: "Documents refreshed from Google Drive!"
-  end
+    unless folder_id.present?
+      redirect_to documents_path, alert: "Google Drive folder not configured. Set GOOGLE_DRIVE_FOLDER_ID environment variable."
+      return
+    end
 
-  # Fetch documents from Google Drive and store them in the database
-  def fetch_google_drive_documents
     begin
-      # Get the Google Drive service, passing the authorization code if available
-      service = GoogleDriveConfig.drive_service(session[:google_auth_code])
+      # Use the service account to access Google Drive (same as Community Documents)
+      service = GoogleDriveApiService.from_service_account
+      result = service.list_recent_files(folder_id, max_results: 100)
 
-      # If service is nil, authorization is needed
-      if service.nil?
-        # Get the authorization URL from the thread
-        auth_url = Thread.current[:google_auth_url]
+      if result[:status] == :success
+        documents_created = 0
+        result[:files].each do |file|
+          # Skip if not a Google Doc/Sheet/Slides
+          next unless file[:mime_type]&.start_with?("application/vnd.google-apps.")
 
-        # Clear the session authorization code
-        session.delete(:google_auth_code)
+          # Skip if already exists
+          next if Document.exists?(google_drive_url: file[:web_link])
 
-        # Redirect to the authorization URL
-        redirect_to auth_url, allow_other_host: true
-        return
-      end
+          # Determine document type
+          document_type = case file[:mime_type]
+          when "application/vnd.google-apps.document"
+            "Google Doc"
+          when "application/vnd.google-apps.spreadsheet"
+            "Google Sheet"
+          when "application/vnd.google-apps.presentation"
+            "Google Slides"
+          else
+            next # Skip other types
+          end
 
-      # Define the query to find Google Docs, Sheets, and Slides
-      query = "mimeType='application/vnd.google-apps.document' or mimeType='application/vnd.google-apps.spreadsheet' or mimeType='application/vnd.google-apps.presentation'"
-
-      # Execute the query
-      response = service.list_files(q: query, fields: "files(id, name, description, mimeType, webViewLink)")
-
-      # Process each file
-      response.files.each do |file|
-        # Skip if the document already exists in the database
-        next if Document.exists?(google_drive_url: file.web_view_link)
-
-        # Determine document type based on MIME type
-        document_type = case file.mime_type
-        when "application/vnd.google-apps.document"
-                          "Google Doc"
-        when "application/vnd.google-apps.spreadsheet"
-                          "Google Sheet"
-        when "application/vnd.google-apps.presentation"
-                          "Google Slides"
-        else
-                          "Other"
+          # Create document record
+          Document.create!(
+            title: file[:name],
+            description: "Imported from Community Documents",
+            google_drive_url: file[:web_link],
+            document_type: document_type
+          )
+          documents_created += 1
         end
 
-        # Create a new document record
-        Document.create!(
-          title: file.name,
-          description: file.description || "Google #{document_type}",
-          google_drive_url: file.web_view_link,
-          document_type: document_type
-        )
+        if documents_created > 0
+          redirect_to documents_path, notice: "Successfully imported #{documents_created} document(s) from Google Drive!"
+        else
+          redirect_to documents_path, notice: "No new documents found to import."
+        end
+      else
+        redirect_to documents_path, alert: "Failed to fetch documents from Google Drive: #{result[:error]}"
       end
-
-      # Clear the session authorization code after successful use
-      session.delete(:google_auth_code)
     rescue => e
-      # Log the error and continue
-      Rails.logger.error("Error fetching Google Drive documents: #{e.message}")
+      Rails.logger.error("Error importing documents from Google Drive: #{e.message}")
+      redirect_to documents_path, alert: "Error importing documents: #{e.message}"
     end
   end
 

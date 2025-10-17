@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# Run Rails tests and filter out Tailwind CSS build output
+bundle exec rails test "$@" 2>&1 | grep -v "^≈ tailwindcss" | grep -v "^/\*!" | grep -v "^Done in.*ms$"

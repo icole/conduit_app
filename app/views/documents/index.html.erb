@@ -2,31 +2,131 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
   <% if notice.present? %>
-    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-md inline-block" id="notice"><%= notice %></p>
+    <div class="alert alert-success mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span><%= notice %></span>
+    </div>
   <% end %>
 
-  <div class="flex justify-between items-center">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
     <h1 class="font-bold text-4xl">Documents</h1>
-    <div class="flex space-x-2">
-      <%= link_to "Refresh from Google Drive", refresh_from_google_drive_documents_path, class: "rounded-md px-3.5 py-2.5 bg-green-600 hover:bg-green-500 text-white block font-medium" %>
-      <%= link_to "New document", new_document_path, class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white block font-medium" %>
+    <div class="flex gap-2">
+      <% if ENV["GOOGLE_DRIVE_FOLDER_ID"].present? %>
+        <%= link_to refresh_from_google_drive_documents_path, class: "btn btn-success" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Import from Community Docs
+        <% end %>
+      <% end %>
+      <%= link_to new_document_path, class: "btn btn-primary" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Add Document
+      <% end %>
     </div>
   </div>
 
-  <div id="documents" class="min-w-full divide-y divide-gray-200 space-y-5">
-    <% if @documents.any? %>
-      <% @documents.each do |document| %>
-        <div class="flex flex-col sm:flex-row justify-between items-center pb-5 sm:pb-0">
-          <%= render document %>
-          <div class="w-full sm:w-auto flex flex-col sm:flex-row space-x-2 space-y-2">
-            <%= link_to "Show", document, class: "w-full sm:w-auto text-center rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
-            <%= link_to "Edit", edit_document_path(document), class: "w-full sm:w-auto text-center rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
-          </div>
+  <% if ENV["GOOGLE_DRIVE_FOLDER_ID"].present? %>
+    <div class="alert alert-info mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <div>
+        <h3 class="font-bold">Import from Community Documents</h3>
+        <p class="text-sm">Click "Import from Community Docs" to save documents from your shared Google Drive folder so they can be linked to calendar events and decisions.</p>
+      </div>
+    </div>
+  <% end %>
+
+  <% if @documents.any? %>
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body p-0">
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>
+                  <%= link_to documents_path(sort: 'title', direction: (params[:sort] == 'title' && params[:direction] == 'asc') ? 'desc' : 'asc') do %>
+                    Title
+                    <% if params[:sort] == 'title' %>
+                      <%= params[:direction] == 'asc' ? '↑' : '↓' %>
+                    <% end %>
+                  <% end %>
+                </th>
+                <th>
+                  <%= link_to documents_path(sort: 'document_type', direction: (params[:sort] == 'document_type' && params[:direction] == 'asc') ? 'desc' : 'asc') do %>
+                    Type
+                    <% if params[:sort] == 'document_type' %>
+                      <%= params[:direction] == 'asc' ? '↑' : '↓' %>
+                    <% end %>
+                  <% end %>
+                </th>
+                <th>Link</th>
+                <th>
+                  <%= link_to documents_path(sort: 'created_at', direction: (params[:sort] == 'created_at' && params[:direction] == 'asc') ? 'desc' : 'asc') do %>
+                    Created
+                    <% if params[:sort] == 'created_at' || params[:sort].nil? %>
+                      <%= (params[:direction] == 'asc') ? '↑' : '↓' %>
+                    <% end %>
+                  <% end %>
+                </th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @documents.each do |document| %>
+                <tr>
+                  <td class="font-medium"><%= document.title %></td>
+                  <td>
+                    <% badge_color = case document.document_type
+                                     when 'Google Doc' then 'badge-info'
+                                     when 'Google Sheet' then 'badge-success'
+                                     when 'Google Slides' then 'badge-warning'
+                                     else 'badge-ghost'
+                                     end %>
+                    <span class="badge <%= badge_color %> badge-sm">
+                      <%= document.document_type %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if document.safe_google_drive_url %>
+                      <%= link_to "Open", document.safe_google_drive_url, target: "_blank", class: "btn btn-xs btn-outline btn-info" %>
+                    <% else %>
+                      <span class="text-base-content/50">-</span>
+                    <% end %>
+                  </td>
+                  <td class="text-sm text-base-content/70">
+                    <%= document.created_at.strftime("%b %d, %Y") %>
+                  </td>
+                  <td>
+                    <div class="flex justify-end gap-2">
+                      <%= link_to "View", document, class: "btn btn-xs btn-outline" %>
+                      <%= link_to "Edit", edit_document_path(document), class: "btn btn-xs btn-outline" %>
+                      <%= button_to "Delete", document_path(document), method: :delete,
+                          data: { turbo_confirm: "Are you sure?" },
+                          class: "btn btn-xs btn-outline btn-error" %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
         </div>
-      <% end %>
-    <% else %>
-      <p class="text-center my-10">No documents found.</p>
-    <% end %>
-  </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body text-center">
+        <div class="text-4xl mb-4">📄</div>
+        <h3 class="font-bold text-xl mb-2">No documents yet</h3>
+        <p class="text-base-content/70 mb-4">Add your first document to link it to calendar events and decisions.</p>
+        <%= link_to "Add Your First Document", new_document_path, class: "btn btn-primary mx-auto" %>
+      </div>
+    </div>
+  <% end %>
 </div>
 
