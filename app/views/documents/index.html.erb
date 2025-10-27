@@ -30,20 +30,8 @@
     </div>
   </div>
 
-  <% if ENV["GOOGLE_DRIVE_FOLDER_ID"].present? %>
-    <div class="alert alert-info mb-6">
-      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-      <div>
-        <h3 class="font-bold">Import from Community Documents</h3>
-        <p class="text-sm">Click "Import from Community Docs" to save documents from your shared Google Drive folder so they can be linked to calendar events and decisions.</p>
-      </div>
-    </div>
-  <% end %>
-
   <% if @documents.any? %>
-    <div class="card bg-base-100 shadow-xl">
+    <div class="card bg-base-100 shadow-xl mt-6">
       <div class="card-body p-0">
         <div class="overflow-x-auto">
           <table class="table">
@@ -65,7 +53,6 @@
                     <% end %>
                   <% end %>
                 </th>
-                <th>Link</th>
                 <th>
                   <%= link_to documents_path(sort: 'created_at', direction: (params[:sort] == 'created_at' && params[:direction] == 'asc') ? 'desc' : 'asc') do %>
                     Created
@@ -80,7 +67,9 @@
             <tbody>
               <% @documents.each do |document| %>
                 <tr>
-                  <td class="font-medium"><%= document.title %></td>
+                  <td>
+                    <%= safe_google_drive_link(document, document.title, target: "_blank", class: "font-medium") || content_tag(:span, "-", class: "text-base-content/50") %>
+                  </td>
                   <td>
                     <% badge_color = case document.document_type
                                      when 'Google Doc' then 'badge-info'
@@ -92,16 +81,11 @@
                       <%= document.document_type %>
                     </span>
                   </td>
-                  <td>
-                    <%= safe_google_drive_link(document, "Open", target: "_blank", class: "btn btn-xs btn-outline btn-info") || content_tag(:span, "-", class: "text-base-content/50") %>
-                  </td>
                   <td class="text-sm text-base-content/70">
                     <%= document.created_at.strftime("%b %d, %Y") %>
                   </td>
                   <td>
                     <div class="flex justify-end gap-2">
-                      <%= link_to "View", document, class: "btn btn-xs btn-outline" %>
-                      <%= link_to "Edit", edit_document_path(document), class: "btn btn-xs btn-outline" %>
                       <%= button_to "Delete", document_path(document), method: :delete,
                           data: { turbo_confirm: "Are you sure?" },
                           class: "btn btn-xs btn-outline btn-error" %>
@@ -125,4 +109,3 @@
     </div>
   <% end %>
 </div>
-
