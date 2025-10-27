@@ -37,6 +37,11 @@ class CalendarEvent < ApplicationRecord
     ((end_time - start_time) / 1.hour).round(1)
   end
 
+  # Display title with date for dropdowns
+  def title_with_date
+    "#{title} - #{start_time.strftime('%b %d, %Y')}"
+  end
+
   private
 
   def end_time_after_start_time
