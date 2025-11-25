@@ -75,6 +75,13 @@ Rails.application.routes.draw do
     end
   end
 
+  # Chat routes (Stream Chat integration)
+  resources :chat, only: [ :index ] do
+    collection do
+      get :token   # API endpoint for mobile app
+      get :channels # List available channels
+    end
+  end
 
   # Authentication routes
   get "login", to: "sessions#new"

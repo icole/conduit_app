@@ -80,7 +80,7 @@
               <span class="badge badge-warning badge-xs">Limited</span>
             <% end %>
           <% end %></li>
-          <li><%= link_to "Logout", logout_path, data: { turbo_method: :delete }, class: "py-2" %></li>
+          <li><%= button_to "Logout", logout_path, method: :delete, class: "py-2 w-full text-left", form_class: "w-full" %></li>
         </ul>
       </div>
     <% end %>

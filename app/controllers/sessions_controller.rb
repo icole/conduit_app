@@ -44,6 +44,12 @@ class SessionsController < ApplicationController
     end
   end
 
+  def destroy
+    # Logout
+    session[:user_id] = nil
+    redirect_to root_path, notice: "Logged out successfully!"
+  end
+
   private
 
   def link_google_to_existing_account(auth)
@@ -65,11 +71,5 @@ class SessionsController < ApplicationController
     else
       redirect_to account_path, alert: "Failed to link Google account: #{current_user.errors.full_messages.join(', ')}"
     end
-  end
-
-  def destroy
-    # Logout
-    session[:user_id] = nil
-    redirect_to root_path, notice: "Logged out successfully!"
   end
 end
