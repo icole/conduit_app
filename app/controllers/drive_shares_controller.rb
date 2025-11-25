@@ -2,6 +2,7 @@
 
 class DriveSharesController < ApplicationController
   before_action :authenticate_user!
+  before_action :require_google_account!, only: [ :create ]
 
   # Share a drive folder with the current user
   def create

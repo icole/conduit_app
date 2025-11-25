@@ -17,7 +17,7 @@
       <% end %>
       Open in Drive
     </a>
-  <% else %>
+  <% elsif google_account? %>
     <%= form_with url: drive_shares_path, method: :post, class: "inline", data: { controller: "button", action: "submit->button#submitWithLoading" } do %>
       <%= hidden_field_tag :folder_id, folder_id %>
       <%= hidden_field_tag :folder_name, folder_name %>
@@ -35,5 +35,14 @@
         <span data-button-target="text"><%= button_text %></span>
       </button>
     <% end %>
+  <% else %>
+    <span class="<%= button_class %> inline-flex items-center opacity-50 cursor-not-allowed" title="Google account required to access Drive">
+      <% if icon %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      <% end %>
+      Google Required
+    </span>
   <% end %>
 <% end %>

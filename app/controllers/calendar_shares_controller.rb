@@ -2,6 +2,7 @@
 
 class CalendarSharesController < ApplicationController
   before_action :authenticate_user!
+  before_action :require_google_account!, only: [ :create ]
 
   # Share a calendar with the current user
   def create

@@ -33,14 +33,21 @@ class DashboardController < ApplicationController
       end
     end
 
-    if !Rails.env.test?
-      auth = Google::Auth::ServiceAccountCredentials.make_creds(
-        json_key_io: CalendarCredentials.credentials_io,
-        scope: Google::Apis::CalendarV3::AUTH_CALENDAR)
-      service = GoogleCalendarApiService.new(auth)
-      @events = service.get_events
+    @google_calendar_configured = CalendarCredentials.configured? && ENV["GOOGLE_CALENDAR_ID"].present?
+
+    if !Rails.env.test? && @google_calendar_configured
+      begin
+        auth = Google::Auth::ServiceAccountCredentials.make_creds(
+          json_key_io: CalendarCredentials.credentials_io,
+          scope: Google::Apis::CalendarV3::AUTH_CALENDAR)
+        service = GoogleCalendarApiService.new(auth)
+        @events = service.get_events
+      rescue => e
+        Rails.logger.error("Failed to load calendar events: #{e.message}")
+        @events = { events: [], status: :error, error: e.message }
+      end
     else
-      @events = { events: [], status: :success }
+      @events = { events: [], status: :not_configured }
     end
   end
 

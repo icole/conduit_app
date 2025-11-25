@@ -72,7 +72,11 @@
         </div>
         <div>
           <h4 class="font-medium">Shared Documents</h4>
-          <p class="text-xs text-base-content/70">Click the badge in the top-right corner to access shared community files</p>
+          <% if google_account? %>
+            <p class="text-xs text-base-content/70">Click "Get Access" to view shared community files</p>
+          <% else %>
+            <p class="text-xs text-base-content/70">Sign in with Google to access shared community files</p>
+          <% end %>
         </div>
       </div>
     <% end %>

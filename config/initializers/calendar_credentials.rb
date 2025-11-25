@@ -4,6 +4,10 @@ require "base64"
 
 # Configure how to access calendar credentials based on environment
 module CalendarCredentials
+  def self.configured?
+    ENV["CALENDAR_CONFIG_CONTENT"].present? || ENV["CALENDAR_CONFIG_FILE"].present?
+  end
+
   def self.credentials_io
     if ENV["CALENDAR_CONFIG_CONTENT"].present?
       # Production: Use credentials content from environment variable

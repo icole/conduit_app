@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
   before_action :authenticate_user!
   before_action :update_last_active, if: :user_signed_in?
 
-  helper_method :current_user, :user_signed_in?
+  helper_method :current_user, :user_signed_in?, :google_account?
 
   private
 
@@ -26,6 +26,17 @@ class ApplicationController < ActionController::Base
   def authorize_admin!
     unless current_user&.admin?
       redirect_to root_path, alert: "You are not authorized to access this page."
+    end
+  end
+
+  def google_account?
+    current_user&.google_account?
+  end
+
+  def require_google_account!
+    unless google_account?
+      redirect_back fallback_location: root_path,
+        alert: "This feature requires a Google account. Please sign in with Google to access Google Calendar and Drive integrations."
     end
   end
 

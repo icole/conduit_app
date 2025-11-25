@@ -89,6 +89,14 @@ Rails.application.routes.draw do
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy"
 
+  # Registration routes
+  get "register", to: "registrations#new"
+  post "register", to: "registrations#create"
+
+  # Account settings routes
+  get "account", to: "account#show"
+  delete "account/unlink_google", to: "account#unlink_google", as: :unlink_google_account
+
   # Invitation routes
   resources :invitations, only: [ :new, :create, :index ] do
     member do
