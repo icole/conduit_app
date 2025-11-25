@@ -1,5 +1,17 @@
 <div class="space-y-4 my-4">
-  <% if calendar_events.present? %>
+  <% if calendar_events[:status] == :not_configured %>
+    <div class="text-center p-6 bg-base-200 rounded-lg">
+      <div class="text-4xl mb-2">📅</div>
+      <p class="text-base-content/70">Calendar not configured</p>
+      <p class="text-xs text-base-content/50 mt-1">Google Calendar integration is not set up</p>
+    </div>
+  <% elsif calendar_events[:status] == :error %>
+    <div class="text-center p-6 bg-base-200 rounded-lg">
+      <div class="text-4xl mb-2">⚠️</div>
+      <p class="text-base-content/70">Could not load calendar</p>
+      <p class="text-xs text-base-content/50 mt-1">Please try again later</p>
+    </div>
+  <% elsif calendar_events[:events].present? %>
     <ul class="space-y-3">
       <% calendar_events[:events].each do |event| %>
         <li class="bg-base-200 rounded-lg overflow-hidden transition-all hover:shadow-md">

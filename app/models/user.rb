@@ -23,6 +23,7 @@ class User < ApplicationRecord
 
   # Allow OAuth users to not have a password
   validates :password, presence: true, length: { minimum: 6 }, if: -> { provider.blank? }
+  validates :password, confirmation: true, if: -> { password.present? }
 
   def self.from_omniauth(auth, invitation_token = nil)
     user = where(provider: auth.provider, uid: auth.uid).first_or_initialize do |user|
@@ -51,5 +52,10 @@ class User < ApplicationRecord
 
   def self.valid_invitation?(token)
     Invitation.find_by(token: token)&.valid_for_use?
+  end
+
+  # Check if user authenticated via Google OAuth
+  def google_account?
+    provider == "google_oauth2"
   end
 end

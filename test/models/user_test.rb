@@ -163,4 +163,19 @@ class UserTest < ActiveSupport::TestCase
   test "valid_invitation? returns false for invalid token" do
     assert_not User.valid_invitation?("invalid_token")
   end
+
+  test "google_account? returns true for google oauth users" do
+    user = User.new(provider: "google_oauth2", uid: "123", email: "test@example.com", name: "Test", password: "password123")
+    assert user.google_account?
+  end
+
+  test "google_account? returns false for email/password users" do
+    user = User.new(provider: nil, uid: nil, email: "test@example.com", name: "Test", password: "password123")
+    assert_not user.google_account?
+  end
+
+  test "google_account? returns false for blank provider" do
+    user = User.new(provider: "", uid: nil, email: "test@example.com", name: "Test", password: "password123")
+    assert_not user.google_account?
+  end
 end
