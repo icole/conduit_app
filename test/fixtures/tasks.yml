@@ -13,7 +13,7 @@ two:
   user: two
   
 assigned_task:
-  title: Review Pull Request #42
+  title: "Review Pull Request #42"
   description: Check the code quality and test coverage
   status: active
   priority_order: 1
