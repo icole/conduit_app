@@ -7,8 +7,6 @@ class User < ApplicationRecord
   has_many :tasks, dependent: :destroy
   has_many :assigned_tasks, class_name: "Task", foreign_key: "assigned_to_user_id", dependent: :nullify
   has_many :discussion_topics, dependent: :destroy
-  has_many :mailing_list_memberships, dependent: :destroy
-  has_many :mailing_lists, through: :mailing_list_memberships
   has_many :drive_shares, dependent: :destroy
   belongs_to :invitation, optional: true
 
