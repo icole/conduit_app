@@ -1,3 +1,5 @@
+require 'digest'
+
 class User < ApplicationRecord
   has_secure_password validations: false
 
@@ -55,5 +57,37 @@ class User < ApplicationRecord
   # Check if user authenticated via Google OAuth
   def google_account?
     provider == "google_oauth2"
+  end
+
+  # Stream Chat integration
+  def stream_user_id
+    # Use string ID for Stream Chat compatibility
+    id.to_s
+  end
+
+  def stream_user_data
+    {
+      id: stream_user_id,
+      name: name,
+      image: avatar_url || gravatar_url,
+      role: admin? ? 'admin' : 'user',
+      email: email
+    }
+  end
+
+  def sync_to_stream_chat
+    return unless StreamChatClient.configured?
+
+    StreamChatClient.client.upsert_user(stream_user_data)
+  rescue => e
+    Rails.logger.error "Failed to sync user #{id} to Stream Chat: #{e.message}"
+  end
+
+  private
+
+  def gravatar_url
+    # Fallback avatar using Gravatar
+    hash = Digest::MD5.hexdigest(email.downcase)
+    "https://www.gravatar.com/avatar/#{hash}?d=identicon&s=200"
   end
 end
