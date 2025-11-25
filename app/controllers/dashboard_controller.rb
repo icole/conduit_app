@@ -33,7 +33,11 @@ class DashboardController < ApplicationController
       end
     end
 
-    @google_calendar_configured = CalendarCredentials.configured? && ENV["GOOGLE_CALENDAR_ID"].present?
+    @google_calendar_configured = begin
+      defined?(CalendarCredentials) && CalendarCredentials.configured? && ENV["GOOGLE_CALENDAR_ID"].present?
+    rescue
+      false
+    end
 
     if !Rails.env.test? && @google_calendar_configured
       begin
