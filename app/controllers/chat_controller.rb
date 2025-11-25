@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class ChatController < ApplicationController
+  include TurboNative
+
   before_action :authenticate_user!
   before_action :ensure_stream_configured
 
@@ -13,6 +15,9 @@ class ChatController < ApplicationController
       name: current_user.name,
       avatar: current_user.avatar_url
     }
+
+    # Use a minimal layout for Turbo Native
+    render layout: "turbo_native" if turbo_native_app?
   end
 
   def token
