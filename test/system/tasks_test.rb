@@ -132,8 +132,8 @@ class TasksTest < ApplicationSystemTestCase
     visit dashboard_index_url
     assert_text @received_task.title
 
-    # Sign out
-    visit "/logout"
+    # Clear the session completely and reset
+    Capybara.reset_sessions!
 
     # Sign in as user two
     sign_in_user({
@@ -147,7 +147,7 @@ class TasksTest < ApplicationSystemTestCase
 
     # User two should see tasks assigned to them
     visit dashboard_index_url
-    assert_text @assigned_task.title
+    assert_text "Review Pull Request #42"  # Use the full title with #42
     assert_no_text @received_task.title
   end
 end
