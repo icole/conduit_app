@@ -24,7 +24,6 @@
             <details>
               <summary>Admin</summary>
               <ul class="p-2">
-                <li><%= link_to "Mailing Lists", mailing_lists_path %></li>
                 <li><%= link_to "Invitations", invitations_path %></li>
                 <li><%= link_to "Users", users_path %></li>
               </ul>
@@ -56,12 +55,11 @@
         <div class="hidden lg:flex gap-2">
           <ul class="px-1 gap-2">
             <li class="dropdown dropdown-hover">
-              <div tabindex="0" role="button" class="btn btn-ghost btn-md #{'btn-active' if controller_name.in?(['invitations', 'users', 'mailing_lists'])}">
+              <div tabindex="0" role="button" class="btn btn-ghost btn-md #{'btn-active' if controller_name.in?(['invitations', 'users'])}">
                 Admin
                 <%= heroicon "chevron-down", variant: :outline, options: { class: "h-4 w-4 ml-1" } %>
               </div>
               <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 text-base-content rounded-box w-52">
-                <li><%= link_to "Mailing Lists", mailing_lists_path, class: "#{'active' if controller_name == 'mailing_lists'}" %></li>
                 <li><%= link_to "Invitations", invitations_path, class: "#{'active' if current_page?(invitations_path)}" %></li>
                 <li><%= link_to "Users", users_path, class: "#{'active' if controller_name == 'users'}" %></li>
               </ul>

@@ -1,7 +1,5 @@
 # Mailgun configuration for ActionMailer
 if Rails.env.production? || Rails.env.development?
-  require "mailgun-ruby"
-
   Rails.application.configure do
     # Configure SMTP delivery using Mailgun's SMTP service
     config.action_mailer.delivery_method = :smtp

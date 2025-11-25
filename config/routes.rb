@@ -18,14 +18,6 @@ Rails.application.routes.draw do
   # ActionMailbox routes for inbound email processing
   mount ActionMailbox::Engine => "/rails/action_mailbox"
 
-  resources :mailing_lists do
-    member do
-      post :add_member
-      delete :remove_member
-      get :broadcast
-      post :send_broadcast
-    end
-  end
   resources :users, only: [ :index, :edit, :update, :destroy ]
   resources :tasks, without: [ :show ] do
     member do
