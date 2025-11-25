@@ -49,6 +49,15 @@ class ChatController < ApplicationController
     }
   end
 
+  def native_test
+    # Test endpoint to verify Turbo Native detection
+    render json: {
+      turbo_native: turbo_native_app?,
+      user_agent: request.user_agent,
+      message: turbo_native_app? ? "✅ Turbo Native detected!" : "❌ Regular web browser"
+    }
+  end
+
   private
 
   def generate_stream_token

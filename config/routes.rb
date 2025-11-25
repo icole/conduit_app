@@ -80,6 +80,7 @@ Rails.application.routes.draw do
     collection do
       get :token   # API endpoint for mobile app
       get :channels # List available channels
+      get :native_test # Test endpoint for Turbo Native detection
     end
   end
 
