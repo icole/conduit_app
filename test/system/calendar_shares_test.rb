@@ -10,6 +10,11 @@ class CalendarSharesTest < ApplicationSystemTestCase
   end
 
   test "subscribe button is visible when user has no calendar share" do
+    # Skip this test if Google Calendar is not configured
+    unless ENV["GOOGLE_CALENDAR_ID"].present?
+      skip "Google Calendar not configured"
+    end
+
     # Delete any existing calendar shares for this user
     CalendarShare.where(user_id: @user.id).destroy_all
 
@@ -20,8 +25,13 @@ class CalendarSharesTest < ApplicationSystemTestCase
   end
 
   test "subscribe button is hidden when user already has calendar share" do
+    # Skip this test if Google Calendar is not configured
+    unless ENV["GOOGLE_CALENDAR_ID"].present?
+      skip "Google Calendar not configured"
+    end
+
     # Ensure the user has a calendar share
-    calendar_id = ENV["GOOGLE_CALENDAR_ID"] || "test_calendar_id"
+    calendar_id = ENV["GOOGLE_CALENDAR_ID"]
     CalendarShare.find_or_create_by(user_id: @user.id, calendar_id: calendar_id, shared_at: Time.current)
 
     visit root_path
