@@ -3,6 +3,10 @@ class SessionsController < ApplicationController
 
   def new
     # Login page
+    respond_to do |format|
+      format.html # Regular web view
+      format.json { render json: { error: "Authentication required", login_url: login_url }, status: :unauthorized }
+    end
   end
 
   def create
@@ -10,7 +14,12 @@ class SessionsController < ApplicationController
     user = User.find_by(email: params[:email])
     if user&.authenticate(params[:password])
       session[:user_id] = user.id
-      redirect_to root_path, notice: "Logged in successfully!"
+      # Redirect to the originally requested page or root
+      return_to = session[:return_to]
+      Rails.logger.info "Login successful - return_to was: #{return_to}, user_agent: #{request.user_agent}"
+      redirect_path = session.delete(:return_to) || root_path
+      Rails.logger.info "Redirecting to: #{redirect_path}"
+      redirect_to redirect_path, notice: "Logged in successfully!"
     else
       flash.now[:alert] = "Invalid email or password"
       render :new, status: :unprocessable_entity
@@ -35,7 +44,12 @@ class SessionsController < ApplicationController
       if user.save
         session[:user_id] = user.id
         session.delete(:invitation_token) if invitation_token.present?
-        redirect_to root_path, notice: "Logged in with Google successfully!"
+        # Redirect to the originally requested page or root
+        return_to = session[:return_to]
+        Rails.logger.info "OAuth Login - return_to was: #{return_to}"
+        redirect_path = session.delete(:return_to) || root_path
+        Rails.logger.info "OAuth Login - redirecting to: #{redirect_path}"
+        redirect_to redirect_path, notice: "Logged in with Google successfully!"
       else
         redirect_to login_path, alert: "Failed to log in with Google: #{user.errors.full_messages.join(', ')}"
       end

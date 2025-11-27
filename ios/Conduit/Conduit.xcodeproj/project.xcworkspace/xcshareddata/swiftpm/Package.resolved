@@ -1,0 +1,24 @@
+{
+  "originHash" : "5427e723c3354e12604806b86e3b26bb2880a9370f0910675f40d98d4abd059a",
+  "pins" : [
+    {
+      "identity" : "hotwire-native-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/hotwired/hotwire-native-ios",
+      "state" : {
+        "revision" : "595dba37c4918afd0e2d470109bc0c356d6e9afe",
+        "version" : "1.2.2"
+      }
+    },
+    {
+      "identity" : "stream-chat-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/GetStream/stream-chat-swift",
+      "state" : {
+        "revision" : "7fcf18dae7ea605c2f9d21750a72b8276ac40892",
+        "version" : "4.93.0"
+      }
+    }
+  ],
+  "version" : 3
+}

@@ -78,9 +78,9 @@ Rails.application.routes.draw do
   # Chat routes (Stream Chat integration)
   resources :chat, only: [ :index ] do
     collection do
-      get :token   # API endpoint for mobile app
-      get :channels # List available channels
-      get :native_test # Test endpoint for Turbo Native detection
+      get :token # API endpoint for mobile app token
+      get :test_native # Test Turbo Native detection
+      get :debug # Debug endpoint to check configuration
     end
   end
 

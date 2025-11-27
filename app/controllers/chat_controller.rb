@@ -1,27 +1,31 @@
-# frozen_string_literal: true
-
 class ChatController < ApplicationController
   include TurboNative
 
-  before_action :authenticate_user!
-  before_action :ensure_stream_configured
+  before_action :authenticate_user!, except: [:debug]
+  before_action :ensure_stream_configured, except: [:debug]
 
+  # GET /chat
   def index
-    # Main chat interface for web testing
-    # This will be replaced by Hotwire Native for mobile
-    @stream_token = generate_stream_token
-    @current_user_data = {
-      id: current_user.id.to_s,
-      name: current_user.name,
-      avatar: current_user.avatar_url
-    }
+    Rails.logger.info "ChatController#index - user_id: #{session[:user_id]}, current_user: #{current_user&.id}, turbo_native: #{turbo_native_app?}, user_agent: #{request.user_agent}"
 
-    # Use a minimal layout for Turbo Native
-    render layout: "turbo_native" if turbo_native_app?
+    if turbo_native_app?
+      # For iOS app, show a page that will trigger native chat
+      render :native_prompt, layout: "turbo_native"
+    else
+      # For web, show embedded chat interface
+      @stream_token = generate_stream_token
+      @user_data = {
+        id: current_user.id.to_s,
+        name: current_user.name,
+        avatar: current_user.avatar_url
+      }
+      render :index, layout: "application"
+    end
   end
 
+  # GET /chat/token
+  # API endpoint for mobile app to get Stream token
   def token
-    # API endpoint for mobile app to get Stream token
     render json: {
       token: generate_stream_token,
       user: {
@@ -33,43 +37,40 @@ class ChatController < ApplicationController
     }
   end
 
-  def channels
-    # API endpoint to get list of available channels
-    # These are the HOA community channels
-    render json: {
-      channels: [
-        { id: 'general', name: 'General Chat', type: 'team' },
-        { id: 'building-a', name: 'Building A', type: 'team' },
-        { id: 'building-b', name: 'Building B', type: 'team' },
-        { id: 'pool', name: 'Pool Area', type: 'team' },
-        { id: 'maintenance', name: 'Maintenance', type: 'team' },
-        { id: 'announcements', name: 'Announcements', type: 'announcement' },
-        { id: 'board', name: 'HOA Board', type: 'team', members_only: true }
-      ]
-    }
+  # GET /chat/test_native
+  # Test page to verify Turbo Native detection
+  def test_native
+    render layout: turbo_native_app? ? "turbo_native" : "application"
   end
 
-  def native_test
-    # Test endpoint to verify Turbo Native detection
+  # GET /chat/debug
+  # Debug page to check Stream configuration
+  def debug
     render json: {
-      turbo_native: turbo_native_app?,
+      stream_configured: StreamChatClient.configured?,
+      api_key_present: ENV['STREAM_API_KEY'].present?,
+      api_secret_present: ENV['STREAM_API_SECRET'].present?,
+      turbo_native_app: turbo_native_app?,
       user_agent: request.user_agent,
-      message: turbo_native_app? ? "✅ Turbo Native detected!" : "❌ Regular web browser"
+      authenticated: user_signed_in?,
+      user_id: current_user&.id
     }
   end
 
   private
 
   def generate_stream_token
-    # Ensure user exists in Stream
+    # Sync user to Stream first
     sync_user_to_stream
 
-    # Generate token for the user
+    # Ensure user is in default channels
+    StreamChannelService.ensure_user_in_default_channels(current_user)
+
+    # Generate token
     StreamChatClient.client.create_token(current_user.id.to_s)
   end
 
   def sync_user_to_stream
-    # Create or update user in Stream
     StreamChatClient.client.upsert_user({
       id: current_user.id.to_s,
       name: current_user.name,
