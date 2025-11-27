@@ -1,93 +1,69 @@
-# frozen_string_literal: true
-
-# Service to manage Stream Chat channels for the HOA community
+# Service to manage Stream Chat channels
 class StreamChannelService
-  DEFAULT_CHANNELS = [
-    { id: 'general', name: 'General Chat', description: 'General community discussions' },
-    { id: 'building-a', name: 'Building A', description: 'Building A residents' },
-    { id: 'building-b', name: 'Building B', description: 'Building B residents' },
-    { id: 'pool', name: 'Pool Area', description: 'Pool schedules and rules' },
-    { id: 'maintenance', name: 'Maintenance', description: 'Maintenance requests and updates' },
-    { id: 'announcements', name: 'Announcements', description: 'Official HOA announcements', read_only: true },
-    { id: 'board', name: 'HOA Board', description: 'Board member discussions', private: true }
-  ].freeze
+  def self.setup_default_channels(user)
+    client = StreamChatClient.client
 
-  class << self
-    def setup_default_channels
-      return unless StreamChatClient.configured?
+    # Define default HOA channels
+    channels = [
+      { id: 'general', name: 'General Discussion', description: 'General community discussions' },
+      { id: 'announcements', name: 'Announcements', description: 'Important HOA announcements' },
+      { id: 'maintenance', name: 'Maintenance', description: 'Building maintenance and issues' },
+      { id: 'events', name: 'Events', description: 'Community events and gatherings' }
+    ]
 
-      client = StreamChatClient.client
+    channels.each do |channel_data|
+      begin
+        # Create or get the channel
+        channel = client.channel('team', channel_id: channel_data[:id])
 
-      # Get or create an admin user for channel creation
-      admin_user = get_admin_user
-      return unless admin_user
+        # Query the channel first to see if it exists
+        channel.query(user_id: user.id.to_s)
 
-      DEFAULT_CHANNELS.each do |channel_config|
-        create_or_update_channel(client, channel_config, admin_user)
-      rescue => e
-        Rails.logger.error "Failed to create channel #{channel_config[:id]}: #{e.message}"
+        # Update the channel if it already exists
+        channel.update({
+          name: channel_data[:name],
+          description: channel_data[:description]
+        })
+
+        # Add user as member
+        channel.add_members([user.id.to_s])
+
+        Rails.logger.info "Created/updated channel: #{channel_data[:name]}"
+      rescue StreamChat::StreamAPIException => e
+        # Channel might already exist, try to update it
+        if e.message.include?("already exists")
+          channel.update(
+            {
+              name: channel_data[:name],
+              description: channel_data[:description]
+            },
+            user_id: user.id.to_s
+          )
+
+          # Add user as member if not already
+          channel.add_members([user.id.to_s])
+          Rails.logger.info "Updated channel: #{channel_data[:name]}"
+        else
+          Rails.logger.error "Failed to create channel #{channel_data[:id]}: #{e.message}"
+        end
       end
     end
 
-    private
+    true
+  rescue => e
+    Rails.logger.error "Failed to setup channels: #{e.message}"
+    false
+  end
 
-    def get_admin_user
-      # Find an admin user or create a system user
-      admin = User.find_by(admin: true) || User.first
-      return nil unless admin
+  def self.ensure_user_in_default_channels(user)
+    client = StreamChatClient.client
 
-      # Sync admin to Stream
-      admin.sync_to_stream_chat
-      admin
-    rescue => e
-      Rails.logger.error "Failed to get admin user for channel creation: #{e.message}"
-      nil
-    end
-
-    def create_or_update_channel(client, config, admin_user)
-      channel_type = config[:read_only] ? 'livestream' : 'team'
-
-      # Prepare channel data
-      channel_data = {
-        name: config[:name],
-        description: config[:description],
-        created_by: admin_user.stream_user_id
-      }
-
-      # Create or get the channel
-      channel = client.channel(channel_type, config[:id])
-
-      # Create or update the channel
-      response = channel.create(admin_user.stream_user_id, members: [admin_user.stream_user_id], **channel_data)
-
-      Rails.logger.info "Created/Updated channel: #{config[:name]} (#{config[:id]})"
-
-      # Add all users to public channels (except board channel)
-      unless config[:private]
-        add_all_users_to_channel(channel)
-      else
-        # For private channels, only add admin users
-        add_admin_users_to_channel(channel)
-      end
-    rescue => e
-      Rails.logger.error "Error setting up channel #{config[:id]}: #{e.message}"
-    end
-
-    def add_all_users_to_channel(channel)
-      User.find_each do |user|
-        user.sync_to_stream_chat
-        channel.add_members([user.stream_user_id])
+    %w[general announcements maintenance events].each do |channel_id|
+      begin
+        channel = client.channel('team', channel_id: channel_id)
+        channel.add_members([user.id.to_s])
       rescue => e
-        Rails.logger.warn "Could not add user #{user.id} to channel: #{e.message}"
-      end
-    end
-
-    def add_admin_users_to_channel(channel)
-      User.where(admin: true).find_each do |user|
-        user.sync_to_stream_chat
-        channel.add_members([user.stream_user_id])
-      rescue => e
-        Rails.logger.warn "Could not add admin user #{user.id} to channel: #{e.message}"
+        Rails.logger.warn "Could not add user to channel #{channel_id}: #{e.message}"
       end
     end
   end
