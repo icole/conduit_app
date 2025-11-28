@@ -7,12 +7,10 @@ import StreamChatUI
 class ChatViewController: HotwireNativeViewController {
 
     private var hasLaunchedNativeChat = false
+    private var isShowingStreamChat = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Hide navigation bar for full-screen chat experience
-        navigationController?.setNavigationBarHidden(true, animated: false)
 
         // Configure web view for Stream Chat handling
         configureForStreamChat()
@@ -21,15 +19,22 @@ class ChatViewController: HotwireNativeViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        // Ensure navigation bar stays hidden
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        // Show navigation bar for proper back navigation
+        navigationController?.setNavigationBarHidden(false, animated: false)
+
+        // Reset flags when returning to this view
+        hasLaunchedNativeChat = false
+        isShowingStreamChat = false
+
+        // If returning from Stream Chat, reload the chat page
+        if let url = visitableView.webView?.url,
+           url.path == "/chat" {
+            visitableView.webView?.reload()
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-
-        // Show navigation bar when leaving chat
-        navigationController?.setNavigationBarHidden(false, animated: false)
 
         // Clean up message handler when leaving the view
         if let webView = visitableView.webView {
@@ -69,6 +74,14 @@ class ChatViewController: HotwireNativeViewController {
     private func launchNativeStreamChat() {
         print("Launching native Stream Chat")
 
+        // Stop any ongoing web view loading to prevent background errors
+        if let webView = visitableView.webView {
+            webView.stopLoading()
+
+            // Load a blank page to stop any background activity
+            webView.loadHTMLString("<html><body></body></html>", baseURL: nil)
+        }
+
         // Fetch token and user info from the Rails backend
         fetchStreamToken { [weak self] tokenData in
             guard let self = self,
@@ -90,9 +103,12 @@ class ChatViewController: HotwireNativeViewController {
                     apiKey: tokenData.apiKey
                 )
 
-                // Replace current view controller with Stream Chat
+                // Mark that we're showing Stream Chat
+                self.isShowingStreamChat = true
+
+                // Push Stream Chat view controller instead of replacing
                 print("Presenting Stream Chat view controller")
-                self.navigationController?.setViewControllers([streamChatVC], animated: true)
+                self.navigationController?.pushViewController(streamChatVC, animated: true)
             }
         }
     }

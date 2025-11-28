@@ -45,9 +45,9 @@ class Navigator: UINavigationController {
     }
 
     private func makeViewController(for url: URL, properties: PathProperties = PathProperties()) -> UIViewController {
-        // Check if this is the chat page - use special handling
+        // Check if this is the chat page - use non-Hotwire launcher to avoid session conflicts
         if url.path.contains("/chat") {
-            return ChatViewController(url: url)
+            return StreamChatLauncherViewController(url: url)
         }
 
         return HotwireNativeViewController(url: url)
@@ -69,7 +69,11 @@ class Navigator: UINavigationController {
     }
 
     private func visit(_ viewController: UIViewController, with options: VisitOptions = VisitOptions()) {
-        guard let visitable = viewController as? Visitable else { return }
+        // Only visit if the view controller is Visitable (skip for StreamChatLauncherViewController)
+        guard let visitable = viewController as? Visitable else {
+            print("Skipping session visit for non-Visitable controller: \(type(of: viewController))")
+            return
+        }
         session.visit(visitable, options: options)
     }
 
