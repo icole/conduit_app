@@ -18,13 +18,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if AuthenticationManager.shared.isAuthenticated() {
             // User might be authenticated, verify with server
             showLoadingScreen()
-            AuthenticationManager.shared.checkAuthenticationStatus { [weak self] authenticated in
-                if authenticated {
-                    self?.showMainApp()
-                } else {
-                    // Session expired or invalid
-                    AuthenticationManager.shared.logout()
-                    self?.showLoginScreen()
+
+            // Sync cookies to WebView first, then verify
+            AuthenticationManager.shared.syncCookiesToWebView {
+                AuthenticationManager.shared.checkAuthenticationStatus { [weak self] authenticated in
+                    if authenticated {
+                        self?.showMainApp()
+                    } else {
+                        // Session expired or invalid
+                        AuthenticationManager.shared.logout()
+                        self?.showLoginScreen()
+                    }
                 }
             }
         } else {
