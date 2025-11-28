@@ -2,7 +2,7 @@ class ChatController < ApplicationController
   include TurboNative
 
   before_action :authenticate_user!, except: [ :debug ]
-  before_action :ensure_stream_configured, except: [ :debug ]
+  before_action :ensure_stream_configured, except: [ :debug, :token ]
 
   # GET /chat
   def index
@@ -26,6 +26,14 @@ class ChatController < ApplicationController
   # GET /chat/token
   # API endpoint for mobile app to get Stream token
   def token
+    unless StreamChatClient.configured?
+      render json: {
+        error: "Stream Chat is not configured",
+        configured: false
+      }, status: :service_unavailable
+      return
+    end
+
     respond_to do |format|
       format.json do
         render json: {
