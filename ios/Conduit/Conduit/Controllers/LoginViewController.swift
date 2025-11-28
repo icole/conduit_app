@@ -1,5 +1,6 @@
 import UIKit
 internal import WebKit
+import GoogleSignIn
 
 class LoginViewController: UIViewController {
 
@@ -9,6 +10,8 @@ class LoginViewController: UIViewController {
     private let emailTextField = UITextField()
     private let passwordTextField = UITextField()
     private let loginButton = UIButton(type: .system)
+    private let googleSignInButton = UIButton(type: .system)  // Changed to regular UIButton
+    private let dividerLabel = UILabel()
     private let errorLabel = UILabel()
     private let activityIndicator = UIActivityIndicatorView(style: .medium)
 
@@ -20,6 +23,7 @@ class LoginViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupActions()
+        setupGoogleSignIn()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -67,6 +71,33 @@ class LoginViewController: UIViewController {
         loginButton.layer.cornerRadius = 8
         loginButton.translatesAutoresizingMaskIntoConstraints = false
 
+        // Divider
+        dividerLabel.text = "OR"
+        dividerLabel.textColor = .secondaryLabel
+        dividerLabel.font = .systemFont(ofSize: 14)
+        dividerLabel.textAlignment = .center
+        dividerLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        // Google Sign-In Button (Custom)
+        googleSignInButton.setTitle("  Sign in with Google", for: .normal)
+        googleSignInButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .medium)
+        googleSignInButton.backgroundColor = .white
+        googleSignInButton.setTitleColor(UIColor(red: 60/255, green: 64/255, blue: 67/255, alpha: 1), for: .normal)
+        googleSignInButton.layer.cornerRadius = 4
+        googleSignInButton.layer.borderWidth = 1
+        googleSignInButton.layer.borderColor = UIColor(red: 218/255, green: 220/255, blue: 224/255, alpha: 1).cgColor
+        googleSignInButton.translatesAutoresizingMaskIntoConstraints = false
+        googleSignInButton.contentHorizontalAlignment = .center
+
+        // Add shadow for elevation
+        googleSignInButton.layer.shadowColor = UIColor.black.cgColor
+        googleSignInButton.layer.shadowOffset = CGSize(width: 0, height: 1)
+        googleSignInButton.layer.shadowOpacity = 0.1
+        googleSignInButton.layer.shadowRadius = 2
+
+        // We'll add the Google logo as a subview instead of using setImage
+        setupGoogleLogo()
+
         // Error Label
         errorLabel.textColor = .systemRed
         errorLabel.font = .systemFont(ofSize: 14)
@@ -85,8 +116,48 @@ class LoginViewController: UIViewController {
         view.addSubview(emailTextField)
         view.addSubview(passwordTextField)
         view.addSubview(loginButton)
+        view.addSubview(dividerLabel)
+        view.addSubview(googleSignInButton)
         view.addSubview(errorLabel)
         view.addSubview(activityIndicator)
+    }
+
+    private func setupGoogleLogo() {
+        // Use the official Google logo image
+        let googleLogoImageView = UIImageView()
+        googleLogoImageView.translatesAutoresizingMaskIntoConstraints = false
+        googleLogoImageView.isUserInteractionEnabled = false
+        googleLogoImageView.contentMode = .scaleAspectFit
+
+        // Try to load the Google logo from assets
+        if let googleLogo = UIImage(named: "google-logo") {
+            googleLogoImageView.image = googleLogo
+        } else {
+            // Fallback: Create a simple "G" text logo with Google colors
+            let label = UILabel(frame: CGRect(x: 0, y: 0, width: 18, height: 18))
+            label.text = "G"
+            label.font = .systemFont(ofSize: 15, weight: .medium)
+            label.textColor = UIColor(red: 66/255, green: 133/255, blue: 244/255, alpha: 1) // Google Blue
+            label.textAlignment = .center
+
+            // Render the label as an image
+            UIGraphicsBeginImageContextWithOptions(label.bounds.size, false, 0)
+            if let context = UIGraphicsGetCurrentContext() {
+                label.layer.render(in: context)
+                googleLogoImageView.image = UIGraphicsGetImageFromCurrentImageContext()
+            }
+            UIGraphicsEndImageContext()
+        }
+
+        googleSignInButton.addSubview(googleLogoImageView)
+
+        // Position the logo on the left side of the button
+        NSLayoutConstraint.activate([
+            googleLogoImageView.leadingAnchor.constraint(equalTo: googleSignInButton.leadingAnchor, constant: 16),
+            googleLogoImageView.centerYAnchor.constraint(equalTo: googleSignInButton.centerYAnchor),
+            googleLogoImageView.widthAnchor.constraint(equalToConstant: 18),
+            googleLogoImageView.heightAnchor.constraint(equalToConstant: 18)
+        ])
     }
 
     private func setupConstraints() {
@@ -125,14 +196,28 @@ class LoginViewController: UIViewController {
             loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
             loginButton.heightAnchor.constraint(equalToConstant: 50),
 
+            // Divider
+            dividerLabel.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20),
+            dividerLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+
+            // Google Sign-In Button
+            googleSignInButton.topAnchor.constraint(equalTo: dividerLabel.bottomAnchor, constant: 20),
+            googleSignInButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
+            googleSignInButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
+            googleSignInButton.heightAnchor.constraint(equalToConstant: 50),
+
             // Activity Indicator
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityIndicator.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20)
+            activityIndicator.topAnchor.constraint(equalTo: googleSignInButton.bottomAnchor, constant: 20)
         ])
     }
 
     private func setupActions() {
         loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
+
+        // Add Google Sign-In button action HERE as well
+        googleSignInButton.addTarget(self, action: #selector(googleSignInTapped), for: .touchUpInside)
+        print("setupActions: Added googleSignInTapped action to button")
 
         // Dismiss keyboard on tap
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
@@ -164,6 +249,167 @@ class LoginViewController: UIViewController {
 
     @objc private func dismissKeyboard() {
         view.endEditing(true)
+    }
+
+    // MARK: - Google Sign-In
+
+    private func setupGoogleSignIn() {
+        // Configure Google Sign-In
+        print("Setting up Google Sign-In...")
+
+        guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") else {
+            print("ERROR: GoogleService-Info.plist not found in bundle")
+            print("Bundle main path: \(Bundle.main.bundlePath)")
+            googleSignInButton.isEnabled = false
+            googleSignInButton.alpha = 0.5
+            return
+        }
+
+        print("Found GoogleService-Info.plist at: \(path)")
+
+        guard let plist = NSDictionary(contentsOfFile: path),
+              let clientId = plist["CLIENT_ID"] as? String,
+              !clientId.contains("YOUR_IOS_CLIENT_ID") else {
+            print("Warning: Google Sign-In not configured properly")
+            googleSignInButton.isEnabled = false
+            googleSignInButton.alpha = 0.5
+            return
+        }
+
+        print("Configuring Google Sign-In with client ID: \(clientId)")
+
+        // Create configuration
+        let config = GIDConfiguration(clientID: clientId)
+        GIDSignIn.sharedInstance.configuration = config
+
+        // Verify configuration was set
+        if GIDSignIn.sharedInstance.configuration == nil {
+            print("ERROR: Failed to set GIDSignIn configuration!")
+            googleSignInButton.isEnabled = false
+            googleSignInButton.alpha = 0.5
+            return
+        }
+
+        // Button action is added in setupActions()
+        print("Google Sign-In configuration complete")
+        print("Config: \(String(describing: config))")
+        print("Button enabled: \(googleSignInButton.isEnabled)")
+    }
+
+    @objc private func googleSignInTapped() {
+        print("=== Google Sign-In button tapped ===")
+        print("Current configuration: \(String(describing: GIDSignIn.sharedInstance.configuration))")
+        print("Presenting from: \(self)")
+        print("Has window: \(self.view.window != nil)")
+        print("Is presented: \(self.presentedViewController != nil)")
+
+        // Make sure we're on the main thread
+        guard Thread.isMainThread else {
+            print("ERROR: Not on main thread!")
+            DispatchQueue.main.async { [weak self] in
+                self?.googleSignInTapped()
+            }
+            return
+        }
+
+        print("Calling GIDSignIn.sharedInstance.signIn...")
+
+        GIDSignIn.sharedInstance.signIn(withPresenting: self) { [weak self] result, error in
+            print("=== Google Sign-In callback received ===")
+
+            if let error = error {
+                print("Google Sign-In error: \(error)")
+                print("Error code: \((error as NSError).code)")
+                print("Error domain: \((error as NSError).domain)")
+                print("Error userInfo: \((error as NSError).userInfo)")
+                self?.showError("Google Sign-In failed: \(error.localizedDescription)")
+                return
+            }
+
+            guard let result = result else {
+                self?.showError("Google Sign-In was cancelled")
+                return
+            }
+
+            // Get the user's ID token
+            guard let idToken = result.user.idToken?.tokenString else {
+                self?.showError("Failed to get Google ID token")
+                return
+            }
+
+            // Send token to Rails backend
+            self?.performGoogleLogin(idToken: idToken, user: result.user)
+        }
+    }
+
+    private func performGoogleLogin(idToken: String, user: GIDGoogleUser) {
+        // Show loading
+        activityIndicator.startAnimating()
+        googleSignInButton.isEnabled = false
+        loginButton.isEnabled = false
+
+        // Create request to Rails backend
+        #if DEBUG
+        let googleAuthURL = URL(string: "http://localhost:3000/api/v1/google_auth")!
+        #else
+        let googleAuthURL = URL(string: "https://your-production-url.com/api/v1/google_auth")!
+        #endif
+
+        var request = URLRequest(url: googleAuthURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        // Create body with Google user info
+        let body: [String: Any] = [
+            "id_token": idToken,
+            "email": user.profile?.email ?? "",
+            "name": user.profile?.name ?? "",
+            "image_url": user.profile?.imageURL(withDimension: 200)?.absoluteString ?? ""
+        ]
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        } catch {
+            showError("Failed to prepare Google login request")
+            activityIndicator.stopAnimating()
+            googleSignInButton.isEnabled = true
+            loginButton.isEnabled = true
+            return
+        }
+
+        // Send request
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            DispatchQueue.main.async {
+                self?.activityIndicator.stopAnimating()
+                self?.googleSignInButton.isEnabled = true
+                self?.loginButton.isEnabled = true
+
+                if let error = error {
+                    self?.showError("Network error: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    self?.showError("Invalid response from server")
+                    return
+                }
+
+                if httpResponse.statusCode == 200 {
+                    // Success - save cookies and proceed
+                    self?.handleLoginSuccess(response: httpResponse)
+                } else {
+                    // Try to parse error message
+                    if let data = data,
+                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let error = json["error"] as? String {
+                        self?.showError(error)
+                    } else {
+                        self?.showError("Google authentication failed")
+                    }
+                }
+            }
+        }.resume()
     }
 
     private func performLogin(email: String, password: String) {
@@ -277,5 +523,75 @@ extension LoginViewController: UITextFieldDelegate {
             loginButtonTapped()
         }
         return true
+    }
+}
+
+// MARK: - Google Logo View
+class GoogleLogoView: UIView {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .clear
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func draw(_ rect: CGRect) {
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+
+        let size = min(rect.width, rect.height)
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = size / 2
+
+        // Google colors
+        let googleBlue = UIColor(red: 66/255, green: 133/255, blue: 244/255, alpha: 1)
+        let googleRed = UIColor(red: 234/255, green: 67/255, blue: 53/255, alpha: 1)
+        let googleYellow = UIColor(red: 251/255, green: 188/255, blue: 5/255, alpha: 1)
+        let googleGreen = UIColor(red: 52/255, green: 168/255, blue: 83/255, alpha: 1)
+
+        // Draw the "G" shape using the Google colors
+        // This is a simplified version - for production, use the actual Google logo image
+
+        // Blue section (top right)
+        context.setFillColor(googleBlue.cgColor)
+        context.move(to: center)
+        context.addArc(center: center, radius: radius, startAngle: -CGFloat.pi/4, endAngle: CGFloat.pi/4, clockwise: false)
+        context.closePath()
+        context.fillPath()
+
+        // Green section (bottom right)
+        context.setFillColor(googleGreen.cgColor)
+        context.move(to: center)
+        context.addArc(center: center, radius: radius, startAngle: CGFloat.pi/4, endAngle: 3*CGFloat.pi/4, clockwise: false)
+        context.closePath()
+        context.fillPath()
+
+        // Yellow section (bottom left)
+        context.setFillColor(googleYellow.cgColor)
+        context.move(to: center)
+        context.addArc(center: center, radius: radius, startAngle: 3*CGFloat.pi/4, endAngle: 5*CGFloat.pi/4, clockwise: false)
+        context.closePath()
+        context.fillPath()
+
+        // Red section (top left)
+        context.setFillColor(googleRed.cgColor)
+        context.move(to: center)
+        context.addArc(center: center, radius: radius, startAngle: 5*CGFloat.pi/4, endAngle: 7*CGFloat.pi/4, clockwise: false)
+        context.closePath()
+        context.fillPath()
+
+        // Draw white center and "G" bar
+        context.setFillColor(UIColor.white.cgColor)
+        let innerRadius = radius * 0.5
+        context.fillEllipse(in: CGRect(x: center.x - innerRadius, y: center.y - innerRadius,
+                                       width: innerRadius * 2, height: innerRadius * 2))
+
+        // Draw the horizontal bar of the "G"
+        context.setFillColor(googleBlue.cgColor)
+        let barHeight = radius * 0.2
+        let barWidth = radius * 0.5
+        context.fill(CGRect(x: center.x, y: center.y - barHeight/2,
+                           width: barWidth, height: barHeight))
     }
 }

@@ -1,6 +1,7 @@
 import UIKit
 internal import WebKit
 import HotwireNative
+import GoogleSignIn
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -9,7 +10,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Configure Hotwire Native
         configureHotwireNative()
 
+        // Restore Google Sign-In previous session if available
+        // Note: This will fail with error -4 if no previous session or URL scheme not configured
+        GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
+            if let error = error {
+                let nsError = error as NSError
+                if nsError.code == -4 {
+                    // Expected error when no previous session exists or URL scheme missing
+                    print("No previous Google Sign-In session to restore (this is normal on first launch)")
+                } else {
+                    print("Error restoring Google Sign-In: \(error.localizedDescription)")
+                }
+            } else if let user = user {
+                print("Google Sign-In restored for user: \(user.profile?.email ?? "")")
+            }
+        }
+
         return true
+    }
+
+    // MARK: - Google Sign-In
+
+    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        return GIDSignIn.sharedInstance.handle(url)
     }
 
     // MARK: UISceneSession Lifecycle

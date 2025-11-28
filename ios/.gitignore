@@ -56,7 +56,7 @@ playground.xcworkspace
 # Pods/
 #
 # Add this line if you want to avoid checking in source code from the Xcode workspace
-# *.xcworkspace
+*.xcworkspace
 
 # Carthage
 #
@@ -90,3 +90,6 @@ iOSInjectionProject/
 
 # macOS
 .DS_Store
+
+# Google Services Configuration (contains API keys)
+GoogleService-Info.plist
