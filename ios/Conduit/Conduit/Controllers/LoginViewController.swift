@@ -357,10 +357,16 @@ class LoginViewController: UIViewController {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
         // Create body with Google user info
+        let email = user.profile?.email ?? ""
+        let name = user.profile?.name ?? ""
+
+        print("📧 Google Sign-In - Email: \(email)")
+        print("👤 Google Sign-In - Name: \(name)")
+
         let body: [String: Any] = [
             "id_token": idToken,
-            "email": user.profile?.email ?? "",
-            "name": user.profile?.name ?? "",
+            "email": email,
+            "name": name,
             "image_url": user.profile?.imageURL(withDimension: 200)?.absoluteString ?? ""
         ]
 
