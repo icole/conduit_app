@@ -103,7 +103,7 @@ class StreamChatViewController: UIViewController {
     private func fetchStreamToken(completion: @escaping (Result<TokenData, Error>) -> Void) {
         // Get base URL from AppConfig
         let baseURL = AppConfig.baseURL
-        let tokenURL = baseURL.appendingPathComponent("chat/token")
+        let tokenURL = baseURL.appendingPathComponent("chat/token.json")
 
         var request = URLRequest(url: tokenURL)
         request.httpMethod = "GET"

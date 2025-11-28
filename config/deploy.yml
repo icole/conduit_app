@@ -63,3 +63,6 @@ accessories:
 
 builder:
   arch: amd64
+
+aliases:
+  console: app exec --reuse -i "bin/rails console"
