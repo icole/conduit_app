@@ -31,21 +31,37 @@ class StreamChatViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Hide navigation bar for full-screen chat
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        // Add a back button to allow navigation back
+        setupNavigationBar()
 
         // Set up Stream Chat
         setupStreamChat()
     }
 
+    private func setupNavigationBar() {
+        // Show navigation bar with a back button
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        navigationItem.title = "Community Chat"
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            title: "Back",
+            style: .plain,
+            target: self,
+            action: #selector(backButtonTapped)
+        )
+    }
+
+    @objc private func backButtonTapped() {
+        navigationController?.popViewController(animated: true)
+    }
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        navigationController?.setNavigationBarHidden(false, animated: false)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: false)
+        // Clean up Stream Chat connection if needed
     }
 
     private func setupStreamChat() {

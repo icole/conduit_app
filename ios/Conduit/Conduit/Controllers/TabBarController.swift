@@ -4,6 +4,9 @@ internal import WebKit
 
 class TabBarController: UITabBarController {
 
+    // Callback for logout
+    var onLogout: (() -> Void)?
+
     // Define base URLs - adjust for production
     #if DEBUG
     private let baseURL = URL(string: "http://localhost:3000")!
@@ -51,8 +54,17 @@ class TabBarController: UITabBarController {
             selectedIcon: UIImage(systemName: "message.fill")
         )
 
+        // Profile Tab - Account settings with logout
+        let profileURL = baseURL.appendingPathComponent("account")
+        let profileNavigator = createProfileNavigator(
+            for: profileURL,
+            title: "Profile",
+            icon: UIImage(systemName: "person.circle"),
+            selectedIcon: UIImage(systemName: "person.circle.fill")
+        )
+
         // Set view controllers
-        viewControllers = [homeNavigator, chatNavigator]
+        viewControllers = [homeNavigator, chatNavigator, profileNavigator]
     }
 
     private func createNavigator(for url: URL, title: String, icon: UIImage?, selectedIcon: UIImage?) -> UINavigationController {
@@ -70,6 +82,63 @@ class TabBarController: UITabBarController {
         navigator.route(url)
 
         return navigator
+    }
+
+    private func createProfileNavigator(for url: URL, title: String, icon: UIImage?, selectedIcon: UIImage?) -> UINavigationController {
+        // Use the shared session for profile
+        let navigator = Navigator(session: sharedSession)
+
+        // Configure tab bar item
+        navigator.tabBarItem = UITabBarItem(
+            title: title,
+            image: icon,
+            selectedImage: selectedIcon
+        )
+
+        // Add logout button to navigation bar
+        navigator.navigationBar.topItem?.rightBarButtonItem = UIBarButtonItem(
+            title: "Logout",
+            style: .plain,
+            target: self,
+            action: #selector(logoutTapped)
+        )
+
+        // Start navigation
+        navigator.route(url)
+
+        // Set up the logout button after the view loads
+        DispatchQueue.main.async {
+            if let topVC = navigator.topViewController {
+                topVC.navigationItem.rightBarButtonItem = UIBarButtonItem(
+                    title: "Logout",
+                    style: .plain,
+                    target: self,
+                    action: #selector(self.logoutTapped)
+                )
+            }
+        }
+
+        return navigator
+    }
+
+    @objc private func logoutTapped() {
+        let alert = UIAlertController(
+            title: "Logout",
+            message: "Are you sure you want to logout?",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Logout", style: .destructive) { [weak self] _ in
+            self?.performLogout()
+        })
+
+        present(alert, animated: true)
+    }
+
+    private func performLogout() {
+        // Call the logout callback which will trigger the SceneDelegate to show login
+        onLogout?()
     }
 
     private func configureAppearance() {

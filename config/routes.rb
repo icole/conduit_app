@@ -1,4 +1,13 @@
 Rails.application.routes.draw do
+  # API routes for mobile app
+  namespace :api do
+    namespace :v1 do
+      post "login", to: "auth#login"
+      get "auth/check", to: "auth#check"
+      delete "logout", to: "auth#logout"
+    end
+  end
+
   resources :decisions
   resources :chores do
     member do

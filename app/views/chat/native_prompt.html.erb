@@ -1,5 +1,9 @@
 <% content_for :title, "Community Chat" %>
 
+<%# Disable Turbo cache and prevent any automatic refreshing %>
+<meta name="turbo-cache-control" content="no-cache">
+<meta name="turbo-visit-control" content="reload">
+
 <div class="min-h-screen flex items-center justify-center p-4">
   <div class="text-center max-w-md">
     <div class="mb-8">
@@ -20,6 +24,11 @@
 </div>
 
 <script>
+  // Disable Turbo to prevent any background navigation
+  if (window.Turbo) {
+    window.Turbo.session.drive = false;
+  }
+
   // Signal to native app that chat should be opened
   document.addEventListener('DOMContentLoaded', () => {
     // Post message to trigger native chat
@@ -31,5 +40,11 @@
     } else {
       document.getElementById('chat-status').textContent = 'Native chat not available in this environment';
     }
+  });
+
+  // Prevent any page unload or navigation
+  window.addEventListener('beforeunload', (e) => {
+    e.preventDefault();
+    e.returnValue = '';
   });
 </script>
