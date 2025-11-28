@@ -101,13 +101,8 @@ class StreamChatViewController: UIViewController {
     }
 
     private func fetchStreamToken(completion: @escaping (Result<TokenData, Error>) -> Void) {
-        // Get base URL from environment
-        #if DEBUG
-        let baseURL = URL(string: "http://localhost:3000")!
-        #else
-        let baseURL = URL(string: "https://your-production-url.com")!
-        #endif
-
+        // Get base URL from AppConfig
+        let baseURL = AppConfig.baseURL
         let tokenURL = baseURL.appendingPathComponent("chat/token")
 
         var request = URLRequest(url: tokenURL)
