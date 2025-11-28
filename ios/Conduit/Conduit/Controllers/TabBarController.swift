@@ -29,6 +29,9 @@ class TabBarController: UITabBarController {
         return session
     }()
 
+    // Track if this is the first appearance
+    private var hasInitiallyAppeared = false
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -36,13 +39,33 @@ class TabBarController: UITabBarController {
         configureAppearance()
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        // Only load on first appearance after login
+        if !hasInitiallyAppeared {
+            hasInitiallyAppeared = true
+
+            // Small delay to ensure cookies are fully synced with WebView
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                guard let self = self else { return }
+
+                // Load the home tab now that authentication is ready
+                if let homeNav = self.viewControllers?.first as? Navigator {
+                    homeNav.route(self.baseURL)
+                }
+            }
+        }
+    }
+
     private func setupTabs() {
-        // Home Tab - Main Rails app
+        // Home Tab - Main Rails app (delay initial load)
         let homeNavigator = createNavigator(
             for: baseURL,
             title: "Home",
             icon: UIImage(systemName: "house"),
-            selectedIcon: UIImage(systemName: "house.fill")
+            selectedIcon: UIImage(systemName: "house.fill"),
+            delayInitialLoad: true
         )
 
         // Chat Tab - Rails chat page
@@ -51,7 +74,8 @@ class TabBarController: UITabBarController {
             for: chatURL,
             title: "Chat",
             icon: UIImage(systemName: "message"),
-            selectedIcon: UIImage(systemName: "message.fill")
+            selectedIcon: UIImage(systemName: "message.fill"),
+            delayInitialLoad: false
         )
 
         // Profile Tab - Account settings with logout
@@ -67,7 +91,7 @@ class TabBarController: UITabBarController {
         viewControllers = [homeNavigator, chatNavigator, profileNavigator]
     }
 
-    private func createNavigator(for url: URL, title: String, icon: UIImage?, selectedIcon: UIImage?) -> UINavigationController {
+    private func createNavigator(for url: URL, title: String, icon: UIImage?, selectedIcon: UIImage?, delayInitialLoad: Bool = false) -> UINavigationController {
         // Use the shared session for all navigators
         let navigator = Navigator(session: sharedSession)
 
@@ -78,8 +102,10 @@ class TabBarController: UITabBarController {
             selectedImage: selectedIcon
         )
 
-        // Start navigation
-        navigator.route(url)
+        // Start navigation unless delayed
+        if !delayInitialLoad {
+            navigator.route(url)
+        }
 
         return navigator
     }
