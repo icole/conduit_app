@@ -151,12 +151,8 @@ class StreamChatLauncherViewController: UIViewController {
     }
 
     private func fetchStreamToken(completion: @escaping ((userId: String, userName: String, userAvatar: String?, token: String, apiKey: String)?) -> Void) {
-        // Use localhost for DEBUG
-        #if DEBUG
-        let tokenURL = URL(string: "http://localhost:3000/chat/token")!
-        #else
-        let tokenURL = URL(string: "https://your-production-url.com/chat/token")!
-        #endif
+        // Get token URL from AppConfig
+        let tokenURL = AppConfig.baseURL.appendingPathComponent("chat/token")
 
         // Get cookies from shared cookie storage
         let cookies = HTTPCookieStorage.shared.cookies(for: tokenURL) ?? []

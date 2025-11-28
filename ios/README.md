@@ -36,14 +36,22 @@ b. Obtain your Google OAuth credentials:
 
 c. Replace the template values in your local `GoogleService-Info.plist` with your actual credentials
 
-### 2. Install Dependencies
+### 2. Configure Production URL (Optional)
+
+For production deployment, copy and configure:
+```bash
+cp Conduit/Conduit/Config.plist.template Conduit/Conduit/Config.plist
+```
+Edit `Config.plist` with your production URL. See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for details.
+
+### 3. Install Dependencies
 
 ```bash
 cd ios/Conduit
 swift package resolve
 ```
 
-### 3. Open in Xcode
+### 4. Open in Xcode
 
 ```bash
 open Conduit.xcodeproj
