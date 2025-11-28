@@ -55,3 +55,5 @@ wide-gamma-462206-r8-823649cf4ac3.json
 .claude-swarm/
 claude-swarm.log
 server.log
+# Google Sign-In Configuration (contains sensitive data)
+ios/Conduit/GoogleService-Info.plist

@@ -4,9 +4,11 @@ This is the iOS Hotwire Native app for the Conduit HOA management system.
 
 ## Features
 
-- **Tab Navigation**: Two tabs for Home (main app) and Chat (Element/Matrix)
+- **Native Authentication**: iOS-native login screen with email/password and Google Sign-In
+- **Tab Navigation**: Three tabs - Home (main app), Chat (Stream Chat), and Profile
 - **Hotwire Native**: Full Rails app functionality in a native iOS shell
-- **Element Web Integration**: Secure, private community chat via Matrix
+- **Stream Chat Integration**: Native iOS SDK for real-time community messaging
+- **Secure Session Management**: Cookie synchronization between native and web contexts
 
 ## Requirements
 
@@ -16,14 +18,32 @@ This is the iOS Hotwire Native app for the Conduit HOA management system.
 
 ## Setup Instructions
 
-### 1. Install Dependencies
+### 1. Configure Google Sign-In (REQUIRED)
+
+The `GoogleService-Info.plist` file contains sensitive API keys and is NOT committed to version control. You must set this up:
+
+a. Copy the template file:
+```bash
+cp Conduit/Conduit/GoogleService-Info.plist.template Conduit/Conduit/GoogleService-Info.plist
+```
+
+b. Obtain your Google OAuth credentials:
+- Go to [Google Cloud Console](https://console.cloud.google.com)
+- Create or select your project
+- Enable the Google Sign-In API
+- Create OAuth 2.0 credentials for iOS
+- Download the `GoogleService-Info.plist`
+
+c. Replace the template values in your local `GoogleService-Info.plist` with your actual credentials
+
+### 2. Install Dependencies
 
 ```bash
 cd ios/Conduit
 swift package resolve
 ```
 
-### 2. Open in Xcode
+### 3. Open in Xcode
 
 ```bash
 open Conduit.xcodeproj
@@ -116,7 +136,25 @@ Conduit/
 - Camera/microphone permissions for future video calls
 - Secure Matrix messaging
 
+## Security Notes
+
+⚠️ **IMPORTANT**: Never commit `GoogleService-Info.plist` to version control as it contains sensitive API keys.
+
+For production apps:
+1. **Restrict API key usage in Google Cloud Console:**
+   - Add iOS app bundle ID restrictions
+   - Limit to specific APIs only
+   - Set up quota limits and alerts
+
+2. **Use environment-specific configurations** for different API keys (development/staging/production)
+
 ## Troubleshooting
+
+### Google Sign-In Not Working
+- Verify `GoogleService-Info.plist` exists and contains valid credentials
+- Check that URL schemes are properly configured in Info.plist
+- Ensure bundle ID matches your Google OAuth configuration
+- Verify the REVERSED_CLIENT_ID URL scheme is in Info.plist
 
 ### SSL Certificate Issues (Development)
 The app is configured to accept localhost connections. For production, ensure you have valid SSL certificates.
@@ -124,14 +162,15 @@ The app is configured to accept localhost connections. For production, ensure yo
 ### Authentication Issues
 If you encounter authentication problems:
 1. Ensure cookies are enabled
-2. Check that the Rails session is properly configured
-3. Verify the authentication flow works in Safari first
+2. Check that the Rails API endpoints are accessible
+3. Verify cookie synchronization between HTTPCookieStorage and WKWebsiteDataStore
+4. Check AuthenticationManager for any session persistence issues
 
-### Element Web Loading Issues
-If Element doesn't load:
-1. Verify Element Web files are in `public/element/`
-2. Check that the iframe src in the Rails view is correct
-3. Ensure proper CORS headers are configured
+### Stream Chat Loading Issues
+If Stream Chat doesn't load:
+1. Verify Stream API keys are configured in Rails
+2. Check that the token endpoint returns a valid JWT
+3. Ensure StreamChatLauncherViewController properly handles token fetching
 
 ## Production Deployment
 

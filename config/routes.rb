@@ -3,6 +3,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       post "login", to: "auth#login"
+      post "google_auth", to: "auth#google_auth"
       get "auth/check", to: "auth#check"
       delete "logout", to: "auth#logout"
     end

@@ -1,5 +1,6 @@
 import UIKit
 import HotwireNative
+import GoogleSignIn
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
@@ -92,6 +93,21 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         } else {
             window?.rootViewController = tabBarController
         }
+    }
+
+    // MARK: - URL Handling for Google Sign-In
+
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else { return }
+        print("SceneDelegate: Handling URL: \(url)")
+
+        // Handle Google Sign-In callback
+        if GIDSignIn.sharedInstance.handle(url) {
+            print("SceneDelegate: URL handled by Google Sign-In")
+            return
+        }
+
+        print("SceneDelegate: URL not handled")
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
