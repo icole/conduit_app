@@ -15,7 +15,7 @@ namespace :stream_chat do
     StreamChatClient.client.upsert_user({
       id: user.id.to_s,
       name: user.name,
-      role: 'admin'
+      role: "admin"
     })
 
     if StreamChannelService.setup_default_channels(user)

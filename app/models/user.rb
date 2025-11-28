@@ -1,4 +1,4 @@
-require 'digest'
+require "digest"
 
 class User < ApplicationRecord
   has_secure_password validations: false
@@ -70,7 +70,7 @@ class User < ApplicationRecord
       id: stream_user_id,
       name: name,
       image: avatar_url || gravatar_url,
-      role: admin? ? 'admin' : 'user',
+      role: admin? ? "admin" : "user",
       email: email
     }
   end
