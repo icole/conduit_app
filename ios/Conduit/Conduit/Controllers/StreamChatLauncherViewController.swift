@@ -143,9 +143,9 @@ class StreamChatLauncherViewController: UIViewController {
                     apiKey: tokenData.apiKey
                 )
 
-                // Push Stream Chat view controller
+                // Replace the launcher with Stream Chat view controller (no back button needed)
                 print("Presenting Stream Chat view controller")
-                self.navigationController?.pushViewController(streamChatVC, animated: true)
+                self.navigationController?.setViewControllers([streamChatVC], animated: true)
             }
         }
     }
@@ -223,9 +223,7 @@ class StreamChatLauncherViewController: UIViewController {
             self.launchStreamChat()
         })
 
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
-            self.navigationController?.popViewController(animated: true)
-        })
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
 
         present(alert, animated: true)
     }

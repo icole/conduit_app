@@ -39,19 +39,11 @@ class StreamChatViewController: UIViewController {
     }
 
     private func setupNavigationBar() {
-        // Show navigation bar with a back button
+        // Show navigation bar without back button (accessed via tabs)
         navigationController?.setNavigationBarHidden(false, animated: false)
         navigationItem.title = "Community Chat"
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            title: "Back",
-            style: .plain,
-            target: self,
-            action: #selector(backButtonTapped)
-        )
-    }
-
-    @objc private func backButtonTapped() {
-        navigationController?.popViewController(animated: true)
+        // No back button needed - this is accessed via tab bar
+        navigationItem.hidesBackButton = true
     }
 
     override func viewWillAppear(_ animated: Bool) {
