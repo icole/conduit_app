@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'stream-chat'
+require "stream-chat"
 
 # Stream Chat configuration wrapper
 # You'll need to create a free Stream account at https://getstream.io/
@@ -16,11 +16,11 @@ module StreamChatClient
     end
 
     def api_key
-      ENV['STREAM_API_KEY'] || Rails.application.credentials.dig(:stream, :api_key)
+      ENV["STREAM_API_KEY"] || Rails.application.credentials.dig(:stream, :api_key)
     end
 
     def api_secret
-      ENV['STREAM_API_SECRET'] || Rails.application.credentials.dig(:stream, :api_secret)
+      ENV["STREAM_API_SECRET"] || Rails.application.credentials.dig(:stream, :api_secret)
     end
   end
 end

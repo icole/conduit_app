@@ -34,7 +34,7 @@ namespace :stream do
         # Try to get server-side settings as a connection test
         response = client.get_app_settings
         puts "✅ Stream Chat connection successful!"
-        puts "App name: #{response['app']['name']}" if response['app']
+        puts "App name: #{response['app']['name']}" if response["app"]
       rescue => e
         puts "❌ Stream Chat connection failed: #{e.message}"
       end

@@ -3,8 +3,8 @@
 module Api
   module V1
     class AuthController < ApplicationController
-      skip_before_action :verify_authenticity_token, only: [:login, :logout, :google_auth]
-      skip_before_action :authenticate_user!, only: [:login, :google_auth]
+      skip_before_action :verify_authenticity_token, only: [ :login, :logout, :google_auth ]
+      skip_before_action :authenticate_user!, only: [ :login, :google_auth ]
 
       # POST /api/v1/login
       def login

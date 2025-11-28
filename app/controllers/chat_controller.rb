@@ -1,8 +1,8 @@
 class ChatController < ApplicationController
   include TurboNative
 
-  before_action :authenticate_user!, except: [:debug]
-  before_action :ensure_stream_configured, except: [:debug]
+  before_action :authenticate_user!, except: [ :debug ]
+  before_action :ensure_stream_configured, except: [ :debug ]
 
   # GET /chat
   def index
@@ -48,8 +48,8 @@ class ChatController < ApplicationController
   def debug
     render json: {
       stream_configured: StreamChatClient.configured?,
-      api_key_present: ENV['STREAM_API_KEY'].present?,
-      api_secret_present: ENV['STREAM_API_SECRET'].present?,
+      api_key_present: ENV["STREAM_API_KEY"].present?,
+      api_secret_present: ENV["STREAM_API_SECRET"].present?,
       turbo_native_app: turbo_native_app?,
       user_agent: request.user_agent,
       authenticated: user_signed_in?,
@@ -75,7 +75,7 @@ class ChatController < ApplicationController
       id: current_user.id.to_s,
       name: current_user.name,
       image: current_user.avatar_url,
-      role: current_user.admin? ? 'admin' : 'user'
+      role: current_user.admin? ? "admin" : "user"
     })
   rescue StreamChat::StreamAPIException => e
     Rails.logger.error "Failed to sync user to Stream: #{e.message}"

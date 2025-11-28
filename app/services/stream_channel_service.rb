@@ -5,16 +5,16 @@ class StreamChannelService
 
     # Define default HOA channels
     channels = [
-      { id: 'general', name: 'General Discussion', description: 'General community discussions' },
-      { id: 'announcements', name: 'Announcements', description: 'Important HOA announcements' },
-      { id: 'maintenance', name: 'Maintenance', description: 'Building maintenance and issues' },
-      { id: 'events', name: 'Events', description: 'Community events and gatherings' }
+      { id: "general", name: "General Discussion", description: "General community discussions" },
+      { id: "announcements", name: "Announcements", description: "Important HOA announcements" },
+      { id: "maintenance", name: "Maintenance", description: "Building maintenance and issues" },
+      { id: "events", name: "Events", description: "Community events and gatherings" }
     ]
 
     channels.each do |channel_data|
       begin
         # Create or get the channel
-        channel = client.channel('team', channel_id: channel_data[:id])
+        channel = client.channel("team", channel_id: channel_data[:id])
 
         # Query the channel first to see if it exists
         channel.query(user_id: user.id.to_s)
@@ -26,7 +26,7 @@ class StreamChannelService
         })
 
         # Add user as member
-        channel.add_members([user.id.to_s])
+        channel.add_members([ user.id.to_s ])
 
         Rails.logger.info "Created/updated channel: #{channel_data[:name]}"
       rescue StreamChat::StreamAPIException => e
@@ -41,7 +41,7 @@ class StreamChannelService
           )
 
           # Add user as member if not already
-          channel.add_members([user.id.to_s])
+          channel.add_members([ user.id.to_s ])
           Rails.logger.info "Updated channel: #{channel_data[:name]}"
         else
           Rails.logger.error "Failed to create channel #{channel_data[:id]}: #{e.message}"
@@ -60,8 +60,8 @@ class StreamChannelService
 
     %w[general announcements maintenance events].each do |channel_id|
       begin
-        channel = client.channel('team', channel_id: channel_id)
-        channel.add_members([user.id.to_s])
+        channel = client.channel("team", channel_id: channel_id)
+        channel.add_members([ user.id.to_s ])
       rescue => e
         Rails.logger.warn "Could not add user to channel #{channel_id}: #{e.message}"
       end
