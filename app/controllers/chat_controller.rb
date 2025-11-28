@@ -26,15 +26,30 @@ class ChatController < ApplicationController
   # GET /chat/token
   # API endpoint for mobile app to get Stream token
   def token
-    render json: {
-      token: generate_stream_token,
-      user: {
-        id: current_user.id.to_s,
-        name: current_user.name,
-        avatar: current_user.avatar_url
-      },
-      api_key: StreamChatClient.api_key
-    }
+    respond_to do |format|
+      format.json do
+        render json: {
+          token: generate_stream_token,
+          user: {
+            id: current_user.id.to_s,
+            name: current_user.name,
+            avatar: current_user.avatar_url
+          },
+          api_key: StreamChatClient.api_key
+        }
+      end
+      format.any do
+        render json: {
+          token: generate_stream_token,
+          user: {
+            id: current_user.id.to_s,
+            name: current_user.name,
+            avatar: current_user.avatar_url
+          },
+          api_key: StreamChatClient.api_key
+        }
+      end
+    end
   end
 
   # GET /chat/test_native

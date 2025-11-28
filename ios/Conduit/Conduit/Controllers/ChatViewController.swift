@@ -114,8 +114,8 @@ class ChatViewController: HotwireNativeViewController {
     }
 
     private func fetchStreamToken(completion: @escaping ((userId: String, userName: String, userAvatar: String?, token: String, apiKey: String)?) -> Void) {
-        // Get token URL from AppConfig
-        let tokenURL = AppConfig.baseURL.appendingPathComponent("chat/token")
+        // Get token URL from AppConfig - add .json extension for Rails
+        let tokenURL = AppConfig.baseURL.appendingPathComponent("chat/token.json")
 
         // Get cookies from the WebView's cookie store
         let cookieStore = visitableView.webView?.configuration.websiteDataStore.httpCookieStore
