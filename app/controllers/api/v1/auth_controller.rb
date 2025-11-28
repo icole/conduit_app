@@ -14,6 +14,11 @@ module Api
           # Set session for the user
           session[:user_id] = user.id
 
+          # For mobile apps, ensure cookie persists
+          if request.user_agent&.include?("Conduit")
+            session.options[:expire_after] = 30.days
+          end
+
           render json: {
             success: true,
             user: {
@@ -92,8 +97,13 @@ module Api
             user.save!
           end
 
-          # Set session
+          # Set session with extended expiry for mobile apps
           session[:user_id] = user.id
+
+          # For mobile apps, ensure cookie persists
+          if request.user_agent&.include?("Conduit")
+            session.options[:expire_after] = 30.days
+          end
 
           render json: {
             success: true,
