@@ -59,27 +59,36 @@ module Api
           name = params[:name]
           image_url = params[:image_url]
 
-          # Find or create user from Google OAuth
-          user = User.where(email: email.downcase).first_or_initialize do |u|
-            u.name = name
-            u.password = SecureRandom.hex(16) # Random password for OAuth users
-            u.provider = "google_oauth2"
-            u.uid = params[:email] # Using email as UID for simplicity
-            u.avatar_url = image_url
-          end
+          # First, check if user already exists with this email (regardless of provider)
+          user = User.find_by(email: email.downcase)
 
-          # Update user info if it changed
-          if user.persisted?
+          Rails.logger.info "Google Auth: email=#{email}, existing_user=#{user.present?}"
+
+          if user
+            # Existing user - update their OAuth info if not already set
             user.update(
-              name: name,
-              avatar_url: image_url
-            ) if user.name != name || user.avatar_url != image_url
+              provider: user.provider || "google_oauth2",
+              uid: user.uid || params[:email],
+              avatar_url: user.avatar_url.presence || image_url,
+              name: user.name.presence || name
+            )
           else
-            # New user - check invitation requirement
+            # New user - create with Google OAuth info
+            user = User.new(
+              email: email.downcase,
+              name: name,
+              password: SecureRandom.hex(16), # Random password for OAuth users
+              provider: "google_oauth2",
+              uid: params[:email], # Using email as UID for simplicity
+              avatar_url: image_url
+            )
+
+            # Check invitation requirement only for truly new users
             if !Rails.env.test? && !User.valid_invitation?(params[:invitation_token])
               render json: { error: "Access restricted to invited users only" }, status: :forbidden
               return
             end
+
             user.save!
           end
 
