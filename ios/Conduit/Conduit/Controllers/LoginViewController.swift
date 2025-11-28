@@ -349,11 +349,7 @@ class LoginViewController: UIViewController {
         loginButton.isEnabled = false
 
         // Create request to Rails backend
-        #if DEBUG
-        let googleAuthURL = URL(string: "http://localhost:3000/api/v1/google_auth")!
-        #else
-        let googleAuthURL = URL(string: "https://your-production-url.com/api/v1/google_auth")!
-        #endif
+        let googleAuthURL = AppConfig.baseURL.appendingPathComponent("api/v1/google_auth")
 
         var request = URLRequest(url: googleAuthURL)
         request.httpMethod = "POST"
@@ -414,11 +410,7 @@ class LoginViewController: UIViewController {
 
     private func performLogin(email: String, password: String) {
         // Create login URL
-        #if DEBUG
-        let loginURL = URL(string: "http://localhost:3000/api/v1/login")!
-        #else
-        let loginURL = URL(string: "https://your-production-url.com/api/v1/login")!
-        #endif
+        let loginURL = AppConfig.baseURL.appendingPathComponent("api/v1/login")
 
         // Create request
         var request = URLRequest(url: loginURL)

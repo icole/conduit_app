@@ -7,12 +7,8 @@ class TabBarController: UITabBarController {
     // Callback for logout
     var onLogout: (() -> Void)?
 
-    // Define base URLs - adjust for production
-    #if DEBUG
-    private let baseURL = URL(string: "http://localhost:3000")!
-    #else
-    private let baseURL = URL(string: "https://your-production-url.com")!
-    #endif
+    // Use centralized configuration for base URL
+    private let baseURL = AppConfig.baseURL
 
     // Shared configuration for all tabs to maintain authentication state
     private lazy var sharedWebViewConfiguration: WKWebViewConfiguration = {
@@ -25,7 +21,7 @@ class TabBarController: UITabBarController {
     // Shared session for all tabs
     private lazy var sharedSession: Session = {
         let session = Session(webViewConfiguration: sharedWebViewConfiguration)
-        session.webView.customUserAgent = "Conduit iOS (Turbo Native)"
+        session.webView.customUserAgent = AppConfig.userAgent
         return session
     }()
 

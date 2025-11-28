@@ -93,3 +93,6 @@ iOSInjectionProject/
 
 # Google Services Configuration (contains API keys)
 GoogleService-Info.plist
+
+# App Configuration (contains production URLs)
+Config.plist

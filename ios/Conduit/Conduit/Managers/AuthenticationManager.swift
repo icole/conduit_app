@@ -20,11 +20,7 @@ class AuthenticationManager {
 
     /// Check authentication status with the server
     func checkAuthenticationStatus(completion: @escaping (Bool) -> Void) {
-        #if DEBUG
-        let authCheckURL = URL(string: "http://localhost:3000/api/v1/auth/check")!
-        #else
-        let authCheckURL = URL(string: "https://your-production-url.com/api/v1/auth/check")!
-        #endif
+        let authCheckURL = AppConfig.baseURL.appendingPathComponent("api/v1/auth/check")
 
         var request = URLRequest(url: authCheckURL)
         request.httpMethod = "GET"
