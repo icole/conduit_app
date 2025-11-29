@@ -18,6 +18,9 @@ class HotwireNativeViewController: VisitableViewController {
     }
 
     private func configureWebViewLayout() {
+        // Check if this is the Home tab
+        let isHomeTab = tabBarController?.selectedIndex == 0
+
         // Ensure the web view respects safe area layout guides
         if let webView = visitableView.webView {
             // Make the scroll view adjust for safe areas automatically
@@ -27,21 +30,39 @@ class HotwireNativeViewController: VisitableViewController {
             webView.scrollView.scrollIndicatorInsets = webView.scrollView.safeAreaInsets
         }
 
-        // Set edges for extended layout to avoid content under bars
-        edgesForExtendedLayout = []
-
-        // Ensure the view controller's view respects safe areas
-        extendedLayoutIncludesOpaqueBars = false
+        if isHomeTab {
+            // Home tab: Allow content to extend to top but respect safe area
+            edgesForExtendedLayout = .top
+            extendedLayoutIncludesOpaqueBars = true
+        } else {
+            // Other tabs: Don't extend under navigation bar
+            edgesForExtendedLayout = []
+            extendedLayoutIncludesOpaqueBars = false
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        // Ensure proper navigation bar appearance
-        navigationController?.setNavigationBarHidden(false, animated: false)
+        // Hide navigation bar for Home tab (index 0), show for others
+        if let tabBarController = tabBarController,
+           tabBarController.selectedIndex == 0 {
+            // Home tab - hide navigation bar for more screen space
+            navigationController?.setNavigationBarHidden(true, animated: animated)
+        } else {
+            // Other tabs - show navigation bar if needed
+            navigationController?.setNavigationBarHidden(false, animated: animated)
+        }
 
         // Re-apply layout configuration when view appears
         configureWebViewLayout()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+
+        // Reset navigation bar when leaving this view
+        navigationController?.setNavigationBarHidden(false, animated: false)
     }
 
     // Note: Error handling is done at the SessionDelegate level in Navigator
