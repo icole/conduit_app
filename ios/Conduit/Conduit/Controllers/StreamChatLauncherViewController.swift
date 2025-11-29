@@ -38,13 +38,37 @@ class StreamChatLauncherViewController: UIViewController {
         // Show navigation bar
         navigationController?.setNavigationBarHidden(false, animated: false)
 
-        // Launch Stream Chat if we haven't already
-        if !hasLaunchedChat {
+        print("📱 StreamChatLauncherViewController: viewWillAppear (hasLaunchedChat: \(hasLaunchedChat))")
+
+        // Check if we already have a connected Stream Chat client
+        if let existingClient = ChatManager.shared.chatClient,
+           existingClient.currentUserId != nil {
+            print("✅ StreamChatLauncherViewController: Found existing Stream Chat connection")
+
+            // Check if we've already navigated to Stream Chat
+            if let navigationController = navigationController,
+               navigationController.viewControllers.count > 1,
+               navigationController.viewControllers.last is StreamChatViewController {
+                print("✅ StreamChatLauncherViewController: Stream Chat already displayed")
+                return
+            }
+
+            // Navigate directly to Stream Chat view controller
+            if !hasLaunchedChat {
+                hasLaunchedChat = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                    self?.navigateToStreamChat(useExistingConnection: true)
+                }
+            }
+        } else if !hasLaunchedChat {
             hasLaunchedChat = true
+            print("🔄 StreamChatLauncherViewController: First launch, fetching token")
             // Delay slightly to ensure view is fully loaded
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
                 self?.launchStreamChat()
             }
+        } else {
+            print("⚠️ StreamChatLauncherViewController: Already launched but no connection")
         }
     }
 
@@ -117,7 +141,7 @@ class StreamChatLauncherViewController: UIViewController {
     }
 
     private func launchStreamChat() {
-        print("StreamChatLauncherViewController: Launching Stream Chat")
+        print("StreamChatLauncherViewController: Launching Stream Chat (fetching token)")
 
         fetchStreamToken { [weak self] tokenData in
             guard let self = self,
@@ -134,20 +158,60 @@ class StreamChatLauncherViewController: UIViewController {
                 print("Successfully fetched Stream token for user: \(tokenData.userId)")
                 print("API Key: \(tokenData.apiKey)")
 
-                // Create and present Stream Chat view controller
-                let streamChatVC = StreamChatViewController(
+                // Navigate to Stream Chat with token data
+                self.navigateToStreamChat(
                     userId: tokenData.userId,
                     userName: tokenData.userName,
                     userAvatar: tokenData.userAvatar,
                     token: tokenData.token,
                     apiKey: tokenData.apiKey
                 )
-
-                // Replace the launcher with Stream Chat view controller (no back button needed)
-                print("Presenting Stream Chat view controller")
-                self.navigationController?.setViewControllers([streamChatVC], animated: true)
             }
         }
+    }
+
+    private func navigateToStreamChat(useExistingConnection: Bool = false,
+                                     userId: String? = nil,
+                                     userName: String? = nil,
+                                     userAvatar: String? = nil,
+                                     token: String? = nil,
+                                     apiKey: String? = nil) {
+        print("StreamChatLauncherViewController: Navigating to Stream Chat (existing: \(useExistingConnection))")
+
+        let streamChatVC: StreamChatViewController
+
+        if useExistingConnection,
+           let client = ChatManager.shared.chatClient,
+           let currentUserId = client.currentUserId {
+            // Use existing connection - pass minimal info
+            streamChatVC = StreamChatViewController(
+                userId: currentUserId,
+                userName: "",  // Will be fetched from existing client
+                userAvatar: nil,
+                token: nil,  // No token needed for existing connection
+                apiKey: nil  // No API key needed for existing connection
+            )
+        } else if let userId = userId,
+                  let userName = userName,
+                  let token = token,
+                  let apiKey = apiKey {
+            // Create new connection with provided data
+            streamChatVC = StreamChatViewController(
+                userId: userId,
+                userName: userName,
+                userAvatar: userAvatar,
+                token: token,
+                apiKey: apiKey
+            )
+        } else {
+            print("Error: Missing required data for Stream Chat")
+            showError("Failed to load chat. Please try again.")
+            return
+        }
+
+        // Replace the launcher with Stream Chat view controller (no back button needed)
+        print("Presenting Stream Chat view controller")
+        self.navigationController?.setViewControllers([streamChatVC], animated: true)
     }
 
     private func fetchStreamToken(completion: @escaping ((userId: String, userName: String, userAvatar: String?, token: String, apiKey: String)?) -> Void) {

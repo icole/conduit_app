@@ -85,9 +85,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         // Add logout handler
         tabBarController.onLogout = { [weak self] in
+            // Disconnect Stream Chat before logging out
+            ChatManager.shared.disconnect()
             AuthenticationManager.shared.logout()
             self?.showLoginScreen()
         }
+
+        // Setup notification observer for push notification taps
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(openChatTab),
+            name: Notification.Name("OpenChatTab"),
+            object: nil
+        )
 
         // Animate transition if window already has a root view controller
         if window?.rootViewController != nil {
@@ -97,6 +107,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         } else {
             window?.rootViewController = tabBarController
         }
+    }
+
+    @objc private func openChatTab() {
+        // Switch to chat tab (index 1)
+        tabBarController?.selectedIndex = 1
     }
 
     // MARK: - URL Handling for Google Sign-In

@@ -33,6 +33,7 @@ class TabBarController: UITabBarController {
 
         setupTabs()
         configureAppearance()
+        self.delegate = self
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -176,6 +177,34 @@ class TabBarController: UITabBarController {
 
             tabBar.standardAppearance = appearance
             tabBar.scrollEdgeAppearance = appearance
+        }
+    }
+}
+
+// MARK: - UITabBarControllerDelegate
+extension TabBarController: UITabBarControllerDelegate {
+    func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+        if let selectedIndex = viewControllers?.firstIndex(of: viewController) {
+            print("📊 TabBar: User tapped tab \(selectedIndex)")
+        }
+        return true
+    }
+
+    func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
+        if let selectedIndex = viewControllers?.firstIndex(of: viewController) {
+            print("✅ TabBar: Switched to tab \(selectedIndex)")
+
+            // Log which tab was selected
+            switch selectedIndex {
+            case 0:
+                print("  → Home tab selected")
+            case 1:
+                print("  → Chat tab selected")
+            case 2:
+                print("  → Profile tab selected")
+            default:
+                break
+            }
         }
     }
 }

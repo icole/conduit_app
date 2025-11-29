@@ -5,7 +5,6 @@ import StreamChatUI
 class StreamChatViewController: UIViewController {
 
     // Stream Chat components
-    private var chatClient: ChatClient?
     private var channelListController: ChatChannelListVC?
 
     // User info passed from Rails
@@ -44,16 +43,225 @@ class StreamChatViewController: UIViewController {
         navigationItem.title = "Community Chat"
         // No back button needed - this is accessed via tab bar
         navigationItem.hidesBackButton = true
+
+        // Add debug button for testing push notifications
+        #if DEBUG
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "Debug",
+            style: .plain,
+            target: self,
+            action: #selector(showDebugMenu)
+        )
+        #endif
+    }
+
+    @objc private func showDebugMenu() {
+        let alert = UIAlertController(title: "Push Notification Debug", message: nil, preferredStyle: .actionSheet)
+
+        alert.addAction(UIAlertAction(title: "Check Device Registration", style: .default) { _ in
+            self.checkRegisteredDevices()
+            self.checkPushProviders()
+        })
+
+        alert.addAction(UIAlertAction(title: "Re-register Device Token", style: .default) { _ in
+            print("🔄 Manually re-registering device token...")
+            if let token = UserDefaults.standard.data(forKey: "pendingDeviceToken") {
+                let tokenHex = token.map { String(format: "%02.2hhx", $0) }.joined()
+                print("  → Found stored token: \(tokenHex.prefix(20))...")
+                print("  → Forcing registration with Stream...")
+
+                // Force registration even if it was already tried
+                UserDefaults.standard.removeObject(forKey: "deviceTokenRegistered")
+                ChatManager.shared.registerDeviceToken(token)
+            } else {
+                print("  ❌ No stored device token found")
+                print("  💡 Requesting new token from iOS...")
+                UIApplication.shared.registerForRemoteNotifications()
+            }
+        })
+
+        alert.addAction(UIAlertAction(title: "Show Stream User ID", style: .default) { _ in
+            if let client = ChatManager.shared.chatClient {
+                print("📊 Stream Chat Debug Info:")
+                print("  → User ID: \(client.currentUserId ?? "none")")
+                print("  → Connection status: \(client.connectionStatus)")
+                print("  → API Key: \(client.config.apiKey.apiKeyString)")
+
+                // Check notification settings
+                print("\n📱 iOS Notification Settings:")
+                UNUserNotificationCenter.current().getNotificationSettings { settings in
+                    print("  → Authorization: \(settings.authorizationStatus.rawValue)")
+                    print("  → Alert: \(settings.alertSetting.rawValue)")
+                    print("  → Sound: \(settings.soundSetting.rawValue)")
+                    print("  → Badge: \(settings.badgeSetting.rawValue)")
+                    print("  → Critical Alert: \(settings.criticalAlertSetting.rawValue)")
+                    print("  → Notification Center: \(settings.notificationCenterSetting.rawValue)")
+                    print("  → Lock Screen: \(settings.lockScreenSetting.rawValue)")
+                }
+
+                print("\n🔧 Build Configuration:")
+                #if DEBUG
+                print("  → Build: DEBUG (Development)")
+                #else
+                print("  → Build: RELEASE (Production)")
+                #endif
+
+                print("\n💡 Testing Tips:")
+                print("  1. Send message from DIFFERENT user (not User ID: \(client.currentUserId ?? "?"))")
+                print("  2. Put app in BACKGROUND first")
+                print("  3. Check Stream Dashboard > Push Notifications > Logs")
+                print("  4. Verify APNs certificate is for Production environment")
+            }
+        })
+
+        alert.addAction(UIAlertAction(title: "Test Local Notification", style: .default) { _ in
+            self.testLocalNotification()
+        })
+
+        alert.addAction(UIAlertAction(title: "Send Test Message", style: .default) { _ in
+            self.sendTestMessage()
+        })
+
+        alert.addAction(UIAlertAction(title: "Unregister All Devices", style: .destructive) { _ in
+            self.unregisterAllDevices()
+        })
+
+        alert.addAction(UIAlertAction(title: "Clear Device Token", style: .destructive) { _ in
+            print("🗑️ Clearing stored device token...")
+            UserDefaults.standard.removeObject(forKey: "pendingDeviceToken")
+            UserDefaults.standard.removeObject(forKey: "deviceTokenRegistered")
+            UserDefaults.standard.removeObject(forKey: "deviceTokenRegisteredAt")
+            print("  → Cleared. Delete and reinstall app for fresh start.")
+        })
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        if let popover = alert.popoverPresentationController {
+            popover.barButtonItem = navigationItem.rightBarButtonItem
+        }
+
+        present(alert, animated: true)
+    }
+
+    private func testLocalNotification() {
+        print("🔔 Testing local notification...")
+
+        let content = UNMutableNotificationContent()
+        content.title = "Test Notification"
+        content.body = "If you see this, notifications are working locally"
+        content.sound = .default
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+        let request = UNNotificationRequest(identifier: "test", content: content, trigger: trigger)
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("  ❌ Error scheduling local notification: \(error)")
+            } else {
+                print("  ✅ Local notification scheduled (will show in 2 seconds)")
+            }
+        }
+    }
+
+    private func unregisterAllDevices() {
+        print("🗑️ Unregistering all devices from Stream...")
+
+        guard let client = ChatManager.shared.chatClient else {
+            print("  ❌ No chat client available")
+            return
+        }
+
+        let controller = client.currentUserController()
+        controller.synchronize { error in
+            if let error = error {
+                print("  ❌ Error fetching devices: \(error)")
+                return
+            }
+
+            let devices = controller.currentUser?.devices ?? []
+            print("  📱 Found \(devices.count) device(s) to unregister")
+
+            if devices.isEmpty {
+                print("  ℹ️ No devices to unregister")
+                return
+            }
+
+            // Unregister each device
+            for (index, device) in devices.enumerated() {
+                print("  Unregistering device \(index + 1): \(device.id)")
+
+                controller.removeDevice(id: device.id) { error in
+                    if let error = error {
+                        print("    ❌ Failed: \(error)")
+                    } else {
+                        print("    ✅ Unregistered successfully")
+                    }
+                }
+            }
+
+            // Clear local storage
+            UserDefaults.standard.removeObject(forKey: "pendingDeviceToken")
+            UserDefaults.standard.removeObject(forKey: "deviceTokenRegistered")
+            UserDefaults.standard.removeObject(forKey: "deviceTokenRegisteredAt")
+
+            print("\n  💡 Next steps:")
+            print("     1. Force quit the app")
+            print("     2. Relaunch to get fresh token")
+            print("     3. Token will auto-register with correct environment")
+        }
+    }
+
+    private func sendTestMessage() {
+        print("💬 Sending test message to general channel...")
+
+        guard let client = ChatManager.shared.chatClient else {
+            print("  ❌ No chat client available")
+            return
+        }
+
+        // Get or create the general channel
+        let channelId = ChannelId(type: .team, id: "general")
+        let channelController = client.channelController(for: channelId)
+
+        // Create channel if it doesn't exist
+        channelController.synchronize { error in
+            if let error = error {
+                print("  ❌ Error getting channel: \(error)")
+                return
+            }
+
+            // Send a test message
+            let text = "Push notification test at \(Date())"
+            channelController.createNewMessage(text: text) { result in
+                switch result {
+                case .success(let messageId):
+                    print("  ✅ Test message sent successfully!")
+                    print("     Message ID: \(messageId)")
+                    print("     Channel: general")
+                    print("     Text: \(text)")
+                    print("\n  💡 Instructions:")
+                    print("     1. Now close the app (swipe up to app switcher)")
+                    print("     2. Have another user reply to this message")
+                    print("     3. You should receive a push notification")
+                    print("     4. Check Stream Dashboard > Push Logs for attempts")
+
+                case .failure(let error):
+                    print("  ❌ Failed to send message: \(error)")
+                }
+            }
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: false)
+        print("📱 StreamChatViewController: viewWillAppear")
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        // Clean up Stream Chat connection if needed
+        // Don't disconnect Stream Chat - keep the connection alive for push notifications
+        // The ChatManager maintains the singleton connection
     }
 
     private func setupStreamChat() {
@@ -64,8 +272,19 @@ class StreamChatViewController: UIViewController {
         // Show loading indicator
         showLoading()
 
-        // If token and API key were provided, use them directly
-        if let token = self.token, let apiKey = self.apiKey {
+        // Check if we already have an existing connection
+        if token == nil && apiKey == nil,
+           let existingClient = ChatManager.shared.chatClient,
+           existingClient.currentUserId == userId {
+            print("Using existing Stream Chat connection without fetching new token")
+            // Already connected, just setup the UI
+            DispatchQueue.main.async { [weak self] in
+                self?.setupChannelList()
+                self?.registerPendingDeviceToken()
+                self?.hideLoading()
+            }
+        } else if let token = self.token, let apiKey = self.apiKey {
+            // If token and API key were provided, use them directly
             print("Using provided token and API key")
             let userData = UserData(
                 id: userId,
@@ -137,17 +356,43 @@ class StreamChatViewController: UIViewController {
     }
 
     private func initializeStreamChat(with tokenData: TokenData) {
-        print("StreamChatViewController: initializeStreamChat called")
+        print("StreamChatViewController: initializeStreamChat called at \(Date())")
         print("User ID: \(tokenData.user.id)")
         print("User Name: \(tokenData.user.name)")
         print("API Key: \(tokenData.apiKey)")
 
-        // Configure Stream Chat
-        let config = ChatClientConfig(apiKey: .init(tokenData.apiKey))
+        // Check if ChatManager already has a connected client for this user
+        if let existingClient = ChatManager.shared.chatClient {
+            print("Found existing client. Current user: \(existingClient.currentUserId ?? "nil")")
 
-        // Initialize chat client
-        chatClient = ChatClient(config: config)
-        print("Chat client initialized")
+            if existingClient.currentUserId == tokenData.user.id {
+                print("✅ Reusing existing Stream Chat connection for user: \(tokenData.user.id)")
+                // Just setup the channel list with existing connection
+                DispatchQueue.main.async { [weak self] in
+                    self?.setupChannelList()
+                    self?.registerPendingDeviceToken()
+                }
+                return
+            } else {
+                print("⚠️ Different user detected. Current: \(existingClient.currentUserId ?? "nil"), New: \(tokenData.user.id)")
+                // Need to disconnect and reconnect with new user
+                ChatManager.shared.disconnect()
+            }
+        }
+
+        print("🔄 Creating new Stream Chat connection...")
+
+        // Configure Stream Chat with push notifications support
+        var config = ChatClientConfig(apiKey: .init(tokenData.apiKey))
+
+        // Enable push notifications in the SDK
+        config.isLocalStorageEnabled = true
+        config.staysConnectedInBackground = true
+
+        // Initialize chat client through ChatManager
+        let chatClient = ChatClient(config: config)
+        ChatManager.shared.configure(with: chatClient)
+        print("Chat client initialized and registered with ChatManager")
 
         // Connect user
         let userInfo = UserInfo(
@@ -157,28 +402,135 @@ class StreamChatViewController: UIViewController {
         )
 
         print("Connecting user to Stream Chat...")
-        chatClient?.connectUser(
+        chatClient.connectUser(
             userInfo: userInfo,
             token: Token(stringLiteral: tokenData.token)
         ) { [weak self] error in
             DispatchQueue.main.async {
                 if let error = error {
-                    print("Stream Chat connection error: \(error)")
+                    print("❌ Stream Chat connection error: \(error)")
                     self?.showError(error)
                 } else {
-                    print("Stream Chat connected successfully")
+                    print("✅ Stream Chat connected successfully at \(Date())")
                     self?.setupChannelList()
+
+                    // Register pending device token after connection
+                    print("🔄 Checking for pending device token after connection...")
+                    self?.registerPendingDeviceToken()
+
+                    // Double-check by re-triggering registration
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                        print("🔄 Double-checking device token registration...")
+                        self?.registerPendingDeviceToken()
+                    }
                 }
             }
         }
     }
 
-    private func setupChannelList() {
-        print("StreamChatViewController: setupChannelList called")
-        guard let client = chatClient else {
-            print("Chat client is nil, cannot setup channel list")
+    private func registerPendingDeviceToken() {
+        print("📱 registerPendingDeviceToken called")
+
+        // Check current Stream client status
+        if let client = ChatManager.shared.chatClient {
+            print("  → Stream client exists, user: \(client.currentUserId ?? "none")")
+            print("  → Connection status: \(client.connectionStatus)")
+        } else {
+            print("  ❌ No Stream client available yet")
             return
         }
+
+        // Check if there's a pending device token from push notification registration
+        if let deviceToken = UserDefaults.standard.data(forKey: "pendingDeviceToken") {
+            let tokenHex = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+            print("  ✅ Found pending device token: \(tokenHex.prefix(20))...")
+            print("  📤 Registering with Stream Chat...")
+
+            // Use ChatManager's registerDeviceToken which has the correct provider name
+            ChatManager.shared.registerDeviceToken(deviceToken)
+        } else {
+            print("  ℹ️ No pending device token found in UserDefaults")
+
+            // Check if we need to request a new token
+            print("  🔄 Requesting fresh device token from iOS...")
+            DispatchQueue.main.async {
+                UIApplication.shared.registerForRemoteNotifications()
+            }
+        }
+    }
+
+    private func checkRegisteredDevices() {
+        print("🔍 Checking registered devices for push notifications...")
+
+        guard let client = ChatManager.shared.chatClient else {
+            print("  ❌ No chat client available")
+            return
+        }
+
+        let controller = client.currentUserController()
+        controller.synchronize { error in
+            if let error = error {
+                print("  ❌ Error fetching current user: \(error)")
+                return
+            }
+
+            let devices = controller.currentUser?.devices ?? []
+            print("  📱 Registered devices count: \(devices.count)")
+
+            for (index, device) in devices.enumerated() {
+                print("  Device \(index + 1):")
+                print("    → ID: \(device.id)")
+                print("    → Created: \(device.createdAt)")
+                // Note: Push provider details are not exposed in the Device model
+            }
+
+            if devices.isEmpty {
+                print("  ⚠️ No devices registered! Push notifications won't work.")
+                print("  💡 Make sure device token is being registered with Stream")
+            } else {
+                print("  ✅ Device(s) registered successfully")
+                print("  💡 Check Stream Dashboard > Push Notifications for provider details")
+            }
+        }
+    }
+
+    private func checkPushProviders() {
+        print("\n🔧 Checking Stream push provider configuration...")
+
+        print("📱 Current iOS Build Environment:")
+        #if targetEnvironment(simulator)
+        print("  → Running on: SIMULATOR (no push support)")
+        #else
+        print("  → Running on: PHYSICAL DEVICE")
+        #endif
+
+        #if DEBUG
+        print("  → Build Config: DEBUG")
+        print("  → Token Type: Development APNs tokens")
+        #else
+        print("  → Build Config: RELEASE")
+        print("  → Token Type: Production APNs tokens")
+        #endif
+
+        print("\n💡 Environment Mismatch Fix:")
+        print("  'BadEnvironmentKeyInToken' means:")
+        print("  → Your app: Sending PRODUCTION tokens (Release build)")
+        print("  → Stream expects: DEVELOPMENT tokens")
+        print("\n  Solution:")
+        print("  1. In Xcode: Click 'Conduit' scheme → Edit Scheme")
+        print("  2. Run → Info → Build Configuration → Change to 'Debug'")
+        print("  3. Delete app from phone and rebuild")
+    }
+
+    private func setupChannelList() {
+        print("StreamChatViewController: setupChannelList called")
+        guard let client = ChatManager.shared.chatClient else {
+            print("Chat client is nil in ChatManager, cannot setup channel list")
+            return
+        }
+
+        // Debug: List registered devices
+        checkRegisteredDevices()
 
         // Create channel list query
         let query = ChannelListQuery(

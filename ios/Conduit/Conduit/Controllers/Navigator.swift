@@ -4,6 +4,7 @@ internal import WebKit
 
 class Navigator: UINavigationController {
     let session: Session
+    private var cachedStreamChatViewController: UIViewController?
 
     init(session: Session? = nil) {
         self.session = session ?? Session()
@@ -45,15 +46,31 @@ class Navigator: UINavigationController {
     }
 
     private func makeViewController(for url: URL, properties: PathProperties = PathProperties()) -> UIViewController {
-        // Check if this is the chat page - use non-Hotwire launcher to avoid session conflicts
+        // Check if this is the chat page - use cached launcher or create new one
         if url.path.contains("/chat") {
-            return StreamChatLauncherViewController(url: url)
+            if let cachedVC = cachedStreamChatViewController {
+                print("🔄 Navigator: Reusing cached StreamChatLauncherViewController")
+                return cachedVC
+            } else {
+                print("🆕 Navigator: Creating new StreamChatLauncherViewController")
+                let newVC = StreamChatLauncherViewController(url: url)
+                cachedStreamChatViewController = newVC
+                return newVC
+            }
         }
 
         return HotwireNativeViewController(url: url)
     }
 
     private func navigate(to viewController: UIViewController, action: VisitAction, properties: PathProperties) {
+        // Check if we're navigating to the cached Stream Chat view that's already visible
+        if let cachedChat = cachedStreamChatViewController,
+           viewController === cachedChat,
+           viewControllers.contains(cachedChat) {
+            print("📍 Navigator: Stream Chat already visible, skipping navigation")
+            return
+        }
+
         switch action {
         case .advance:
             pushViewController(viewController, animated: true)
