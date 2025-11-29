@@ -19,21 +19,23 @@ enum AppConfig {
     static var baseURL: URL {
         let url: URL
 
-        // First, always try to load from Config.plist if it exists
-        if let configURL = loadProductionURLFromPlist() {
-            print("📋 Found Config.plist with URL: \(configURL.absoluteString)")
-            url = configURL
-        } else {
-            // Fall back to environment-based URLs
-            switch Environment.current {
-            case .development:
-                url = URL(string: "http://localhost:3000")!
-            case .production:
+        switch Environment.current {
+        case .development:
+            // In Debug mode, always use localhost
+            url = URL(string: "http://localhost:3000")!
+
+        case .production:
+            // In Release mode, try Config.plist first, then fallback
+            if let configURL = loadProductionURLFromPlist() {
+                print("📋 Found Config.plist with URL: \(configURL.absoluteString)")
+                url = configURL
+            } else {
                 // Fallback to compile-time URL if set
                 #if PRODUCTION_URL
                 url = URL(string: PRODUCTION_URL)!
                 #else
                 // Default fallback - update this or use Config.plist
+                print("⚠️ No Config.plist found and no PRODUCTION_URL set")
                 url = URL(string: "https://your-production-url.com")!
                 #endif
             }
