@@ -4,6 +4,13 @@ plugins {
     id 'com.google.gms.google-services'
 }
 
+// Load local.properties for API keys
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localProperties.load(new FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace 'com.colecoding.conduit'
     compileSdk 34
@@ -18,16 +25,31 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        debug {
+            // Uses the default debug keystore
+        }
+    }
+
     buildTypes {
         debug {
             debuggable true
             minifyEnabled false
+            // Use local server for emulator development
             buildConfigField "String", "BASE_URL", "\"http://10.0.2.2:3000\""
+            // API Keys from local.properties (not in version control)
+            buildConfigField "String", "STREAM_API_KEY", "\"${localProperties.getProperty('STREAM_API_KEY', 'YOUR_STREAM_API_KEY')}\""
+            buildConfigField "String", "GOOGLE_CLIENT_ID", "\"${localProperties.getProperty('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID')}\""
+            signingConfig signingConfigs.debug
         }
         release {
-            minifyEnabled true
+            minifyEnabled false  // Changed to false for easier debugging
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "BASE_URL", "\"https://conduit.crowwoods.com\""
+            // API Keys from local.properties (not in version control)
+            buildConfigField "String", "STREAM_API_KEY", "\"${localProperties.getProperty('STREAM_API_KEY', 'YOUR_STREAM_API_KEY')}\""
+            buildConfigField "String", "GOOGLE_CLIENT_ID", "\"${localProperties.getProperty('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID')}\""
+            signingConfig signingConfigs.debug  // Use debug signing for now
         }
     }
 

@@ -39,13 +39,16 @@ class LoginActivity : AppCompatActivity() {
     private val googleSignInLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        Log.d(TAG, "Google Sign-In result received, resultCode: ${result.resultCode}")
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
         try {
             val account = task.getResult(ApiException::class.java)
+            Log.d(TAG, "Google Sign-In successful, account: ${account?.email}")
             account?.let { handleGoogleSignIn(it) }
         } catch (e: ApiException) {
-            Log.e(TAG, "Google sign in failed", e)
-            Toast.makeText(this, "Google sign in failed", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Google sign in failed with code: ${e.statusCode}, message: ${e.message}", e)
+            showLoading(false)
+            Toast.makeText(this, "Google sign in failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -60,9 +63,12 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupGoogleSignIn() {
+        // Note: Temporarily removing requestIdToken until OAuth client is configured in Firebase
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.google_client_id))
             .requestEmail()
+            .requestProfile()
+            // Use BuildConfig for Google Client ID
+            // .requestIdToken(BuildConfig.GOOGLE_CLIENT_ID)
             .build()
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
@@ -136,16 +142,21 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun signInWithGoogle() {
+        Log.d(TAG, "Initiating Google Sign-In")
+        showLoading(true)
         val signInIntent = googleSignInClient.signInIntent
         googleSignInLauncher.launch(signInIntent)
     }
 
     private fun handleGoogleSignIn(account: GoogleSignInAccount) {
+        Log.d(TAG, "Handling Google Sign-In for account: ${account.email}")
+        Log.d(TAG, "ID Token present: ${account.idToken != null}")
         showLoading(true)
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val url = URL("${AppConfig.getBaseUrl(this@LoginActivity)}/api/v1/google_auth")
+                Log.d(TAG, "Sending Google auth request to: $url")
                 val connection = url.openConnection() as HttpURLConnection
 
                 connection.apply {
@@ -159,7 +170,8 @@ class LoginActivity : AppCompatActivity() {
                     put("email", account.email)
                     put("name", account.displayName)
                     put("image_url", account.photoUrl?.toString())
-                    put("id_token", account.idToken)
+                    // ID token not available without OAuth client configuration
+                    // put("id_token", account.idToken)
                 }
 
                 OutputStreamWriter(connection.outputStream).use {

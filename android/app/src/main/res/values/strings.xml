@@ -16,16 +16,15 @@
     <string name="logout">Logout</string>
 
     <!-- Stream Chat -->
-    <string name="stream_api_key">psybsap3ftmn</string>
+    <!-- API key moved to secrets.xml -->
     <string name="chat_loading">Loading chat...</string>
     <string name="chat_error">Failed to load chat</string>
 
     <!-- Google Sign-In -->
-    <!-- Replace with your actual Google OAuth client ID -->
-    <string name="google_client_id">YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com</string>
+    <!-- Client ID moved to secrets.xml -->
 
     <!-- URLs -->
-    <string name="base_url_debug">http://10.0.2.2:3000</string>
+    <string name="base_url_debug">https://conduit.crowwoods.com</string>
     <string name="base_url_release">https://conduit.crowwoods.com</string>
 
     <!-- Errors -->

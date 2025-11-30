@@ -130,11 +130,24 @@ module Api
       def google_auth
         # Verify the Google ID token
         begin
-          # In production, you should verify the ID token with Google
-          # For now, we'll use the provided user info
-          email = params[:email]
-          name = params[:name]
-          image_url = params[:image_url]
+          # Verify ID token if provided (more secure)
+          if params[:id_token].present?
+            verified_data = verify_google_id_token(params[:id_token])
+            if verified_data
+              email = verified_data["email"]
+              name = verified_data["name"]
+              image_url = verified_data["picture"]
+            else
+              render json: { error: "Invalid Google ID token" }, status: :unauthorized
+              return
+            end
+          else
+            # Fallback to trusting provided data (less secure, for development)
+            Rails.logger.warn "Google auth without ID token verification - less secure"
+            email = params[:email]
+            name = params[:name]
+            image_url = params[:image_url]
+          end
 
           # First, check if user already exists with this email (regardless of provider)
           user = User.find_by(email: email.downcase)
@@ -225,28 +238,42 @@ module Api
       end
 
       def generate_auth_token(user)
-        # Generate a simple JWT-like token
-        # In production, use proper JWT with expiration
-        payload = {
-          user_id: user.id,
-          email: user.email,
-          issued_at: Time.current.to_i
-        }
-
-        # Simple base64 encoding for now - in production use proper JWT
-        Base64.strict_encode64(payload.to_json)
+        # Generate secure JWT token with expiration
+        JwtService.generate_auth_token(user)
       end
 
       def verify_auth_token(token)
-        # Decode and verify the token
+        # Verify JWT token and return user
+        JwtService.verify_auth_token(token)
+      end
+
+      def verify_google_id_token(id_token)
+        # Google's Web Client ID for verification (set in environment variables)
+        client_id = ENV.fetch("GOOGLE_CLIENT_ID", "YOUR_GOOGLE_CLIENT_ID")
+
         begin
-          decoded = Base64.strict_decode64(token)
-          payload = JSON.parse(decoded)
-          User.find_by(id: payload["user_id"])
+          # Use Google's token verification endpoint
+          response = Net::HTTP.get_response(
+            URI("https://oauth2.googleapis.com/tokeninfo?id_token=#{id_token}")
+          )
+
+          if response.code == "200"
+            data = JSON.parse(response.body)
+
+            # Verify the audience matches our client ID
+            if data["aud"] == client_id
+              return data
+            else
+              Rails.logger.error "Google ID token has wrong audience: #{data['aud']}"
+            end
+          else
+            Rails.logger.error "Google ID token verification failed: #{response.code}"
+          end
         rescue => e
-          Rails.logger.error "Invalid auth token: #{e.message}"
-          nil
+          Rails.logger.error "Error verifying Google ID token: #{e.message}"
         end
+
+        nil
       end
 
       def sync_user_to_stream

@@ -21,6 +21,12 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var bottomNavigation: BottomNavigationView
 
+    // Keep fragment instances to avoid recreation
+    private val homeFragment = HomeFragment()
+    private val chatFragment = ChatFragment()
+    private val profileFragment = ProfileFragment()
+    private var activeFragment: Fragment = homeFragment
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -41,26 +47,33 @@ class MainActivity : AppCompatActivity() {
         bottomNavigation = findViewById(R.id.bottom_navigation)
         setupBottomNavigation()
 
-        // Load the default fragment
+        // Add all fragments but hide non-active ones
         if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, HomeFragment())
-                .commit()
+            supportFragmentManager.beginTransaction().apply {
+                add(R.id.fragment_container, profileFragment, "profile").hide(profileFragment)
+                add(R.id.fragment_container, chatFragment, "chat").hide(chatFragment)
+                add(R.id.fragment_container, homeFragment, "home")
+                commit()
+            }
         }
     }
 
     private fun setupBottomNavigation() {
         bottomNavigation.setOnItemSelectedListener { item ->
             val fragment: Fragment = when (item.itemId) {
-                R.id.navigation_home -> HomeFragment()
-                R.id.navigation_chat -> ChatFragment()
-                R.id.navigation_profile -> ProfileFragment()
-                else -> HomeFragment()
+                R.id.navigation_home -> homeFragment
+                R.id.navigation_chat -> chatFragment
+                R.id.navigation_profile -> profileFragment
+                else -> homeFragment
             }
 
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                .commit()
+            // Hide current, show selected
+            supportFragmentManager.beginTransaction().apply {
+                hide(activeFragment)
+                show(fragment)
+                commit()
+            }
+            activeFragment = fragment
 
             true
         }
