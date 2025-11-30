@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Conduit</string>
+
+    <!-- Navigation -->
+    <string name="navigation_home">Home</string>
+    <string name="navigation_chat">Chat</string>
+    <string name="navigation_profile">Profile</string>
+
+    <!-- Authentication -->
+    <string name="login_title">Sign In</string>
+    <string name="login_email_hint">Email</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_button">Sign In</string>
+    <string name="login_google_button">Sign in with Google</string>
+    <string name="logout">Logout</string>
+
+    <!-- Stream Chat -->
+    <string name="stream_api_key">psybsap3ftmn</string>
+    <string name="chat_loading">Loading chat...</string>
+    <string name="chat_error">Failed to load chat</string>
+
+    <!-- Google Sign-In -->
+    <!-- Replace with your actual Google OAuth client ID -->
+    <string name="google_client_id">YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com</string>
+
+    <!-- URLs -->
+    <string name="base_url_debug">http://10.0.2.2:3000</string>
+    <string name="base_url_release">https://conduit.crowwoods.com</string>
+
+    <!-- Errors -->
+    <string name="error_network">Network error. Please try again.</string>
+    <string name="error_authentication">Authentication failed</string>
+    <string name="error_unknown">An error occurred</string>
+</resources>

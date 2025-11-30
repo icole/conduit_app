@@ -83,6 +83,16 @@ class User < ApplicationRecord
     Rails.logger.error "Failed to sync user #{id} to Stream Chat: #{e.message}"
   end
 
+  def stream_chat_token
+    return nil unless StreamChatClient.configured?
+
+    # Generate a Stream Chat token for this user
+    StreamChatClient.client.create_token(stream_user_id)
+  rescue => e
+    Rails.logger.error "Failed to generate Stream Chat token for user #{id}: #{e.message}"
+    nil
+  end
+
   private
 
   def gravatar_url

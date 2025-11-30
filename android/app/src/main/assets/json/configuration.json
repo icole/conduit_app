@@ -1,0 +1,25 @@
+{
+  "settings": {
+    "screenshots_enabled": false
+  },
+  "rules": [
+    {
+      "patterns": [
+        "/login",
+        "/auth/*"
+      ],
+      "properties": {
+        "presentation": "replace"
+      }
+    },
+    {
+      "patterns": [
+        "/*"
+      ],
+      "properties": {
+        "presentation": "default",
+        "pull_to_refresh_enabled": true
+      }
+    }
+  ]
+}
