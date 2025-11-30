@@ -26,5 +26,12 @@ module ConduitApp
 
     # Configure ActionMailbox to use Mailgun
     config.action_mailbox.ingress = :mailgun
+
+    # Allow session cookies for mobile apps
+    config.session_store :cookie_store,
+      key: '_conduit_app_session',
+      same_site: :lax,  # Changed from :none to :lax for local development
+      secure: false, # Set to true in production with HTTPS
+      httponly: false  # Allow JavaScript access for mobile WebView
   end
 end

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude specific shared preferences from backup -->
+    <exclude domain="sharedpref" path="push_prefs.xml"/>
+    <exclude domain="sharedpref" path="auth_prefs.xml"/>
+
+    <!-- Exclude cache and temporary files -->
+    <exclude domain="cache" />
+    <exclude domain="no_backup" />
+</full-backup-content>

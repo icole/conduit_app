@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "493744254464",
+    "project_id": "conduit-99c25",
+    "storage_bucket": "conduit-99c25.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:493744254464:android:80628b54d5ec928491f2e5",
+        "android_client_info": {
+          "package_name": "com.colecoding.conduit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrPchSwhuoZol1bbxd853Bn0m6YWIhrMY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

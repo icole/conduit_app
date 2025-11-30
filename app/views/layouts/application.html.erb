@@ -8,6 +8,16 @@
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
 
+  <% if user_signed_in? && StreamChatClient.configured? %>
+    <% token = current_user.stream_chat_token %>
+    <% if token.present? %>
+      <!-- Stream Chat meta tags for native mobile app -->
+      <meta name="stream-user-id" content="<%= current_user.stream_user_id %>">
+      <meta name="stream-user-name" content="<%= current_user.name || current_user.email %>">
+      <meta name="stream-token" content="<%= token %>">
+    <% end %>
+  <% end %>
+
   <%= yield :head %>
 
   <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# Start Rails server accessible from Android emulator
+echo "Starting Rails server for Android development..."
+echo "Server will be accessible at:"
+echo "  - http://localhost:3000 (from your Mac)"
+echo "  - http://10.0.2.2:3000 (from Android emulator)"
+echo ""
+
+# Kill any existing server
+if [ -f tmp/pids/server.pid ]; then
+  echo "Stopping existing server..."
+  kill -9 `cat tmp/pids/server.pid` 2>/dev/null
+  rm -f tmp/pids/server.pid
+fi
+
+# Start Rails binding to all interfaces
+bin/rails server -b 0.0.0.0 -p 3000
