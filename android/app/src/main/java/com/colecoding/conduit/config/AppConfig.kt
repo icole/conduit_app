@@ -37,9 +37,8 @@ object AppConfig {
     }
 
     fun getStreamApiKey(context: Context): String {
-        // In production, you might want to fetch this securely
-        // For now, using a string resource
-        return "psybsap3ftmn"
+        // Use BuildConfig for better security
+        return BuildConfig.STREAM_API_KEY
     }
 
     fun isDebugBuild(): Boolean {

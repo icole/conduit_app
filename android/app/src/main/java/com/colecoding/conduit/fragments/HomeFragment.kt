@@ -72,15 +72,13 @@ class HomeFragment : Fragment() {
         cookieManager.setAcceptCookie(true)
         cookieManager.setAcceptThirdPartyCookies(webView, true)
 
-        // Clear old cookies to ensure fresh session
-        cookieManager.removeAllCookies {
-            Log.d(TAG, "Old cookies cleared")
-        }
+        // Don't clear cookies - we want to maintain the session!
+        // Only clear on logout
 
         // Flush to ensure cookies are saved
         cookieManager.flush()
 
-        Log.d(TAG, "Cookie setup completed, ready for new session")
+        Log.d(TAG, "Cookie manager configured, maintaining existing session")
     }
 
     private fun createSessionFromAuthToken() {
@@ -106,11 +104,24 @@ class HomeFragment : Fragment() {
             return
         }
 
+        // Check if we've already established session (check for session cookie)
+        val cookieManager = CookieManager.getInstance()
+        val baseUrl = AppConfig.getBaseUrl(requireContext())
+        val cookies = cookieManager.getCookie(baseUrl)
+
+        if (cookies != null && cookies.contains("_conduit_app_session")) {
+            Log.d(TAG, "Session cookie exists, loading home directly")
+            loadHome()
+            return
+        }
+
+        // No session cookie, establish session with auth token
+        Log.d(TAG, "No session cookie found, establishing session with auth token")
+
         // Setup cookies
         setupCookies()
 
         // Load the auth_login URL with the token to establish session
-        val baseUrl = AppConfig.getBaseUrl(requireContext())
         val authUrl = "$baseUrl/auth_login?token=${authToken}"
 
         Log.d(TAG, "Loading auth URL to establish session")

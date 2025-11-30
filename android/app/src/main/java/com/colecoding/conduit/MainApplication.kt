@@ -31,7 +31,7 @@ class MainApplication : Application() {
 
     private fun initializeStreamChat() {
         try {
-            val apiKey = getString(R.string.stream_api_key)
+            val apiKey = BuildConfig.STREAM_API_KEY
             Log.d(TAG, "Initializing Stream Chat with API key: ${apiKey.take(10)}...")
 
             // Create offline plugin for better UX
