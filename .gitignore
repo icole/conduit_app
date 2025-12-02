@@ -57,3 +57,4 @@ claude-swarm.log
 server.log
 # Google Sign-In Configuration (contains sensitive data)
 ios/Conduit/GoogleService-Info.plist
+android/app/google-services.json
