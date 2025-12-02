@@ -124,14 +124,8 @@ class SessionsController < ApplicationController
   private
 
   def verify_auth_token(token)
-    # Decode and verify the token (same as in API controller)
-    begin
-      payload = JSON.parse(Base64.strict_decode64(token))
-      User.find_by(id: payload["user_id"])
-    rescue => e
-      Rails.logger.error "Invalid auth token in SessionsController: #{e.message}"
-      nil
-    end
+    # Use JwtService to verify the token (same as in API controller)
+    JwtService.verify_auth_token(token)
   end
 
   def link_google_to_existing_account(auth)
