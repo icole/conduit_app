@@ -13,11 +13,11 @@ class JwtService
       payload[:exp] = (Time.current + expiry).to_i
       payload[:iat] = Time.current.to_i
 
-      JWT.encode(payload, SECRET_KEY, 'HS256')
+      JWT.encode(payload, SECRET_KEY, "HS256")
     end
 
     def decode(token)
-      decoded = JWT.decode(token, SECRET_KEY, true, algorithm: 'HS256')
+      decoded = JWT.decode(token, SECRET_KEY, true, algorithm: "HS256")
       HashWithIndifferentAccess.new(decoded.first)
     rescue JWT::ExpiredSignature
       Rails.logger.error "JWT token expired"
@@ -31,14 +31,14 @@ class JwtService
       payload = {
         user_id: user.id,
         email: user.email,
-        type: 'auth'
+        type: "auth"
       }
       encode(payload)
     end
 
     def verify_auth_token(token)
       decoded = decode(token)
-      return nil unless decoded && decoded[:type] == 'auth'
+      return nil unless decoded && decoded[:type] == "auth"
 
       User.find_by(id: decoded[:user_id])
     rescue StandardError => e
