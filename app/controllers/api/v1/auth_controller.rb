@@ -253,9 +253,22 @@ module Api
 
         begin
           # Use Google's token verification endpoint
-          response = Net::HTTP.get_response(
-            URI("https://oauth2.googleapis.com/tokeninfo?id_token=#{id_token}")
-          )
+          uri = URI("https://oauth2.googleapis.com/tokeninfo?id_token=#{id_token}")
+
+          # Create HTTP connection with proper SSL handling
+          http = Net::HTTP.new(uri.host, uri.port)
+          http.use_ssl = true
+
+          # In development, disable SSL verification to avoid certificate issues
+          # In production, keep SSL verification enabled
+          if Rails.env.development?
+            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          else
+            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          end
+
+          request = Net::HTTP::Get.new(uri)
+          response = http.request(request)
 
           if response.code == "200"
             data = JSON.parse(response.body)
