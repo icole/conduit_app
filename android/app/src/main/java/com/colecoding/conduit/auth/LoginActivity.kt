@@ -8,24 +8,24 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.colecoding.conduit.BuildConfig
+import com.colecoding.conduit.MainActivity
+import com.colecoding.conduit.config.AppConfig
+import com.colecoding.conduit.databinding.ActivityLoginBinding
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.colecoding.conduit.MainActivity
-import com.colecoding.conduit.R
-import com.colecoding.conduit.config.AppConfig
-import com.colecoding.conduit.databinding.ActivityLoginBinding
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 class LoginActivity : AppCompatActivity() {
 
@@ -36,21 +36,29 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var googleSignInClient: GoogleSignInClient
 
-    private val googleSignInLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        Log.d(TAG, "Google Sign-In result received, resultCode: ${result.resultCode}")
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        try {
-            val account = task.getResult(ApiException::class.java)
-            Log.d(TAG, "Google Sign-In successful, account: ${account?.email}")
-            account?.let { handleGoogleSignIn(it) }
-        } catch (e: ApiException) {
-            Log.e(TAG, "Google sign in failed with code: ${e.statusCode}, message: ${e.message}", e)
-            showLoading(false)
-            Toast.makeText(this, "Google sign in failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
-        }
-    }
+    private val googleSignInLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                Log.d(TAG, "Google Sign-In result received, resultCode: ${result.resultCode}")
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                try {
+                    val account = task.getResult(ApiException::class.java)
+                    Log.d(TAG, "Google Sign-In successful, account: ${account?.email}")
+                    account?.let { handleGoogleSignIn(it) }
+                } catch (e: ApiException) {
+                    Log.e(
+                            TAG,
+                            "Google sign in failed with code: ${e.statusCode}, message: ${e.message}",
+                            e
+                    )
+                    showLoading(false)
+                    Toast.makeText(
+                                    this,
+                                    "Google sign in failed: ${e.statusCode}",
+                                    Toast.LENGTH_SHORT
+                            )
+                            .show()
+                }
+            }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,12 +72,13 @@ class LoginActivity : AppCompatActivity() {
 
     private fun setupGoogleSignIn() {
         // Note: Temporarily removing requestIdToken until OAuth client is configured in Firebase
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestProfile()
-            // Use BuildConfig for Google Client ID
-            // .requestIdToken(BuildConfig.GOOGLE_CLIENT_ID)
-            .build()
+        val gso =
+                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestEmail()
+                        .requestProfile()
+                        // Use BuildConfig for Google Client ID
+                        .requestIdToken(BuildConfig.GOOGLE_CLIENT_ID)
+                        .build()
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
     }
@@ -87,9 +96,7 @@ class LoginActivity : AppCompatActivity() {
             performLogin(email, password)
         }
 
-        binding.btnGoogleSignIn.setOnClickListener {
-            signInWithGoogle()
-        }
+        binding.btnGoogleSignIn.setOnClickListener { signInWithGoogle() }
     }
 
     private fun performLogin(email: String, password: String) {
@@ -107,35 +114,44 @@ class LoginActivity : AppCompatActivity() {
                     setRequestProperty("Accept", "application/json")
                 }
 
-                val json = JSONObject().apply {
-                    put("email", email)
-                    put("password", password)
-                }
+                val json =
+                        JSONObject().apply {
+                            put("email", email)
+                            put("password", password)
+                        }
 
-                OutputStreamWriter(connection.outputStream).use {
-                    it.write(json.toString())
-                }
+                OutputStreamWriter(connection.outputStream).use { it.write(json.toString()) }
 
                 val responseCode = connection.responseCode
                 if (responseCode == HttpURLConnection.HTTP_OK) {
-                    val response = BufferedReader(InputStreamReader(connection.inputStream))
-                        .use { it.readText() }
+                    val response =
+                            BufferedReader(InputStreamReader(connection.inputStream)).use {
+                                it.readText()
+                            }
 
                     val jsonResponse = JSONObject(response)
                     handleLoginSuccess(jsonResponse)
                 } else {
-                    val error = BufferedReader(InputStreamReader(connection.errorStream))
-                        .use { it.readText() }
+                    val error =
+                            BufferedReader(InputStreamReader(connection.errorStream)).use {
+                                it.readText()
+                            }
                     withContext(Dispatchers.Main) {
                         showLoading(false)
-                        Toast.makeText(this@LoginActivity, "Login failed", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@LoginActivity, "Login failed", Toast.LENGTH_SHORT)
+                                .show()
                     }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Login error", e)
                 withContext(Dispatchers.Main) {
                     showLoading(false)
-                    Toast.makeText(this@LoginActivity, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                                    this@LoginActivity,
+                                    "Network error: ${e.message}",
+                                    Toast.LENGTH_SHORT
+                            )
+                            .show()
                 }
             }
         }
@@ -166,32 +182,36 @@ class LoginActivity : AppCompatActivity() {
                     setRequestProperty("Accept", "application/json")
                 }
 
-                val json = JSONObject().apply {
-                    put("email", account.email)
-                    put("name", account.displayName)
-                    put("image_url", account.photoUrl?.toString())
-                    // ID token not available without OAuth client configuration
-                    // put("id_token", account.idToken)
-                }
+                val json =
+                        JSONObject().apply {
+                            put("email", account.email)
+                            put("name", account.displayName)
+                            put("image_url", account.photoUrl?.toString())
+                            // ID token not available without OAuth client configuration
+                            // put("id_token", account.idToken)
+                        }
 
-                OutputStreamWriter(connection.outputStream).use {
-                    it.write(json.toString())
-                }
+                OutputStreamWriter(connection.outputStream).use { it.write(json.toString()) }
 
                 val responseCode = connection.responseCode
                 if (responseCode == HttpURLConnection.HTTP_OK) {
-                    val response = BufferedReader(InputStreamReader(connection.inputStream))
-                        .use { it.readText() }
+                    val response =
+                            BufferedReader(InputStreamReader(connection.inputStream)).use {
+                                it.readText()
+                            }
 
                     val jsonResponse = JSONObject(response)
 
-                    withContext(Dispatchers.Main) {
-                        handleLoginSuccess(jsonResponse)
-                    }
+                    withContext(Dispatchers.Main) { handleLoginSuccess(jsonResponse) }
                 } else {
                     withContext(Dispatchers.Main) {
                         showLoading(false)
-                        Toast.makeText(this@LoginActivity, "Google sign in failed", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                                        this@LoginActivity,
+                                        "Google sign in failed",
+                                        Toast.LENGTH_SHORT
+                                )
+                                .show()
                     }
                 }
             } catch (e: Exception) {
@@ -210,12 +230,12 @@ class LoginActivity : AppCompatActivity() {
         val authToken = response.optString("auth_token")
 
         AuthManager.saveAuthData(
-            this,
-            userId = user.getString("id"),
-            userName = user.getString("name"),
-            userEmail = user.getString("email"),
-            sessionCookie = response.optString("session_cookie", ""),
-            authToken = authToken
+                this,
+                userId = user.getString("id"),
+                userName = user.getString("name"),
+                userEmail = user.getString("email"),
+                sessionCookie = response.optString("session_cookie", ""),
+                authToken = authToken
         )
 
         // Log auth token for debugging
