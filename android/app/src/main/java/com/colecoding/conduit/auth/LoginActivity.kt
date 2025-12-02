@@ -187,8 +187,8 @@ class LoginActivity : AppCompatActivity() {
                             put("email", account.email)
                             put("name", account.displayName)
                             put("image_url", account.photoUrl?.toString())
-                            // ID token not available without OAuth client configuration
-                            // put("id_token", account.idToken)
+                            // Include ID token for secure authentication
+                            put("id_token", account.idToken)
                         }
 
                 OutputStreamWriter(connection.outputStream).use { it.write(json.toString()) }
