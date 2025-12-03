@@ -120,6 +120,7 @@ Rails.application.routes.draw do
   # OmniAuth callback
   get "auth/:provider/callback", to: "sessions#omniauth"
   post "auth/:provider/callback", to: "sessions#omniauth"
+  get "auth/failure", to: "sessions#auth_failure"
 
   # Google Drive OAuth2 callback
   get "oauth2callback", to: "documents#oauth_callback"

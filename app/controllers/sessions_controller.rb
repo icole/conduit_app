@@ -121,6 +121,14 @@ class SessionsController < ApplicationController
     end
   end
 
+  # Handle OAuth authentication failures
+  def auth_failure
+    message = params[:message] || "Authentication failed"
+    strategy = params[:strategy] || "OAuth"
+    Rails.logger.error "OAuth authentication failed: #{strategy} - #{message}"
+    redirect_to login_path, alert: "Authentication failed: #{message.humanize}"
+  end
+
   private
 
   def verify_auth_token(token)
