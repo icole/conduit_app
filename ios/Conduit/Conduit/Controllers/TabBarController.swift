@@ -13,7 +13,6 @@ class TabBarController: UITabBarController {
     // Shared configuration for all tabs to maintain authentication state
     private lazy var sharedWebViewConfiguration: WKWebViewConfiguration = {
         let configuration = WKWebViewConfiguration()
-        configuration.processPool = WKProcessPool()
         configuration.websiteDataStore = .default()  // Share cookies/session
         return configuration
     }()

@@ -133,6 +133,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
+        // Clear badge count when app becomes active
+        UNUserNotificationCenter.current().setBadgeCount(0) { error in
+            if let error = error {
+                print("Error clearing badge count: \(error.localizedDescription)")
+            }
+        }
+
+        // Also clear any delivered notifications from notification center
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
