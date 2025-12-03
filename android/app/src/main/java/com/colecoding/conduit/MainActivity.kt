@@ -1,10 +1,15 @@
 package com.colecoding.conduit
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.colecoding.conduit.auth.AuthManager
 import com.colecoding.conduit.auth.LoginActivity
@@ -26,6 +31,17 @@ class MainActivity : AppCompatActivity() {
     private val chatFragment = ChatFragment()
     private val profileFragment = ProfileFragment()
     private var activeFragment: Fragment = homeFragment
+
+    // Permission request launcher for notifications
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d(TAG, "Notification permission granted")
+        } else {
+            Log.d(TAG, "Notification permission denied")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +70,26 @@ class MainActivity : AppCompatActivity() {
                 add(R.id.fragment_container, chatFragment, "chat").hide(chatFragment)
                 add(R.id.fragment_container, homeFragment, "home")
                 commit()
+            }
+        }
+
+        // Request notification permission for Android 13+
+        requestNotificationPermission()
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    Log.d(TAG, "Notification permission already granted")
+                }
+                else -> {
+                    Log.d(TAG, "Requesting notification permission")
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
             }
         }
     }

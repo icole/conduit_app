@@ -3,6 +3,7 @@ package com.colecoding.conduit
 import android.app.Application
 import android.util.Log
 import com.google.firebase.FirebaseApp
+import com.google.firebase.messaging.FirebaseMessaging
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.logger.ChatLogLevel
 import io.getstream.chat.android.offline.plugin.factory.StreamOfflinePluginFactory
@@ -24,6 +25,22 @@ class MainApplication : Application() {
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
         Log.d(TAG, "Firebase initialized")
+
+        // Fetch FCM token and store it for later registration with Stream
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                Log.d(TAG, "FCM Token received: ${token.take(20)}...")
+                // Store token for later registration when Stream connects
+                getSharedPreferences("push_prefs", MODE_PRIVATE)
+                    .edit()
+                    .putString("pending_fcm_token", token)
+                    .apply()
+                Log.d(TAG, "FCM Token stored as pending")
+            } else {
+                Log.e(TAG, "Failed to get FCM token", task.exception)
+            }
+        }
 
         // Initialize Stream Chat (but don't connect yet - will connect after login)
         initializeStreamChat()

@@ -63,6 +63,8 @@ class ChatFragment : Fragment() {
                         client.connectUser(user, token).enqueue { result ->
                             if (result.isSuccess) {
                                 Log.d(TAG, "Successfully connected to Stream Chat")
+                                // Register FCM token for push notifications
+                                com.colecoding.conduit.services.PushNotificationService.registerPendingToken(requireContext())
                                 // Add the Stream Chat fragment
                                 addStreamChatFragment()
                             } else {
@@ -71,6 +73,8 @@ class ChatFragment : Fragment() {
                         }
                     } else {
                         Log.d(TAG, "Stream Chat already connected")
+                        // Register FCM token for push notifications (in case it wasn't registered before)
+                        com.colecoding.conduit.services.PushNotificationService.registerPendingToken(requireContext())
                         // Add the Stream Chat fragment
                         addStreamChatFragment()
                     }
