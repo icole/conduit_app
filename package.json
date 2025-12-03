@@ -2,6 +2,18 @@
   "dependencies": {
     "@rails/actiontext": "^8.0.200",
     "daisyui": "^5.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "stream-chat": "^9.26.0",
+    "stream-chat-react": "^13.13.0",
     "trix": "^2.1.15"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.0"
+  },
+  "scripts": {
+    "build": "esbuild app/javascript/react/*.jsx --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets --loader:.jsx=jsx --loader:.eot=file --loader:.woff=file --loader:.woff2=file --loader:.ttf=file --loader:.svg=file",
+    "build:css": "tailwindcss -i ./app/assets/stylesheets/application.tailwind.css -o ./app/assets/builds/tailwind.css --minify",
+    "build:production": "NODE_ENV=production esbuild app/javascript/react/*.jsx --bundle --minify --format=esm --outdir=app/assets/builds --public-path=/assets --loader:.jsx=jsx --loader:.eot=file --loader:.woff=file --loader:.woff2=file --loader:.ttf=file --loader:.svg=file"
   }
 }

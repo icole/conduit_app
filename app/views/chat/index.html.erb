@@ -1,267 +1,30 @@
-<%# HOA Community Chat - Web Testing Interface %>
-<div class="<%= turbo_native_app? ? '' : 'container mx-auto p-4' %>" data-controller="stream-chat">
+<%# Community Chat - Web Interface %>
+<div class="<%= turbo_native_app? ? '' : 'container mx-auto p-4' %>">
   <% unless turbo_native_app? %>
-    <div class="bg-base-200 rounded-lg p-4 mb-4">
-      <h1 class="text-2xl font-bold mb-2">HOA Community Chat</h1>
-      <div class="text-sm text-base-content/70">
-        <p>This is a test interface for the Stream Chat integration.</p>
-        <p>The mobile app will use Hotwire Native for a better experience.</p>
-      </div>
+    <div class="mb-4">
+      <h1 class="text-2xl font-bold">Community Chat</h1>
     </div>
   <% end %>
 
   <% if StreamChatClient.configured? %>
-    <!-- Stream Chat Container -->
-    <div id="stream-chat-container" class="bg-base-100 <%= turbo_native_app? ? '' : 'rounded-lg shadow-lg' %>" style="height: <%= turbo_native_app? ? '100vh' : '70vh' %>">
-      <div class="flex h-full">
-        <!-- Channel List -->
-        <div class="w-1/4 border-r border-base-300 p-4">
-          <h2 class="font-semibold mb-4">Channels</h2>
-          <div id="channel-list" class="space-y-2">
-            <!-- Channels will be loaded here -->
-          </div>
-        </div>
+    <!-- Stream Chat React Container -->
+    <%= stylesheet_link_tag "chat", "data-turbo-track": "reload" %>
 
-        <!-- Chat Area -->
-        <div class="flex-1 flex flex-col">
-          <!-- Channel Header -->
-          <div class="border-b border-base-300 p-4">
-            <div id="channel-header" class="font-semibold">
-              Select a channel to start chatting
-            </div>
-          </div>
-
-          <!-- Messages Area -->
-          <div id="message-list" class="flex-1 overflow-y-auto p-4">
-            <!-- Messages will appear here -->
-          </div>
-
-          <!-- Message Input -->
-          <div class="border-t border-base-300 p-4">
-            <div class="flex gap-2">
-              <input
-                type="text"
-                id="message-input"
-                placeholder="Type a message..."
-                class="input input-bordered flex-1"
-                disabled
-              />
-              <button id="send-button" class="btn btn-primary" disabled>Send</button>
-            </div>
-          </div>
-        </div>
+    <div
+      id="stream-chat-react"
+      class="bg-base-100 <%= turbo_native_app? ? '' : 'rounded-lg shadow-lg border border-base-300' %>"
+      style="height: <%= turbo_native_app? ? '100vh' : '75vh' %>"
+      data-api-key="<%= StreamChatClient.api_key %>"
+      data-user-token="<%= @stream_token %>"
+      data-user-data="<%= @user_data.to_json %>"
+    >
+      <!-- Loading state -->
+      <div class="flex items-center justify-center h-full">
+        <div class="loading loading-spinner loading-lg"></div>
       </div>
     </div>
 
-    <!-- Load Stream Chat SDK from local public directory -->
-    <script src="/vendor/stream-chat.js"></script>
-
-    <!-- Wait for SDK to load then initialize -->
-    <script>
-      // Wait for DOM to be ready
-      document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM loaded, checking for Stream Chat SDK...');
-        console.log('window.StreamChat type:', typeof window.StreamChat);
-
-        // Initialize immediately if SDK is available
-        if (typeof window.StreamChat !== 'undefined') {
-          console.log('Stream Chat SDK found, initializing...');
-          window.initChat();
-        } else {
-          console.error('Stream Chat SDK not found after DOM load');
-          // Try one more time after a short delay
-          setTimeout(() => {
-            if (typeof window.StreamChat !== 'undefined') {
-              console.log('Stream Chat SDK found after delay, initializing...');
-              window.initChat();
-            } else {
-              console.error('Stream Chat SDK still not available');
-              alert('Failed to load Stream Chat. Please refresh the page.');
-            }
-          }, 1000);
-        }
-      });
-    </script>
-
-    <!-- Initialize Stream Chat -->
-    <script>
-      console.log('API Key from Rails:', '<%= StreamChatClient.api_key %>');
-
-      // Stream Chat Web SDK initialization
-      window.initChat = async () => {
-        try {
-          // Get token and user data from Rails
-          const apiKey = '<%= StreamChatClient.api_key %>';
-          const token = '<%= @stream_token %>';
-          const user = <%= @current_user_data.to_json.html_safe %>;
-
-          console.log('Initializing Stream Chat with API key:', apiKey);
-          console.log('StreamChat available:', typeof window.StreamChat);
-
-          if (!window.StreamChat) {
-            throw new Error('StreamChat SDK not loaded. Please refresh the page.');
-          }
-
-          const client = new window.StreamChat(apiKey);
-
-          // Connect user
-          await client.connectUser(user, token);
-
-          console.log('Stream Chat connected for user:', user.name);
-          window.streamClient = client; // Store for debugging
-
-          // Initialize channels
-          const channels = [
-            { id: 'general', name: 'General Chat' },
-            { id: 'building-a', name: 'Building A' },
-            { id: 'building-b', name: 'Building B' },
-            { id: 'pool', name: 'Pool Area' },
-            { id: 'maintenance', name: 'Maintenance' },
-            { id: 'announcements', name: 'Announcements' }
-          ];
-
-          // Add channels to the list
-          const channelList = document.getElementById('channel-list');
-          channelList.innerHTML = ''; // Clear any existing content
-
-          channels.forEach(ch => {
-            const channelEl = document.createElement('div');
-            channelEl.className = 'p-2 rounded cursor-pointer hover:bg-base-200 transition-colors';
-            channelEl.textContent = '# ' + ch.name;
-            channelEl.onclick = () => window.selectChannel(client, ch.id, ch.name);
-            channelList.appendChild(channelEl);
-          });
-
-          // Select general channel by default
-          await window.selectChannel(client, 'general', 'General Chat');
-
-        } catch (error) {
-          console.error('Failed to initialize Stream Chat:', error);
-          document.getElementById('channel-list').innerHTML =
-            '<div class="alert alert-error text-xs">Failed to load channels. Check console for errors.</div>';
-          document.getElementById('message-list').innerHTML =
-            '<div class="alert alert-error">Connection failed: ' + error.message + '</div>';
-        }
-      };
-
-      window.selectChannel = async (client, channelId, channelName) => {
-        try {
-          console.log('Selecting channel:', channelId, channelName);
-
-          // Get or create channel
-          const channel = client.channel('team', channelId, {
-            name: channelName
-          });
-
-          await channel.watch();
-          window.currentChannel = channel; // Store for debugging
-
-          // Update header
-          document.getElementById('channel-header').textContent = '# ' + channelName;
-
-          // Enable input
-          const input = document.getElementById('message-input');
-          const button = document.getElementById('send-button');
-          input.disabled = false;
-          button.disabled = false;
-
-          // Clear messages
-          const messageList = document.getElementById('message-list');
-          messageList.innerHTML = '<div class="text-center text-base-content/50">Loading messages...</div>';
-
-          // Load existing messages
-          const messages = channel.state.messages || [];
-          window.displayMessages(messages);
-
-          // Remove any existing listeners
-          channel.off('message.new');
-
-          // Listen for new messages (but skip our own to avoid duplicates)
-          channel.on('message.new', event => {
-            // Only display messages from other users
-            // Our own messages are already in the channel state
-            if (event.message.user.id !== user.id) {
-              window.displayMessage(event.message);
-            }
-          });
-
-          // Setup send functionality
-          window.sendMessage = async () => {
-            const text = input.value.trim();
-            if (text) {
-              try {
-                const response = await channel.sendMessage({ text });
-                input.value = '';
-                // Display our own message immediately (optimistic update)
-                window.displayMessage(response.message);
-              } catch (error) {
-                console.error('Failed to send message:', error);
-                alert('Failed to send message: ' + error.message);
-              }
-            }
-          };
-
-          button.onclick = window.sendMessage;
-          input.onkeypress = (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              window.sendMessage();
-            }
-          };
-
-        } catch (error) {
-          console.error('Failed to select channel:', error);
-          document.getElementById('message-list').innerHTML =
-            '<div class="alert alert-error">Failed to load channel: ' + error.message + '</div>';
-        }
-      };
-
-      window.displayMessages = (messages) => {
-        const messageList = document.getElementById('message-list');
-        if (messages.length === 0) {
-          messageList.innerHTML = '<div class="text-center text-base-content/50 py-8">No messages yet. Start the conversation!</div>';
-        } else {
-          messageList.innerHTML = '';
-          messages.forEach(msg => window.displayMessage(msg));
-        }
-      };
-
-      window.displayMessage = (message) => {
-        const messageList = document.getElementById('message-list');
-
-        // Check if message already exists to prevent duplicates
-        if (document.getElementById('msg-' + message.id)) {
-          return; // Message already displayed
-        }
-
-        const messageEl = document.createElement('div');
-        messageEl.id = 'msg-' + message.id; // Add ID to track messages
-        messageEl.className = 'mb-3';
-
-        const userImage = message.user?.image ||
-                         `https://ui-avatars.com/api/?name=${encodeURIComponent(message.user?.name || 'Unknown')}&background=random`;
-
-        messageEl.innerHTML = `
-          <div class="flex items-start gap-2">
-            <img src="${userImage}"
-                 class="w-8 h-8 rounded-full"
-                 onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(message.user?.name || 'U')}&background=random'" />
-            <div class="flex-1">
-              <div class="text-sm">
-                <span class="font-semibold">${message.user?.name || 'Unknown'}</span>
-                <span class="text-base-content/50 ml-2">${new Date(message.created_at).toLocaleTimeString()}</span>
-              </div>
-              <div class="text-base-content">${message.text || ''}</div>
-            </div>
-          </div>
-        `;
-        messageList.appendChild(messageEl);
-        messageList.scrollTop = messageList.scrollHeight;
-      };
-
-      // The SDK loading script above will call initChat() when ready
-      console.log('Script setup complete. SDK will initialize when loaded.');
-    </script>
+    <%= javascript_include_tag "chat", type: "module", "data-turbo-track": "reload" %>
   <% else %>
     <!-- Configuration Required -->
     <div class="alert alert-warning">

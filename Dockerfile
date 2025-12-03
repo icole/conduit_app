@@ -51,12 +51,11 @@ COPY . .
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
 
-RUN echo "🧪 node_modules exists:" && ls -la node_modules && \
-  echo "🧪 daisyui exists:" && ls -la node_modules/daisyui && \
-  echo "🧪 tailwind config:" && cat tailwind.config.js
+# Build JavaScript assets (React chat component)
+RUN yarn build:production
 
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile --trace
+RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 # Final stage for app image
 FROM base
