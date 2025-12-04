@@ -15,6 +15,7 @@ import com.colecoding.conduit.R
 import com.colecoding.conduit.auth.AuthManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.getstream.chat.android.client.ChatClient
+import io.getstream.chat.android.client.extensions.currentUserUnreadCount
 import io.getstream.chat.android.models.*
 import io.getstream.chat.android.ui.feature.channels.list.ChannelListView
 import io.getstream.chat.android.ui.feature.channels.list.adapter.ChannelListItem
@@ -129,13 +130,11 @@ class CustomChatFragment : Fragment() {
         container.removeAllViews()
         container.addView(channelListView)
 
-        // Setup the channel list
+        // Setup the channel list to show ALL team channels
+        // ReadChannel permission now enabled in Stream Dashboard
         val userId = AuthManager.getUserId(requireContext()) ?: return
 
-        val filter = Filters.and(
-            Filters.eq("type", "team"),
-            Filters.`in`("members", listOf(userId))
-        )
+        val filter = Filters.eq("type", "team")  // Show ALL team channels
 
         val viewModelFactory = ChannelListViewModelFactory(
             filter = filter,
@@ -159,12 +158,51 @@ class CustomChatFragment : Fragment() {
         // Handle channel clicks
         channelListView.setChannelItemClickListener { channel ->
             Log.d(TAG, "Channel clicked: ${channel.cid}")
-            // Open the message list for this channel
-            val intent = MessageListActivity.createIntent(
-                context = requireContext(),
-                cid = channel.cid
-            )
-            startActivity(intent)
+
+            // Auto-join channel if not a member
+            val currentUserId = ChatClient.instance().getCurrentUser()?.id
+            val isMember = channel.members.any { it.user.id == currentUserId }
+
+            if (!isMember && currentUserId != null) {
+                Log.d(TAG, "User not a member, auto-joining channel...")
+                val channelClient = ChatClient.instance().channel(channel.cid)
+
+                // Add user as member
+                channelClient.addMembers(listOf(currentUserId)).enqueue { result ->
+                    if (result.isSuccess) {
+                        Log.d(TAG, "Successfully joined channel")
+
+                        // Watch the channel for notifications
+                        channelClient.watch().enqueue { watchResult ->
+                            if (watchResult.isSuccess) {
+                                Log.d(TAG, "Now watching channel for notifications")
+                            }
+                        }
+
+                        // Open the message list for this channel
+                        val intent = MessageListActivity.createIntent(
+                            context = requireContext(),
+                            cid = channel.cid
+                        )
+                        startActivity(intent)
+                    } else {
+                        Log.e(TAG, "Failed to join channel: ${result.errorOrNull()}")
+                        // Still try to open the channel
+                        val intent = MessageListActivity.createIntent(
+                            context = requireContext(),
+                            cid = channel.cid
+                        )
+                        startActivity(intent)
+                    }
+                }
+            } else {
+                // Already a member or couldn't get user ID, just open
+                val intent = MessageListActivity.createIntent(
+                    context = requireContext(),
+                    cid = channel.cid
+                )
+                startActivity(intent)
+            }
         }
 
         // Handle long clicks for channel options
@@ -221,13 +259,19 @@ class CustomChatFragment : Fragment() {
                 )
 
                 val extraData = mutableMapOf<String, Any>()
+                extraData["name"] = name  // Set the channel name
                 if (description.isNotEmpty()) {
                     extraData["description"] = description
                 }
 
-                // Create channel with current user as member
+                // Make the channel public and open for everyone
+                extraData["public"] = true
+                extraData["open"] = true  // Allow anyone to join
+
+                // Create channel with creator as initial member
+                // The public flag will make it discoverable to others
                 channelClient.create(
-                    memberIds = listOf(userId),
+                    memberIds = listOf(userId), // Include creator as initial member
                     extraData = extraData
                 ).enqueue { result ->
                     if (result.isSuccess) {
@@ -270,7 +314,7 @@ class CustomChatFragment : Fragment() {
         actions.add { toggleMuteChannel(channel) }
 
         // Mark as read
-        val unreadCount = channel.unreadCount ?: 0
+        val unreadCount = channel.currentUserUnreadCount
         if (unreadCount > 0) {
             options.add("Mark as Read")
             actions.add { markChannelAsRead(channel) }

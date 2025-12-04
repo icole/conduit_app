@@ -180,11 +180,27 @@ class CustomChannelListVC: ChatChannelListVC {
             extraData["description"] = .string(description)
         }
 
+        // Make the channel public by setting it as open for all members
+        extraData["public"] = .bool(true)
+        extraData["open"] = .bool(true)  // Allow anyone to join
+
         do {
+            // Create the channel with the current user as the initial member
+            // The public flag will make it discoverable to others
+            let channelId = ChannelId(type: .team, id: finalChannelId)
+
+            // Get current user ID
+            guard let currentUserId = client.currentUserId else {
+                showError("Unable to get current user ID")
+                return
+            }
+
             channelController = try client.channelController(
-                createChannelWithId: ChannelId(type: .team, id: finalChannelId),
+                createChannelWithId: channelId,
                 name: name,
                 imageURL: nil,
+                members: [currentUserId], // Include creator as initial member
+                isCurrentUserMember: true, // Ensure creator is a member
                 extraData: extraData
             )
         } catch {

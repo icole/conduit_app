@@ -558,14 +558,12 @@ class StreamChatViewController: UIViewController {
                 self.checkRegisteredDevices()
             }
 
-            // Create channel list query
+            // Create channel list query to show ALL team channels
+            // ReadChannel permission now enabled in Stream Dashboard
             let query = ChannelListQuery(
-                filter: .and([
-                    .equal(.type, to: .team),
-                    .containMembers(userIds: [self.userId])
-                ])
+                filter: .equal(.type, to: .team)  // Show ALL team channels
             )
-            print("Created channel list query for user: \(self.userId)")
+            print("Created channel list query to show all team channels")
 
             // Create channel list controller
             let channelList = client.channelListController(query: query)

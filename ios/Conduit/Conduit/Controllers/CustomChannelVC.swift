@@ -27,11 +27,68 @@ class CustomChannelVC: ChatChannelVC {
     override func setUp() {
         super.setUp()
 
+        // Auto-join channel if not a member
+        autoJoinChannelIfNeeded()
+
         // Perform any heavy setup operations asynchronously
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             // Preload any data if needed
             DispatchQueue.main.async {
                 self?.view.setNeedsLayout()
+            }
+        }
+    }
+
+    private func autoJoinChannelIfNeeded() {
+        guard let channelController = self.channelController,
+              let currentUserId = channelController.client.currentUserId else { return }
+
+        // Check if user is a member
+        let isMember = channelController.channel?.membership != nil
+
+        if !isMember {
+            print("User not a member of channel, auto-joining...")
+
+            // Add user as member first
+            channelController.addMembers(userIds: [currentUserId]) { [weak self] error in
+                if let error = error {
+                    print("Failed to auto-join channel: \(error)")
+                } else {
+                    print("Successfully auto-joined channel")
+
+                    // Watch the channel to receive notifications
+                    self?.watchChannelForNotifications()
+
+                    // Synchronize to update UI and membership state
+                    channelController.synchronize { syncError in
+                        if let syncError = syncError {
+                            print("Sync error after joining: \(syncError)")
+                        } else {
+                            print("Channel synchronized after joining")
+                        }
+                    }
+                }
+            }
+        } else {
+            // Already a member, ensure we're watching for notifications
+            watchChannelForNotifications()
+        }
+    }
+
+    private func watchChannelForNotifications() {
+        guard let channelController = self.channelController else { return }
+
+        // Start watching the channel to receive push notifications
+        channelController.synchronize { error in
+            if let error = error {
+                print("Failed to watch channel: \(error)")
+            } else {
+                print("Now watching channel for notifications")
+
+                // Enable push notifications for this channel
+                channelController.enableSlowMode(cooldownDuration: 0) { _ in
+                    // This ensures the channel is fully synchronized
+                }
             }
         }
     }
