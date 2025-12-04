@@ -44,6 +44,11 @@
             android:exported="false"
             android:theme="@style/Theme.Conduit.NoActionBar" />
 
+        <!-- Tracking Message List Activity (suppresses notifications when viewing) -->
+        <activity
+            android:name=".chat.TrackingMessageListActivity"
+            android:exported="false" />
+
         <!-- Firebase Messaging Service -->
         <service
             android:name=".services.PushNotificationService"

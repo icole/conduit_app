@@ -226,9 +226,27 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         print("📬 Notification received while app in FOREGROUND:")
         print("  → Title: \(notification.request.content.title)")
         print("  → Body: \(notification.request.content.body)")
-        print("  → UserInfo: \(notification.request.content.userInfo)")
+        let userInfo = notification.request.content.userInfo
+        print("  → UserInfo: \(userInfo)")
 
-        // Show notification even when app is in foreground
+        // Check if this is a Stream Chat notification
+        if let streamPayload = userInfo["stream"] as? [String: Any],
+           let channelId = streamPayload["channel_id"] as? String,
+           let channelType = streamPayload["channel_type"] as? String {
+            let cid = "\(channelType):\(channelId)"
+            print("  → Stream channel: \(cid)")
+
+            // Check if user is currently viewing this channel
+            // If they are, suppress the notification
+            if ChatManager.shared.isCurrentlyViewingChannel(cid: cid) {
+                print("  ✅ User is viewing this channel - suppressing notification")
+                completionHandler([]) // Don't show notification
+                return
+            }
+        }
+
+        // Show notification for other channels or non-chat notifications
+        print("  → Showing notification")
         completionHandler([.banner, .sound, .badge])
     }
 

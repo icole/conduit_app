@@ -6,6 +6,7 @@ class ChatManager {
     static let shared = ChatManager()
 
     private(set) var chatClient: ChatClient?
+    private var currentlyViewingChannelCid: String?
 
     private init() {}
 
@@ -105,6 +106,23 @@ class ChatManager {
             client.disconnect()
             chatClient = nil
         }
+    }
+
+    // MARK: - Channel Viewing Tracking
+
+    /// Set the channel that the user is currently viewing
+    func setCurrentlyViewingChannel(cid: String?) {
+        currentlyViewingChannelCid = cid
+        if let cid = cid {
+            print("👀 ChatManager: User now viewing channel: \(cid)")
+        } else {
+            print("👀 ChatManager: User left channel")
+        }
+    }
+
+    /// Check if the user is currently viewing a specific channel
+    func isCurrentlyViewingChannel(cid: String) -> Bool {
+        return currentlyViewingChannelCid == cid
     }
 }
 

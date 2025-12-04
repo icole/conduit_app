@@ -19,7 +19,7 @@ import io.getstream.chat.android.client.extensions.currentUserUnreadCount
 import io.getstream.chat.android.models.*
 import io.getstream.chat.android.ui.feature.channels.list.ChannelListView
 import io.getstream.chat.android.ui.feature.channels.list.adapter.ChannelListItem
-import io.getstream.chat.android.ui.feature.messages.MessageListActivity
+import com.colecoding.conduit.chat.TrackingMessageListActivity
 import io.getstream.chat.android.ui.viewmodel.channels.ChannelListViewModel
 import io.getstream.chat.android.ui.viewmodel.channels.ChannelListViewModelFactory
 import io.getstream.chat.android.ui.viewmodel.channels.bindView
@@ -180,7 +180,7 @@ class CustomChatFragment : Fragment() {
                         }
 
                         // Open the message list for this channel
-                        val intent = MessageListActivity.createIntent(
+                        val intent = TrackingMessageListActivity.createIntent(
                             context = requireContext(),
                             cid = channel.cid
                         )
@@ -188,7 +188,7 @@ class CustomChatFragment : Fragment() {
                     } else {
                         Log.e(TAG, "Failed to join channel: ${result.errorOrNull()}")
                         // Still try to open the channel
-                        val intent = MessageListActivity.createIntent(
+                        val intent = TrackingMessageListActivity.createIntent(
                             context = requireContext(),
                             cid = channel.cid
                         )
@@ -197,7 +197,7 @@ class CustomChatFragment : Fragment() {
                 }
             } else {
                 // Already a member or couldn't get user ID, just open
-                val intent = MessageListActivity.createIntent(
+                val intent = TrackingMessageListActivity.createIntent(
                     context = requireContext(),
                     cid = channel.cid
                 )

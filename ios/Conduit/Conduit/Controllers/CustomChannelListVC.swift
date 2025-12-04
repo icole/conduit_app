@@ -263,7 +263,7 @@ class CustomChannelListVC: ChatChannelListVC {
 
     private func navigateToChannel(channelController: ChatChannelController) {
         // Create and configure optimized channel view controller
-        let channelVC = CustomChannelVC()
+        let channelVC = TrackingChannelVC()
         channelVC.channelController = channelController
 
         // Push to navigation controller with optimized transition

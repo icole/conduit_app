@@ -14,7 +14,7 @@ import io.getstream.chat.android.client.logger.ChatLogLevel
 import io.getstream.chat.android.models.Channel
 import io.getstream.chat.android.models.User
 import io.getstream.chat.android.ui.feature.channels.ChannelListActivity
-import io.getstream.chat.android.ui.feature.messages.MessageListActivity
+import com.colecoding.conduit.chat.TrackingMessageListActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -75,7 +75,7 @@ class StreamChatActivity : AppCompatActivity() {
         // Initialize Stream Chat if needed
         initializeStreamChat {
             startActivity(
-                MessageListActivity.createIntent(
+                TrackingMessageListActivity.createIntent(
                     context = this,
                     cid = "$channelType:$channelId"
                 )

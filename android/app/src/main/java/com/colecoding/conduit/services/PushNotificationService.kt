@@ -99,8 +99,17 @@ class PushNotificationService : FirebaseMessagingService() {
         val body = data["body"] ?: ""
         val channelId = data["channel_id"] ?: ""
         val channelType = data["channel_type"] ?: "messaging"
+        val cid = "$channelType:$channelId"
 
-        Log.d(TAG, "Showing notification: title=$title, body=$body")
+        Log.d(TAG, "Stream notification - channel: $cid, title: $title, body: $body")
+
+        // Check if user is currently viewing this channel
+        if (com.colecoding.conduit.chat.ChatViewTracker.isCurrentlyViewingChannel(cid)) {
+            Log.d(TAG, "✅ User is viewing this channel - suppressing notification")
+            return
+        }
+
+        Log.d(TAG, "Showing notification for different/no active channel")
 
         // Create notification channel for Android O+
         createNotificationChannel()

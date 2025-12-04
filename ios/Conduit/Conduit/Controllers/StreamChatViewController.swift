@@ -689,7 +689,7 @@ class ConduitChannelListRouter: ChatChannelListRouter {
 
             DispatchQueue.main.async {
                 // Create and configure optimized channel view controller
-                let channelVC = CustomChannelVC()
+                let channelVC = TrackingChannelVC()
                 channelVC.channelController = channelController
 
                 // Push to navigation controller
