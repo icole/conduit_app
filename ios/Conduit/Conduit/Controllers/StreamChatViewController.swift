@@ -5,7 +5,7 @@ import StreamChatUI
 class StreamChatViewController: UIViewController {
 
     // Stream Chat components
-    private var channelListController: ChatChannelListVC?
+    private var channelListController: CustomChannelListVC?
 
     // User info passed from Rails
     private let userId: String
@@ -44,15 +44,32 @@ class StreamChatViewController: UIViewController {
         // No back button needed - this is accessed via tab bar
         navigationItem.hidesBackButton = true
 
-        // Add debug button for testing push notifications
+        // Create the plus button for channel creation
+        let createButton = UIBarButtonItem(
+            image: UIImage(systemName: "plus"),
+            style: .plain,
+            target: self,
+            action: #selector(createChannelTapped)
+        )
+
         #if DEBUG
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
+        // In debug mode, add both debug and create buttons
+        let debugButton = UIBarButtonItem(
             title: "Debug",
             style: .plain,
             target: self,
             action: #selector(showDebugMenu)
         )
+        navigationItem.rightBarButtonItems = [createButton, debugButton]
+        #else
+        // In release mode, just add the create button
+        navigationItem.rightBarButtonItem = createButton
         #endif
+    }
+
+    @objc private func createChannelTapped() {
+        // Delegate to the CustomChannelListVC
+        channelListController?.createChannelTapped()
     }
 
     @objc private func showDebugMenu() {
@@ -545,13 +562,15 @@ class StreamChatViewController: UIViewController {
         let channelList = client.channelListController(query: query)
         print("Created channel list controller")
 
-        // Customize appearance - assign the type, not an instance
+        // Customize appearance - assign the types, not instances
         Components.default.channelListRouter = ConduitChannelListRouter.self
+        // Note: Channel list item customization would require more setup with Stream Chat UI v4
+        // For now, the mute indicator is shown in the channel name
 
-        // Create channel list view controller
-        let channelListVC = ChatChannelListVC()
+        // Create custom channel list view controller with channel creation support
+        let channelListVC = CustomChannelListVC()
         channelListVC.controller = channelList
-        print("Created ChatChannelListVC")
+        print("Created CustomChannelListVC with channel creation support")
 
         // Add as child view controller
         print("Adding channel list as child view controller")
