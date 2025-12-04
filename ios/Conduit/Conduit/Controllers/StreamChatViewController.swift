@@ -289,40 +289,47 @@ class StreamChatViewController: UIViewController {
         // Show loading indicator
         showLoading()
 
-        // Check if we already have an existing connection
-        if token == nil && apiKey == nil,
-           let existingClient = ChatManager.shared.chatClient,
-           existingClient.currentUserId == userId {
-            print("Using existing Stream Chat connection without fetching new token")
-            // Already connected, just setup the UI
-            DispatchQueue.main.async { [weak self] in
-                self?.setupChannelList()
-                self?.registerPendingDeviceToken()
-                self?.hideLoading()
-            }
-        } else if let token = self.token, let apiKey = self.apiKey {
-            // If token and API key were provided, use them directly
-            print("Using provided token and API key")
-            let userData = UserData(
-                id: userId,
-                name: userName,
-                avatar: userAvatar
-            )
-            let tokenData = TokenData(
-                token: token,
-                user: userData,
-                apiKey: apiKey
-            )
-            initializeStreamChat(with: tokenData)
-        } else {
-            print("No token provided, fetching from backend")
-            // Otherwise, fetch Stream token from Rails backend
-            fetchStreamToken { [weak self] result in
-                switch result {
-                case .success(let tokenData):
-                    self?.initializeStreamChat(with: tokenData)
-                case .failure(let error):
-                    self?.showError(error)
+        // Move initialization to background queue to prevent UI blocking
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+
+            // Check if we already have an existing connection
+            if self.token == nil && self.apiKey == nil,
+               let existingClient = ChatManager.shared.chatClient,
+               existingClient.currentUserId == self.userId {
+                print("Using existing Stream Chat connection without fetching new token")
+                // Already connected, just setup the UI
+                DispatchQueue.main.async { [weak self] in
+                    self?.setupChannelList()
+                    self?.registerPendingDeviceToken()
+                    self?.hideLoading()
+                }
+            } else if let token = self.token, let apiKey = self.apiKey {
+                // If token and API key were provided, use them directly
+                print("Using provided token and API key")
+                let userData = UserData(
+                    id: self.userId,
+                    name: self.userName,
+                    avatar: self.userAvatar
+                )
+                let tokenData = TokenData(
+                    token: token,
+                    user: userData,
+                    apiKey: apiKey
+                )
+                self.initializeStreamChat(with: tokenData)
+            } else {
+                print("No token provided, fetching from backend")
+                // Otherwise, fetch Stream token from Rails backend
+                self.fetchStreamToken { [weak self] result in
+                    switch result {
+                    case .success(let tokenData):
+                        self?.initializeStreamChat(with: tokenData)
+                    case .failure(let error):
+                        DispatchQueue.main.async {
+                            self?.showError(error)
+                        }
+                    }
                 }
             }
         }
@@ -431,15 +438,9 @@ class StreamChatViewController: UIViewController {
                     print("✅ Stream Chat connected successfully at \(Date())")
                     self?.setupChannelList()
 
-                    // Register pending device token after connection
+                    // Register pending device token after connection (only once)
                     print("🔄 Checking for pending device token after connection...")
                     self?.registerPendingDeviceToken()
-
-                    // Double-check by re-triggering registration
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-                        print("🔄 Double-checking device token registration...")
-                        self?.registerPendingDeviceToken()
-                    }
                 }
             }
         }
@@ -541,55 +542,62 @@ class StreamChatViewController: UIViewController {
 
     private func setupChannelList() {
         print("StreamChatViewController: setupChannelList called")
-        guard let client = ChatManager.shared.chatClient else {
-            print("Chat client is nil in ChatManager, cannot setup channel list")
-            return
-        }
 
-        // Debug: List registered devices
-        checkRegisteredDevices()
-
-        // Create channel list query
-        let query = ChannelListQuery(
-            filter: .and([
-                .equal(.type, to: .team),
-                .containMembers(userIds: [userId])
-            ])
-        )
-        print("Created channel list query for user: \(userId)")
-
-        // Create channel list controller
-        let channelList = client.channelListController(query: query)
-        print("Created channel list controller")
-
-        // Customize appearance - assign the types, not instances
-        Components.default.channelListRouter = ConduitChannelListRouter.self
-        // Note: Channel list item customization would require more setup with Stream Chat UI v4
-        // For now, the mute indicator is shown in the channel name
-
-        // Create custom channel list view controller with channel creation support
-        let channelListVC = CustomChannelListVC()
-        channelListVC.controller = channelList
-        print("Created CustomChannelListVC with channel creation support")
-
-        // Add as child view controller
-        print("Adding channel list as child view controller")
-        addChild(channelListVC)
-        view.addSubview(channelListVC.view)
-        channelListVC.view.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            channelListVC.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            channelListVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            channelListVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            channelListVC.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-        channelListVC.didMove(toParent: self)
-
-        self.channelListController = channelListVC
-
-        // Hide loading (ensure we're on main thread)
+        // Ensure we're on the main thread for UI operations
         DispatchQueue.main.async { [weak self] in
-            self?.hideLoading()
+            guard let self = self else { return }
+
+            guard let client = ChatManager.shared.chatClient else {
+                print("Chat client is nil in ChatManager, cannot setup channel list")
+                self.hideLoading()
+                return
+            }
+
+            // Debug: List registered devices (on background queue to avoid blocking)
+            DispatchQueue.global(qos: .background).async {
+                self.checkRegisteredDevices()
+            }
+
+            // Create channel list query
+            let query = ChannelListQuery(
+                filter: .and([
+                    .equal(.type, to: .team),
+                    .containMembers(userIds: [self.userId])
+                ])
+            )
+            print("Created channel list query for user: \(self.userId)")
+
+            // Create channel list controller
+            let channelList = client.channelListController(query: query)
+            print("Created channel list controller")
+
+            // Customize appearance - assign the types, not instances
+            Components.default.channelListRouter = ConduitChannelListRouter.self
+            // Note: Channel list item customization would require more setup with Stream Chat UI v4
+            // For now, the mute indicator is shown in the channel name
+
+            // Create custom channel list view controller with channel creation support
+            let channelListVC = CustomChannelListVC()
+            channelListVC.controller = channelList
+            print("Created CustomChannelListVC with channel creation support")
+
+            // Add as child view controller
+            print("Adding channel list as child view controller")
+            self.addChild(channelListVC)
+            self.view.addSubview(channelListVC.view)
+            channelListVC.view.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                channelListVC.view.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
+                channelListVC.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+                channelListVC.view.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+                channelListVC.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
+            ])
+            channelListVC.didMove(toParent: self)
+
+            self.channelListController = channelListVC
+
+            // Hide loading
+            self.hideLoading()
         }
     }
 
@@ -672,19 +680,23 @@ class ConduitChannelListRouter: ChatChannelListRouter {
         guard let channelListVC = rootViewController as? ChatChannelListVC else {
             return
         }
-        
+
         guard let client = channelListVC.controller?.client else {
             return
         }
 
-        // Create channel controller with the client
-        let channelController = client.channelController(for: cid)
+        // Create channel controller with the client on background queue
+        DispatchQueue.global(qos: .userInitiated).async {
+            let channelController = client.channelController(for: cid)
 
-        // Create and configure channel view controller
-        let channelVC = ChatChannelVC()
-        channelVC.channelController = channelController
+            DispatchQueue.main.async {
+                // Create and configure optimized channel view controller
+                let channelVC = CustomChannelVC()
+                channelVC.channelController = channelController
 
-        // Push to navigation controller
-        rootViewController.navigationController?.pushViewController(channelVC, animated: true)
+                // Push to navigation controller
+                self.rootViewController.navigationController?.pushViewController(channelVC, animated: true)
+            }
+        }
     }
 }

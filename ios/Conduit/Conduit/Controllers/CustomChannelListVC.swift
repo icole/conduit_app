@@ -25,10 +25,8 @@ class CustomChannelListVC: ChatChannelListVC {
     }
 
     private func configureMutedChannelIndicators() {
-        // Update channel appearances on initial load
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            self?.updateMutedChannelIndicators()
-        }
+        // Update channel appearances on initial load without delay
+        updateMutedChannelIndicators()
     }
 
     private func updateMutedChannelIndicators() {
@@ -89,13 +87,9 @@ class CustomChannelListVC: ChatChannelListVC {
 
     private func configureSwipeActions() {
         // Add long press gesture recognizer for channel options
-        // Note: We add this after a delay to ensure the collection view is loaded
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            guard let self = self else { return }
-            let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress))
-            longPressGesture.minimumPressDuration = 0.5
-            self.view.addGestureRecognizer(longPressGesture)
-        }
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+        longPressGesture.minimumPressDuration = 0.5
+        view.addGestureRecognizer(longPressGesture)
     }
 
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
@@ -252,11 +246,11 @@ class CustomChannelListVC: ChatChannelListVC {
     }
 
     private func navigateToChannel(channelController: ChatChannelController) {
-        // Create and configure channel view controller
-        let channelVC = ChatChannelVC()
+        // Create and configure optimized channel view controller
+        let channelVC = CustomChannelVC()
         channelVC.channelController = channelController
 
-        // Push to navigation controller
+        // Push to navigation controller with optimized transition
         navigationController?.pushViewController(channelVC, animated: true)
     }
 
