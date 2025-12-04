@@ -13,7 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.colecoding.conduit.auth.AuthManager
 import com.colecoding.conduit.auth.LoginActivity
-import com.colecoding.conduit.fragments.ChatFragment
+import com.colecoding.conduit.fragments.CustomChatFragment
 import com.colecoding.conduit.fragments.HomeFragment
 import com.colecoding.conduit.fragments.ProfileFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
 
     // Keep fragment instances to avoid recreation
     private val homeFragment = HomeFragment()
-    private val chatFragment = ChatFragment()
+    private val chatFragment = CustomChatFragment()
     private val profileFragment = ProfileFragment()
     private var activeFragment: Fragment = homeFragment
 
