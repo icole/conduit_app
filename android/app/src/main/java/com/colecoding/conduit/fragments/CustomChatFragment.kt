@@ -135,14 +135,14 @@ class CustomChatFragment : Fragment() {
         val isRestricted = AuthManager.isRestrictedAccess(requireContext())
 
         val filter = if (isRestricted) {
-            // Restricted users only see channels they're members of
-            Log.d(TAG, "Creating restricted channel filter (member channels only)")
+            // Restricted users only see demo channels they're members of
+            Log.d(TAG, "Creating restricted channel filter (demo channels only)")
             Filters.and(
-                Filters.eq("type", "team"),
+                Filters.eq("type", "demo"),
                 Filters.`in`("members", listOf(userId))
             )
         } else {
-            // Regular users see all team channels
+            // Regular users see all team channels (not demo channels)
             Log.d(TAG, "Creating channel filter to show all team channels")
             Filters.eq("type", "team")
         }

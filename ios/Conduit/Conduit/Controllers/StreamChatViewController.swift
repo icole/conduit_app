@@ -311,7 +311,8 @@ class StreamChatViewController: UIViewController {
                 let userData = UserData(
                     id: self.userId,
                     name: self.userName,
-                    avatar: self.userAvatar
+                    avatar: self.userAvatar,
+                    restrictedAccess: false
                 )
                 let tokenData = TokenData(
                     token: token,
@@ -566,16 +567,16 @@ class StreamChatViewController: UIViewController {
             // Create channel list query based on user's access level
             let query: ChannelListQuery
             if self.restrictedAccess {
-                // Restricted users only see channels they're members of
+                // Restricted users only see demo channels they're members of
                 query = ChannelListQuery(
                     filter: .and([
-                        .equal(.type, to: .team),
+                        .equal(.type, to: .custom("demo")),
                         .containMembers(userIds: [client.currentUserId].compactMap { $0 })
                     ])
                 )
-                print("Created restricted channel list query (member channels only)")
+                print("Created restricted channel list query (demo channels only)")
             } else {
-                // Regular users see all team channels
+                // Regular users see all team channels (not demo channels)
                 query = ChannelListQuery(
                     filter: .equal(.type, to: .team)
                 )
