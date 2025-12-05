@@ -2,6 +2,11 @@ class DashboardController < ApplicationController
   before_action :authenticate_user!
 
   def index
+    # Restricted users see a minimal welcome page
+    if current_user.restricted_access
+      render :restricted and return
+    end
+
     @posts = Post.order(created_at: :desc)
     @post = Post.new
 

@@ -13,6 +13,7 @@ class StreamChatViewController: UIViewController {
     private let userAvatar: String?
     private let token: String?
     private let apiKey: String?
+    private var restrictedAccess: Bool = false
 
     init(userId: String, userName: String, userAvatar: String? = nil, token: String? = nil, apiKey: String? = nil) {
         self.userId = userId
@@ -385,6 +386,10 @@ class StreamChatViewController: UIViewController {
         print("User Name: \(tokenData.user.name)")
         print("API Key: \(tokenData.apiKey)")
 
+        // Store restricted access flag
+        self.restrictedAccess = tokenData.user.restrictedAccess
+        print("Restricted Access: \(self.restrictedAccess)")
+
         // Check if ChatManager already has a connected client for this user
         if let existingClient = ChatManager.shared.chatClient {
             print("Found existing client. Current user: \(existingClient.currentUserId ?? "nil")")
@@ -558,12 +563,24 @@ class StreamChatViewController: UIViewController {
                 self.checkRegisteredDevices()
             }
 
-            // Create channel list query to show ALL team channels
-            // ReadChannel permission now enabled in Stream Dashboard
-            let query = ChannelListQuery(
-                filter: .equal(.type, to: .team)  // Show ALL team channels
-            )
-            print("Created channel list query to show all team channels")
+            // Create channel list query based on user's access level
+            let query: ChannelListQuery
+            if self.restrictedAccess {
+                // Restricted users only see channels they're members of
+                query = ChannelListQuery(
+                    filter: .and([
+                        .equal(.type, to: .team),
+                        .containMembers(userIds: [client.currentUserId].compactMap { $0 })
+                    ])
+                )
+                print("Created restricted channel list query (member channels only)")
+            } else {
+                // Regular users see all team channels
+                query = ChannelListQuery(
+                    filter: .equal(.type, to: .team)
+                )
+                print("Created channel list query to show all team channels")
+            }
 
             // Create channel list controller
             let channelList = client.channelListController(query: query)
@@ -657,6 +674,14 @@ struct UserData: Decodable {
     let id: String
     let name: String
     let avatar: String?
+    let restrictedAccess: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case avatar
+        case restrictedAccess = "restricted_access"
+    }
 }
 
 enum StreamChatError: LocalizedError {

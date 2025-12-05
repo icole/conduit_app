@@ -41,7 +41,8 @@ class ChatController < ApplicationController
           user: {
             id: current_user.id.to_s,
             name: current_user.name,
-            avatar: current_user.avatar_url
+            avatar: current_user.avatar_url,
+            restricted_access: current_user.restricted_access
           },
           api_key: StreamChatClient.api_key
         }
@@ -52,7 +53,8 @@ class ChatController < ApplicationController
           user: {
             id: current_user.id.to_s,
             name: current_user.name,
-            avatar: current_user.avatar_url
+            avatar: current_user.avatar_url,
+            restricted_access: current_user.restricted_access
           },
           api_key: StreamChatClient.api_key
         }

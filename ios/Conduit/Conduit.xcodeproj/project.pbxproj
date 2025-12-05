@@ -379,6 +379,7 @@
 				DEVELOPMENT_TEAM = 4HH3485V92;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Conduit/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Conduit;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -453,6 +454,7 @@
 				DEVELOPMENT_TEAM = 4HH3485V92;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Conduit/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Conduit;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -485,6 +487,7 @@
 				DEVELOPMENT_TEAM = 4HH3485V92;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Conduit/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Conduit;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

@@ -130,11 +130,22 @@ class CustomChatFragment : Fragment() {
         container.removeAllViews()
         container.addView(channelListView)
 
-        // Setup the channel list to show ALL team channels
-        // ReadChannel permission now enabled in Stream Dashboard
+        // Setup the channel list based on user's access level
         val userId = AuthManager.getUserId(requireContext()) ?: return
+        val isRestricted = AuthManager.isRestrictedAccess(requireContext())
 
-        val filter = Filters.eq("type", "team")  // Show ALL team channels
+        val filter = if (isRestricted) {
+            // Restricted users only see channels they're members of
+            Log.d(TAG, "Creating restricted channel filter (member channels only)")
+            Filters.and(
+                Filters.eq("type", "team"),
+                Filters.`in`("members", listOf(userId))
+            )
+        } else {
+            // Regular users see all team channels
+            Log.d(TAG, "Creating channel filter to show all team channels")
+            Filters.eq("type", "team")
+        }
 
         val viewModelFactory = ChannelListViewModelFactory(
             filter = filter,

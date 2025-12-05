@@ -11,6 +11,13 @@ if (localPropertiesFile.exists()) {
     localProperties.load(new FileInputStream(localPropertiesFile))
 }
 
+// Load key.properties for release signing
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace 'com.colecoding.conduit'
     compileSdk 34
@@ -28,6 +35,14 @@ android {
     signingConfigs {
         debug {
             // Uses the default debug keystore
+        }
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file("../" + keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
         }
     }
 
@@ -49,7 +64,7 @@ android {
             // API Keys from local.properties (not in version control)
             buildConfigField "String", "STREAM_API_KEY", "\"${localProperties.getProperty('STREAM_API_KEY', 'YOUR_STREAM_API_KEY')}\""
             buildConfigField "String", "GOOGLE_CLIENT_ID", "\"${localProperties.getProperty('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID')}\""
-            signingConfig signingConfigs.debug  // Use debug signing for now
+            signingConfig signingConfigs.release
         }
     }
 

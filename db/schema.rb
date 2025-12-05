@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_24_090204) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_05_042302) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -273,6 +273,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_24_090204) do
     t.boolean "admin", default: false
     t.bigint "invitation_id"
     t.datetime "last_active_at"
+    t.boolean "restricted_access", default: false, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["invitation_id"], name: "index_users_on_invitation_id"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true

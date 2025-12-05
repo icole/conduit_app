@@ -14,6 +14,7 @@ object AuthManager {
     private const val KEY_IS_AUTHENTICATED = "is_authenticated"
     private const val KEY_STREAM_TOKEN = "stream_chat_token"
     private const val KEY_AUTH_TOKEN = "auth_token"
+    private const val KEY_RESTRICTED_ACCESS = "restricted_access"
 
     private const val TAG = "AuthManager"
 
@@ -82,6 +83,15 @@ object AuthManager {
     fun setStreamChatToken(context: Context, token: String) {
         Log.d(TAG, "Setting Stream Chat token")
         getPrefs(context).edit().putString(KEY_STREAM_TOKEN, token).apply()
+    }
+
+    fun setRestrictedAccess(context: Context, restricted: Boolean) {
+        Log.d(TAG, "Setting restricted access: $restricted")
+        getPrefs(context).edit().putBoolean(KEY_RESTRICTED_ACCESS, restricted).apply()
+    }
+
+    fun isRestrictedAccess(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_RESTRICTED_ACCESS, false)
     }
 
     fun logout(context: Context) {
@@ -154,6 +164,10 @@ object AuthManager {
                     }
                     if (userObject.has("name")) {
                         setUserName(context, userObject.getString("name"))
+                    }
+                    if (userObject.has("restricted_access")) {
+                        setRestrictedAccess(context, userObject.getBoolean("restricted_access"))
+                        Log.d(TAG, "User restricted access: ${userObject.getBoolean("restricted_access")}")
                     }
                 }
 

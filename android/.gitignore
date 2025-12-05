@@ -108,6 +108,7 @@ ehthumbs.db
 # App signing
 *.jks
 *.keystore
+key.properties
 
 # Local environment configuration
 .env.local
