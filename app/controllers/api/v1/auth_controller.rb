@@ -248,8 +248,17 @@ module Api
       end
 
       def verify_google_id_token(id_token)
-        # Google's Web Client ID for verification (set in environment variables)
-        client_id = ENV.fetch("GOOGLE_CLIENT_ID", "YOUR_GOOGLE_CLIENT_ID")
+        # Accept Web, iOS, and Android client IDs from environment variables
+        valid_client_ids = [
+          ENV["GOOGLE_CLIENT_ID"],           # Web client ID
+          ENV["GOOGLE_IOS_CLIENT_ID"],       # iOS client ID
+          ENV["GOOGLE_ANDROID_CLIENT_ID"]    # Android client ID
+        ].compact.uniq
+
+        if valid_client_ids.empty?
+          Rails.logger.error "No Google Client IDs configured in environment variables"
+          return nil
+        end
 
         begin
           # Use Google's token verification endpoint
@@ -273,11 +282,13 @@ module Api
           if response.code == "200"
             data = JSON.parse(response.body)
 
-            # Verify the audience matches our client ID
-            if data["aud"] == client_id
+            # Verify the audience matches one of our client IDs (Web, iOS, or Android)
+            if valid_client_ids.include?(data["aud"])
+              Rails.logger.info "Google ID token verified for audience: #{data['aud']}"
               return data
             else
-              Rails.logger.error "Google ID token has wrong audience: #{data['aud']}"
+              Rails.logger.error "Google ID token has invalid audience: #{data['aud']}"
+              Rails.logger.error "Expected one of: #{valid_client_ids.join(', ')}"
             end
           else
             Rails.logger.error "Google ID token verification failed: #{response.code}"

@@ -157,12 +157,6 @@ class CustomChannelListVC: ChatChannelListVC {
             return
         }
 
-        // Debug: Log current user role
-        print("🔧 Channel Creation Debug:")
-        print("  → User ID: \(client.currentUserId ?? "unknown")")
-        print("  → Creating channel: \(name)")
-        print("  → Timestamp: \(Date())")
-
         // Generate a channel ID from the name (lowercase, replace spaces with hyphens)
         let channelId = name
             .lowercased()
@@ -221,39 +215,31 @@ class CustomChannelListVC: ChatChannelListVC {
             self?.hideLoadingIndicator()
 
             if let error = error {
-                print("❌ Channel Creation Error: \(error)")
+                print("Channel creation error: \(error)")
 
                 // Parse Stream error for permission issues
                 let errorMessage = error.localizedDescription
                 if errorMessage.lowercased().contains("permission") ||
                    errorMessage.lowercased().contains("unauthorized") ||
                    errorMessage.lowercased().contains("not allowed") {
-                    print("🔒 This appears to be a permission error!")
-                    print("   → Check Stream Dashboard: Chat → Roles & Permissions")
-                    print("   → Enable 'CreateChannel' for 'user' role")
                     self?.showError("Permission Denied: Users are not allowed to create channels. Please contact your admin to enable this feature.")
                 } else {
                     self?.showError("Failed to create channel: \(errorMessage)")
                 }
             } else {
-                print("Channel created successfully: \(name)")
+                print("Channel created successfully")
 
                 // Add a welcome message to the new channel
                 channelController.createNewMessage(
                     text: "Welcome to #\(name)! 🎉"
                 ) { result in
-                    switch result {
-                    case .success:
-                        print("Welcome message sent")
-                    case .failure(let error):
+                    if case .failure(let error) = result {
                         print("Failed to send welcome message: \(error)")
                     }
                 }
 
                 // The channel list should automatically update, but we can force a refresh
-                self?.controller?.synchronize { _ in
-                    print("Channel list refreshed")
-                }
+                self?.controller?.synchronize { _ in }
 
                 // Optionally, navigate to the new channel
                 self?.navigateToChannel(channelController: channelController)

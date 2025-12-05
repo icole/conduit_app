@@ -273,7 +273,6 @@ class StreamChatViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: false)
-        print("📱 StreamChatViewController: viewWillAppear")
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -283,10 +282,6 @@ class StreamChatViewController: UIViewController {
     }
 
     private func setupStreamChat() {
-        print("StreamChatViewController: setupStreamChat called")
-        print("Token provided: \(token != nil)")
-        print("API Key provided: \(apiKey != nil)")
-
         // Show loading indicator
         showLoading()
 
@@ -298,30 +293,58 @@ class StreamChatViewController: UIViewController {
             if self.token == nil && self.apiKey == nil,
                let existingClient = ChatManager.shared.chatClient,
                existingClient.currentUserId == self.userId {
-                print("Using existing Stream Chat connection without fetching new token")
-                // Already connected, just setup the UI
-                DispatchQueue.main.async { [weak self] in
-                    self?.setupChannelList()
-                    self?.registerPendingDeviceToken()
-                    self?.hideLoading()
+                print("Using existing Stream Chat connection")
+                // Already connected, but we still need to fetch user data to get restrictedAccess flag
+                self.fetchStreamToken { [weak self] result in
+                    switch result {
+                    case .success(let tokenData):
+                        // Store the restrictedAccess value
+                        self?.restrictedAccess = tokenData.user.restrictedAccess
+
+                        // Setup UI on main thread
+                        DispatchQueue.main.async { [weak self] in
+                            self?.setupChannelList()
+                            self?.registerPendingDeviceToken()
+                            self?.hideLoading()
+                        }
+                    case .failure(let error):
+                        print("Failed to fetch user data: \(error)")
+                        // Fall back to setting up UI anyway
+                        DispatchQueue.main.async { [weak self] in
+                            self?.setupChannelList()
+                            self?.registerPendingDeviceToken()
+                            self?.hideLoading()
+                        }
+                    }
                 }
             } else if let token = self.token, let apiKey = self.apiKey {
-                // If token and API key were provided, use them directly
-                print("Using provided token and API key")
-                let userData = UserData(
-                    id: self.userId,
-                    name: self.userName,
-                    avatar: self.userAvatar,
-                    restrictedAccess: false
-                )
-                let tokenData = TokenData(
-                    token: token,
-                    user: userData,
-                    apiKey: apiKey
-                )
-                self.initializeStreamChat(with: tokenData)
+                // If token and API key were provided, fetch user data from backend to get restrictedAccess flag
+                self.fetchStreamToken { [weak self] result in
+                    guard let self = self else { return }
+
+                    switch result {
+                    case .success(let tokenData):
+                        // Use the token data from backend (includes restrictedAccess)
+                        self.initializeStreamChat(with: tokenData)
+                    case .failure(let error):
+                        print("Failed to fetch user data, using provided token: \(error)")
+                        // Fall back to provided values with restrictedAccess = false
+                        let userData = UserData(
+                            id: self.userId,
+                            name: self.userName,
+                            avatar: self.userAvatar,
+                            restrictedAccess: false
+                        )
+                        let tokenData = TokenData(
+                            token: token,
+                            user: userData,
+                            apiKey: apiKey
+                        )
+                        self.initializeStreamChat(with: tokenData)
+                    }
+                }
             } else {
-                print("No token provided, fetching from backend")
+                print("Fetching Stream token from backend")
                 // Otherwise, fetch Stream token from Rails backend
                 self.fetchStreamToken { [weak self] result in
                     switch result {
@@ -382,21 +405,18 @@ class StreamChatViewController: UIViewController {
     }
 
     private func initializeStreamChat(with tokenData: TokenData) {
-        print("StreamChatViewController: initializeStreamChat called at \(Date())")
-        print("User ID: \(tokenData.user.id)")
-        print("User Name: \(tokenData.user.name)")
-        print("API Key: \(tokenData.apiKey)")
+        print("Initializing Stream Chat for user: \(tokenData.user.id)")
 
         // Store restricted access flag
         self.restrictedAccess = tokenData.user.restrictedAccess
-        print("Restricted Access: \(self.restrictedAccess)")
+        if self.restrictedAccess {
+            print("User has restricted access")
+        }
 
         // Check if ChatManager already has a connected client for this user
         if let existingClient = ChatManager.shared.chatClient {
-            print("Found existing client. Current user: \(existingClient.currentUserId ?? "nil")")
-
             if existingClient.currentUserId == tokenData.user.id {
-                print("✅ Reusing existing Stream Chat connection for user: \(tokenData.user.id)")
+                print("Reusing existing connection")
                 // Just setup the channel list with existing connection
                 DispatchQueue.main.async { [weak self] in
                     self?.setupChannelList()
@@ -404,13 +424,11 @@ class StreamChatViewController: UIViewController {
                 }
                 return
             } else {
-                print("⚠️ Different user detected. Current: \(existingClient.currentUserId ?? "nil"), New: \(tokenData.user.id)")
+                print("Different user detected, reconnecting")
                 // Need to disconnect and reconnect with new user
                 ChatManager.shared.disconnect()
             }
         }
-
-        print("🔄 Creating new Stream Chat connection...")
 
         // Configure Stream Chat with push notifications support
         var config = ChatClientConfig(apiKey: .init(tokenData.apiKey))
@@ -422,7 +440,6 @@ class StreamChatViewController: UIViewController {
         // Initialize chat client through ChatManager
         let chatClient = ChatClient(config: config)
         ChatManager.shared.configure(with: chatClient)
-        print("Chat client initialized and registered with ChatManager")
 
         // Connect user
         let userInfo = UserInfo(
@@ -431,21 +448,17 @@ class StreamChatViewController: UIViewController {
             imageURL: tokenData.user.avatar.flatMap { URL(string: $0) }
         )
 
-        print("Connecting user to Stream Chat...")
         chatClient.connectUser(
             userInfo: userInfo,
             token: Token(stringLiteral: tokenData.token)
         ) { [weak self] error in
             DispatchQueue.main.async {
                 if let error = error {
-                    print("❌ Stream Chat connection error: \(error)")
+                    print("Stream Chat connection error: \(error)")
                     self?.showError(error)
                 } else {
-                    print("✅ Stream Chat connected successfully at \(Date())")
+                    print("Stream Chat connected successfully")
                     self?.setupChannelList()
-
-                    // Register pending device token after connection (only once)
-                    print("🔄 Checking for pending device token after connection...")
                     self?.registerPendingDeviceToken()
                 }
             }
@@ -453,30 +466,19 @@ class StreamChatViewController: UIViewController {
     }
 
     private func registerPendingDeviceToken() {
-        print("📱 registerPendingDeviceToken called")
-
         // Check current Stream client status
-        if let client = ChatManager.shared.chatClient {
-            print("  → Stream client exists, user: \(client.currentUserId ?? "none")")
-            print("  → Connection status: \(client.connectionStatus)")
-        } else {
-            print("  ❌ No Stream client available yet")
+        guard let client = ChatManager.shared.chatClient else {
+            print("No Stream client available for device token registration")
             return
         }
 
         // Check if there's a pending device token from push notification registration
         if let deviceToken = UserDefaults.standard.data(forKey: "pendingDeviceToken") {
-            let tokenHex = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-            print("  ✅ Found pending device token: \(tokenHex.prefix(20))...")
-            print("  📤 Registering with Stream Chat...")
-
+            print("Registering device token with Stream")
             // Use ChatManager's registerDeviceToken which has the correct provider name
             ChatManager.shared.registerDeviceToken(deviceToken)
         } else {
-            print("  ℹ️ No pending device token found in UserDefaults")
-
-            // Check if we need to request a new token
-            print("  🔄 Requesting fresh device token from iOS...")
+            // Request a new token from iOS
             DispatchQueue.main.async {
                 UIApplication.shared.registerForRemoteNotifications()
             }
@@ -547,14 +549,12 @@ class StreamChatViewController: UIViewController {
     }
 
     private func setupChannelList() {
-        print("StreamChatViewController: setupChannelList called")
-
         // Ensure we're on the main thread for UI operations
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
 
             guard let client = ChatManager.shared.chatClient else {
-                print("Chat client is nil in ChatManager, cannot setup channel list")
+                print("Cannot setup channel list: no chat client available")
                 self.hideLoading()
                 return
             }
@@ -574,18 +574,16 @@ class StreamChatViewController: UIViewController {
                         .containMembers(userIds: [client.currentUserId].compactMap { $0 })
                     ])
                 )
-                print("Created restricted channel list query (demo channels only)")
+                print("Restricted mode: showing demo channels only")
             } else {
                 // Regular users see all team channels (not demo channels)
                 query = ChannelListQuery(
                     filter: .equal(.type, to: .team)
                 )
-                print("Created channel list query to show all team channels")
             }
 
             // Create channel list controller
             let channelList = client.channelListController(query: query)
-            print("Created channel list controller")
 
             // Customize appearance - assign the types, not instances
             Components.default.channelListRouter = ConduitChannelListRouter.self
@@ -595,10 +593,8 @@ class StreamChatViewController: UIViewController {
             // Create custom channel list view controller with channel creation support
             let channelListVC = CustomChannelListVC()
             channelListVC.controller = channelList
-            print("Created CustomChannelListVC with channel creation support")
 
             // Add as child view controller
-            print("Adding channel list as child view controller")
             self.addChild(channelListVC)
             self.view.addSubview(channelListVC.view)
             channelListVC.view.translatesAutoresizingMaskIntoConstraints = false
