@@ -1,6 +1,8 @@
 package com.colecoding.conduit
 
+import android.app.Activity
 import android.app.Application
+import android.os.Bundle
 import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme -->
-    <style name="Theme.Conduit" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.Conduit" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
@@ -15,6 +15,10 @@
         <!-- Status bar color -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
 
+        <!-- Dialog theme -->
+        <item name="dialogTheme">@style/Theme.Conduit.Dialog</item>
+        <item name="alertDialogTheme">@style/Theme.Conduit.Dialog</item>
+
         <!-- Customize your theme here -->
     </style>
 
@@ -22,6 +26,7 @@
     <style name="Theme.Conduit.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
     </style>
 
     <!-- Splash screen theme -->
@@ -30,9 +35,43 @@
     </style>
 
     <!-- Stream Chat theme -->
-    <style name="StreamChatTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="StreamChatTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/stream_ui_primary</item>
         <item name="colorPrimaryDark">@color/stream_ui_primary_dark</item>
         <item name="colorAccent">@color/stream_ui_accent</item>
+        <item name="android:statusBarColor">@color/stream_ui_primary_dark</item>
+        <item name="android:navigationBarColor">@android:color/white</item>
+        <item name="dialogTheme">@style/StreamChatDialogTheme</item>
+        <item name="alertDialogTheme">@style/StreamChatDialogTheme</item>
+        <item name="bottomSheetDialogTheme">@style/StreamChatBottomSheetTheme</item>
+    </style>
+
+    <!-- Dialog theme for Stream Chat dialogs -->
+    <style name="StreamChatDialogTheme" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="colorPrimary">@color/stream_ui_primary</item>
+        <item name="colorPrimaryVariant">@color/stream_ui_primary_dark</item>
+        <item name="colorAccent">@color/stream_ui_accent</item>
+        <item name="android:statusBarColor">@color/stream_ui_primary_dark</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">true</item>
+    </style>
+
+    <!-- Dialog theme for main app dialogs -->
+    <style name="Theme.Conduit.Dialog" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+
+    <!-- Bottom Sheet theme for Stream Chat - poll creator dialog -->
+    <style name="StreamChatBottomSheetTheme" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
+        <item name="colorPrimary">@color/stream_ui_primary</item>
+        <item name="colorPrimaryVariant">@color/stream_ui_primary_dark</item>
+        <item name="colorAccent">@color/stream_ui_accent</item>
+        <item name="android:statusBarColor">@color/stream_ui_primary_dark</item>
+        <item name="android:navigationBarColor">@android:color/white</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
 </resources>

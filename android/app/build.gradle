@@ -20,13 +20,13 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace 'com.colecoding.conduit'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.colecoding.conduit"
         minSdk 24
-        targetSdk 34
-        versionCode 1
+        targetSdk 35
+        versionCode 15
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

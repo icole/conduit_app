@@ -7,6 +7,9 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Remove RECORD_AUDIO permission added by Stream Chat SDK since we don't use voice messages -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
+
     <application
         android:name=".MainApplication"
         android:allowBackup="true"
@@ -47,7 +50,8 @@
         <!-- Tracking Message List Activity (suppresses notifications when viewing) -->
         <activity
             android:name=".chat.TrackingMessageListActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/StreamChatTheme" />
 
         <!-- Firebase Messaging Service -->
         <service

@@ -17,6 +17,44 @@ class CustomChannelListVC: ChatChannelListVC {
         configureMutedChannelIndicators()
     }
 
+    override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        // Get the selected channel
+        guard indexPath.row < controller?.channels.count ?? 0,
+              let channel = controller?.channels[indexPath.row],
+              let currentUserId = controller?.client.currentUserId else {
+            super.collectionView(collectionView, didSelectItemAt: indexPath)
+            return
+        }
+
+        // Check if user is a member
+        let isMember = channel.lastActiveMembers.contains { $0.id == currentUserId }
+
+        if !isMember {
+            // Auto-join the channel before opening
+            print("User not a member, auto-joining channel...")
+            let channelController = controller!.client.channelController(for: channel.cid)
+
+            channelController.addMembers(userIds: [currentUserId]) { [weak self] error in
+                if let error = error {
+                    print("Failed to join channel: \(error)")
+                } else {
+                    print("Successfully joined channel")
+                }
+
+                // Open the channel after attempting to join
+                self?.openChannel(at: indexPath)
+            }
+        } else {
+            // Already a member, just open
+            super.collectionView(collectionView, didSelectItemAt: indexPath)
+        }
+    }
+
+    private func openChannel(at indexPath: IndexPath) {
+        // Manually trigger the default selection behavior
+        super.collectionView(collectionView, didSelectItemAt: indexPath)
+    }
+
     override func controller(_ controller: ChatChannelListController, didChangeChannels changes: [ListChange<ChatChannel>]) {
         super.controller(controller, didChangeChannels: changes)
 

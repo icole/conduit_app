@@ -204,12 +204,22 @@ class LoginActivity : AppCompatActivity() {
 
                     withContext(Dispatchers.Main) { handleLoginSuccess(jsonResponse) }
                 } else {
+                    val errorResponse = BufferedReader(InputStreamReader(connection.errorStream)).use {
+                        it.readText()
+                    }
+                    Log.e(TAG, "Google auth failed with code $responseCode: $errorResponse")
+
                     withContext(Dispatchers.Main) {
                         showLoading(false)
+                        val errorMessage = try {
+                            JSONObject(errorResponse).optString("error", "Google sign in failed")
+                        } catch (e: Exception) {
+                            "Google sign in failed"
+                        }
                         Toast.makeText(
                                         this@LoginActivity,
-                                        "Google sign in failed",
-                                        Toast.LENGTH_SHORT
+                                        errorMessage,
+                                        Toast.LENGTH_LONG
                                 )
                                 .show()
                     }

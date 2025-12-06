@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dialog theme for Stream Chat dialogs on Android 11+ -->
+    <style name="StreamChatDialogTheme" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="colorPrimary">@color/stream_ui_primary</item>
+        <item name="colorPrimaryVariant">@color/stream_ui_primary_dark</item>
+        <item name="colorAccent">@color/stream_ui_accent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">default</item>
+        <item name="android:enforceNavigationBarContrast">true</item>
+        <item name="android:enforceStatusBarContrast">true</item>
+    </style>
+
+    <!-- Dialog theme for main app dialogs on Android 11+ -->
+    <style name="Theme.Conduit.Dialog" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">never</item>
+        <item name="android:enforceNavigationBarContrast">true</item>
+        <item name="android:enforceStatusBarContrast">true</item>
+    </style>
+</resources>

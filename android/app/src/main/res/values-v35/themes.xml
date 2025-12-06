@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stream Chat theme for Android 15+ (API 35) - opt out of edge-to-edge enforcement -->
+    <style name="StreamChatTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/stream_ui_primary</item>
+        <item name="colorPrimaryDark">@color/stream_ui_primary_dark</item>
+        <item name="colorAccent">@color/stream_ui_accent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="dialogTheme">@style/StreamChatDialogTheme</item>
+        <item name="alertDialogTheme">@style/StreamChatDialogTheme</item>
+        <item name="bottomSheetDialogTheme">@style/StreamChatBottomSheetTheme</item>
+        <!-- Opt out of Android 15 edge-to-edge enforcement to fix status bar -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+
+    <!-- Bottom Sheet theme for Android 15+ -->
+    <style name="StreamChatBottomSheetTheme" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
+        <item name="colorPrimary">@color/stream_ui_primary</item>
+        <item name="colorPrimaryVariant">@color/stream_ui_primary_dark</item>
+        <item name="colorAccent">@color/stream_ui_accent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+
+    <!-- Main app theme for Android 15+ (API 35) - opt out of edge-to-edge enforcement -->
+    <style name="Theme.Conduit" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="dialogTheme">@style/Theme.Conduit.Dialog</item>
+        <item name="alertDialogTheme">@style/Theme.Conduit.Dialog</item>
+        <!-- Opt out of Android 15 edge-to-edge enforcement to fix status bar -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+</resources>

@@ -178,24 +178,35 @@ class CustomChatFragment : Fragment() {
                 Log.d(TAG, "User not a member, auto-joining channel...")
                 val channelClient = ChatClient.instance().channel(channel.cid)
 
-                // Add user as member
-                channelClient.addMembers(listOf(currentUserId)).enqueue { result ->
+                // Add user as member with member role for send message permissions
+                channelClient.addMembers(
+                    memberIds = listOf(currentUserId),
+                    systemMessage = Message(text = "joined the channel")
+                ).enqueue { result ->
                     if (result.isSuccess) {
                         Log.d(TAG, "Successfully joined channel")
 
-                        // Watch the channel for notifications
+                        // Watch the channel to ensure we have all permissions and state
                         channelClient.watch().enqueue { watchResult ->
                             if (watchResult.isSuccess) {
                                 Log.d(TAG, "Now watching channel for notifications")
+
+                                // Open the message list after watching is confirmed
+                                val intent = TrackingMessageListActivity.createIntent(
+                                    context = requireContext(),
+                                    cid = channel.cid
+                                )
+                                startActivity(intent)
+                            } else {
+                                Log.e(TAG, "Failed to watch channel: ${watchResult.errorOrNull()}")
+                                // Still try to open even if watch fails
+                                val intent = TrackingMessageListActivity.createIntent(
+                                    context = requireContext(),
+                                    cid = channel.cid
+                                )
+                                startActivity(intent)
                             }
                         }
-
-                        // Open the message list for this channel
-                        val intent = TrackingMessageListActivity.createIntent(
-                            context = requireContext(),
-                            cid = channel.cid
-                        )
-                        startActivity(intent)
                     } else {
                         Log.e(TAG, "Failed to join channel: ${result.errorOrNull()}")
                         // Still try to open the channel

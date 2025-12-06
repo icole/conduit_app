@@ -28,6 +28,7 @@ class TrackingMessageListActivity : MessageListActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         // Extract CID from the intent that Stream's parent class uses
         channelCid = intent.getStringExtra(EXTRA_CID)
         Log.d(TAG, "onCreate - channel: $channelCid")
