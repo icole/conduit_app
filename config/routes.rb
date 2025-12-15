@@ -27,6 +27,47 @@ Rails.application.routes.draw do
       resources :likes, only: [ :create, :destroy ]
     end
   end
+
+  # Meal RSVP routes
+  resources :meals do
+    member do
+      post :volunteer_cook
+      delete :withdraw_cook
+      post :rsvp
+      delete :cancel_rsvp
+      post :close_rsvps
+      post :complete
+      post :cancel
+    end
+    collection do
+      get :calendar
+      get :my_meals
+    end
+    resources :comments, only: [ :create, :destroy ] do
+      resources :likes, only: [ :create, :destroy ]
+    end
+    resources :likes, only: [ :create, :destroy ]
+  end
+
+  resources :meal_schedules, except: [ :show ] do
+    member do
+      post :toggle_active
+      post :generate_meals
+    end
+  end
+
+  # Notifications
+  resources :notifications, only: [ :index ] do
+    collection do
+      post :mark_all_read
+    end
+    member do
+      post :mark_read
+    end
+  end
+
+  resources :push_subscriptions, only: [ :create, :destroy ]
+
   # ActionMailbox routes for inbound email processing
   mount ActionMailbox::Engine => "/rails/action_mailbox"
 

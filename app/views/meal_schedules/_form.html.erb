@@ -1,0 +1,81 @@
+<%= form_with model: @schedule, class: "space-y-6" do |f| %>
+  <% if @schedule.errors.any? %>
+    <div class="alert alert-error">
+      <ul class="list-disc list-inside">
+        <% @schedule.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-control">
+    <%= f.label :name, class: "label" do %>
+      <span class="label-text font-medium">Schedule Name</span>
+    <% end %>
+    <%= f.text_field :name, class: "input input-bordered w-full", placeholder: "e.g., Tuesday Dinner" %>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="form-control">
+      <%= f.label :day_of_week, class: "label" do %>
+        <span class="label-text font-medium">Day of Week</span>
+      <% end %>
+      <%= f.select :day_of_week,
+          MealSchedule::DAY_NAMES.each_with_index.map { |day, i| [day, i] },
+          { prompt: "Select a day" },
+          class: "select select-bordered w-full" %>
+    </div>
+
+    <div class="form-control">
+      <%= f.label :start_time, class: "label" do %>
+        <span class="label-text font-medium">Meal Time</span>
+      <% end %>
+      <%= f.time_field :start_time, class: "input input-bordered w-full" %>
+    </div>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :location, class: "label" do %>
+      <span class="label-text font-medium">Location</span>
+    <% end %>
+    <%= f.text_field :location, class: "input input-bordered w-full", placeholder: "e.g., Common House Kitchen" %>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="form-control">
+      <%= f.label :max_cooks, class: "label" do %>
+        <span class="label-text font-medium">Max Cook Slots</span>
+      <% end %>
+      <%= f.number_field :max_cooks, class: "input input-bordered w-full", min: 1, max: 10 %>
+      <label class="label">
+        <span class="label-text-alt">How many people can sign up to cook?</span>
+      </label>
+    </div>
+
+    <div class="form-control">
+      <%= f.label :rsvp_deadline_hours, class: "label" do %>
+        <span class="label-text font-medium">RSVP Deadline (hours before)</span>
+      <% end %>
+      <%= f.number_field :rsvp_deadline_hours, class: "input input-bordered w-full", min: 1 %>
+      <label class="label">
+        <span class="label-text-alt">Hours before meal when RSVPs close</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="form-control">
+    <label class="label cursor-pointer justify-start gap-4">
+      <%= f.check_box :active, class: "toggle toggle-primary" %>
+      <span class="label-text font-medium">Active</span>
+    </label>
+    <label class="label">
+      <span class="label-text-alt">Inactive schedules won't generate new meals</span>
+    </label>
+  </div>
+
+  <div class="flex gap-2 justify-end">
+    <%= link_to "Cancel", meal_schedules_path, class: "btn btn-ghost" %>
+    <%= f.submit class: "btn btn-primary" %>
+  </div>
+<% end %>

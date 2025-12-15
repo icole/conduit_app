@@ -1,0 +1,73 @@
+<div class="container mx-auto max-w-7xl px-4 py-8">
+  <!-- Header Section -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">Community Meals</h1>
+      <p class="text-base-content/70 mt-1">Weekly shared dinners - sign up to cook or RSVP to attend!</p>
+    </div>
+    <div class="flex gap-2">
+      <%= link_to my_meals_meals_path, class: "btn btn-outline" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+        My Meals
+      <% end %>
+      <%= link_to calendar_meals_path, class: "btn btn-outline" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        Calendar
+      <% end %>
+      <% if current_user.admin? %>
+        <%= link_to meal_schedules_path, class: "btn btn-outline" do %>
+          Schedules
+        <% end %>
+        <%= link_to new_meal_path, class: "btn btn-primary" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+          </svg>
+          Add Meal
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tabs tabs-boxed mb-6 w-fit">
+    <%= link_to meals_path(view: "upcoming"),
+        class: "tab #{'tab-active' if @current_view == 'upcoming'}" do %>
+      Upcoming
+    <% end %>
+    <%= link_to meals_path(view: "needs_cooks"),
+        class: "tab #{'tab-active' if @current_view == 'needs_cooks'}" do %>
+      Needs Cooks (<%= @needs_cooks_count %>)
+    <% end %>
+    <%= link_to meals_path(view: "past"),
+        class: "tab #{'tab-active' if @current_view == 'past'}" do %>
+      Past Meals
+    <% end %>
+  </div>
+
+  <!-- Meal Cards Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <% if @meals.present? %>
+      <% @meals.each do |meal| %>
+        <%= render "meal_card", meal: meal %>
+      <% end %>
+    <% else %>
+      <div class="col-span-full text-center p-12">
+        <div class="text-6xl mb-4">🍽️</div>
+        <h3 class="text-xl font-medium mb-2">No meals found</h3>
+        <p class="text-base-content/70">
+          <% if @current_view == "needs_cooks" %>
+            All upcoming meals have cooks assigned!
+          <% elsif @current_view == "past" %>
+            No past meals to display.
+          <% else %>
+            No upcoming meals scheduled.
+          <% end %>
+        </p>
+      </div>
+    <% end %>
+  </div>
+</div>

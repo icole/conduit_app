@@ -1,0 +1,69 @@
+<div class="container mx-auto max-w-6xl px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">Meal Calendar</h1>
+      <p class="text-base-content/70 mt-1">Week of <%= @start_of_week.strftime("%B %d, %Y") %></p>
+    </div>
+    <div class="flex gap-2">
+      <%= link_to meals_path, class: "btn btn-outline" do %>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+        </svg>
+        List View
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Week Navigation -->
+  <div class="flex justify-center gap-4 mb-6">
+    <%= link_to calendar_meals_path(date: @start_of_week - 1.week), class: "btn btn-ghost btn-sm" do %>
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Previous Week
+    <% end %>
+    <%= link_to calendar_meals_path, class: "btn btn-ghost btn-sm" do %>
+      Today
+    <% end %>
+    <%= link_to calendar_meals_path(date: @start_of_week + 1.week), class: "btn btn-ghost btn-sm" do %>
+      Next Week
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+    <% end %>
+  </div>
+
+  <!-- Calendar Grid -->
+  <div class="grid grid-cols-7 gap-2">
+    <!-- Day Headers -->
+    <% %w[Mon Tue Wed Thu Fri Sat Sun].each do |day| %>
+      <div class="text-center font-medium text-sm text-base-content/70 py-2">
+        <%= day %>
+      </div>
+    <% end %>
+
+    <!-- Day Cells -->
+    <% 7.times do |i| %>
+      <% date = @start_of_week + i.days %>
+      <% is_today = date == Date.current %>
+      <% day_meals = @meals_by_date[date] || [] %>
+
+      <div class="min-h-32 p-2 rounded-lg <%= is_today ? 'bg-primary/10 ring-2 ring-primary' : 'bg-base-200' %>">
+        <div class="text-sm font-medium <%= is_today ? 'text-primary' : 'text-base-content/70' %> mb-2">
+          <%= date.day %>
+        </div>
+
+        <% day_meals.each do |meal| %>
+          <%= link_to meal_path(meal), class: "block p-2 mb-1 rounded bg-base-100 shadow-sm hover:shadow-md transition-shadow text-sm" do %>
+            <div class="font-medium truncate"><%= meal.title %></div>
+            <div class="text-xs text-base-content/70"><%= meal.time_display %></div>
+            <% if meal.needs_head_cook? %>
+              <div class="badge badge-warning badge-xs mt-1">Needs cook</div>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,70 @@
+<%= form_with model: @meal, class: "space-y-6" do |f| %>
+  <% if @meal.errors.any? %>
+    <div class="alert alert-error">
+      <ul class="list-disc list-inside">
+        <% @meal.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-control">
+    <%= f.label :title, class: "label" do %>
+      <span class="label-text font-medium">Title</span>
+    <% end %>
+    <%= f.text_field :title, class: "input input-bordered w-full", placeholder: "e.g., Tuesday Dinner - Dec 17" %>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="form-control">
+      <%= f.label :scheduled_at, class: "label" do %>
+        <span class="label-text font-medium">Meal Date & Time</span>
+      <% end %>
+      <%= f.datetime_local_field :scheduled_at, class: "input input-bordered w-full" %>
+    </div>
+
+    <div class="form-control">
+      <%= f.label :rsvp_deadline, class: "label" do %>
+        <span class="label-text font-medium">RSVP Deadline</span>
+      <% end %>
+      <%= f.datetime_local_field :rsvp_deadline, class: "input input-bordered w-full" %>
+      <label class="label">
+        <span class="label-text-alt">When should RSVPs close?</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :location, class: "label" do %>
+      <span class="label-text font-medium">Location</span>
+    <% end %>
+    <%= f.text_field :location, class: "input input-bordered w-full", placeholder: "e.g., Common House Kitchen" %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :description, class: "label" do %>
+      <span class="label-text font-medium">Description / Menu</span>
+    <% end %>
+    <%= f.text_area :description, class: "textarea textarea-bordered w-full", rows: 4, placeholder: "What's on the menu? Any special notes?" %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :max_attendees, class: "label" do %>
+      <span class="label-text font-medium">Maximum Attendees (optional)</span>
+    <% end %>
+    <%= f.number_field :max_attendees, class: "input input-bordered w-full", min: 1, placeholder: "Leave blank for no limit" %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :cook_notes, class: "label" do %>
+      <span class="label-text font-medium">Private Cook Notes</span>
+    <% end %>
+    <%= f.text_area :cook_notes, class: "textarea textarea-bordered w-full", rows: 2, placeholder: "Notes visible only to cooks" %>
+  </div>
+
+  <div class="flex gap-2 justify-end">
+    <%= link_to "Cancel", meals_path, class: "btn btn-ghost" %>
+    <%= f.submit class: "btn btn-primary" %>
+  </div>
+<% end %>

@@ -1,0 +1,90 @@
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <h3 class="card-title text-lg">
+      Who's Coming
+      <span class="badge badge-primary"><%= meal.total_attendees %></span>
+    </h3>
+
+    <!-- Cooks Section -->
+    <% if meal.cooks.any? %>
+      <div class="mt-4">
+        <h4 class="text-sm font-medium text-base-content/70 mb-2">Cooking</h4>
+        <div class="space-y-2">
+          <% meal.meal_cooks.includes(:user).each do |mc| %>
+            <div class="flex items-center gap-2">
+              <div class="avatar placeholder">
+                <div class="bg-primary text-primary-content rounded-full w-8">
+                  <span class="text-xs"><%= mc.user.name.first(2).upcase %></span>
+                </div>
+              </div>
+              <div class="flex-1">
+                <div class="text-sm font-medium"><%= mc.user.name %></div>
+              </div>
+              <% if mc.head_cook? %>
+                <svg class="w-4 h-4 text-warning" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                </svg>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Attending Section -->
+    <% if attending_rsvps.any? %>
+      <div class="mt-4">
+        <h4 class="text-sm font-medium text-base-content/70 mb-2">
+          Attending (<%= attending_rsvps.count %>)
+        </h4>
+        <div class="space-y-2">
+          <% attending_rsvps.each do |rsvp| %>
+            <div class="flex items-center gap-2">
+              <div class="avatar placeholder">
+                <div class="bg-success/20 text-success rounded-full w-8">
+                  <span class="text-xs"><%= rsvp.user.name.first(2).upcase %></span>
+                </div>
+              </div>
+              <div class="flex-1">
+                <div class="text-sm font-medium"><%= rsvp.user.name %></div>
+                <% if rsvp.guests_count > 0 %>
+                  <div class="text-xs text-base-content/50"><%= rsvp.guests_display %></div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Maybe Section -->
+    <% if maybe_rsvps.any? %>
+      <div class="mt-4">
+        <h4 class="text-sm font-medium text-base-content/70 mb-2">
+          Maybe (<%= maybe_rsvps.count %>)
+        </h4>
+        <div class="space-y-2">
+          <% maybe_rsvps.each do |rsvp| %>
+            <div class="flex items-center gap-2 opacity-70">
+              <div class="avatar placeholder">
+                <div class="bg-warning/20 text-warning rounded-full w-8">
+                  <span class="text-xs"><%= rsvp.user.name.first(2).upcase %></span>
+                </div>
+              </div>
+              <div class="flex-1">
+                <div class="text-sm"><%= rsvp.user.name %></div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Empty State -->
+    <% if meal.cooks.empty? && attending_rsvps.empty? && maybe_rsvps.empty? %>
+      <div class="text-center py-4 text-base-content/50">
+        <p>No RSVPs yet</p>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,113 @@
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <h3 class="card-title text-lg">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+      </svg>
+      Your RSVP
+    </h3>
+
+    <% if meal.rsvps_open? && !meal.cancelled? %>
+      <%= form_with url: rsvp_meal_path(meal), method: :post, class: "space-y-4 mt-4" do |f| %>
+        <!-- Status Selection -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Will you be attending?</span>
+          </label>
+          <div class="flex gap-2">
+            <label class="label cursor-pointer flex-1 justify-start gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors">
+              <input type="radio" name="meal_rsvp[status]" value="attending"
+                     class="radio radio-primary"
+                     <%= 'checked' if my_rsvp&.attending? || my_rsvp.nil? %>>
+              <span class="label-text">Yes, I'll be there!</span>
+            </label>
+            <label class="label cursor-pointer flex-1 justify-start gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors">
+              <input type="radio" name="meal_rsvp[status]" value="maybe"
+                     class="radio radio-warning"
+                     <%= 'checked' if my_rsvp&.maybe? %>>
+              <span class="label-text">Maybe</span>
+            </label>
+            <label class="label cursor-pointer flex-1 justify-start gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors">
+              <input type="radio" name="meal_rsvp[status]" value="declined"
+                     class="radio"
+                     <%= 'checked' if my_rsvp&.declined? %>>
+              <span class="label-text">Can't make it</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Guest Count -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Bringing guests?</span>
+          </label>
+          <div class="join">
+            <span class="join-item btn btn-disabled">+</span>
+            <input type="number" name="meal_rsvp[guests_count]"
+                   value="<%= my_rsvp&.guests_count || 0 %>"
+                   min="0" max="10"
+                   class="join-item input input-bordered w-20 text-center">
+            <span class="join-item btn btn-disabled">guests</span>
+          </div>
+          <label class="label">
+            <span class="label-text-alt">How many additional people are you bringing?</span>
+          </label>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Dietary restrictions or notes</span>
+          </label>
+          <textarea name="meal_rsvp[notes]" class="textarea textarea-bordered" rows="2"
+                    placeholder="e.g., vegetarian, allergies, etc."><%= my_rsvp&.notes %></textarea>
+        </div>
+
+        <div class="flex gap-2">
+          <button type="submit" class="btn btn-primary flex-1">
+            <%= my_rsvp ? "Update RSVP" : "Submit RSVP" %>
+          </button>
+          <% if my_rsvp %>
+            <%= button_to cancel_rsvp_meal_path(meal), method: :delete,
+                class: "btn btn-ghost",
+                form: { data: { turbo_confirm: "Cancel your RSVP?" } } do %>
+              Cancel RSVP
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    <% elsif my_rsvp %>
+      <div class="mt-4 p-4 bg-base-200 rounded-lg">
+        <div class="flex items-center gap-3 mb-2">
+          <% if my_rsvp.attending? %>
+            <div class="badge badge-success gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Attending
+            </div>
+          <% elsif my_rsvp.maybe? %>
+            <div class="badge badge-warning">Maybe</div>
+          <% else %>
+            <div class="badge badge-ghost">Not Attending</div>
+          <% end %>
+          <% if my_rsvp.guests_count > 0 %>
+            <span class="text-sm text-base-content/70">+ <%= my_rsvp.guests_count %> guests</span>
+          <% end %>
+        </div>
+        <% if my_rsvp.notes.present? %>
+          <div class="text-sm text-base-content/70">
+            <strong>Notes:</strong> <%= my_rsvp.notes %>
+          </div>
+        <% end %>
+        <div class="text-sm text-base-content/50 mt-2">
+          RSVPs are now closed. Contact the cook if you need to make changes.
+        </div>
+      </div>
+    <% else %>
+      <div class="mt-4 text-center text-base-content/70">
+        <p>RSVPs are closed for this meal.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,115 @@
+<div class="container mx-auto max-w-4xl px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">My Meals</h1>
+      <p class="text-base-content/70 mt-1">Meals you're cooking or attending</p>
+    </div>
+    <%= link_to meals_path, class: "btn btn-outline" do %>
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      All Meals
+    <% end %>
+  </div>
+
+  <div class="space-y-8">
+    <!-- Cooking Section -->
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">
+          <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
+          </svg>
+          Meals I'm Cooking
+          <span class="badge badge-primary"><%= @cooking.count %></span>
+        </h2>
+
+        <% if @cooking.any? %>
+          <div class="space-y-3 mt-4">
+            <% @cooking.each do |meal| %>
+              <% my_role = meal.cook_for(current_user) %>
+              <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+                <div class="flex items-center gap-4">
+                  <div class="text-center">
+                    <div class="text-2xl font-bold text-primary"><%= meal.scheduled_at.day %></div>
+                    <div class="text-xs text-base-content/70"><%= meal.scheduled_at.strftime("%b") %></div>
+                  </div>
+                  <div>
+                    <div class="font-medium"><%= meal.title %></div>
+                    <div class="text-sm text-base-content/70">
+                      <%= meal.time_display %>
+                      <% if my_role %>
+                        <span class="badge badge-sm badge-outline ml-2"><%= my_role.role_display %></span>
+                      <% end %>
+                    </div>
+                    <div class="text-sm text-base-content/50 mt-1">
+                      <%= meal.total_attendees %> attending
+                    </div>
+                  </div>
+                </div>
+                <%= link_to "View", meal_path(meal), class: "btn btn-sm btn-primary" %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-8 text-base-content/50">
+            <div class="text-4xl mb-2">👨‍🍳</div>
+            <p>You're not signed up to cook any upcoming meals.</p>
+            <%= link_to "Find meals that need cooks", meals_path(view: "needs_cooks"), class: "btn btn-outline btn-sm mt-4" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Attending Section -->
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">
+          <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Meals I'm Attending
+          <span class="badge badge-success"><%= @attending.count %></span>
+        </h2>
+
+        <% if @attending.any? %>
+          <div class="space-y-3 mt-4">
+            <% @attending.each do |meal| %>
+              <% my_rsvp = meal.rsvp_for(current_user) %>
+              <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+                <div class="flex items-center gap-4">
+                  <div class="text-center">
+                    <div class="text-2xl font-bold text-success"><%= meal.scheduled_at.day %></div>
+                    <div class="text-xs text-base-content/70"><%= meal.scheduled_at.strftime("%b") %></div>
+                  </div>
+                  <div>
+                    <div class="font-medium"><%= meal.title %></div>
+                    <div class="text-sm text-base-content/70">
+                      <%= meal.time_display %>
+                      <% if my_rsvp&.guests_count.to_i > 0 %>
+                        <span class="badge badge-sm badge-ghost ml-2"><%= my_rsvp.guests_display %></span>
+                      <% end %>
+                    </div>
+                    <% if meal.head_cook %>
+                      <div class="text-sm text-base-content/50 mt-1">
+                        Cooked by <%= meal.head_cook.name %>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+                <%= link_to "View", meal_path(meal), class: "btn btn-sm btn-outline" %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-8 text-base-content/50">
+            <div class="text-4xl mb-2">🍽️</div>
+            <p>You haven't RSVPed to any upcoming meals.</p>
+            <%= link_to "Browse upcoming meals", meals_path, class: "btn btn-outline btn-sm mt-4" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_05_042302) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_15_200005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -193,6 +193,24 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_05_042302) do
     t.index ["user_id"], name: "index_drive_shares_on_user_id"
   end
 
+  create_table "in_app_notifications", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "title", null: false
+    t.text "body"
+    t.string "notification_type", null: false
+    t.string "notifiable_type"
+    t.bigint "notifiable_id"
+    t.string "action_url"
+    t.boolean "read", default: false, null: false
+    t.datetime "read_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["notifiable_type", "notifiable_id"], name: "idx_on_notifiable_type_notifiable_id_ee4fad2ac8"
+    t.index ["notification_type"], name: "index_in_app_notifications_on_notification_type"
+    t.index ["user_id", "read"], name: "index_in_app_notifications_on_user_id_and_read"
+    t.index ["user_id"], name: "index_in_app_notifications_on_user_id"
+  end
+
   create_table "invitations", force: :cascade do |t|
     t.string "token"
     t.datetime "used_at"
@@ -212,6 +230,70 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_05_042302) do
     t.bigint "likeable_id"
     t.index ["likeable_type", "likeable_id"], name: "index_likes_on_likeable_type_and_likeable_id"
     t.index ["user_id"], name: "index_likes_on_user_id"
+  end
+
+  create_table "meal_cooks", force: :cascade do |t|
+    t.bigint "meal_id", null: false
+    t.bigint "user_id", null: false
+    t.string "role", default: "helper", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["meal_id", "user_id"], name: "index_meal_cooks_on_meal_id_and_user_id", unique: true
+    t.index ["meal_id"], name: "index_meal_cooks_on_meal_id"
+    t.index ["role"], name: "index_meal_cooks_on_role"
+    t.index ["user_id"], name: "index_meal_cooks_on_user_id"
+  end
+
+  create_table "meal_rsvps", force: :cascade do |t|
+    t.bigint "meal_id", null: false
+    t.bigint "user_id", null: false
+    t.string "status", default: "attending", null: false
+    t.integer "guests_count", default: 0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["meal_id", "user_id"], name: "index_meal_rsvps_on_meal_id_and_user_id", unique: true
+    t.index ["meal_id"], name: "index_meal_rsvps_on_meal_id"
+    t.index ["status"], name: "index_meal_rsvps_on_status"
+    t.index ["user_id"], name: "index_meal_rsvps_on_user_id"
+  end
+
+  create_table "meal_schedules", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "day_of_week", null: false
+    t.time "start_time", null: false
+    t.time "end_time"
+    t.string "location"
+    t.integer "max_cooks", default: 2
+    t.integer "rsvp_deadline_hours", default: 24
+    t.boolean "active", default: true, null: false
+    t.bigint "created_by_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_meal_schedules_on_active"
+    t.index ["created_by_id"], name: "index_meal_schedules_on_created_by_id"
+    t.index ["day_of_week"], name: "index_meal_schedules_on_day_of_week"
+  end
+
+  create_table "meals", force: :cascade do |t|
+    t.bigint "meal_schedule_id"
+    t.string "title", null: false
+    t.text "description"
+    t.datetime "scheduled_at", null: false
+    t.datetime "rsvp_deadline", null: false
+    t.string "location"
+    t.string "status", default: "upcoming", null: false
+    t.integer "max_attendees"
+    t.boolean "rsvps_closed", default: false, null: false
+    t.text "cook_notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["meal_schedule_id", "scheduled_at"], name: "index_meals_on_meal_schedule_id_and_scheduled_at"
+    t.index ["meal_schedule_id"], name: "index_meals_on_meal_schedule_id"
+    t.index ["rsvp_deadline"], name: "index_meals_on_rsvp_deadline"
+    t.index ["scheduled_at"], name: "index_meals_on_scheduled_at"
+    t.index ["status"], name: "index_meals_on_status"
   end
 
   create_table "posts", force: :cascade do |t|
@@ -296,8 +378,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_05_042302) do
   add_foreign_key "decisions", "documents"
   add_foreign_key "discussion_topics", "users"
   add_foreign_key "drive_shares", "users"
+  add_foreign_key "in_app_notifications", "users"
   add_foreign_key "invitations", "users"
   add_foreign_key "likes", "users"
+  add_foreign_key "meal_cooks", "meals"
+  add_foreign_key "meal_cooks", "users"
+  add_foreign_key "meal_rsvps", "meals"
+  add_foreign_key "meal_rsvps", "users"
+  add_foreign_key "meal_schedules", "users", column: "created_by_id"
+  add_foreign_key "meals", "meal_schedules"
   add_foreign_key "posts", "users"
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "tasks", "users"

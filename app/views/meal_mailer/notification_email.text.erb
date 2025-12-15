@@ -1,0 +1,12 @@
+Hi <%= @user.name %>,
+
+<%= @title %>
+
+<%= @body %>
+
+<% if @url.present? %>
+View details: <%= @url %>
+<% end %>
+
+---
+This email was sent from ConduitApp - your community management platform.

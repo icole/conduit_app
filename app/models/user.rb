@@ -18,6 +18,17 @@ class User < ApplicationRecord
   has_many :assigned_chores, through: :chore_assignments, source: :chore
   has_many :chore_completions, foreign_key: "completed_by_id", dependent: :destroy
 
+  # Meals associations
+  has_many :created_meal_schedules, class_name: "MealSchedule", foreign_key: "created_by_id", dependent: :destroy
+  has_many :meal_cooks, dependent: :destroy
+  has_many :cooking_meals, through: :meal_cooks, source: :meal
+  has_many :meal_rsvps, dependent: :destroy
+  has_many :rsvped_meals, through: :meal_rsvps, source: :meal
+
+  # Notifications
+  has_many :push_subscriptions, dependent: :destroy
+  has_many :in_app_notifications, dependent: :destroy
+
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true
 

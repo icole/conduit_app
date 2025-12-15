@@ -1,0 +1,71 @@
+<div class="p-4 hover:bg-base-200 transition-colors <%= notification.unread? ? 'bg-primary/5' : '' %>"
+     id="notification_<%= notification.id %>">
+  <div class="flex gap-4">
+    <!-- Icon -->
+    <div class="flex-shrink-0">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center <%= notification.icon_class %> bg-base-200">
+        <% case notification.notification_type %>
+        <% when "meal_reminder" %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        <% when "rsvp_deadline" %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        <% when "cook_assigned" %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
+          </svg>
+        <% when "rsvps_closed" %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        <% else %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 min-w-0">
+      <div class="flex justify-between items-start gap-2">
+        <div>
+          <h3 class="font-medium <%= notification.unread? ? '' : 'text-base-content/70' %>">
+            <%= notification.title %>
+          </h3>
+          <% if notification.body.present? %>
+            <p class="text-sm text-base-content/70 mt-1"><%= notification.body %></p>
+          <% end %>
+        </div>
+        <div class="text-xs text-base-content/50 whitespace-nowrap">
+          <%= notification.time_ago %>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 mt-2">
+        <% if notification.action_url.present? %>
+          <%= link_to notification.action_url, class: "btn btn-xs btn-ghost" do %>
+            View
+          <% end %>
+        <% end %>
+        <% if notification.unread? %>
+          <%= button_to mark_read_notification_path(notification), method: :post,
+              class: "btn btn-xs btn-ghost",
+              form: { data: { turbo_frame: "_top" } } do %>
+            Mark as read
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Unread indicator -->
+    <% if notification.unread? %>
+      <div class="flex-shrink-0">
+        <div class="w-2 h-2 rounded-full bg-primary"></div>
+      </div>
+    <% end %>
+  </div>
+</div>

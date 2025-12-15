@@ -1,0 +1,133 @@
+<div class="container mx-auto max-w-4xl px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">Meal Schedules</h1>
+      <p class="text-base-content/70 mt-1">Manage recurring weekly meal schedules</p>
+    </div>
+    <div class="flex gap-2">
+      <%= link_to meals_path, class: "btn btn-outline" do %>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        Back to Meals
+      <% end %>
+      <%= link_to new_meal_schedule_path, class: "btn btn-primary" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+        </svg>
+        New Schedule
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Active Schedules -->
+  <div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+      <h2 class="card-title">
+        Active Schedules
+        <span class="badge badge-success"><%= @active_schedules.count %></span>
+      </h2>
+
+      <% if @active_schedules.any? %>
+        <div class="overflow-x-auto mt-4">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Day</th>
+                <th>Time</th>
+                <th>Location</th>
+                <th>RSVP Closes</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @active_schedules.each do |schedule| %>
+                <tr>
+                  <td class="font-medium"><%= schedule.name %></td>
+                  <td><%= schedule.day_name %></td>
+                  <td><%= schedule.display_time %></td>
+                  <td><%= schedule.location || '-' %></td>
+                  <td><%= schedule.rsvp_deadline_hours %> hours before</td>
+                  <td class="text-right">
+                    <div class="flex gap-1 justify-end">
+                      <%= button_to generate_meals_meal_schedule_path(schedule, weeks: 4), method: :post,
+                          class: "btn btn-ghost btn-xs",
+                          form: { data: { turbo_confirm: "Generate meals for the next 4 weeks?" } } do %>
+                        Generate
+                      <% end %>
+                      <%= link_to edit_meal_schedule_path(schedule), class: "btn btn-ghost btn-xs" do %>
+                        Edit
+                      <% end %>
+                      <%= button_to toggle_active_meal_schedule_path(schedule), method: :post,
+                          class: "btn btn-ghost btn-xs" do %>
+                        Pause
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-8 text-base-content/50">
+          <div class="text-4xl mb-2">📅</div>
+          <p>No active meal schedules.</p>
+          <%= link_to "Create one", new_meal_schedule_path, class: "btn btn-primary btn-sm mt-4" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Paused Schedules -->
+  <% if @inactive_schedules.any? %>
+    <div class="card bg-base-100 shadow-xl opacity-75">
+      <div class="card-body">
+        <h2 class="card-title text-base-content/70">
+          Paused Schedules
+          <span class="badge badge-ghost"><%= @inactive_schedules.count %></span>
+        </h2>
+
+        <div class="overflow-x-auto mt-4">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Day</th>
+                <th>Time</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @inactive_schedules.each do |schedule| %>
+                <tr class="opacity-60">
+                  <td class="font-medium"><%= schedule.name %></td>
+                  <td><%= schedule.day_name %></td>
+                  <td><%= schedule.display_time %></td>
+                  <td class="text-right">
+                    <div class="flex gap-1 justify-end">
+                      <%= link_to edit_meal_schedule_path(schedule), class: "btn btn-ghost btn-xs" do %>
+                        Edit
+                      <% end %>
+                      <%= button_to toggle_active_meal_schedule_path(schedule), method: :post,
+                          class: "btn btn-ghost btn-xs" do %>
+                        Activate
+                      <% end %>
+                      <%= button_to meal_schedule_path(schedule), method: :delete,
+                          class: "btn btn-ghost btn-xs text-error",
+                          form: { data: { turbo_confirm: "Delete this schedule?" } } do %>
+                        Delete
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

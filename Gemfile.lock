@@ -233,6 +233,7 @@ GEM
     hashie (5.0.0)
     heroicon (1.0.0)
       rails (>= 5.2)
+    hkdf (0.3.0)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     image_processing (1.14.0)
@@ -569,6 +570,9 @@ GEM
       activemodel (>= 6.0.0)
       bindex (>= 0.4.0)
       railties (>= 6.0.0)
+    webpush (1.1.0)
+      hkdf (~> 0.2)
+      jwt (~> 2.0)
     websocket (1.2.11)
     websocket-driver (0.8.0)
       base64
@@ -630,6 +634,7 @@ DEPENDENCIES
   turbo-rails
   tzinfo-data
   web-console
+  webpush (~> 1.1)
 
 BUNDLED WITH
    2.6.7

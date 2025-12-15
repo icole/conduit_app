@@ -4,8 +4,48 @@ production:
     schedule: every hour at minute 0
     queue: default
 
+  generate_weekly_meals:
+    class: GenerateWeeklyMealsJob
+    schedule: every Sunday at 6am
+    queue: default
+
+  meal_reminder:
+    class: MealReminderJob
+    schedule: every day at 9am
+    queue: default
+
+  rsvp_deadline_reminder:
+    class: RsvpDeadlineReminderJob
+    schedule: every hour at minute 30
+    queue: default
+
+  close_rsvps:
+    class: CloseRsvpsJob
+    schedule: every 15 minutes
+    queue: default
+
 development:
   scheduled_drive_sync:
     class: ScheduledDriveSyncJob
     schedule: every hour at minute 0
+    queue: default
+
+  generate_weekly_meals:
+    class: GenerateWeeklyMealsJob
+    schedule: every Sunday at 6am
+    queue: default
+
+  meal_reminder:
+    class: MealReminderJob
+    schedule: every day at 9am
+    queue: default
+
+  rsvp_deadline_reminder:
+    class: RsvpDeadlineReminderJob
+    schedule: every hour at minute 30
+    queue: default
+
+  close_rsvps:
+    class: CloseRsvpsJob
+    schedule: every 15 minutes
     queue: default
