@@ -1,8 +1,8 @@
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
-  # Prepare the ingress controller used to receive mail
-  config.action_mailbox.ingress = :mailgun
+  # Action Mailbox ingress disabled - not currently receiving inbound emails
+  # config.action_mailbox.ingress = :relay
 
   # Settings specified here will take precedence over those in config/application.rb.
 

@@ -9,6 +9,7 @@ A Rails application for community coordination, with native iOS and Android apps
 * **Calendar** - Event scheduling with Google Calendar integration
 * **Documents** - Shared documents with Google Drive integration
 * **Chores** - Task management with assignments and completion tracking
+* **Meals** - Community meal scheduling with cook signup and RSVPs
 * **Decisions** - Community decision tracking
 * **Discussion Topics** - Threaded discussions
 
@@ -41,6 +42,10 @@ GOOGLE_CLIENT_SECRET=your_client_secret
 STREAM_API_KEY=your_stream_api_key
 STREAM_API_SECRET=your_stream_api_secret
 
+# Gmail SMTP (required for email notifications)
+GMAIL_USERNAME=your_gmail_address
+GMAIL_APP_PASSWORD=your_app_password
+
 # JWT Secret (required for mobile app authentication)
 JWT_SECRET=your_jwt_secret
 ```
@@ -65,6 +70,28 @@ JWT_SECRET=your_jwt_secret
 4. For push notifications:
    - **iOS**: Configure APN certificates in Stream Dashboard
    - **Android**: Upload Firebase service account JSON in Stream Dashboard
+
+## Gmail Email Setup
+
+Email notifications (meal reminders, RSVP confirmations, etc.) are sent via Gmail SMTP.
+
+1. Use a Gmail account for your community (e.g., `info@yourcommunity.com`)
+2. Enable 2-Factor Authentication on the Gmail account:
+   - Go to [Google Account Security](https://myaccount.google.com/security)
+   - Under "Signing in to Google", enable 2-Step Verification
+3. Create an App Password:
+   - Go to [Google Account Security](https://myaccount.google.com/security)
+   - Under "Signing in to Google", click "2-Step Verification"
+   - Scroll to the bottom and click "App passwords"
+   - Select "Mail" and your device, then click "Generate"
+   - Copy the 16-character password (spaces are optional)
+4. Add to your `.env` file:
+   ```
+   GMAIL_USERNAME=info@yourcommunity.com
+   GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
+   ```
+
+**Note:** Gmail has sending limits of ~500 emails/day for regular accounts or ~2000/day for Google Workspace accounts.
 
 ## Mobile Apps
 
