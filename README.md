@@ -42,9 +42,9 @@ GOOGLE_CLIENT_SECRET=your_client_secret
 STREAM_API_KEY=your_stream_api_key
 STREAM_API_SECRET=your_stream_api_secret
 
-# Gmail SMTP (required for email notifications)
-GMAIL_USERNAME=your_gmail_address
-GMAIL_APP_PASSWORD=your_app_password
+# SMTP Email (required for email notifications)
+SMTP_USERNAME=your_email_address
+SMTP_PASSWORD=your_email_password
 
 # JWT Secret (required for mobile app authentication)
 JWT_SECRET=your_jwt_secret
@@ -71,27 +71,32 @@ JWT_SECRET=your_jwt_secret
    - **iOS**: Configure APN certificates in Stream Dashboard
    - **Android**: Upload Firebase service account JSON in Stream Dashboard
 
-## Gmail Email Setup
+## Email Setup
 
-Email notifications (meal reminders, RSVP confirmations, etc.) are sent via Gmail SMTP.
+Email notifications (meal reminders, RSVP confirmations, etc.) are sent via SMTP. The default configuration uses Namecheap PrivateEmail, but any SMTP provider works.
 
-1. Use a Gmail account for your community (e.g., `info@yourcommunity.com`)
-2. Enable 2-Factor Authentication on the Gmail account:
-   - Go to [Google Account Security](https://myaccount.google.com/security)
-   - Under "Signing in to Google", enable 2-Step Verification
-3. Create an App Password:
-   - Go to [Google Account Security](https://myaccount.google.com/security)
-   - Under "Signing in to Google", click "2-Step Verification"
-   - Scroll to the bottom and click "App passwords"
-   - Select "Mail" and your device, then click "Generate"
-   - Copy the 16-character password (spaces are optional)
-4. Add to your `.env` file:
+### Namecheap PrivateEmail (Default)
+
+1. Use your domain email (e.g., `info@yourcommunity.com`)
+2. Add to your `.env` file:
    ```
-   GMAIL_USERNAME=info@yourcommunity.com
-   GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
+   SMTP_USERNAME=info@yourcommunity.com
+   SMTP_PASSWORD=your_email_password
    ```
 
-**Note:** Gmail has sending limits of ~500 emails/day for regular accounts or ~2000/day for Google Workspace accounts.
+The SMTP server is configured as `mail.privateemail.com` on port 587.
+
+### Other SMTP Providers
+
+To use a different provider, update `config/initializers/email.rb` with your SMTP settings:
+
+| Provider | Server | Port |
+|----------|--------|------|
+| Gmail | smtp.gmail.com | 587 |
+| Outlook | smtp.office365.com | 587 |
+| SendGrid | smtp.sendgrid.net | 587 |
+
+**Note:** Gmail requires an [App Password](https://myaccount.google.com/apppasswords) (not your regular password).
 
 ## Mobile Apps
 

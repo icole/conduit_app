@@ -1,5 +1,5 @@
 class MealMailer < ApplicationMailer
-  default from: ENV.fetch("GMAIL_USERNAME", "info@crowwoods.com")
+  default from: ENV.fetch("SMTP_USERNAME", "info@crowwoods.com")
 
   def notification_email(user, title, body, url)
     @user = user
