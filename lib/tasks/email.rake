@@ -1,3 +1,5 @@
+require "ostruct"
+
 namespace :email do
   desc "Send a test email to verify SMTP configuration"
   task :test, [ :to ] => :environment do |t, args|
@@ -27,17 +29,20 @@ namespace :email do
       enable_starttls_auto: true
     }
 
+    from_address = "Crow Woods Conduit <#{ENV['SMTP_USERNAME']}>"
     puts "Sending test email to #{to_address}..."
     puts "Using SMTP: mail.privateemail.com:587"
-    puts "From: #{ENV['SMTP_USERNAME']}"
+    puts "From: #{from_address}"
 
     begin
-      MealMailer.notification_email(
+      mail = MealMailer.notification_email(
         OpenStruct.new(email: to_address, name: "Test User"),
         "Test Email from Conduit",
         "If you're reading this, email is working!",
         "/meals"
-      ).deliver_now
+      )
+      mail.from = from_address
+      mail.deliver_now
 
       puts "✓ Email sent successfully!"
     rescue => e
