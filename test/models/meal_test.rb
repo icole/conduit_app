@@ -220,7 +220,7 @@ class MealTest < ActiveSupport::TestCase
     meal.meal_rsvps.create!(user: users(:one), status: "attending")
     meal.meal_cooks.create!(user: users(:two))
 
-    assert_difference ["MealRsvp.count", "MealCook.count"], -1 do
+    assert_difference [ "MealRsvp.count", "MealCook.count" ], -1 do
       meal.destroy
     end
   end
