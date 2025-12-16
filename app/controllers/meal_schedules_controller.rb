@@ -1,6 +1,5 @@
 class MealSchedulesController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin
   before_action :set_meal_schedule, only: [ :edit, :update, :destroy, :toggle_active, :generate_meals ]
 
   def index
@@ -81,11 +80,5 @@ class MealSchedulesController < ApplicationController
       :name, :day_of_week, :start_time, :end_time,
       :location, :max_cooks, :rsvp_deadline_hours, :active
     )
-  end
-
-  def require_admin
-    unless current_user.admin?
-      redirect_to meals_path, alert: "Admin access required."
-    end
   end
 end

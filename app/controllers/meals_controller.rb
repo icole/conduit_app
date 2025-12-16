@@ -4,8 +4,6 @@ class MealsController < ApplicationController
                                    :volunteer_cook, :withdraw_cook,
                                    :rsvp, :cancel_rsvp, :close_rsvps,
                                    :complete, :cancel ]
-  before_action :require_admin, only: [ :new, :create, :edit, :update, :destroy,
-                                       :close_rsvps, :complete, :cancel ]
 
   def index
     @current_view = params[:view] || "upcoming"
@@ -125,19 +123,19 @@ class MealsController < ApplicationController
     end
   end
 
-  # POST /meals/:id/close_rsvps (admin only)
+  # POST /meals/:id/close_rsvps
   def close_rsvps
     @meal.close_rsvps!
     redirect_to @meal, notice: "RSVPs have been closed."
   end
 
-  # POST /meals/:id/complete (admin only)
+  # POST /meals/:id/complete
   def complete
     @meal.complete!
     redirect_to @meal, notice: "Meal marked as completed."
   end
 
-  # POST /meals/:id/cancel (admin only)
+  # POST /meals/:id/cancel
   def cancel
     @meal.cancel!
     redirect_to @meal, notice: "Meal has been cancelled."
@@ -158,11 +156,5 @@ class MealsController < ApplicationController
 
   def rsvp_params
     params.require(:meal_rsvp).permit(:status, :guests_count, :notes)
-  end
-
-  def require_admin
-    unless current_user.admin?
-      redirect_to meals_path, alert: "Admin access required."
-    end
   end
 end
