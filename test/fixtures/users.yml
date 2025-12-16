@@ -27,3 +27,31 @@ regular_user:
   email: regular@example.com
   password_digest: <%= BCrypt::Password.create('password') %>
   admin: false
+
+three:
+  uid: 333333333
+  name: Alice Johnson
+  email: alice@example.com
+  provider: google_oauth2
+  password_digest: <%= BCrypt::Password.create('password') %>
+
+four:
+  uid: 444444444
+  name: Bob Wilson
+  email: bob@example.com
+  provider: google_oauth2
+  password_digest: <%= BCrypt::Password.create('password') %>
+
+five:
+  uid: 555555555
+  name: Carol Brown
+  email: carol@example.com
+  provider: google_oauth2
+  password_digest: <%= BCrypt::Password.create('password') %>
+
+six:
+  uid: 666666666
+  name: Dave Miller
+  email: dave@example.com
+  provider: google_oauth2
+  password_digest: <%= BCrypt::Password.create('password') %>

@@ -1,0 +1,16 @@
+# Meal cook fixtures
+
+head_cook_upcoming:
+  meal: upcoming_meal
+  user: one
+  role: head_cook
+
+assistant_cook:
+  meal: upcoming_meal
+  user: two
+  role: helper
+
+past_cook:
+  meal: past_meal
+  user: one
+  role: head_cook

@@ -1,14 +1,25 @@
 /* Custom navbar styles */
 
-/* Make the logout button in dropdown fully clickable with proper cursor */
+/* Make dropdown menu items consistent */
 .menu li form {
   width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-.menu li button[type="submit"] {
+/* Reset DaisyUI's default menu item styles for consistency */
+.dropdown-content.menu li {
+  padding: 0;
+  margin: 0;
+}
+
+/* Ensure both links and buttons in dropdown menus have identical styling */
+.dropdown-content.menu li > a,
+.dropdown-content.menu li > form > button[type="submit"] {
   display: block;
   width: 100%;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1rem !important;
+  margin: 0 !important;
   text-align: left;
   background: transparent;
   border: none;
@@ -16,8 +27,131 @@
   font-size: inherit;
   font-family: inherit;
   color: inherit;
+  text-decoration: none;
 }
 
-.menu li button[type="submit"]:hover {
+.dropdown-content.menu li > a:hover,
+.dropdown-content.menu li > form > button[type="submit"]:hover {
   background-color: hsl(var(--b2));
+}
+
+/* Ensure navbar stays on single row */
+.navbar {
+  min-height: 4rem;
+  flex-wrap: nowrap;
+  position: relative;
+  z-index: 50;
+  overflow: visible;
+}
+
+/* Base dropdown positioning */
+.navbar .dropdown {
+  position: relative;
+}
+
+.navbar .dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  margin-top: 0;
+  padding-top: 0.5rem;
+}
+
+/* Mobile dropdown (click-based) - hidden by default */
+.navbar .dropdown:not(.dropdown-hover) .dropdown-content {
+  display: none;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Show mobile dropdown when open */
+.navbar .dropdown:not(.dropdown-hover).dropdown-open .dropdown-content,
+.navbar .dropdown:not(.dropdown-hover):focus-within .dropdown-content {
+  display: block;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Desktop dropdown (hover-based) - visible but transparent by default */
+.navbar .dropdown-hover .dropdown-content {
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+/* Show desktop dropdown on hover */
+.navbar .dropdown-hover:hover > .dropdown-content,
+.navbar .dropdown-hover:focus-within > .dropdown-content {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Add invisible bridge to prevent hover break - only for navbar hover dropdowns */
+.navbar .dropdown-hover::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 0.5rem;
+  z-index: 999;
+  pointer-events: none;
+}
+
+/* Dropdown-end positioning - applies to all dropdown-end elements */
+.dropdown-end .dropdown-content {
+  right: 0;
+  left: auto;
+}
+
+/* Navbar sections */
+.navbar-start {
+  position: static;
+  overflow: visible;
+}
+
+.navbar-end {
+  margin-right: 0;
+  padding-right: 0.5rem;
+}
+
+/* Desktop-specific improvements */
+@media (min-width: 1024px) {
+  /* Prevent navbar wrapping */
+  .navbar-start {
+    flex-grow: 1;
+    flex-shrink: 1;
+  }
+
+  /* Better dropdown sizing and spacing */
+  .navbar .dropdown-content {
+    min-width: 12rem;
+  }
+
+  /* Adjust gap for hover dropdowns on desktop */
+  .navbar .dropdown-hover .dropdown-content {
+    margin-top: -0.25rem;
+    padding-top: 0.75rem;
+  }
+
+  /* Improve button spacing for single row */
+  .menu.menu-horizontal > li > .btn {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    white-space: nowrap;
+  }
+
+  /* Ensure avatar stays circular */
+  .avatar {
+    flex-shrink: 0;
+  }
+
+  /* Ensure menu has proper z-index */
+  .menu.menu-horizontal {
+    position: static;
+  }
 }

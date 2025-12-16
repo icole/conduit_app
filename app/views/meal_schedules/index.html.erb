@@ -1,19 +1,20 @@
-<div class="container mx-auto max-w-4xl px-4 py-8">
+<div>
   <!-- Header -->
-  <div class="flex justify-between items-center mb-6">
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
     <div>
-      <h1 class="text-2xl font-bold">Meal Schedules</h1>
-      <p class="text-base-content/70 mt-1">Manage recurring weekly meal schedules</p>
+      <h1 class="text-xl sm:text-2xl font-bold">Meal Schedules</h1>
+      <p class="text-sm sm:text-base text-base-content/70 mt-1">Manage recurring weekly meal schedules</p>
     </div>
-    <div class="flex gap-2">
-      <%= link_to meals_path, class: "btn btn-outline" do %>
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="flex flex-wrap gap-2">
+      <%= link_to meals_path, class: "btn btn-outline btn-sm sm:btn-md" do %>
+        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
         </svg>
-        Back to Meals
+        <span class="hidden sm:inline">Back to Meals</span>
+        <span class="sm:hidden">Back</span>
       <% end %>
-      <%= link_to new_meal_schedule_path, class: "btn btn-primary" do %>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <%= link_to new_meal_schedule_path, class: "btn btn-primary btn-sm sm:btn-md" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
         </svg>
         New Schedule
@@ -30,7 +31,8 @@
       </h2>
 
       <% if @active_schedules.any? %>
-        <div class="overflow-x-auto mt-4">
+        <!-- Desktop Table View -->
+        <div class="hidden md:block overflow-x-auto mt-4">
           <table class="table">
             <thead>
               <tr>
@@ -79,6 +81,43 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Mobile Card View -->
+        <div class="md:hidden space-y-4 mt-4">
+          <% @active_schedules.each do |schedule| %>
+            <div class="border border-base-300 rounded-lg p-4">
+              <div class="font-medium text-lg mb-2"><%= schedule.name %></div>
+              <div class="space-y-1 text-sm mb-3">
+                <div><span class="font-medium">Day:</span> <%= schedule.day_name %></div>
+                <div><span class="font-medium">Time:</span> <%= schedule.display_time %></div>
+                <div><span class="font-medium">Location:</span> <%= schedule.location || '-' %></div>
+                <div><span class="font-medium">RSVP Closes:</span> <%= schedule.rsvp_deadline_hours %> hours before</div>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <%= button_to generate_meals_meal_schedule_path(schedule, weeks: 4), method: :post,
+                    class: "btn btn-ghost btn-xs",
+                    form: { data: { turbo_confirm: "Generate meals for the next 4 weeks?" } } do %>
+                  Generate
+                <% end %>
+                <%= link_to edit_meal_schedule_path(schedule), class: "btn btn-ghost btn-xs" do %>
+                  Edit
+                <% end %>
+                <%= button_to toggle_active_meal_schedule_path(schedule), method: :post,
+                    class: "btn btn-ghost btn-xs" do %>
+                  Pause
+                <% end %>
+                <% meal_count = schedule.meals.count %>
+                <%= button_to meal_schedule_path(schedule), method: :delete,
+                    class: "btn btn-ghost btn-xs text-error",
+                    form: { data: { turbo_confirm: meal_count > 0 ?
+                      "Delete '#{schedule.name}' and #{meal_count} associated #{meal_count == 1 ? 'meal' : 'meals'}? This cannot be undone." :
+                      "Delete '#{schedule.name}'? This cannot be undone." } } do %>
+                  Delete
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
       <% else %>
         <div class="text-center py-8 text-base-content/50">
           <div class="text-4xl mb-2">📅</div>
@@ -98,7 +137,8 @@
           <span class="badge badge-ghost"><%= @inactive_schedules.count %></span>
         </h2>
 
-        <div class="overflow-x-auto mt-4">
+        <!-- Desktop Table View -->
+        <div class="hidden md:block overflow-x-auto mt-4">
           <table class="table">
             <thead>
               <tr>
@@ -137,6 +177,36 @@
               <% end %>
             </tbody>
           </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="md:hidden space-y-4 mt-4">
+          <% @inactive_schedules.each do |schedule| %>
+            <div class="border border-base-300 rounded-lg p-4 opacity-60">
+              <div class="font-medium text-lg mb-2"><%= schedule.name %></div>
+              <div class="space-y-1 text-sm mb-3">
+                <div><span class="font-medium">Day:</span> <%= schedule.day_name %></div>
+                <div><span class="font-medium">Time:</span> <%= schedule.display_time %></div>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <%= link_to edit_meal_schedule_path(schedule), class: "btn btn-ghost btn-xs" do %>
+                  Edit
+                <% end %>
+                <%= button_to toggle_active_meal_schedule_path(schedule), method: :post,
+                    class: "btn btn-ghost btn-xs" do %>
+                  Activate
+                <% end %>
+                <% meal_count = schedule.meals.count %>
+                <%= button_to meal_schedule_path(schedule), method: :delete,
+                    class: "btn btn-ghost btn-xs text-error",
+                    form: { data: { turbo_confirm: meal_count > 0 ?
+                      "Delete '#{schedule.name}' and #{meal_count} associated #{meal_count == 1 ? 'meal' : 'meals'}? This cannot be undone." :
+                      "Delete '#{schedule.name}'? This cannot be undone." } } do %>
+                  Delete
+                <% end %>
+              </div>
+            </div>
+          <% end %>
         </div>
       </div>
     </div>

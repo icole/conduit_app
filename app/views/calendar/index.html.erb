@@ -1,4 +1,4 @@
-<div class="container mx-auto max-w-7xl px-4 py-8">
+<div>
   <% if flash[:open_event_modal].present? %>
     <div data-controller="calendar-modal" data-calendar-modal-event-id-value="<%= flash[:open_event_modal] %>"></div>
   <% end %>

@@ -33,11 +33,12 @@
 </head>
 
 <body>
-<main class="container w-screen max-w-screen bg-base-100 min-h-screen flex flex-col">
+<main class="w-full bg-base-100 min-h-screen flex flex-col">
   <%= render "layouts/navbar" %>
-  <%= render "layouts/flash_messages" %>
-
-  <%= yield %>
+  <div class="w-full max-w-7xl mx-auto flex-1 px-4 py-8">
+    <%= render "layouts/flash_messages" %>
+    <%= yield %>
+  </div>
 </main>
 </body>
 </html>

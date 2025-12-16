@@ -1,0 +1,33 @@
+# Meal RSVP fixtures
+
+attending_one:
+  meal: upcoming_meal
+  user: three
+  status: attending
+  guests_count: 2
+  notes: "Bringing dessert"
+
+attending_two:
+  meal: upcoming_meal
+  user: four
+  status: attending
+  guests_count: 0
+
+maybe:
+  meal: upcoming_meal
+  user: five
+  status: maybe
+  guests_count: 1
+  notes: "Might be late"
+
+declined:
+  meal: upcoming_meal
+  user: six
+  status: declined
+  guests_count: 0
+
+past_attendance:
+  meal: past_meal
+  user: two
+  status: attending
+  guests_count: 1
