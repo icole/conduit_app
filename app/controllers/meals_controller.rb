@@ -3,7 +3,8 @@ class MealsController < ApplicationController
   before_action :set_meal, only: [ :show, :edit, :update, :destroy,
                                    :volunteer_cook, :withdraw_cook,
                                    :rsvp, :cancel_rsvp, :close_rsvps,
-                                   :complete, :cancel, :cook, :show_rsvp ]
+                                   :complete, :cancel, :cook, :show_rsvp,
+                                   :update_menu ]
 
   def index
     @current_view = params[:view] || "upcoming"
@@ -150,6 +151,24 @@ class MealsController < ApplicationController
     redirect_to @meal, notice: "Meal has been cancelled."
   end
 
+  # PATCH /meals/:id/update_menu
+  def update_menu
+    unless @meal.user_is_cook?(current_user)
+      redirect_to @meal, alert: "Only cooks can update the menu."
+      return
+    end
+
+    menu_value = params.dig(:meal, :menu)
+    if @meal.update(menu: menu_value)
+      respond_to do |format|
+        format.turbo_stream
+        format.html { redirect_to @meal, notice: "Menu updated!" }
+      end
+    else
+      redirect_to @meal, alert: "Could not update menu."
+    end
+  end
+
   private
 
   def set_meal
@@ -159,7 +178,7 @@ class MealsController < ApplicationController
   def meal_params
     params.require(:meal).permit(
       :title, :description, :scheduled_at, :rsvp_deadline,
-      :location, :max_attendees, :meal_schedule_id, :cook_notes
+      :location, :max_attendees, :meal_schedule_id, :cook_notes, :menu
     )
   end
 

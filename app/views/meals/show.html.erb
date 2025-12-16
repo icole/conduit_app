@@ -98,6 +98,9 @@
       </div>
     </div>
 
+    <!-- Menu / What's for Dinner -->
+    <%= render "menu", meal: @meal %>
+
     <!-- Attendee List (Unified) -->
     <%= render "attendee_list", meal: @meal, attending_rsvps: @attending_rsvps, maybe_rsvps: @maybe_rsvps %>
 

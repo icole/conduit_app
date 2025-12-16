@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_15_200005) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -289,6 +289,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_15_200005) do
     t.text "cook_notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "menu"
     t.index ["meal_schedule_id", "scheduled_at"], name: "index_meals_on_meal_schedule_id_and_scheduled_at"
     t.index ["meal_schedule_id"], name: "index_meals_on_meal_schedule_id"
     t.index ["rsvp_deadline"], name: "index_meals_on_rsvp_deadline"

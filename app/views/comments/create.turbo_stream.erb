@@ -53,7 +53,7 @@
     <%= turbo_stream.replace dom_id(root_comment) do %>
       <%= render "shared/comment", comment: root_comment %>
     <% end %>
-    
+
     <!-- Hide the reply form after successful submission -->
     <%= turbo_stream.update "reply-form-#{@comment.parent.id}", "" %>
   <% else %>
@@ -61,13 +61,37 @@
     <%= turbo_stream.append "chore-#{@chore.id}-comments-list" do %>
       <%= render "shared/comment", comment: @comment %>
     <% end %>
-    
+
     <!-- Remove "no comments" message if this is the first comment -->
     <%= turbo_stream.remove "chore-#{@chore.id}-no-comments" %>
-    
+
     <!-- Always reset the main comment form -->
     <%= turbo_stream.replace "new_comment_chore_#{@chore.id}" do %>
       <%= render "shared/comment_form", commentable: @chore, comment: Comment.new %>
+    <% end %>
+  <% end %>
+<% elsif @meal %>
+  <% if @comment.reply? %>
+    <!-- For replies, we need to reload the root comment to show the new nested reply -->
+    <% root_comment = @comment.root_comment %>
+    <%= turbo_stream.replace dom_id(root_comment) do %>
+      <%= render "shared/comment", comment: root_comment %>
+    <% end %>
+
+    <!-- Hide the reply form after successful submission -->
+    <%= turbo_stream.update "reply-form-#{@comment.parent.id}", "" %>
+  <% else %>
+    <!-- For top-level comments, append to the list -->
+    <%= turbo_stream.append "meal-#{@meal.id}-comments-list" do %>
+      <%= render "shared/comment", comment: @comment %>
+    <% end %>
+
+    <!-- Remove "no comments" message if this is the first comment -->
+    <%= turbo_stream.remove "meal-#{@meal.id}-no-comments" %>
+
+    <!-- Always reset the main comment form -->
+    <%= turbo_stream.replace "new_comment_meal_#{@meal.id}" do %>
+      <%= render "shared/comment_form", commentable: @meal, comment: Comment.new %>
     <% end %>
   <% end %>
 <% else %>  

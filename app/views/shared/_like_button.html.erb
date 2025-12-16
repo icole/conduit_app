@@ -38,6 +38,11 @@
       like_path = chore_comment_likes_path(chore, likeable)
       user_like = likeable.likes.find_by(user: current_user)
       unlike_path = user_like ? chore_comment_like_path(chore, likeable, user_like) : nil
+    elsif likeable.commentable.is_a?(Meal)
+      meal = likeable.commentable
+      like_path = meal_comment_likes_path(meal, likeable)
+      user_like = likeable.likes.find_by(user: current_user)
+      unlike_path = user_like ? meal_comment_like_path(meal, likeable, user_like) : nil
     else
       raise ArgumentError, "Unsupported commentable type: #{likeable.commentable.class.name}"
     end

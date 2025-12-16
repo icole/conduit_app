@@ -1,0 +1,63 @@
+<div id="meal_menu" class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <div class="flex items-center justify-between">
+      <h3 class="card-title text-lg">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+        </svg>
+        What's for Dinner
+      </h3>
+      <% if meal.user_is_cook?(current_user) && !meal.cancelled? && !meal.completed? %>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('menu_edit_form').classList.toggle('hidden'); document.getElementById('menu_display').classList.toggle('hidden');">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+          </svg>
+          Edit
+        </button>
+      <% end %>
+    </div>
+
+    <!-- Display Mode -->
+    <div id="menu_display">
+      <% if meal.menu.present? %>
+        <div class="prose prose-base max-w-none mt-3">
+          <%= simple_format(meal.menu) %>
+        </div>
+        <% if meal.head_cook %>
+          <div class="text-sm text-base-content/60 mt-3">
+            Posted by <%= meal.head_cook.name %>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="text-center py-6 text-base-content/50">
+          <% if meal.head_cook %>
+            <p>The menu hasn't been announced yet.</p>
+            <% if meal.user_is_cook?(current_user) %>
+              <p class="text-sm mt-1">Click "Edit" to let everyone know what you're cooking!</p>
+            <% end %>
+          <% else %>
+            <p>No head cook assigned yet - menu will be announced later.</p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Edit Mode (hidden by default) -->
+    <% if meal.user_is_cook?(current_user) && !meal.cancelled? && !meal.completed? %>
+      <div id="menu_edit_form" class="hidden mt-3">
+        <%= form_with model: meal, url: update_menu_meal_path(meal), method: :patch, class: "space-y-3" do |f| %>
+          <%= f.text_area :menu,
+              class: "textarea textarea-bordered w-full",
+              rows: 4,
+              placeholder: "What's on the menu? Share the recipe or meal details with everyone!" %>
+          <div class="flex gap-2 justify-end">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('menu_edit_form').classList.add('hidden'); document.getElementById('menu_display').classList.remove('hidden');">
+              Cancel
+            </button>
+            <%= f.submit "Save Menu", class: "btn btn-primary btn-sm" %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

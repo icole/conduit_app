@@ -40,6 +40,7 @@ Rails.application.routes.draw do
       post :close_rsvps
       post :complete
       post :cancel
+      patch :update_menu
     end
     collection do
       get :calendar

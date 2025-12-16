@@ -4,6 +4,8 @@
   <%= turbo_stream.remove dom_id(@comment) %>
 <% elsif @chore %>
   <%= turbo_stream.remove dom_id(@comment) %>
+<% elsif @meal %>
+  <%= turbo_stream.remove dom_id(@comment) %>
 <% else %>
   <!-- For other commentables, redirect to the page -->
   <%= turbo_stream.action :redirect, polymorphic_path(@commentable) %>

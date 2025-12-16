@@ -46,6 +46,8 @@ class CommentsController < ApplicationController
       @commentable = Chore.find(params[:chore_id])
     elsif params[:discussion_topic_id]
       @commentable = DiscussionTopic.find(params[:discussion_topic_id])
+    elsif params[:meal_id]
+      @commentable = Meal.find(params[:meal_id])
     else
       redirect_back(fallback_location: root_path, alert: "Invalid comment target.")
     end
@@ -66,6 +68,8 @@ class CommentsController < ApplicationController
       chores_path(view: "proposed")
     elsif @commentable.is_a?(DiscussionTopic)
       discussion_topic_path(@commentable)
+    elsif @commentable.is_a?(Meal)
+      meal_path(@commentable)
     else
       root_path
     end
@@ -79,6 +83,8 @@ class CommentsController < ApplicationController
       @chore = @commentable
     elsif @commentable.is_a?(DiscussionTopic)
       @discussion_topic = @commentable
+    elsif @commentable.is_a?(Meal)
+      @meal = @commentable
     end
   end
 end
