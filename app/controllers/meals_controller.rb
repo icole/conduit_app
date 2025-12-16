@@ -3,7 +3,7 @@ class MealsController < ApplicationController
   before_action :set_meal, only: [ :show, :edit, :update, :destroy,
                                    :volunteer_cook, :withdraw_cook,
                                    :rsvp, :cancel_rsvp, :close_rsvps,
-                                   :complete, :cancel ]
+                                   :complete, :cancel, :cook, :show_rsvp ]
 
   def index
     @current_view = params[:view] || "upcoming"
@@ -28,6 +28,15 @@ class MealsController < ApplicationController
     @my_cook_signup = @meal.cook_for(current_user)
     @attending_rsvps = @meal.meal_rsvps.attending.includes(:user)
     @maybe_rsvps = @meal.meal_rsvps.maybe.includes(:user)
+  end
+
+  def cook
+    @my_cook_signup = @meal.cook_for(current_user)
+  end
+
+  def show_rsvp
+    @my_rsvp = @meal.rsvp_for(current_user)
+    render :rsvp
   end
 
   def new

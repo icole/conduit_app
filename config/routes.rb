@@ -33,7 +33,9 @@ Rails.application.routes.draw do
     member do
       post :volunteer_cook
       delete :withdraw_cook
+      get :cook
       post :rsvp
+      get :rsvp, to: "meals#show_rsvp"
       delete :cancel_rsvp
       post :close_rsvps
       post :complete

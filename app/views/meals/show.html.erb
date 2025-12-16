@@ -1,7 +1,7 @@
-<div>
+<div class="max-w-3xl mx-auto">
   <!-- Back Link -->
-  <div>
-    <%= link_to meals_path, class: "btn btn-ghost btn-sm gap-2" do %>
+  <div class="mb-4">
+    <%= link_to meals_path, class: "btn btn-ghost btn-sm gap-2 pl-0" do %>
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
       </svg>
@@ -9,122 +9,112 @@
     <% end %>
   </div>
 
-  <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+  <div class="space-y-6">
     <!-- Main Content -->
-    <div class="xl:col-span-2 space-y-6">
-      <!-- Meal Header Card -->
-      <div class="card bg-base-100 shadow-xl overflow-visible">
-        <div class="card-body">
-          <!-- Dropdown Menu -->
-          <div class="absolute top-4 right-4">
-            <div class="dropdown dropdown-end">
-              <label tabindex="0" class="btn btn-ghost btn-sm btn-square">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
-                </svg>
-              </label>
-              <ul tabindex="0" class="dropdown-content z-10 menu p-2 shadow bg-base-100 rounded-box w-52">
-                <li><%= link_to "Edit Meal", edit_meal_path(@meal) %></li>
-                <% if @meal.upcoming? %>
-                  <li><%= button_to "Close RSVPs", close_rsvps_meal_path(@meal), method: :post, form: { data: { turbo_confirm: "Close RSVPs early?" } } %></li>
-                  <li><%= button_to "Cancel Meal", cancel_meal_path(@meal), method: :post, class: "text-error", form: { data: { turbo_confirm: "Cancel this meal?" } } %></li>
-                <% end %>
-                <% if @meal.rsvps_closed? || @meal.completed? %>
-                  <li><%= button_to "Mark Complete", complete_meal_path(@meal), method: :post %></li>
-                <% end %>
-                <li><%= button_to "Delete", meal_path(@meal), method: :delete, class: "text-error", form: { data: { turbo_confirm: "Delete this meal?" } } %></li>
-              </ul>
-            </div>
+
+    <!-- Meal Header Card -->
+    <div class="card bg-base-100 shadow-xl overflow-visible">
+      <div class="card-body">
+        <!-- Dropdown Menu -->
+        <div class="absolute top-4 right-4">
+          <div class="dropdown dropdown-end">
+            <label tabindex="0" class="btn btn-ghost btn-sm btn-square">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+              </svg>
+            </label>
+            <ul tabindex="0" class="dropdown-content z-10 menu p-2 shadow bg-base-100 rounded-box w-52">
+              <li><%= link_to "Edit Meal", edit_meal_path(@meal) %></li>
+              <% if @meal.upcoming? %>
+                <li><%= button_to "Close RSVPs", close_rsvps_meal_path(@meal), method: :post, form: { data: { turbo_confirm: "Close RSVPs early?" } } %></li>
+                <li><%= button_to "Cancel Meal", cancel_meal_path(@meal), method: :post, class: "text-error", form: { data: { turbo_confirm: "Cancel this meal?" } } %></li>
+              <% end %>
+              <% if @meal.rsvps_closed? || @meal.completed? %>
+                <li><%= button_to "Mark Complete", complete_meal_path(@meal), method: :post %></li>
+              <% end %>
+              <li><%= button_to "Delete", meal_path(@meal), method: :delete, class: "text-error", form: { data: { turbo_confirm: "Delete this meal?" } } %></li>
+            </ul>
           </div>
-            <div class="pr-12">
-              <h1 class="text-2xl sm:text-3xl font-bold"><%= @meal.title %></h1>
-              <div class="flex flex-wrap gap-3 mt-3">
+        </div>
+          <div class="pr-12">
+            <h1 class="text-2xl sm:text-3xl font-bold"><%= @meal.title %></h1>
+            <div class="flex flex-wrap gap-3 mt-3">
+              <div class="badge badge-lg badge-ghost gap-2 p-3">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span class="whitespace-nowrap"><%= @meal.full_display %></span>
+              </div>
+              <% if @meal.location.present? %>
                 <div class="badge badge-lg badge-ghost gap-2 p-3">
                   <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                   </svg>
-                  <span class="whitespace-nowrap"><%= @meal.full_display %></span>
+                  <span class="whitespace-nowrap"><%= @meal.location %></span>
                 </div>
-                <% if @meal.location.present? %>
-                  <div class="badge badge-lg badge-ghost gap-2 p-3">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    </svg>
-                    <span class="whitespace-nowrap"><%= @meal.location %></span>
-                  </div>
-                <% end %>
-              </div>
+              <% end %>
             </div>
-
-            <!-- Status Badge -->
-            <div class="mt-6">
-            <% if @meal.cancelled? %>
-              <div class="alert alert-error">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-                <span>This meal has been cancelled.</span>
-              </div>
-            <% elsif @meal.completed? %>
-              <div class="alert alert-success">
-                <span>This meal has been completed. Thanks to everyone who participated!</span>
-              </div>
-            <% elsif @meal.rsvps_closed? %>
-              <div class="alert alert-warning">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span>RSVPs are now closed. Final count: <strong><%= @meal.total_attendees %></strong> attending.</span>
-              </div>
-            <% else %>
-              <div class="alert alert-info">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span>RSVPs close: <strong><%= @meal.rsvp_deadline.strftime("%A, %b %d at %l:%M %p") %></strong></span>
-              </div>
-            <% end %>
           </div>
 
-          <!-- Description -->
-          <% if @meal.description.present? %>
-            <div class="mt-6">
-              <h3 class="font-semibold text-lg mb-3">About this meal</h3>
-              <div class="prose prose-base max-w-none">
-                <%= simple_format(@meal.description) %>
-              </div>
+          <!-- Status Badge -->
+          <div class="mt-6">
+          <% if @meal.cancelled? %>
+            <div class="alert alert-error">
+              <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              <span>This meal has been cancelled.</span>
+            </div>
+          <% elsif @meal.completed? %>
+            <div class="alert alert-success">
+              <span>This meal has been completed. Thanks to everyone who participated!</span>
+            </div>
+          <% elsif @meal.rsvps_closed? %>
+            <div class="alert alert-warning">
+              <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>RSVPs are now closed. Final count: <strong><%= @meal.total_attendees %></strong> attending.</span>
+            </div>
+          <% else %>
+            <div class="alert alert-info">
+              <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>RSVPs close: <strong><%= @meal.rsvp_deadline.strftime("%A, %b %d at %l:%M %p") %></strong></span>
             </div>
           <% end %>
+        </div>
+
+        <!-- Description -->
+        <% if @meal.description.present? %>
+          <div class="mt-6">
+            <h3 class="font-semibold text-lg mb-3">About this meal</h3>
+            <div class="prose prose-base max-w-none">
+              <%= simple_format(@meal.description) %>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Who's Coming - Mobile Only -->
-      <div class="xl:hidden">
-        <%= render "attendee_list", meal: @meal, attending_rsvps: @attending_rsvps, maybe_rsvps: @maybe_rsvps %>
-      </div>
-
-      <!-- Cook Signup Section -->
-      <%= render "cook_signup", meal: @meal, my_cook_signup: @my_cook_signup %>
-
-      <!-- RSVP Section -->
-      <% unless @my_cook_signup %>
-        <%= render "rsvp_form", meal: @meal, my_rsvp: @my_rsvp %>
-      <% end %>
-
-      <!-- Comments Section -->
-      <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-          <h3 class="card-title text-lg">Discussion</h3>
-          <%= render "shared/comments_section", commentable: @meal, comments: @comments, comment: @comment %>
-        </div>
+        <% end %>
       </div>
     </div>
 
-    <!-- Sidebar - Desktop Only -->
-    <div class="hidden xl:block space-y-6">
-      <!-- Attendee List -->
-      <%= render "attendee_list", meal: @meal, attending_rsvps: @attending_rsvps, maybe_rsvps: @maybe_rsvps %>
+    <!-- Attendee List (Unified) -->
+    <%= render "attendee_list", meal: @meal, attending_rsvps: @attending_rsvps, maybe_rsvps: @maybe_rsvps %>
+
+    <!-- Cook Signup Section -->
+    <%= render "cook_signup", meal: @meal, my_cook_signup: @my_cook_signup %>
+
+    <!-- RSVP Section -->
+    <% unless @my_cook_signup %>
+      <%= render "rsvp_form", meal: @meal, my_rsvp: @my_rsvp %>
+    <% end %>
+
+    <!-- Comments Section -->
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h3 class="card-title text-lg">Discussion</h3>
+        <%= render "shared/comments_section", commentable: @meal, comments: @comments, comment: @comment %>
+      </div>
     </div>
   </div>
 </div>

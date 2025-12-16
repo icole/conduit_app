@@ -98,11 +98,22 @@
         <span class="badge badge-info">You're attending</span>
       <% elsif !meal.cancelled? && rsvps_open %>
         <% if meal.cook_slots_available? %>
-          <%= link_to meal_path(meal), class: "btn btn-sm btn-outline" do %>
+          <!-- Mobile Button -->
+          <%= link_to cook_meal_path(meal), class: "btn btn-sm btn-outline lg:hidden" do %>
+            Volunteer to Cook
+          <% end %>
+          <!-- Desktop Button -->
+          <%= link_to meal_path(meal, anchor: "cook_signup"), class: "btn btn-sm btn-outline hidden lg:inline-flex" do %>
             Volunteer to Cook
           <% end %>
         <% end %>
-        <%= link_to meal_path(meal), class: "btn btn-sm btn-primary" do %>
+
+        <!-- Mobile Button -->
+        <%= link_to rsvp_meal_path(meal), class: "btn btn-sm btn-primary lg:hidden" do %>
+          RSVP
+        <% end %>
+        <!-- Desktop Button -->
+        <%= link_to meal_path(meal, anchor: "rsvp_form"), class: "btn btn-sm btn-primary hidden lg:inline-flex" do %>
           RSVP
         <% end %>
       <% end %>
