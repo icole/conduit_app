@@ -36,26 +36,24 @@
               </div>
             </div>
 
-            <% if current_user.admin? %>
-              <div class="dropdown dropdown-end">
-                <label tabindex="0" class="btn btn-ghost btn-sm btn-square">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
-                  </svg>
-                </label>
-                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                  <li><%= link_to "Edit Meal", edit_meal_path(@meal) %></li>
-                  <% if @meal.upcoming? %>
-                    <li><%= button_to "Close RSVPs", close_rsvps_meal_path(@meal), method: :post, form: { data: { turbo_confirm: "Close RSVPs early?" } } %></li>
-                    <li><%= button_to "Cancel Meal", cancel_meal_path(@meal), method: :post, class: "text-error", form: { data: { turbo_confirm: "Cancel this meal?" } } %></li>
-                  <% end %>
-                  <% if @meal.rsvps_closed? || @meal.completed? %>
-                    <li><%= button_to "Mark Complete", complete_meal_path(@meal), method: :post %></li>
-                  <% end %>
-                  <li><%= button_to "Delete", meal_path(@meal), method: :delete, class: "text-error", form: { data: { turbo_confirm: "Delete this meal?" } } %></li>
-                </ul>
-              </div>
-            <% end %>
+            <div class="dropdown dropdown-end">
+              <label tabindex="0" class="btn btn-ghost btn-sm btn-square">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                </svg>
+              </label>
+              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                <li><%= link_to "Edit Meal", edit_meal_path(@meal) %></li>
+                <% if @meal.upcoming? %>
+                  <li><%= button_to "Close RSVPs", close_rsvps_meal_path(@meal), method: :post, form: { data: { turbo_confirm: "Close RSVPs early?" } } %></li>
+                  <li><%= button_to "Cancel Meal", cancel_meal_path(@meal), method: :post, class: "text-error", form: { data: { turbo_confirm: "Cancel this meal?" } } %></li>
+                <% end %>
+                <% if @meal.rsvps_closed? || @meal.completed? %>
+                  <li><%= button_to "Mark Complete", complete_meal_path(@meal), method: :post %></li>
+                <% end %>
+                <li><%= button_to "Delete", meal_path(@meal), method: :delete, class: "text-error", form: { data: { turbo_confirm: "Delete this meal?" } } %></li>
+              </ul>
+            </div>
           </div>
 
           <!-- Status Badge -->
