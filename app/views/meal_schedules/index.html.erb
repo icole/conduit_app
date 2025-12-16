@@ -64,6 +64,14 @@
                           class: "btn btn-ghost btn-xs" do %>
                         Pause
                       <% end %>
+                      <% meal_count = schedule.meals.count %>
+                      <%= button_to meal_schedule_path(schedule), method: :delete,
+                          class: "btn btn-ghost btn-xs text-error",
+                          form: { data: { turbo_confirm: meal_count > 0 ?
+                            "Delete '#{schedule.name}' and #{meal_count} associated #{meal_count == 1 ? 'meal' : 'meals'}? This cannot be undone." :
+                            "Delete '#{schedule.name}'? This cannot be undone." } } do %>
+                        Delete
+                      <% end %>
                     </div>
                   </td>
                 </tr>
@@ -115,9 +123,12 @@
                           class: "btn btn-ghost btn-xs" do %>
                         Activate
                       <% end %>
+                      <% meal_count = schedule.meals.count %>
                       <%= button_to meal_schedule_path(schedule), method: :delete,
                           class: "btn btn-ghost btn-xs text-error",
-                          form: { data: { turbo_confirm: "Delete this schedule?" } } do %>
+                          form: { data: { turbo_confirm: meal_count > 0 ?
+                            "Delete '#{schedule.name}' and #{meal_count} associated #{meal_count == 1 ? 'meal' : 'meals'}? This cannot be undone." :
+                            "Delete '#{schedule.name}'? This cannot be undone." } } do %>
                         Delete
                       <% end %>
                     </div>

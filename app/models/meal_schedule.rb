@@ -33,12 +33,12 @@ class MealSchedule < ApplicationRecord
   end
 
   def start_time_on(date)
-    date.to_datetime.change(hour: start_time.hour, min: start_time.min)
+    Time.zone.local(date.year, date.month, date.day, start_time.hour, start_time.min)
   end
 
   def end_time_on(date)
     return nil unless end_time
-    date.to_datetime.change(hour: end_time.hour, min: end_time.min)
+    Time.zone.local(date.year, date.month, date.day, end_time.hour, end_time.min)
   end
 
   def rsvp_deadline_for(meal_datetime)

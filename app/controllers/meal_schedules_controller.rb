@@ -39,8 +39,15 @@ class MealSchedulesController < ApplicationController
   end
 
   def destroy
+    meal_count = @schedule.meals.count
+    schedule_name = @schedule.name
     @schedule.destroy
-    redirect_to meal_schedules_path, notice: "Schedule removed."
+
+    if meal_count > 0
+      redirect_to meal_schedules_path, notice: "Schedule '#{schedule_name}' and #{meal_count} associated #{'meal'.pluralize(meal_count)} deleted."
+    else
+      redirect_to meal_schedules_path, notice: "Schedule '#{schedule_name}' deleted."
+    end
   end
 
   def toggle_active
