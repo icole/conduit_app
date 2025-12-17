@@ -184,4 +184,56 @@ class PostsTest < ApplicationSystemTestCase
       assert first_index < second_index, "First comment should appear before second comment"
     end
   end
+
+  test "comment count updates without page refresh when adding a comment" do
+    # Create a fresh post with no comments
+    fresh_post = Post.create!(content: "Fresh post for comment count test", user: @user)
+
+    visit dashboard_index_url
+
+    within "##{dom_id(fresh_post)}" do
+      # Initially the comment count should be 0
+      assert_selector "[data-testid='comment-button-#{fresh_post.id}']", text: /\(0\)/
+
+      # Click the comment button to show the comment form
+      find("[data-testid='comment-button-#{fresh_post.id}']").click
+
+      # Add a comment
+      fill_in "comment_content", with: "Test comment for count update"
+      click_on "Post"
+
+      # Verify the comment was added
+      assert_selector "[data-testid='comment-content']", text: "Test comment for count update"
+
+      # The comment count should now be 1 without page refresh
+      assert_selector "[data-testid='comment-button-#{fresh_post.id}']", text: /\(1\)/
+    end
+  end
+
+  test "comment count updates without page refresh when deleting a comment" do
+    # Create a fresh post with one comment from current user
+    fresh_post = Post.create!(content: "Post for delete comment test", user: @user)
+    comment = fresh_post.comments.create!(content: "Comment to delete", user: @user)
+
+    visit dashboard_index_url
+
+    within "##{dom_id(fresh_post)}" do
+      # Initially the comment count should be 1
+      assert_selector "[data-testid='comment-button-#{fresh_post.id}']", text: /\(1\)/
+
+      # Comments should be visible since current user commented
+      assert_selector "[data-testid='comment-content']", text: "Comment to delete"
+
+      # Delete the comment
+      accept_confirm do
+        find("[data-testid='delete-comment-button-#{comment.id}']").click
+      end
+
+      # Verify the comment is removed
+      assert_no_selector "[data-testid='comment-content']", text: "Comment to delete"
+
+      # The comment count should now be 0 without page refresh
+      assert_selector "[data-testid='comment-button-#{fresh_post.id}']", text: /\(0\)/
+    end
+  end
 end

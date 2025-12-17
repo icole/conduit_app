@@ -29,6 +29,7 @@ class MealsController < ApplicationController
     @my_cook_signup = @meal.cook_for(current_user)
     @attending_rsvps = @meal.meal_rsvps.attending.includes(:user)
     @maybe_rsvps = @meal.meal_rsvps.maybe.includes(:user)
+    @declined_rsvps = @meal.meal_rsvps.declined.includes(:user)
   end
 
   def cook

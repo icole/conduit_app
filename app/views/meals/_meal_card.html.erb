@@ -3,7 +3,9 @@
   is_tomorrow = meal.scheduled_date == Date.current.tomorrow
   needs_cook = meal.needs_head_cook?
   user_is_cook = meal.user_is_cook?(current_user)
-  user_rsvped = meal.user_rsvped?(current_user)
+  user_attending = meal.user_attending?(current_user)
+  user_maybe = meal.user_maybe?(current_user)
+  user_declined = meal.user_declined?(current_user)
   rsvps_open = meal.rsvps_open?
 
   border_class = if meal.cancelled?
@@ -17,7 +19,7 @@
   end
 %>
 
-<div class="card bg-base-100 shadow-lg border-l-4 <%= border_class %>">
+<div id="meal_<%= meal.id %>" class="card bg-base-100 shadow-lg border-l-4 <%= border_class %>">
   <div class="card-body">
     <!-- Date & Time Header -->
     <div class="flex justify-between items-start">
@@ -106,8 +108,12 @@
     <div class="card-actions justify-end mt-4">
       <% if user_is_cook %>
         <span class="badge badge-success">You're cooking!</span>
-      <% elsif user_rsvped %>
+      <% elsif user_attending %>
         <span class="badge badge-info">You're attending</span>
+      <% elsif user_maybe %>
+        <span class="badge badge-warning">Maybe</span>
+      <% elsif user_declined %>
+        <span class="badge badge-ghost">Can't make it</span>
       <% elsif !meal.cancelled? && rsvps_open %>
         <% if meal.cook_slots_available? %>
           <!-- Mobile Button -->

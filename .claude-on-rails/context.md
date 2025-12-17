@@ -57,3 +57,40 @@ When working on this project:
 - Keep models focused with single responsibilities
 - Extract complex business logic to service objects
 - Ensure proper database indexing for foreign keys and queries
+
+## Test-Driven Development (TDD)
+
+This project follows TDD practices. When implementing new features or fixing bugs:
+
+1. **Write a failing test first** - Before writing any implementation code, create a test that describes the expected behavior
+2. **Run the test to confirm it fails** - Verify the test fails for the right reason
+3. **Implement the minimum code to pass** - Write just enough code to make the test pass
+4. **Refactor if needed** - Clean up the code while keeping tests green
+5. **Run all tests** - Ensure no regressions were introduced
+
+### Test Types
+
+- **System tests** (`test/system/`) - For user-facing behavior and UI interactions
+- **Model tests** (`test/models/`) - For business logic and validations
+- **Controller tests** (`test/controllers/`) - For request/response handling
+- **Integration tests** (`test/integration/`) - For multi-step workflows
+
+### Running Tests
+
+```bash
+# Run all tests
+bin/rails test
+
+# Run specific test file
+bin/rails test test/system/meals_test.rb
+
+# Run specific test by line number
+bin/rails test test/system/meals_test.rb:129
+```
+
+### Pre-Commit Checklist
+
+Before committing, always run:
+1. `bin/rubocop` - Linting
+2. `bin/rails test` - All tests
+3. `bin/brakeman --no-pager` - Security scan

@@ -108,6 +108,84 @@ class MealsTest < ApplicationSystemTestCase
     assert_text "Looking forward to this meal!"
   end
 
+  test "attending RSVP shows 'You're attending' badge on meals list" do
+    # Create a meal and RSVP as attending
+    meal = Meal.create!(
+      title: "Test Meal for RSVP Badge",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    meal.meal_rsvps.create!(user: @user, status: "attending", guests_count: 0)
+
+    sign_in_as_user(:one)
+    visit meals_path
+
+    within "#meal_#{meal.id}" do
+      assert_selector ".badge", text: "You're attending"
+    end
+  end
+
+  test "declined RSVP shows 'Can't make it' badge on meals list" do
+    # Create a meal and RSVP as declined
+    meal = Meal.create!(
+      title: "Test Meal for Declined RSVP",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    meal.meal_rsvps.create!(user: @user, status: "declined", guests_count: 0)
+
+    sign_in_as_user(:one)
+    visit meals_path
+
+    within "#meal_#{meal.id}" do
+      assert_no_selector ".badge", text: "You're attending"
+      # Should show "Can't make it" badge
+      assert_selector ".badge", text: "Can't make it"
+    end
+  end
+
+  test "maybe RSVP shows appropriate status on meals list" do
+    # Create a meal and RSVP as maybe
+    meal = Meal.create!(
+      title: "Test Meal for Maybe RSVP",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    meal.meal_rsvps.create!(user: @user, status: "maybe", guests_count: 0)
+
+    sign_in_as_user(:one)
+    visit meals_path
+
+    within "#meal_#{meal.id}" do
+      # Maybe should show a different indicator, not "You're attending"
+      assert_no_selector ".badge", text: "You're attending"
+      assert_selector ".badge", text: "Maybe"
+    end
+  end
+
+  test "declined RSVP appears in 'Can't Make It' section on meal show page" do
+    # Create a meal and RSVP as declined
+    meal = Meal.create!(
+      title: "Test Meal for Declined Display",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    meal.meal_rsvps.create!(user: @user, status: "declined", guests_count: 0)
+
+    sign_in_as_user(:one)
+    visit meal_path(meal)
+
+    # Should see the "Can't Make It" section with the user
+    assert_text "Can't Make It"
+    within ".card", text: "Who's Coming" do
+      assert_text @user.name
+    end
+  end
+
   private
 
   def sign_in_as_user(user_fixture)

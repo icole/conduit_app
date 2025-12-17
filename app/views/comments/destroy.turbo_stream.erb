@@ -1,5 +1,9 @@
 <% if @post %>
   <%= turbo_stream.remove dom_id(@comment) %>
+  <!-- Update comment count -->
+  <%= turbo_stream.replace "post-#{@post.id}-comment-button" do %>
+    <%= render "posts/comment_button", post: @post.reload %>
+  <% end %>
 <% elsif @discussion_topic %>
   <%= turbo_stream.remove dom_id(@comment) %>
 <% elsif @chore %>

@@ -107,6 +107,16 @@ class Meal < ApplicationRecord
     meal_rsvps.attending.exists?(user: user)
   end
 
+  def user_maybe?(user)
+    return false unless user
+    meal_rsvps.maybe.exists?(user: user)
+  end
+
+  def user_declined?(user)
+    return false unless user
+    meal_rsvps.declined.exists?(user: user)
+  end
+
   def total_attendees
     cooks_count = meal_cooks.count
     rsvps_attending = meal_rsvps.attending.sum { |r| 1 + r.guests_count }

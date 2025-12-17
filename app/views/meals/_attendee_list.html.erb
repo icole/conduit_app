@@ -80,6 +80,29 @@
       </div>
     <% end %>
 
+    <!-- Not Attending Section -->
+    <% if declined_rsvps.any? %>
+      <div class="mt-4">
+        <h4 class="text-sm font-medium text-base-content/70 mb-2">
+          Can't Make It (<%= declined_rsvps.count %>)
+        </h4>
+        <div class="space-y-2">
+          <% declined_rsvps.each do |rsvp| %>
+            <div class="flex items-center gap-2 opacity-50">
+              <div class="avatar placeholder">
+                <div class="bg-base-300 text-base-content/50 rounded-full w-8">
+                  <span class="text-xs"><%= rsvp.user.name.first(2).upcase %></span>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm truncate"><%= rsvp.user.name %></div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
     <!-- Empty State -->
     <% if meal.cooks.empty? && attending_rsvps.empty? && maybe_rsvps.empty? %>
       <div class="text-center py-4 text-base-content/50">

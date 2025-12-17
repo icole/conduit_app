@@ -5,7 +5,7 @@
     <%= turbo_stream.replace dom_id(root_comment) do %>
       <%= render "shared/comment", comment: root_comment %>
     <% end %>
-    
+
     <!-- Hide the reply form after successful submission -->
     <%= turbo_stream.update "reply-form-#{@comment.parent.id}", "" %>
   <% else %>
@@ -13,14 +13,19 @@
     <%= turbo_stream.append "post-#{@post.id}-comments-list" do %>
       <%= render "shared/comment", comment: @comment %>
     <% end %>
-    
+
     <!-- Remove "no comments" message if this is the first comment -->
     <%= turbo_stream.remove "post-#{@post.id}-no-comments" %>
-    
+
     <!-- Always reset the main comment form -->
     <%= turbo_stream.replace "new_comment_#{@post.id}" do %>
       <%= render "shared/comment_form", commentable: @post, comment: Comment.new %>
     <% end %>
+  <% end %>
+
+  <!-- Update comment count -->
+  <%= turbo_stream.replace "post-#{@post.id}-comment-button" do %>
+    <%= render "posts/comment_button", post: @post.reload %>
   <% end %>
 <% elsif @discussion_topic %>
   <% if @comment.reply? %>
