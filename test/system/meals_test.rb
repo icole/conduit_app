@@ -166,6 +166,44 @@ class MealsTest < ApplicationSystemTestCase
     end
   end
 
+  test "meal with helper but no head cook shows warning on meals list" do
+    # Create a meal with only a helper cook (no head cook)
+    meal = Meal.create!(
+      title: "Test Meal Needs Head Cook",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    meal.meal_cooks.create!(user: @other_user, role: "helper")
+
+    sign_in_as_user(:one)
+    visit meals_path
+
+    within "#meal_#{meal.id}" do
+      # Should show warning about needing a head cook
+      assert_text "Needs head cook!"
+    end
+  end
+
+  test "meal with head cook does not show needs head cook warning" do
+    # Create a meal with a head cook
+    meal = Meal.create!(
+      title: "Test Meal Has Head Cook",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    meal.meal_cooks.create!(user: @other_user, role: "head_cook")
+
+    sign_in_as_user(:one)
+    visit meals_path
+
+    within "#meal_#{meal.id}" do
+      assert_no_text "Needs head cook!"
+      assert_no_text "Needs volunteers!"
+    end
+  end
+
   test "declined RSVP appears in 'Can't Make It' section on meal show page" do
     # Create a meal and RSVP as declined
     meal = Meal.create!(
