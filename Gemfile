@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.0.2"
+gem "rails", "~> 8.1.1"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use postgresql as the database for Active Record
@@ -56,9 +56,9 @@ gem "thruster", require: false
 gem "image_processing", "~> 1.2"
 
 # Google Drive API - Using specific service gem as recommended
-gem "google-apis-drive_v3", "~> 0.67.0"
+gem "google-apis-drive_v3", "~> 0.76.0"
 gem "googleauth", "~> 1.0"
-gem "google-apis-calendar_v3", "~> 0.48.0"
+gem "google-apis-calendar_v3", "~> 0.49.0"
 
 gem "pstore"
 gem "simple_calendar"

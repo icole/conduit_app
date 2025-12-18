@@ -34,7 +34,9 @@
 
 <body>
 <main class="w-full bg-base-100 min-h-screen flex flex-col">
-  <%= render "layouts/navbar" %>
+  <% unless hotwire_native_app? %>
+    <%= render "layouts/navbar" %>
+  <% end %>
   <div class="w-full max-w-7xl mx-auto flex-1 px-4 py-8">
     <%= render "layouts/flash_messages" %>
     <%= yield %>
