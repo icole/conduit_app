@@ -19,6 +19,7 @@ namespace :multi_community do
     puts "Domain: #{community.domain}"
 
     # Step 2: Associate all existing records with this community
+    # Use unscoped to bypass acts_as_tenant scoping
     models_to_update = [
       User, Post, Task, Chore, Meal, MealSchedule,
       DiscussionTopic, CalendarEvent, Document, Decision, Invitation
@@ -26,7 +27,7 @@ namespace :multi_community do
 
     puts "\nAssociating existing records with community..."
     models_to_update.each do |model|
-      count = model.where(community_id: nil).update_all(community_id: community.id)
+      count = model.unscoped.where(community_id: nil).update_all(community_id: community.id)
       puts "  #{model.name}: #{count} records updated"
     end
 
