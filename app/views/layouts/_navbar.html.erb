@@ -36,7 +36,7 @@
 
     <!-- Logo -->
     <%= link_to root_path, class: "flex items-center gap-2 mr-4" do %>
-      <%= image_tag("crow-woods-logo.png", alt: "Crow Woods", class: "h-10 w-auto") %>
+      <%= image_tag("crow-woods-logo.png", alt: current_community&.name || "Conduit", class: "h-10 w-auto") %>
     <% end %>
 
     <!-- Desktop Navigation - Single Row with Dropdowns -->

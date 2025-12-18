@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+crow_woods:
+  name: Crow Woods
+  slug: crow-woods
+  domain: crowwoods.test
+  settings:
+    google_calendar_id: test_calendar_id
+    google_drive_folder_id: test_folder_id
+  time_zone: America/New_York
+
+other_community:
+  name: Other Community
+  slug: other-community
+  domain: other.test
+  settings: {}
+  time_zone: America/Los_Angeles

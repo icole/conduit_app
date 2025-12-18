@@ -1,4 +1,6 @@
 class Meal < ApplicationRecord
+  acts_as_tenant :community
+
   belongs_to :meal_schedule, optional: true
   has_many :meal_cooks, dependent: :destroy
   has_many :cooks, through: :meal_cooks, source: :user

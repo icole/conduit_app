@@ -1,18 +1,21 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
+  community: crow_woods
   title: Complete Project Documentation
   description: Update all READMEs and add code comments
   status: backlog
   user: one
 
 two:
+  community: crow_woods
   title: Fix UI Bug in Dashboard
   description: The sidebar collapses incorrectly on mobile
   status: backlog
   user: two
-  
+
 assigned_task:
+  community: crow_woods
   title: "Review Pull Request #42"
   description: Check the code quality and test coverage
   status: active
@@ -21,6 +24,7 @@ assigned_task:
   assigned_to_user: two
 
 received_task:
+  community: crow_woods
   title: Setup Development Environment
   description: Install all dependencies and configure local settings
   status: active
@@ -29,6 +33,7 @@ received_task:
   assigned_to_user: one
 
 completed_task:
+  community: crow_woods
   title: Refactor Authentication System
   description: Improve security and user experience
   status: completed

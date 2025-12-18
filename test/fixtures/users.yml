@@ -1,6 +1,7 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
+  community: crow_woods
   uid: 123456789
   name: Jane Smith
   email: jane@example.com
@@ -8,6 +9,7 @@ one:
   password_digest: <%= BCrypt::Password.create('password') %>
 
 two:
+  community: crow_woods
   uid: 1234567890
   name: Mike Davis
   email: mike@example.com
@@ -15,6 +17,7 @@ two:
   password_digest: <%= BCrypt::Password.create('password') %>
 
 admin_user:
+  community: crow_woods
   uid: 987654321
   name: Admin User
   email: admin@example.com
@@ -22,6 +25,7 @@ admin_user:
   admin: true
 
 regular_user:
+  community: crow_woods
   uid: 987654322
   name: Regular User
   email: regular@example.com
@@ -29,6 +33,7 @@ regular_user:
   admin: false
 
 three:
+  community: crow_woods
   uid: 333333333
   name: Alice Johnson
   email: alice@example.com
@@ -36,6 +41,7 @@ three:
   password_digest: <%= BCrypt::Password.create('password') %>
 
 four:
+  community: crow_woods
   uid: 444444444
   name: Bob Wilson
   email: bob@example.com
@@ -43,6 +49,7 @@ four:
   password_digest: <%= BCrypt::Password.create('password') %>
 
 five:
+  community: crow_woods
   uid: 555555555
   name: Carol Brown
   email: carol@example.com
@@ -50,6 +57,7 @@ five:
   password_digest: <%= BCrypt::Password.create('password') %>
 
 six:
+  community: crow_woods
   uid: 666666666
   name: Dave Miller
   email: dave@example.com

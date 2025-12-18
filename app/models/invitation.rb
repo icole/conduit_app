@@ -1,4 +1,6 @@
 class Invitation < ApplicationRecord
+  acts_as_tenant :community
+
   has_many :users
 
   validates :token, presence: true, uniqueness: true
