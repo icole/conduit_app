@@ -61,6 +61,33 @@ namespace :multi_community do
     puts "Updated #{community.name} domain to: #{community.domain}"
   end
 
+  desc "Create admin user for a community"
+  task :create_admin, [ :email, :password, :name ] => :environment do |t, args|
+    email = args[:email] || "admin@example.com"
+    password = args[:password] || "password123"
+    name = args[:name] || "Admin User"
+
+    community = Community.first
+    unless community
+      puts "Error: No community exists. Run multi_community:setup first."
+      exit 1
+    end
+
+    ActsAsTenant.with_tenant(community) do
+      user = User.find_or_initialize_by(email: email)
+      user.name = name
+      user.password = password
+      user.password_confirmation = password
+      user.admin = true
+      user.save!
+      puts "Admin user created/updated:"
+      puts "  Email: #{user.email}"
+      puts "  Name: #{user.name}"
+      puts "  Admin: #{user.admin}"
+      puts "  Community: #{community.name}"
+    end
+  end
+
   desc "List all communities"
   task list: :environment do
     communities = Community.all
