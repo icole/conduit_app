@@ -54,6 +54,13 @@ namespace :multi_community do
     puts "  ID: #{community.id}"
   end
 
+  desc "Update community domain"
+  task :update_domain, [ :slug, :domain ] => :environment do |t, args|
+    community = Community.find_by!(slug: args[:slug])
+    community.update!(domain: args[:domain])
+    puts "Updated #{community.name} domain to: #{community.domain}"
+  end
+
   desc "List all communities"
   task list: :environment do
     communities = Community.all
