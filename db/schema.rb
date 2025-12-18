@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_17_224824) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -70,6 +70,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
     t.datetime "updated_at", null: false
     t.string "google_event_id"
     t.string "location"
+    t.bigint "community_id", null: false
+    t.index ["community_id"], name: "index_calendar_events_on_community_id"
   end
 
   create_table "calendar_events_documents", force: :cascade do |t|
@@ -128,6 +130,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
     t.date "next_due_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "community_id", null: false
+    t.index ["community_id"], name: "index_chores_on_community_id"
     t.index ["next_due_date"], name: "index_chores_on_next_due_date"
     t.index ["proposed_by_id"], name: "index_chores_on_proposed_by_id"
     t.index ["status"], name: "index_chores_on_status"
@@ -148,6 +152,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
 
+  create_table "communities", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.string "domain", null: false
+    t.jsonb "settings", default: {}
+    t.string "time_zone", default: "America/New_York"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["domain"], name: "index_communities_on_domain", unique: true
+    t.index ["slug"], name: "index_communities_on_slug", unique: true
+  end
+
   create_table "decisions", force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -156,7 +172,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
     t.bigint "document_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "community_id", null: false
     t.index ["calendar_event_id"], name: "index_decisions_on_calendar_event_id"
+    t.index ["community_id"], name: "index_decisions_on_community_id"
     t.index ["decision_date"], name: "index_decisions_on_decision_date"
     t.index ["document_id"], name: "index_decisions_on_document_id"
   end
@@ -168,6 +186,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "last_activity_at"
+    t.bigint "community_id", null: false
+    t.index ["community_id"], name: "index_discussion_topics_on_community_id"
     t.index ["user_id"], name: "index_discussion_topics_on_user_id"
   end
 
@@ -178,6 +198,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
     t.string "document_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "community_id", null: false
+    t.index ["community_id"], name: "index_documents_on_community_id"
   end
 
   create_table "drive_shares", force: :cascade do |t|
@@ -218,6 +240,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id"
+    t.bigint "community_id", null: false
+    t.index ["community_id"], name: "index_invitations_on_community_id"
     t.index ["token"], name: "index_invitations_on_token", unique: true
     t.index ["user_id"], name: "index_invitations_on_user_id"
   end
@@ -271,7 +295,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
     t.bigint "created_by_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "community_id", null: false
     t.index ["active"], name: "index_meal_schedules_on_active"
+    t.index ["community_id"], name: "index_meal_schedules_on_community_id"
     t.index ["created_by_id"], name: "index_meal_schedules_on_created_by_id"
     t.index ["day_of_week"], name: "index_meal_schedules_on_day_of_week"
   end
@@ -290,6 +316,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "menu"
+    t.bigint "community_id", null: false
+    t.index ["community_id"], name: "index_meals_on_community_id"
     t.index ["meal_schedule_id", "scheduled_at"], name: "index_meals_on_meal_schedule_id_and_scheduled_at"
     t.index ["meal_schedule_id"], name: "index_meals_on_meal_schedule_id"
     t.index ["rsvp_deadline"], name: "index_meals_on_rsvp_deadline"
@@ -302,6 +330,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "community_id", null: false
+    t.index ["community_id"], name: "index_posts_on_community_id"
     t.index ["user_id"], name: "index_posts_on_user_id"
   end
 
@@ -326,7 +356,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
     t.integer "assigned_to_user_id"
     t.date "due_date"
     t.integer "priority_order"
+    t.bigint "community_id", null: false
     t.index ["assigned_to_user_id"], name: "index_tasks_on_assigned_to_user_id"
+    t.index ["community_id"], name: "index_tasks_on_community_id"
     t.index ["due_date"], name: "index_tasks_on_due_date"
     t.index ["priority_order"], name: "index_tasks_on_priority_order"
     t.index ["user_id"], name: "index_tasks_on_user_id"
@@ -357,13 +389,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
     t.bigint "invitation_id"
     t.datetime "last_active_at"
     t.boolean "restricted_access", default: false, null: false
-    t.index ["email"], name: "index_users_on_email", unique: true
+    t.bigint "community_id", null: false
+    t.index ["community_id", "email"], name: "index_users_on_community_id_and_email", unique: true
+    t.index ["community_id", "provider", "uid"], name: "index_users_on_community_id_and_provider_and_uid", unique: true
+    t.index ["community_id"], name: "index_users_on_community_id"
     t.index ["invitation_id"], name: "index_users_on_invitation_id"
-    t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "calendar_events", "communities"
   add_foreign_key "calendar_events_documents", "calendar_events"
   add_foreign_key "calendar_events_documents", "documents"
   add_foreign_key "calendar_shares", "users"
@@ -371,28 +406,38 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_232420) do
   add_foreign_key "chore_assignments", "users"
   add_foreign_key "chore_completions", "chores"
   add_foreign_key "chore_completions", "users", column: "completed_by_id"
+  add_foreign_key "chores", "communities"
   add_foreign_key "chores", "users", column: "proposed_by_id"
   add_foreign_key "comments", "comments", column: "parent_id"
   add_foreign_key "comments", "posts"
   add_foreign_key "comments", "users"
   add_foreign_key "decisions", "calendar_events"
+  add_foreign_key "decisions", "communities"
   add_foreign_key "decisions", "documents"
+  add_foreign_key "discussion_topics", "communities"
   add_foreign_key "discussion_topics", "users"
+  add_foreign_key "documents", "communities"
   add_foreign_key "drive_shares", "users"
   add_foreign_key "in_app_notifications", "users"
+  add_foreign_key "invitations", "communities"
   add_foreign_key "invitations", "users"
   add_foreign_key "likes", "users"
   add_foreign_key "meal_cooks", "meals"
   add_foreign_key "meal_cooks", "users"
   add_foreign_key "meal_rsvps", "meals"
   add_foreign_key "meal_rsvps", "users"
+  add_foreign_key "meal_schedules", "communities"
   add_foreign_key "meal_schedules", "users", column: "created_by_id"
+  add_foreign_key "meals", "communities"
   add_foreign_key "meals", "meal_schedules"
+  add_foreign_key "posts", "communities"
   add_foreign_key "posts", "users"
   add_foreign_key "push_subscriptions", "users"
+  add_foreign_key "tasks", "communities"
   add_foreign_key "tasks", "users"
   add_foreign_key "tasks", "users", column: "assigned_to_user_id"
   add_foreign_key "topic_comments", "discussion_topics"
   add_foreign_key "topic_comments", "users"
+  add_foreign_key "users", "communities"
   add_foreign_key "users", "invitations"
 end

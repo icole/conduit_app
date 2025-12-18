@@ -1,0 +1,42 @@
+#!/bin/bash
+set -e
+
+# Load staging environment variables
+if [ -f .env.staging ]; then
+  echo "Loading environment from .env.staging"
+  export $(grep -v '^#' .env.staging | xargs)
+else
+  echo "Error: .env.staging file not found"
+  echo "Copy .env.staging.sample to .env.staging and fill in your values"
+  exit 1
+fi
+
+# Validate required variables
+REQUIRED_VARS=(
+  "STAGING_SERVER_IP"
+  "DOCKER_USERNAME"
+  "KAMAL_REGISTRY_PASSWORD"
+  "RAILS_MASTER_KEY"
+  "CONDUIT_APP_DATABASE_PASSWORD"
+)
+
+for var in "${REQUIRED_VARS[@]}"; do
+  if [ -z "${!var}" ]; then
+    echo "Error: $var is not set in .env.staging"
+    exit 1
+  fi
+done
+
+echo "Deploying to staging server: $STAGING_SERVER_IP"
+echo "Using Docker image: $DOCKER_USERNAME/conduit_app"
+
+# Use current git SHA for versioning
+VERSION=$(git rev-parse --short HEAD)
+echo "Version: $VERSION"
+
+# Deploy using Kamal with staging destination
+kamal deploy -d staging --version=$VERSION
+
+echo ""
+echo "Staging deployment complete!"
+echo "Access the staging site at: https://conduit-staging.crowwoods.com"

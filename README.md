@@ -13,6 +13,82 @@ A Rails application for community coordination, with native iOS and Android apps
 * **Decisions** - Community decision tracking
 * **Discussion Topics** - Threaded discussions
 
+## Multi-Community Support
+
+Conduit supports multiple isolated communities, each with their own domain, users, and data. This is implemented using the `acts_as_tenant` gem for automatic query scoping.
+
+### How It Works
+
+- **Domain-based routing**: Each community has a configured domain. The community is determined by `request.host` (e.g., `conduit.crowwoods.com` routes to the "Crow Woods" community)
+- **Data isolation**: All queries are automatically scoped to the current community. Users, posts, meals, chores, etc. from one community are never visible to another
+- **Separate user accounts**: The same email can exist in different communities as completely separate accounts
+- **Per-community settings**: Each community can have its own Google Calendar ID, Google Drive folder, and other settings stored in the `settings` JSONB column
+
+### Community Model
+
+```ruby
+Community:
+  - name          # Display name (e.g., "Crow Woods")
+  - slug          # URL-friendly identifier (e.g., "crow-woods")
+  - domain        # The domain for this community (e.g., "conduit.crowwoods.com")
+  - settings      # JSONB for Google integration IDs, SMTP settings, etc.
+  - time_zone     # Community's timezone (default: "America/New_York")
+```
+
+### Local Development
+
+In development, the app automatically uses the "crow-woods" community when accessing via `localhost`. This means you don't need to set up custom domains locally.
+
+**To create the initial community:**
+
+```bash
+# Run the data migration task (creates "Crow Woods" community and associates existing data)
+bin/rails multi_community:setup
+```
+
+**To create additional communities:**
+
+```ruby
+# In rails console
+Community.create!(
+  name: "My Community",
+  slug: "my-community",
+  domain: "my-community.localhost",  # Or your production domain
+  settings: {
+    "google_calendar_id" => "your_calendar_id@group.calendar.google.com",
+    "google_drive_folder_id" => "your_folder_id"
+  }
+)
+```
+
+**Testing with multiple communities locally:**
+
+1. Add entries to `/etc/hosts`:
+   ```
+   127.0.0.1 community1.localhost
+   127.0.0.1 community2.localhost
+   ```
+
+2. Create communities with those domains:
+   ```ruby
+   Community.create!(name: "Community 1", slug: "community-1", domain: "community1.localhost:3000")
+   Community.create!(name: "Community 2", slug: "community-2", domain: "community2.localhost:3000")
+   ```
+
+3. Access each community at their respective URLs
+
+### Background Jobs
+
+Background jobs that process data across all communities (like meal reminders) automatically iterate over all communities:
+
+```ruby
+Community.find_each do |community|
+  ActsAsTenant.with_tenant(community) do
+    # All queries inside this block are scoped to this community
+  end
+end
+```
+
 ## Setup
 
 ### Prerequisites

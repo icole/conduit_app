@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class CalendarEvent < ApplicationRecord
+  acts_as_tenant :community
+
   has_and_belongs_to_many :documents
   has_many :decisions, dependent: :nullify
 

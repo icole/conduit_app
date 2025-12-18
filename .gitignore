@@ -10,6 +10,7 @@
 # Ignore all environment files.
 /.env*
 !/.env.sample
+!/.env.staging.sample
 
 # Ignore google keys
 wide-gamma-462206-r8-823649cf4ac3.json

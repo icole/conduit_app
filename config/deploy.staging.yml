@@ -1,0 +1,73 @@
+# Staging deployment configuration
+# Deploy with: kamal deploy -d staging
+
+service: conduit_app
+
+image: <%= ENV["DOCKER_USERNAME"] %>/conduit_app
+
+servers:
+  web:
+    - <%= ENV["STAGING_SERVER_IP"] %>
+
+ssh:
+  user: <%= ENV["STAGING_SSH_USER"] || "icole" %>
+
+proxy:
+  ssl: true
+  host: conduit-staging.crowwoods.com
+  healthcheck:
+    interval: 5
+    timeout: 120
+
+registry:
+  username: <%= ENV["DOCKER_USERNAME"] %>
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+env:
+  secret:
+    - RAILS_MASTER_KEY
+    - GOOGLE_CLIENT_ID
+    - GOOGLE_IOS_CLIENT_ID
+    - GOOGLE_ANDROID_CLIENT_ID
+    - GOOGLE_CLIENT_SECRET
+    - CONDUIT_APP_DATABASE_PASSWORD
+    - CALENDAR_CONFIG_CONTENT
+    - GOOGLE_CALENDAR_ID
+    - GOOGLE_DRIVE_FOLDER_ID
+    - SMTP_USERNAME
+    - SMTP_PASSWORD
+    - STREAM_API_KEY
+    - STREAM_API_SECRET
+  clear:
+    SOLID_QUEUE_IN_PUMA: true
+    RAILS_ENV: production
+    # Staging-specific: allow broader access for testing
+    ALLOWED_EMAILS: "<%= ENV["STAGING_ALLOWED_EMAILS"] || ENV["ALLOWED_EMAILS"] %>"
+
+volumes:
+  - "conduit_app_staging_storage:/rails/storage"
+
+# PostgreSQL for staging (separate from production)
+accessories:
+  db:
+    image: postgres:15
+    host: <%= ENV["STAGING_SERVER_IP"] %>
+    port: 5432
+    env:
+      clear:
+        POSTGRES_USER: conduit_app
+        POSTGRES_DB: conduit_app_production
+      secret:
+        - CONDUIT_APP_DATABASE_PASSWORD
+        - POSTGRES_PASSWORD
+    files:
+      - .kamal/postgres/init.sql:/docker-entrypoint-initdb.d/setup.sql
+    volumes:
+      - /var/lib/postgresql/data:/var/lib/postgresql/data
+
+builder:
+  arch: amd64
+
+aliases:
+  console: app exec --reuse -i "bin/rails console"

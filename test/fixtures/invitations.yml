@@ -1,11 +1,13 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 user_one_invitation:
+  community: crow_woods
   token: unique_token_1
   used_at: null
   expires_at: <%= 2.weeks.from_now %>
 
 user_two_invitation:
+  community: crow_woods
   token: unique_token_2
   used_at: 2025-07-03 22:49:47
   expires_at: 2025-07-03 22:49:47

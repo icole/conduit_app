@@ -30,6 +30,7 @@ class JwtService
     def generate_auth_token(user)
       payload = {
         user_id: user.id,
+        community_id: user.community_id,
         email: user.email,
         type: "auth"
       }
@@ -40,7 +41,13 @@ class JwtService
       decoded = decode(token)
       return nil unless decoded && decoded[:type] == "auth"
 
-      User.find_by(id: decoded[:user_id])
+      # Set tenant context for the user lookup
+      community = Community.find_by(id: decoded[:community_id])
+      return nil unless community
+
+      ActsAsTenant.with_tenant(community) do
+        User.find_by(id: decoded[:user_id])
+      end
     rescue StandardError => e
       Rails.logger.error "Token verification error: #{e.message}"
       nil

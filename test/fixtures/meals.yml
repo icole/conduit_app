@@ -1,6 +1,7 @@
 # Meal fixtures
 
 upcoming_meal:
+  community: crow_woods
   title: Community Dinner
   description: Weekly community dinner - bring your appetite!
   scheduled_at: <%= 3.days.from_now.change(hour: 18, min: 0) %>
@@ -11,6 +12,7 @@ upcoming_meal:
   cook_notes: Vegetarian options available
 
 needs_cook:
+  community: crow_woods
   title: Friday Feast
   description: Special Friday dinner
   scheduled_at: <%= 5.days.from_now.change(hour: 19, min: 0) %>
@@ -20,6 +22,7 @@ needs_cook:
   status: upcoming
 
 past_meal:
+  community: crow_woods
   title: Past Community Meal
   description: This meal already happened
   scheduled_at: <%= 3.days.ago.change(hour: 18, min: 0) %>
@@ -29,6 +32,7 @@ past_meal:
   status: completed
 
 cancelled_meal:
+  community: crow_woods
   title: Cancelled Dinner
   description: This meal was cancelled
   scheduled_at: <%= 2.days.from_now.change(hour: 18, min: 0) %>
@@ -38,6 +42,7 @@ cancelled_meal:
   status: cancelled
 
 rsvps_closed:
+  community: crow_woods
   title: RSVPs Closed Meal
   description: RSVPs are closed for this meal
   scheduled_at: <%= 1.day.from_now.change(hour: 18, min: 0) %>

@@ -1,4 +1,6 @@
 class Chore < ApplicationRecord
+  acts_as_tenant :community
+
   belongs_to :proposed_by, class_name: "User"
   has_many :chore_assignments, dependent: :destroy
   has_many :assigned_users, through: :chore_assignments, source: :user

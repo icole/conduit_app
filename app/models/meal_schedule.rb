@@ -1,4 +1,6 @@
 class MealSchedule < ApplicationRecord
+  acts_as_tenant :community
+
   belongs_to :created_by, class_name: "User"
   has_many :meals, dependent: :destroy
 

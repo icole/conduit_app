@@ -1,4 +1,6 @@
 class Document < ApplicationRecord
+  acts_as_tenant :community
+
   has_and_belongs_to_many :calendar_events
   has_many :decisions, dependent: :nullify
 

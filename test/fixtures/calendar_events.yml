@@ -1,6 +1,7 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
+  community: crow_woods
   title: Team Meeting
   description: Weekly team sync
   start_time: <%= Time.current + 1.day %>
@@ -8,6 +9,7 @@ one:
   location: Conference Room A
 
 two:
+  community: crow_woods
   title: Planning Session
   description: Quarterly planning
   start_time: <%= Time.current + 7.days %>

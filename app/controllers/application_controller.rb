@@ -3,16 +3,55 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
 
   include RestrictedAccess
+  include ActsAsTenant::ControllerExtensions
 
+  # Set tenant from domain - must run before authenticate_user!
+  set_current_tenant_through_filter
+  before_action :set_tenant_from_domain
   before_action :authenticate_user!
   before_action :update_last_active, if: :user_signed_in?
 
-  helper_method :current_user, :user_signed_in?, :google_account?
+  helper_method :current_user, :user_signed_in?, :google_account?, :current_community
 
   private
 
+  def set_tenant_from_domain
+    community = find_community_by_host(request.host)
+
+    unless community
+      render file: Rails.public_path.join("404.html"), status: :not_found, layout: false
+      return
+    end
+
+    set_current_tenant(community)
+  end
+
+  def find_community_by_host(host)
+    # Handle localhost in development
+    if Rails.env.development? && host.include?("localhost")
+      return Community.find_by(slug: "crow-woods")
+    end
+
+    # Handle test environment - use first community or look up by domain
+    if Rails.env.test?
+      return Community.find_by(domain: host) ||
+             Community.find_by(slug: "crow-woods") ||
+             Community.first
+    end
+
+    Community.find_by(domain: host) || Community.find_by(domain: host.gsub(/^www\./, ""))
+  end
+
+  def current_community
+    ActsAsTenant.current_tenant
+  end
+
   def current_user
-    @current_user ||= User.find_by(id: session[:user_id]) if session[:user_id]
+    return @current_user if defined?(@current_user)
+    return nil unless session[:user_id] && current_community
+
+    # User.find_by is automatically scoped to current_community by acts_as_tenant
+    @current_user = User.find_by(id: session[:user_id])
   end
 
   def user_signed_in?

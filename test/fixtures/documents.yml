@@ -1,12 +1,14 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
+  community: crow_woods
   title: Sample Document
   description: A sample Google Document for testing
   google_drive_url: https://docs.google.com/document/d/1FakeDocumentId123456789abcdefghijklmnopqrstuvwxyz/edit
   document_type: Google Doc
 
 two:
+  community: crow_woods
   title: Sample Spreadsheet
   description: A sample Google Spreadsheet for testing
   google_drive_url: https://docs.google.com/spreadsheets/d/1FakeSpreadsheetId987654321zyxwvutsrqponmlkjihgfedcba/edit

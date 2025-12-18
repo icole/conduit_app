@@ -1,4 +1,6 @@
 class Task < ApplicationRecord
+  acts_as_tenant :community
+
   belongs_to :user
   belongs_to :assigned_to_user, class_name: "User", optional: true
 

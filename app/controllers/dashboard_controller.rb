@@ -17,11 +17,11 @@ class DashboardController < ApplicationController
     @task = Task.new
 
     # Check if the user already has a calendar share
-    calendar_id = ENV["GOOGLE_CALENDAR_ID"]
-    @calendar_already_shared = CalendarShare.calendar_shared_with_user?(calendar_id, current_user)
+    calendar_id = current_community.google_calendar_id
+    @calendar_already_shared = calendar_id.present? && CalendarShare.calendar_shared_with_user?(calendar_id, current_user)
 
     # Check if the user already has a drive folder share
-    folder_id = ENV["GOOGLE_DRIVE_FOLDER_ID"]
+    folder_id = current_community.google_drive_folder_id
     @drive_folder_already_shared = folder_id.present? ? DriveShare.folder_shared_with_user?(folder_id, current_user) : false
 
     # Get recent drive files from cache or trigger background job
@@ -39,7 +39,7 @@ class DashboardController < ApplicationController
     end
 
     @google_calendar_configured = begin
-      defined?(CalendarCredentials) && CalendarCredentials.configured? && ENV["GOOGLE_CALENDAR_ID"].present?
+      defined?(CalendarCredentials) && CalendarCredentials.configured? && current_community.google_calendar_id.present?
     rescue
       false
     end
@@ -61,7 +61,7 @@ class DashboardController < ApplicationController
   end
 
   def refresh_drive_files
-    folder_id = ENV["GOOGLE_DRIVE_FOLDER_ID"]
+    folder_id = current_community.google_drive_folder_id
 
     if folder_id.present? && DriveShare.folder_shared_with_user?(folder_id, current_user)
       GoogleDriveSyncJob.perform_later(current_user.id)

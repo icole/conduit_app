@@ -1,6 +1,8 @@
 require "digest"
 
 class User < ApplicationRecord
+  acts_as_tenant :community
+
   has_secure_password validations: false
 
   has_many :posts, dependent: :destroy
@@ -29,7 +31,7 @@ class User < ApplicationRecord
   has_many :push_subscriptions, dependent: :destroy
   has_many :in_app_notifications, dependent: :destroy
 
-  validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :email, presence: true, uniqueness: { scope: :community_id }, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true
 
   # Allow OAuth users to not have a password

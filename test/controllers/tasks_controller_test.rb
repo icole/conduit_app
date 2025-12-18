@@ -2,9 +2,17 @@ require "test_helper"
 
 class TasksControllerTest < ActionDispatch::IntegrationTest
   setup do
+    @community = communities(:crow_woods)
+    ActsAsTenant.current_tenant = @community
     @user = users(:one)
     @task = tasks(:one)
     sign_in_user({ uid: @user.uid, name: @user.name, email: @user.email })
+    # Re-set tenant after sign_in_user which may have cleared it
+    ActsAsTenant.current_tenant = @community
+  end
+
+  teardown do
+    ActsAsTenant.current_tenant = nil
   end
 
   test "should get index" do

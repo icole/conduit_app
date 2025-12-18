@@ -29,7 +29,9 @@ namespace :email do
       enable_starttls_auto: true
     }
 
-    from_address = "Crow Woods Conduit <#{ENV['SMTP_USERNAME']}>"
+    # Use the first community's name if available, fallback to "Conduit"
+    community_name = Community.first&.smtp_from_name || "Conduit"
+    from_address = "#{community_name} <#{ENV['SMTP_USERNAME']}>"
     puts "Sending test email to #{to_address}..."
     puts "Using SMTP: mail.privateemail.com:587"
     puts "From: #{from_address}"
