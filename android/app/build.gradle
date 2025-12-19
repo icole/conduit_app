@@ -50,10 +50,10 @@ android {
         debug {
             debuggable true
             minifyEnabled false
-            // Use local server for emulator development
+            // Use localhost for debug builds (10.0.2.2 for emulator, or actual IP for physical device)
             buildConfigField "String", "BASE_URL", "\"http://10.0.2.2:3000\""
             // API Keys from local.properties (not in version control)
-            buildConfigField "String", "STREAM_API_KEY", "\"${localProperties.getProperty('STREAM_API_KEY', 'YOUR_STREAM_API_KEY')}\""
+            buildConfigField "String", "STREAM_API_KEY", "\"${localProperties.getProperty('STREAM_API_KEY_DEBUG', 'YOUR_STREAM_API_KEY')}\""
             buildConfigField "String", "GOOGLE_CLIENT_ID", "\"${localProperties.getProperty('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID')}\""
             signingConfig signingConfigs.debug
         }
@@ -62,7 +62,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "BASE_URL", "\"https://conduit.crowwoods.com\""
             // API Keys from local.properties (not in version control)
-            buildConfigField "String", "STREAM_API_KEY", "\"${localProperties.getProperty('STREAM_API_KEY', 'YOUR_STREAM_API_KEY')}\""
+            buildConfigField "String", "STREAM_API_KEY", "\"${localProperties.getProperty('STREAM_API_KEY_RELEASE', 'YOUR_STREAM_API_KEY')}\""
             buildConfigField "String", "GOOGLE_CLIENT_ID", "\"${localProperties.getProperty('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID')}\""
             signingConfig signingConfigs.release
         }

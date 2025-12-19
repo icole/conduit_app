@@ -59,3 +59,6 @@ server.log
 # Google Sign-In Configuration (contains sensitive data)
 ios/Conduit/GoogleService-Info.plist
 android/app/google-services.json
+
+# Android local configuration (contains local IP addresses)
+android/app/src/main/assets/config.properties

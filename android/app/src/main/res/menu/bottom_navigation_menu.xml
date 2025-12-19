@@ -7,13 +7,18 @@
         android:title="@string/navigation_home" />
 
     <item
+        android:id="@+id/navigation_tasks"
+        android:icon="@drawable/ic_tasks"
+        android:title="@string/navigation_tasks" />
+
+    <item
+        android:id="@+id/navigation_meals"
+        android:icon="@drawable/ic_meals"
+        android:title="@string/navigation_meals" />
+
+    <item
         android:id="@+id/navigation_chat"
         android:icon="@drawable/ic_chat"
         android:title="@string/navigation_chat" />
-
-    <item
-        android:id="@+id/navigation_profile"
-        android:icon="@drawable/ic_profile"
-        android:title="@string/navigation_profile" />
 
 </menu>

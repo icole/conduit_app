@@ -6,8 +6,10 @@
         <domain includeSubdomains="true">10.0.2.2</domain>
         <!-- Physical device localhost -->
         <domain includeSubdomains="true">localhost</domain>
-        <!-- Your local network IP (update as needed) -->
-        <domain includeSubdomains="true">192.168.1.0/24</domain>
+        <!-- Your local network IP -->
+        <domain includeSubdomains="true">192.168.50.41</domain>
+        <!-- Alternative: Allow entire local subnet -->
+        <domain includeSubdomains="true">192.168.50.0/24</domain>
     </domain-config>
 
     <!-- Production domain with HTTPS -->

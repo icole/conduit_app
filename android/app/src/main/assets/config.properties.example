@@ -1,0 +1,12 @@
+# Configuration for physical device testing
+# Copy this file to config.properties and update with your local IP
+#
+# To find your IP address:
+#   macOS: ifconfig | grep "inet " | grep -v 127.0.0.1
+#   Linux: ip addr show | grep "inet "
+#   Windows: ipconfig | findstr IPv4
+#
+# Example:
+# base_url=http://192.168.1.100:3000
+
+base_url=http://YOUR_LOCAL_IP:3000

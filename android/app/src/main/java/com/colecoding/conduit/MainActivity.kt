@@ -15,7 +15,8 @@ import com.colecoding.conduit.auth.AuthManager
 import com.colecoding.conduit.auth.LoginActivity
 import com.colecoding.conduit.fragments.CustomChatFragment
 import com.colecoding.conduit.fragments.HomeFragment
-import com.colecoding.conduit.fragments.ProfileFragment
+import com.colecoding.conduit.fragments.TasksFragment
+import com.colecoding.conduit.fragments.MealsFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
@@ -28,8 +29,9 @@ class MainActivity : AppCompatActivity() {
 
     // Keep fragment instances to avoid recreation
     private val homeFragment = HomeFragment()
+    private val tasksFragment = TasksFragment()
+    private val mealsFragment = MealsFragment()
     private val chatFragment = CustomChatFragment()
-    private val profileFragment = ProfileFragment()
     private var activeFragment: Fragment = homeFragment
 
     // Permission request launcher for notifications
@@ -66,8 +68,9 @@ class MainActivity : AppCompatActivity() {
         // Add all fragments but hide non-active ones
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction().apply {
-                add(R.id.fragment_container, profileFragment, "profile").hide(profileFragment)
                 add(R.id.fragment_container, chatFragment, "chat").hide(chatFragment)
+                add(R.id.fragment_container, mealsFragment, "meals").hide(mealsFragment)
+                add(R.id.fragment_container, tasksFragment, "tasks").hide(tasksFragment)
                 add(R.id.fragment_container, homeFragment, "home")
                 commit()
             }
@@ -98,8 +101,9 @@ class MainActivity : AppCompatActivity() {
         bottomNavigation.setOnItemSelectedListener { item ->
             val fragment: Fragment = when (item.itemId) {
                 R.id.navigation_home -> homeFragment
+                R.id.navigation_tasks -> tasksFragment
+                R.id.navigation_meals -> mealsFragment
                 R.id.navigation_chat -> chatFragment
-                R.id.navigation_profile -> profileFragment
                 else -> homeFragment
             }
 

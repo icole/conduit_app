@@ -68,6 +68,13 @@ Rails.application.configure do
   config.hosts << /.*\.ngrok.*\.app/
   config.hosts << /.*\.ngrok-free\.app/
 
+  # Allow local network connections for mobile development
+  config.hosts << "192.168.50.41"  # Your Mac's IP
+  config.hosts << /^192\.168\.50\.\d{1,3}$/  # Any device on local subnet
+  config.hosts << "localhost"
+  config.hosts << "127.0.0.1"
+  config.hosts << "10.0.2.2"  # Android emulator
+
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
 

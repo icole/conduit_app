@@ -4,6 +4,8 @@
 
     <!-- Navigation -->
     <string name="navigation_home">Home</string>
+    <string name="navigation_tasks">Tasks</string>
+    <string name="navigation_meals">Meals</string>
     <string name="navigation_chat">Chat</string>
     <string name="navigation_profile">Profile</string>
 
@@ -24,7 +26,7 @@
     <!-- Client ID moved to secrets.xml -->
 
     <!-- URLs -->
-    <string name="base_url_debug">https://conduit.crowwoods.com</string>
+    <string name="base_url_debug">http://10.0.2.2:3000</string>
     <string name="base_url_release">https://conduit.crowwoods.com</string>
 
     <!-- Errors -->
