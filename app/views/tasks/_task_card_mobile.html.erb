@@ -16,14 +16,14 @@
         <%= form_with(model: task, method: :patch, class: "inline-flex") do |form| %>
           <%= form.hidden_field :status, value: task.status == 'completed' ? (task.priority_order ? 'active' : 'backlog') : 'completed' %>
           <button type="submit"
-                  class="btn btn-ghost btn-xs btn-circle"
+                  class="btn btn-ghost btn-sm btn-circle"
                   title="<%= task.status == 'completed' ? 'Mark Incomplete' : 'Complete' %>">
             <% if task.status == 'completed' %>
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-success" fill="currentColor" viewBox="0 0 20 20">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-success" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
             <% else %>
-              <div class="w-5 h-5 border-2 border-base-300 rounded-full"></div>
+              <div class="w-6 h-6 border-2 border-base-300 rounded-full"></div>
             <% end %>
           </button>
         <% end %>
@@ -82,35 +82,49 @@
 
       <!-- Action menu -->
       <div class="dropdown dropdown-end">
-        <label tabindex="0" class="btn btn-ghost btn-xs btn-circle">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <label tabindex="0" class="btn btn-ghost btn-sm btn-circle">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
           </svg>
         </label>
-        <ul tabindex="0" class="dropdown-content z-[1] menu menu-sm p-2 shadow bg-base-100 rounded-box w-40">
+        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200">
           <!-- Status actions -->
           <% if defined?(show_prioritize) && show_prioritize && task.status == 'backlog' %>
             <li>
-              <%= button_to prioritize_task_path(task), method: :patch, class: "w-full text-left" do %>
-                <span>🎯 Activate</span>
+              <%= button_to prioritize_task_path(task), method: :patch, class: "w-full text-left flex items-center" do %>
+                <span class="flex items-center gap-2 py-1">
+                  <span class="text-lg">🎯</span>
+                  <span>Activate</span>
+                </span>
               <% end %>
             </li>
           <% end %>
 
           <% if defined?(show_move_to_backlog) && show_move_to_backlog && task.status == 'active' %>
             <li>
-              <%= button_to move_to_backlog_task_path(task), method: :patch, class: "w-full text-left" do %>
-                <span>📋 To Backlog</span>
+              <%= button_to move_to_backlog_task_path(task), method: :patch, class: "w-full text-left flex items-center" do %>
+                <span class="flex items-center gap-2 py-1">
+                  <span class="text-lg">📋</span>
+                  <span>To Backlog</span>
+                </span>
               <% end %>
             </li>
           <% end %>
 
-          <li><%= link_to "✏️ Edit", edit_task_path(task) %></li>
+          <li>
+            <%= link_to edit_task_path(task), class: "flex items-center gap-2 py-1", data: { turbo_frame: "_top" } do %>
+              <span class="text-lg">✏️</span>
+              <span>Edit</span>
+            <% end %>
+          </li>
           <li>
             <%= button_to task_path(task), method: :delete,
                 form: { data: { turbo_confirm: 'Delete this task?' } },
-                class: "w-full text-left text-error" do %>
-              <span>🗑️ Delete</span>
+                class: "w-full text-left text-error flex items-center" do %>
+              <span class="flex items-center gap-2 py-1">
+                <span class="text-lg">🗑️</span>
+                <span>Delete</span>
+              </span>
             <% end %>
           </li>
         </ul>
