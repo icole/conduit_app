@@ -18,9 +18,6 @@ class HotwireNativeViewController: VisitableViewController {
     }
 
     private func configureWebViewLayout() {
-        // Check if this is the Home tab
-        let isHomeTab = tabBarController?.selectedIndex == 0
-
         // Ensure the web view respects safe area layout guides
         if let webView = visitableView.webView {
             // Make the scroll view adjust for safe areas automatically
@@ -30,29 +27,17 @@ class HotwireNativeViewController: VisitableViewController {
             webView.scrollView.scrollIndicatorInsets = webView.scrollView.safeAreaInsets
         }
 
-        if isHomeTab {
-            // Home tab: Allow content to extend to top but respect safe area
-            edgesForExtendedLayout = .top
-            extendedLayoutIncludesOpaqueBars = true
-        } else {
-            // Other tabs: Don't extend under navigation bar
-            edgesForExtendedLayout = []
-            extendedLayoutIncludesOpaqueBars = false
-        }
+        // All tabs: Allow content to extend to top but respect safe area
+        // since we're hiding the navigation bar for all tabs
+        edgesForExtendedLayout = .top
+        extendedLayoutIncludesOpaqueBars = true
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        // Hide navigation bar for Home tab (index 0), show for others
-        if let tabBarController = tabBarController,
-           tabBarController.selectedIndex == 0 {
-            // Home tab - hide navigation bar for more screen space
-            navigationController?.setNavigationBarHidden(true, animated: animated)
-        } else {
-            // Other tabs - show navigation bar if needed
-            navigationController?.setNavigationBarHidden(false, animated: animated)
-        }
+        // Hide navigation bar for all tabs since Rails views have their own headers
+        navigationController?.setNavigationBarHidden(true, animated: animated)
 
         // Re-apply layout configuration when view appears
         configureWebViewLayout()

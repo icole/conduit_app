@@ -1,0 +1,137 @@
+<!-- Mobile-first task card design -->
+<div id="<%= dom_id task %>"
+     class="card bg-base-100 border border-base-200 hover:border-base-300 transition-colors mb-3 <%= defined?(priority_index) && priority_index ? 'cursor-grab active:cursor-grabbing' : '' %>"
+     data-task-id="<%= task.id %>">
+
+  <div class="card-body p-3 sm:p-4">
+    <!-- Top row: Priority, checkbox, and menu -->
+    <div class="flex items-start justify-between gap-2">
+      <div class="flex items-start gap-2 flex-1">
+        <!-- Priority badge -->
+        <% if defined?(priority_index) && priority_index %>
+          <span class="badge badge-primary badge-sm font-bold mt-0.5"><%= priority_index %></span>
+        <% end %>
+
+        <!-- Complete checkbox -->
+        <%= form_with(model: task, method: :patch, class: "inline-flex") do |form| %>
+          <%= form.hidden_field :status, value: task.status == 'completed' ? (task.priority_order ? 'active' : 'backlog') : 'completed' %>
+          <button type="submit"
+                  class="btn btn-ghost btn-xs btn-circle"
+                  title="<%= task.status == 'completed' ? 'Mark Incomplete' : 'Complete' %>">
+            <% if task.status == 'completed' %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-success" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+            <% else %>
+              <div class="w-5 h-5 border-2 border-base-300 rounded-full"></div>
+            <% end %>
+          </button>
+        <% end %>
+
+        <!-- Task title and metadata -->
+        <div class="flex-1 min-w-0">
+          <h3 class="font-medium text-sm sm:text-base <%= task.status == 'completed' ? 'line-through text-base-content/60' : '' %>">
+            <%= task.title %>
+          </h3>
+
+          <!-- Description (if present) -->
+          <% if task.description.present? %>
+            <p class="text-xs sm:text-sm text-base-content/70 mt-1 <%= task.status == 'completed' ? 'line-through' : '' %>">
+              <%= truncate(task.description, length: 100) %>
+            </p>
+          <% end %>
+
+          <!-- Metadata badges -->
+          <div class="flex flex-wrap gap-1 mt-2">
+            <!-- Assignee -->
+            <% if task.assigned_to_user.present? %>
+              <span class="badge badge-ghost badge-xs">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <%= task.assigned_to_user.name.split(' ').first %>
+              </span>
+            <% end %>
+
+            <!-- Due date -->
+            <% if task.due_date %>
+              <% if task.overdue? %>
+                <span class="badge badge-error badge-xs">
+                  <%= task.due_date.strftime("%b %d") %>
+                </span>
+              <% elsif task.due_soon? %>
+                <span class="badge badge-warning badge-xs">
+                  <%= task.due_date.strftime("%b %d") %>
+                </span>
+              <% else %>
+                <span class="badge badge-ghost badge-xs">
+                  <%= task.due_date.strftime("%b %d") %>
+                </span>
+              <% end %>
+            <% end %>
+
+            <!-- Creator (if different from current user) -->
+            <% if task.user != current_user %>
+              <span class="badge badge-outline badge-xs">
+                by <%= task.user.name.split(' ').first %>
+              </span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action menu -->
+      <div class="dropdown dropdown-end">
+        <label tabindex="0" class="btn btn-ghost btn-xs btn-circle">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+          </svg>
+        </label>
+        <ul tabindex="0" class="dropdown-content z-[1] menu menu-sm p-2 shadow bg-base-100 rounded-box w-40">
+          <!-- Status actions -->
+          <% if defined?(show_prioritize) && show_prioritize && task.status == 'backlog' %>
+            <li>
+              <%= button_to prioritize_task_path(task), method: :patch, class: "w-full text-left" do %>
+                <span>🎯 Activate</span>
+              <% end %>
+            </li>
+          <% end %>
+
+          <% if defined?(show_move_to_backlog) && show_move_to_backlog && task.status == 'active' %>
+            <li>
+              <%= button_to move_to_backlog_task_path(task), method: :patch, class: "w-full text-left" do %>
+                <span>📋 To Backlog</span>
+              <% end %>
+            </li>
+          <% end %>
+
+          <li><%= link_to "✏️ Edit", edit_task_path(task) %></li>
+          <li>
+            <%= button_to task_path(task), method: :delete,
+                form: { data: { turbo_confirm: 'Delete this task?' } },
+                class: "w-full text-left text-error" do %>
+              <span>🗑️ Delete</span>
+            <% end %>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Quick action buttons for larger screens -->
+    <div class="hidden sm:flex gap-1 mt-2">
+      <% if defined?(show_prioritize) && show_prioritize && task.status == 'backlog' %>
+        <%= button_to prioritize_task_path(task), method: :patch,
+            class: "btn btn-primary btn-xs" do %>
+          🎯 Activate
+        <% end %>
+      <% end %>
+
+      <% if defined?(show_move_to_backlog) && show_move_to_backlog && task.status == 'active' %>
+        <%= button_to move_to_backlog_task_path(task), method: :patch,
+            class: "btn btn-ghost btn-xs" do %>
+          📋 Backlog
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>
