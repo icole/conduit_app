@@ -64,6 +64,26 @@ class TabBarController: UITabBarController {
             delayInitialLoad: true
         )
 
+        // Tasks Tab - Tasks page
+        let tasksURL = baseURL.appendingPathComponent("tasks")
+        let tasksNavigator = createNavigator(
+            for: tasksURL,
+            title: "Tasks",
+            icon: UIImage(systemName: "checklist"),
+            selectedIcon: UIImage(systemName: "checklist"),
+            delayInitialLoad: false
+        )
+
+        // Meals Tab - Meals page
+        let mealsURL = baseURL.appendingPathComponent("meals")
+        let mealsNavigator = createNavigator(
+            for: mealsURL,
+            title: "Meals",
+            icon: UIImage(systemName: "fork.knife"),
+            selectedIcon: UIImage(systemName: "fork.knife"),
+            delayInitialLoad: false
+        )
+
         // Chat Tab - Rails chat page
         let chatURL = baseURL.appendingPathComponent("chat")
         let chatNavigator = createNavigator(
@@ -74,17 +94,8 @@ class TabBarController: UITabBarController {
             delayInitialLoad: false
         )
 
-        // Profile Tab - Account settings with logout
-        let profileURL = baseURL.appendingPathComponent("account")
-        let profileNavigator = createProfileNavigator(
-            for: profileURL,
-            title: "Profile",
-            icon: UIImage(systemName: "person.circle"),
-            selectedIcon: UIImage(systemName: "person.circle.fill")
-        )
-
         // Set view controllers
-        viewControllers = [homeNavigator, chatNavigator, profileNavigator]
+        viewControllers = [homeNavigator, tasksNavigator, mealsNavigator, chatNavigator]
     }
 
     private func createNavigator(for url: URL, title: String, icon: UIImage?, selectedIcon: UIImage?, delayInitialLoad: Bool = false) -> UINavigationController {
@@ -106,42 +117,8 @@ class TabBarController: UITabBarController {
         return navigator
     }
 
-    private func createProfileNavigator(for url: URL, title: String, icon: UIImage?, selectedIcon: UIImage?) -> UINavigationController {
-        // Use the shared session for profile
-        let navigator = Navigator(session: sharedSession)
-
-        // Configure tab bar item
-        navigator.tabBarItem = UITabBarItem(
-            title: title,
-            image: icon,
-            selectedImage: selectedIcon
-        )
-
-        // Add logout button to navigation bar
-        navigator.navigationBar.topItem?.rightBarButtonItem = UIBarButtonItem(
-            title: "Logout",
-            style: .plain,
-            target: self,
-            action: #selector(logoutTapped)
-        )
-
-        // Start navigation
-        navigator.route(url)
-
-        // Set up the logout button after the view loads
-        DispatchQueue.main.async {
-            if let topVC = navigator.topViewController {
-                topVC.navigationItem.rightBarButtonItem = UIBarButtonItem(
-                    title: "Logout",
-                    style: .plain,
-                    target: self,
-                    action: #selector(self.logoutTapped)
-                )
-            }
-        }
-
-        return navigator
-    }
+    // Logout can be triggered from the web interface or via other means
+    // Keeping the logout functionality but removing the dedicated profile tab
 
     @objc private func logoutTapped() {
         let alert = UIAlertController(
@@ -198,9 +175,11 @@ extension TabBarController: UITabBarControllerDelegate {
             case 0:
                 print("  → Home tab selected")
             case 1:
-                print("  → Chat tab selected")
+                print("  → Tasks tab selected")
             case 2:
-                print("  → Profile tab selected")
+                print("  → Meals tab selected")
+            case 3:
+                print("  → Chat tab selected")
             default:
                 break
             }
