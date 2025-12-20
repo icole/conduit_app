@@ -37,8 +37,8 @@
   <% unless hotwire_native_app? %>
     <%= render "layouts/navbar" %>
   <% end %>
+  <%= render "layouts/flash_messages" %>
   <div class="w-full max-w-7xl mx-auto flex-1 px-4 py-8">
-    <%= render "layouts/flash_messages" %>
     <%= yield %>
   </div>
 </main>
