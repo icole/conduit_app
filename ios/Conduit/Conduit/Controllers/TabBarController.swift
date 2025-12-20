@@ -10,12 +10,8 @@ class TabBarController: UITabBarController {
     // Use centralized configuration for base URL
     private let baseURL = AppConfig.baseURL
 
-    // Shared configuration for all tabs to maintain authentication state
-    private lazy var sharedWebViewConfiguration: WKWebViewConfiguration = {
-        let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = .default()  // Share cookies/session
-        return configuration
-    }()
+    // Shared website data store to maintain authentication state across tabs
+    private let sharedWebsiteDataStore = WKWebsiteDataStore.default()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -76,8 +72,12 @@ class TabBarController: UITabBarController {
     }
 
     private func createNavigator(for url: URL, title: String, icon: UIImage?, selectedIcon: UIImage?, delayInitialLoad: Bool = false) -> UINavigationController {
-        // Create a new session for each navigator (but share the web view configuration for cookies)
-        let session = Session(webViewConfiguration: sharedWebViewConfiguration)
+        // Create a new configuration for each tab, but share the website data store for cookies
+        let configuration = WKWebViewConfiguration()
+        configuration.websiteDataStore = sharedWebsiteDataStore  // Share cookies/session
+
+        // Create a new session for each navigator with its own configuration
+        let session = Session(webViewConfiguration: configuration)
         session.webView.customUserAgent = AppConfig.userAgent
         let navigator = Navigator(session: session)
 
