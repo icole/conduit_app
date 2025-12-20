@@ -2,8 +2,8 @@ class MakeCommunityIdNotNull < ActiveRecord::Migration[8.0]
   def up
     # Create default community if none exists
     execute <<-SQL
-      INSERT INTO communities (name, slug, created_at, updated_at)
-      SELECT 'Crow Woods Cohousing', 'crow-woods', NOW(), NOW()
+      INSERT INTO communities (name, slug, domain, created_at, updated_at)
+      SELECT 'Crow Woods Cohousing', 'crow-woods', 'crowwoods.example.com', NOW(), NOW()
       WHERE NOT EXISTS (SELECT 1 FROM communities LIMIT 1);
     SQL
 
