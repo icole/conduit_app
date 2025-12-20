@@ -6,7 +6,10 @@ class MealsController < ApplicationController
                                    :complete, :cancel, :cook, :show_rsvp,
                                    :update_menu ]
 
+  helper_method :meals_back_path
+
   def index
+    session[:meals_view] = "list"
     @current_view = params[:view] || "upcoming"
     @needs_cooks_count = Meal.needs_cooks.length
 
@@ -75,6 +78,8 @@ class MealsController < ApplicationController
   end
 
   def calendar
+    session[:meals_view] = "calendar"
+    session[:meals_calendar_date] = params[:date]
     @date = params[:date] ? Date.parse(params[:date]) : Date.current
     @start_of_month = @date.beginning_of_month
     @end_of_month = @date.end_of_month
@@ -193,5 +198,13 @@ class MealsController < ApplicationController
 
   def rsvp_params
     params.require(:meal_rsvp).permit(:status, :guests_count, :notes)
+  end
+
+  def meals_back_path
+    if session[:meals_view] == "calendar"
+      calendar_meals_path(date: session[:meals_calendar_date])
+    else
+      meals_path
+    end
   end
 end
