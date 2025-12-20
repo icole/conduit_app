@@ -9,7 +9,10 @@ module ApplicationCable
     private
 
     def find_verified_user
-      if verified_user = User.find_by(id: request.session[:user_id])
+      # Use unscoped to bypass acts_as_tenant scoping
+      # ActionCable connections don't go through ApplicationController
+      # where the tenant is normally set from the domain
+      if verified_user = User.unscoped.find_by(id: request.session[:user_id])
         verified_user
       else
         reject_unauthorized_connection
