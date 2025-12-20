@@ -311,8 +311,8 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     # Check for responsive text sizes
     assert_select ".text-xl.sm\\:text-2xl"
-    # Check for responsive button classes
-    assert_select ".btn-sm.sm\\:btn-md"
+    # Check for compact button classes
+    assert_select ".btn-sm"
   end
 
   test "show page has updated single column layout" do

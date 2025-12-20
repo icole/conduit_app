@@ -82,10 +82,10 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       user: @user
     )
 
-    # Test pending filter
-    get tasks_url(view: "pending")
+    # Test active filter
+    get tasks_url(view: "active")
     assert_response :success
-    assert_match(/Pending/, response.body)
+    assert_match(/Active/, response.body)
 
     # Test completed filter
     get tasks_url(view: "completed")
