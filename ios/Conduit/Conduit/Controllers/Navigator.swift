@@ -23,6 +23,11 @@ class Navigator: UINavigationController {
         navigationBar.prefersLargeTitles = false
         navigationBar.tintColor = .systemBlue
 
+        // Load path configuration for modal presentation
+        if let configURL = Bundle.main.url(forResource: "path-configuration", withExtension: "json") {
+            session.pathConfiguration = PathConfiguration(sources: [.file(configURL)])
+        }
+
         // Configure session
         session.delegate = self
 
@@ -42,7 +47,16 @@ class Navigator: UINavigationController {
     private func route(url: URL, options: VisitOptions, properties: PathProperties) {
         let viewController = makeViewController(for: url, properties: properties)
         navigate(to: viewController, action: options.action, properties: properties)
-        visit(viewController, with: options)
+
+        // For modals, we need to visit after presenting
+        if properties["context"] as? String == "modal" {
+            // Visit will be handled after modal presentation completes
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                self?.visit(viewController, with: options)
+            }
+        } else {
+            visit(viewController, with: options)
+        }
     }
 
     private func makeViewController(for url: URL, properties: PathProperties = PathProperties()) -> UIViewController {
@@ -71,6 +85,43 @@ class Navigator: UINavigationController {
             return
         }
 
+        // Check if this should be presented as a modal
+        if properties["context"] as? String == "modal" {
+            // Create a navigation controller for the modal
+            let modalNav = UINavigationController(rootViewController: viewController)
+
+            // Add a close button to the modal
+            viewController.navigationItem.leftBarButtonItem = UIBarButtonItem(
+                barButtonSystemItem: .close,
+                target: self,
+                action: #selector(dismissModal)
+            )
+
+            // Configure modal presentation style
+            if let modalStyle = properties["modal_style"] as? String {
+                switch modalStyle {
+                case "full":
+                    modalNav.modalPresentationStyle = .fullScreen
+                case "page_sheet":
+                    modalNav.modalPresentationStyle = .pageSheet
+                case "form_sheet":
+                    modalNav.modalPresentationStyle = .formSheet
+                default:
+                    modalNav.modalPresentationStyle = .automatic
+                }
+            }
+
+            // Configure dismiss gesture
+            if let dismissGesture = properties["modal_dismiss_gesture_enabled"] as? Bool {
+                modalNav.isModalInPresentation = !dismissGesture
+            }
+
+            // Present the modal
+            present(modalNav, animated: true)
+            return
+        }
+
+        // Regular navigation (not modal)
         switch action {
         case .advance:
             pushViewController(viewController, animated: true)
@@ -110,6 +161,10 @@ class Navigator: UINavigationController {
         let userContentController = configuration.userContentController
 
         // You can add custom JavaScript here if needed for general app functionality
+    }
+
+    @objc private func dismissModal() {
+        dismiss(animated: true)
     }
 }
 

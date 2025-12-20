@@ -1,0 +1,55 @@
+{
+  "settings": {
+    "pull_to_refresh_enabled": true
+  },
+  "rules": [
+    {
+      "patterns": [
+        "/tasks/new$",
+        "/tasks/[0-9]+/edit$"
+      ],
+      "properties": {
+        "context": "modal",
+        "modal_style": "large",
+        "modal_dismiss_gesture_enabled": true,
+        "pull_to_refresh_enabled": false
+      },
+      "comment": "Present task forms as modals"
+    },
+    {
+      "patterns": [
+        "/meals/new$",
+        "/meals/[0-9]+/edit$"
+      ],
+      "properties": {
+        "context": "modal",
+        "modal_style": "large",
+        "modal_dismiss_gesture_enabled": true,
+        "pull_to_refresh_enabled": false
+      },
+      "comment": "Present meal forms as modals"
+    },
+    {
+      "patterns": [
+        "/posts/new$",
+        "/posts/[0-9]+/edit$"
+      ],
+      "properties": {
+        "context": "modal",
+        "modal_style": "large",
+        "modal_dismiss_gesture_enabled": true,
+        "pull_to_refresh_enabled": false
+      },
+      "comment": "Present post forms as modals"
+    },
+    {
+      "patterns": [
+        "^/$"
+      ],
+      "properties": {
+        "presentation": "clear_all"
+      },
+      "comment": "Reset navigation stack when visiting home"
+    }
+  ]
+}
