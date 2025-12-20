@@ -112,7 +112,7 @@
           <% end %>
 
           <li>
-            <%= link_to edit_task_path(task), class: "flex items-center gap-2 py-1", data: { turbo_frame: "_top" } do %>
+            <%= link_to edit_task_path(task), class: "flex items-center gap-2 py-1", data: { turbo_action: "advance" } do %>
               <span class="text-lg">✏️</span>
               <span>Edit</span>
             <% end %>

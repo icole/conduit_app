@@ -17,16 +17,6 @@ class TabBarController: UITabBarController {
         return configuration
     }()
 
-    // Shared session for all tabs
-    private lazy var sharedSession: Session = {
-        let session = Session(webViewConfiguration: sharedWebViewConfiguration)
-        session.webView.customUserAgent = AppConfig.userAgent
-        return session
-    }()
-
-    // Track if this is the first appearance
-    private var hasInitiallyAppeared = false
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -38,30 +28,17 @@ class TabBarController: UITabBarController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        // Only load on first appearance after login
-        if !hasInitiallyAppeared {
-            hasInitiallyAppeared = true
-
-            // Small delay to ensure cookies are fully synced with WebView
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                guard let self = self else { return }
-
-                // Load the home tab now that authentication is ready
-                if let homeNav = self.viewControllers?.first as? Navigator {
-                    homeNav.route(self.baseURL)
-                }
-            }
-        }
+        // No longer need special handling - each tab loads independently
     }
 
     private func setupTabs() {
-        // Home Tab - Main Rails app (delay initial load)
+        // Home Tab - Main Rails app
         let homeNavigator = createNavigator(
             for: baseURL,
             title: "Home",
             icon: UIImage(systemName: "house"),
             selectedIcon: UIImage(systemName: "house.fill"),
-            delayInitialLoad: true
+            delayInitialLoad: false
         )
 
         // Tasks Tab - Tasks page
@@ -99,8 +76,10 @@ class TabBarController: UITabBarController {
     }
 
     private func createNavigator(for url: URL, title: String, icon: UIImage?, selectedIcon: UIImage?, delayInitialLoad: Bool = false) -> UINavigationController {
-        // Use the shared session for all navigators
-        let navigator = Navigator(session: sharedSession)
+        // Create a new session for each navigator (but share the web view configuration for cookies)
+        let session = Session(webViewConfiguration: sharedWebViewConfiguration)
+        session.webView.customUserAgent = AppConfig.userAgent
+        let navigator = Navigator(session: session)
 
         // Configure tab bar item
         navigator.tabBarItem = UITabBarItem(
