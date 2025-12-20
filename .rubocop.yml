@@ -1,6 +1,16 @@
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
+# Exclude build directories and iOS dependencies
+AllCops:
+  Exclude:
+    - 'ios/build/**/*'
+    - 'ios/Pods/**/*'
+    - 'android/build/**/*'
+    - 'node_modules/**/*'
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+
 # Overwrite or add rules to create your own house style
 #
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
