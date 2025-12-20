@@ -8,7 +8,7 @@ class TasksTest < ApplicationSystemTestCase
     @assigned_task = tasks(:assigned_task)  # User one's task assigned to user two
     @received_task = tasks(:received_task)  # User two's task assigned to user one
 
-    sign_in_user  # Signs in as user one by default
+    sign_in_as(@user_one)  # Sign in as fixture user one
   end
 
   test "viewing tasks on dashboard shows only tasks assigned to current user" do
@@ -36,13 +36,13 @@ class TasksTest < ApplicationSystemTestCase
     assert_text @assigned_task.title
     assert_text @received_task.title
 
-    # Should see assignment badges for assigned tasks
+    # Should see assignment badges for assigned tasks (shows first name only)
     within "#task_#{@assigned_task.id}" do
-      assert_selector "span", text: @user_two.name
+      assert_selector "span", text: @user_two.name.split(" ").first
     end
 
     within "#task_#{@received_task.id}" do
-      assert_selector "span", text: @user_one.name
+      assert_selector "span", text: @user_one.name.split(" ").first
     end
   end
 
@@ -50,8 +50,8 @@ class TasksTest < ApplicationSystemTestCase
     # Visit tasks URL, but make sure we see all tasks regardless of status
     visit tasks_path(view: "active")
 
-    # Ensure the dropdown exists
-    assert_selector "label", text: /Assigned To/
+    # Ensure the filter dropdown exists (icon button with filter dropdown)
+    assert_selector ".dropdown.dropdown-end"
 
     # Use direct link to filter by current user instead of dropdown interaction
     # This avoids issues with dropdown visibility in test environment
@@ -84,9 +84,9 @@ class TasksTest < ApplicationSystemTestCase
     # Wait for task creation to complete and page to reload
     assert_text "Task was successfully created"
 
-    # Verify our new task appears with the assignment
+    # Verify our new task appears with the assignment (first name only in badge)
     assert_text "Test assigned task"
-    assert_text @user_two.name
+    assert_text @user_two.name.split(" ").first
   end
 
   test "editing task assignment" do
@@ -106,14 +106,14 @@ class TasksTest < ApplicationSystemTestCase
     click_button "Update Task"
 
     # Should be redirected back to the tasks list
-    assert_text "Community Tasks"
+    assert_text "Task was successfully updated"
 
     # The task should appear in the list - it might take a moment to load
     assert_selector "#task_#{@task.id}"
 
-    # Now verify that the task shows the new assignment
+    # Now verify that the task shows the new assignment (first name only)
     within "#task_#{@task.id}" do
-      assert_selector "span", text: @user_two.name
+      assert_selector "span", text: @user_two.name.split(" ").first
     end
   end
 
@@ -135,15 +135,8 @@ class TasksTest < ApplicationSystemTestCase
     # Clear the session completely and reset
     Capybara.reset_sessions!
 
-    # Sign in as user two
-    sign_in_user({
-      provider: "google_oauth2",
-      uid: "1234567890",
-      info: {
-        name: "Mike Davis",
-        email: "mike@example.com"
-      }
-    })
+    # Sign in as user two (fixture user)
+    sign_in_as(@user_two)
 
     # User two should see tasks assigned to them
     visit dashboard_index_url

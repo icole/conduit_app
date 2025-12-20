@@ -2,11 +2,8 @@ require "application_system_test_case"
 
 class ProfileTest < ApplicationSystemTestCase
   setup do
-    # Create a community for testing
-    @community = Community.create!(
-      name: "Test Community",
-      slug: "test-community"
-    )
+    # Use the fixture community (matches localhost routing in dev/test)
+    @community = communities(:crow_woods)
     ActsAsTenant.current_tenant = @community
   end
 
