@@ -2,34 +2,33 @@ require "application_system_test_case"
 
 class ProfileTest < ApplicationSystemTestCase
   setup do
-    # Use the fixture community (matches localhost routing in dev/test)
-    @community = communities(:crow_woods)
-    ActsAsTenant.current_tenant = @community
+    @oauth_user = users(:one)
+    @email_user = users(:email_user_profile)  # Use separate fixture for test isolation
   end
 
   test "OAuth user can edit their name from account settings" do
     # Sign in as OAuth user
-    sign_in_user  # Signs in as default test user
+    sign_in_as(@oauth_user)
 
     # Navigate to account settings
     visit account_path
 
-    # Verify current name is displayed (default test user)
-    assert_text "Test User"
+    # Verify current name is displayed
+    assert_text @oauth_user.name
 
     # Find and click the edit button
     find("a[title='Edit name']").click
 
     # The edit form should appear in place
     # Clear and enter new name
-    new_name = "Updated Test User"
+    new_name = "Updated OAuth User"
     fill_in "user[name]", with: new_name
 
     # Submit the form
     click_button "Save"
 
     # Verify the name was updated and we're back to display mode
-    assert_text "Updated Test User"
+    assert_text "Updated OAuth User"
     assert_selector "a[title='Edit name']"
 
     # Verify we're still on account page
@@ -37,26 +36,20 @@ class ProfileTest < ApplicationSystemTestCase
   end
 
   test "email user can edit their name from account settings" do
-    # Create an email-based user (no provider)
-    @user = User.create!(
-      name: "Email User",
-      email: "emailuser@example.com",
-      password: "password123",
-      password_confirmation: "password123",
-      community: @community
-    )
-
     # Sign in as email user
     visit login_path
-    fill_in "Email", with: @user.email
-    fill_in "Password", with: "password123"
+    fill_in "Email", with: @email_user.email
+    fill_in "Password", with: "testpassword123"
     click_button "Sign in"
+
+    # Debug: Check login succeeded
+    assert_text "Logged in successfully", wait: 5
 
     # Navigate to account settings
     visit account_path
 
     # Verify current name is displayed
-    assert_text "Email User"
+    assert_text @email_user.name
 
     # Find and click the edit button
     find("a[title='Edit name']").click
@@ -78,8 +71,8 @@ class ProfileTest < ApplicationSystemTestCase
   end
 
   test "user can cancel editing their name" do
-    # Sign in first
-    sign_in_user
+    # Sign in as OAuth user
+    sign_in_as(@oauth_user)
 
     visit account_path
 
@@ -93,14 +86,14 @@ class ProfileTest < ApplicationSystemTestCase
     click_link "Cancel"
 
     # Should be back to display mode with original name
-    assert_text "Test User"
+    assert_text @oauth_user.name
     assert_no_text "This will be cancelled"
     assert_selector "a[title='Edit name']"
   end
 
   test "name validation works when editing" do
-    # Sign in first
-    sign_in_user
+    # Sign in as OAuth user
+    sign_in_as(@oauth_user)
 
     visit account_path
 

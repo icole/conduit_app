@@ -63,3 +63,44 @@ six:
   email: dave@example.com
   provider: google_oauth2
   password_digest: <%= BCrypt::Password.create('password') %>
+
+# Email users with password (no OAuth provider) - separate fixtures for test isolation
+email_user:
+  community: crow_woods
+  name: Email User
+  email: emailuser@example.com
+  password_digest: <%= BCrypt::Password.create('testpassword123') %>
+
+email_user_two:
+  community: crow_woods
+  name: Email User Two
+  email: emailuser2@example.com
+  password_digest: <%= BCrypt::Password.create('testpassword123') %>
+
+email_user_three:
+  community: crow_woods
+  name: Email User Three
+  email: emailuser3@example.com
+  password_digest: <%= BCrypt::Password.create('testpassword123') %>
+
+email_user_four:
+  community: crow_woods
+  name: Email User Four
+  email: emailuser4@example.com
+  password_digest: <%= BCrypt::Password.create('testpassword123') %>
+
+# Email user for profile tests (separate from password change tests)
+email_user_profile:
+  community: crow_woods
+  name: Email User Profile
+  email: emailuser_profile@example.com
+  password_digest: <%= BCrypt::Password.create('testpassword123') %>
+
+# OAuth user without a password (for testing "set password" flow)
+oauth_no_password:
+  community: crow_woods
+  uid: 777777777
+  name: OAuth No Password
+  email: oauth_nopass@example.com
+  provider: google_oauth2
+  # No password_digest - simulates OAuth-only user

@@ -43,7 +43,7 @@ class User < ApplicationRecord
     user = where(provider: auth.provider, uid: auth.uid).first_or_initialize do |user|
       user.email = auth.info.email
       user.name = auth.info.name
-      user.password = SecureRandom.hex(16) if user.new_record?
+      # Don't set a password for OAuth users - they can optionally set one later
       user.avatar_url = auth.info.image
     end
 

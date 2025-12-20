@@ -7,7 +7,7 @@ class PostsTest < ApplicationSystemTestCase
     @post = posts(:two)
     @user_comment = comments(:two) # This is a comment made by user one on post two
 
-    sign_in_user
+    sign_in_as(@user)  # Sign in as fixture user one who owns the posts
   end
 
   test "viewing posts on dashboard" do
