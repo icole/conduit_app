@@ -2,13 +2,14 @@ class DashboardController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    # Restricted users see a minimal welcome page
+    # Load posts only for non-restricted users
     if current_user.restricted_access
-      render :restricted and return
+      @posts = Post.none  # Empty relation, no posts shown
+      @post = nil         # Don't show the new post form
+    else
+      @posts = Post.order(created_at: :desc)
+      @post = Post.new
     end
-
-    @posts = Post.order(created_at: :desc)
-    @post = Post.new
 
     # Show tasks created by the current user OR assigned to them
     @tasks = Task.where("assigned_to_user_id = ?", current_user.id)

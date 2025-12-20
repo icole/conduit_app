@@ -6,22 +6,26 @@
       <div class="card-body">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-6">
           <h2 class="card-title text-xl sm:text-2xl font-bold">Community Wall</h2>
-          <button class="btn btn-primary w-full sm:w-auto min-h-[44px]" data-action="click->posts#showForm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-            </svg>
-            <span class="hidden sm:inline">New Post</span>
-            <span class="sm:hidden">Post</span>
-          </button>
+          <% if @post %>
+            <button class="btn btn-primary w-full sm:w-auto min-h-[44px]" data-action="click->posts#showForm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+              </svg>
+              <span class="hidden sm:inline">New Post</span>
+              <span class="sm:hidden">Post</span>
+            </button>
+          <% end %>
         </div>
 
         <!-- New Post Form -->
-        <div id="new-post-form" class="<%= 'hidden' unless @post.errors.any? %> mb-6">
-          <div class="card bg-base-200 p-4">
-            <h3 class="text-lg font-semibold mb-3">Create Post</h3>
-            <%= render "posts/form", post: @post %>
+        <% if @post %>
+          <div id="new-post-form" class="<%= 'hidden' unless @post.errors.any? %> mb-6">
+            <div class="card bg-base-200 p-4">
+              <h3 class="text-lg font-semibold mb-3">Create Post</h3>
+              <%= render "posts/form", post: @post %>
+            </div>
           </div>
-        </div>
+        <% end %>
 
         <!-- Posts Feed -->
         <div id="community-posts" class="space-y-6">
@@ -30,8 +34,13 @@
           <% else %>
             <div class="text-center p-8 bg-base-200 rounded-lg">
               <div class="text-5xl mb-4">📝</div>
-              <h3 class="text-xl font-medium mb-2">No posts yet</h3>
-              <p class="text-base-content/70">Be the first to share something with the community!</p>
+              <% if current_user.restricted_access %>
+                <h3 class="text-xl font-medium mb-2">Community Posts</h3>
+                <p class="text-base-content/70">Posts will be visible once you have full access to the community.</p>
+              <% else %>
+                <h3 class="text-xl font-medium mb-2">No posts yet</h3>
+                <p class="text-base-content/70">Be the first to share something with the community!</p>
+              <% end %>
             </div>
           <% end %>
         </div>
