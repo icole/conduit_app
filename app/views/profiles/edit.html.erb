@@ -1,0 +1,18 @@
+<%= turbo_frame_tag "user_name_edit" do %>
+  <form action="<%= profile_path %>" method="post" class="flex items-center gap-2" data-turbo-frame="_self">
+    <%= csrf_meta_tags %>
+    <input type="hidden" name="_method" value="patch" />
+    <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>" />
+    <input type="text"
+           name="user[name]"
+           value="<%= @user.name %>"
+           class="input input-bordered input-sm flex-grow"
+           placeholder="Enter your name"
+           required="required"
+           autofocus="autofocus" />
+    <button type="submit" class="btn btn-primary btn-sm">
+      Save
+    </button>
+    <%= link_to "Cancel", account_path, class: "btn btn-ghost btn-sm", data: { turbo_frame: "_top" } %>
+  </form>
+<% end %>

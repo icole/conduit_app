@@ -1,0 +1,23 @@
+<%= turbo_stream.replace "user_name_edit" do %>
+  <%= turbo_frame_tag "user_name_edit" do %>
+    <div>
+      <%= form_with model: @user, url: profile_path, method: :patch, class: "flex items-center gap-2", data: { turbo_frame: "_self" } do |form| %>
+        <%= form.text_field :name,
+                            class: "input input-bordered input-sm flex-grow #{'input-error' if @user.errors[:name].any?}",
+                            placeholder: "Enter your name",
+                            required: true,
+                            autofocus: true,
+                            value: @user.name %>
+        <button type="submit" class="btn btn-primary btn-sm">
+          Save
+        </button>
+        <%= link_to "Cancel", account_path, class: "btn btn-ghost btn-sm", data: { turbo_frame: "_top" } %>
+      <% end %>
+      <% if @user.errors[:name].any? %>
+        <div class="text-error text-xs mt-1">
+          <%= @user.errors[:name].first %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

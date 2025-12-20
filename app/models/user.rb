@@ -35,7 +35,8 @@ class User < ApplicationRecord
   validates :name, presence: true
 
   # Allow OAuth users to not have a password
-  validates :password, presence: true, length: { minimum: 6 }, if: -> { provider.blank? }
+  # Only validate password when it's being set (new record or password change)
+  validates :password, presence: true, length: { minimum: 6 }, if: -> { provider.blank? && (new_record? || password_digest_changed?) }
   validates :password, confirmation: true, if: -> { password.present? }
 
   def self.from_omniauth(auth, invitation_token = nil)

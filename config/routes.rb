@@ -154,6 +154,9 @@ Rails.application.routes.draw do
   get "account", to: "account#show"
   delete "account/unlink_google", to: "account#unlink_google", as: :unlink_google_account
 
+  # Profile routes (for users to edit their own profile)
+  resource :profile, only: [ :edit, :update ]
+
   # Invitation routes
   resources :invitations, only: [ :new, :create, :index ] do
     member do
