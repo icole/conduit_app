@@ -11,8 +11,8 @@ class MakeCommunityIdNotNull < ActiveRecord::Migration[8.0]
     default_community_id = execute("SELECT id FROM communities LIMIT 1")[0]["id"]
 
     # Update all records with NULL community_id to use the default
-    [:users, :posts, :tasks, :chores, :meals, :meal_schedules,
-     :discussion_topics, :calendar_events, :documents, :decisions, :invitations].each do |table|
+    [ :users, :posts, :tasks, :chores, :meals, :meal_schedules,
+     :discussion_topics, :calendar_events, :documents, :decisions, :invitations ].each do |table|
       execute "UPDATE #{table} SET community_id = #{default_community_id} WHERE community_id IS NULL"
     end
 
