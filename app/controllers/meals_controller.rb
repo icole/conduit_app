@@ -76,8 +76,16 @@ class MealsController < ApplicationController
 
   def calendar
     @date = params[:date] ? Date.parse(params[:date]) : Date.current
-    @start_of_week = @date.beginning_of_week
-    @meals = Meal.for_week(@date).includes(:meal_cooks, :cooks, :meal_rsvps)
+    @start_of_month = @date.beginning_of_month
+    @end_of_month = @date.end_of_month
+
+    # Calculate the calendar grid dates (may include days from prev/next month)
+    @calendar_start = @start_of_month.beginning_of_week(:monday)
+    @calendar_end = @end_of_month.end_of_week(:monday)
+
+    @meals = Meal.where(scheduled_at: @calendar_start.beginning_of_day..@calendar_end.end_of_day)
+                 .includes(:meal_cooks, :cooks, :meal_rsvps)
+                 .order(:scheduled_at)
     @meals_by_date = @meals.group_by(&:scheduled_date)
   end
 
