@@ -153,6 +153,8 @@ Rails.application.routes.draw do
   # Account settings routes
   get "account", to: "account#show"
   delete "account/unlink_google", to: "account#unlink_google", as: :unlink_google_account
+  patch "account/update_password", to: "account#update_password", as: :update_password
+  patch "account/set_password", to: "account#set_password", as: :set_password
 
   # Profile routes (for users to edit their own profile)
   resource :profile, only: [ :edit, :update ]

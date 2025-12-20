@@ -77,6 +77,84 @@
     </div>
   </div>
 
+  <!-- Password Management -->
+  <div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+      <h2 class="card-title">Password</h2>
+
+      <div id="password-change-section" class="mt-4">
+        <% if @user.password_digest.present? %>
+          <!-- User has a password, show change password form -->
+          <p class="text-base-content/70 mb-4">Change your password to keep your account secure.</p>
+
+          <%= form_with url: update_password_path, method: :patch, local: true, data: { controller: "password-change" } do |f| %>
+            <div class="space-y-4">
+              <div class="form-control">
+                <%= f.label :current_password, "Current Password", class: "label" %>
+                <%= f.password_field :current_password, class: "input input-bordered w-full", required: true %>
+              </div>
+
+              <div class="form-control">
+                <%= f.label :new_password, "New Password", class: "label" %>
+                <%= f.password_field :new_password, class: "input input-bordered w-full", required: true, minlength: 6, data: { password_change_target: "newPassword" } %>
+                <label class="label">
+                  <span class="label-text-alt text-base-content/50">Minimum 6 characters</span>
+                </label>
+              </div>
+
+              <div class="form-control">
+                <%= f.label :new_password_confirmation, "Confirm New Password", class: "label" %>
+                <%= f.password_field :new_password_confirmation, class: "input input-bordered w-full", required: true, data: { password_change_target: "confirmPassword", action: "input->password-change#validateMatch" } %>
+                <label class="label">
+                  <span class="label-text-alt text-error" data-password-change-target="errorMessage"></span>
+                </label>
+              </div>
+
+              <div class="form-control mt-6">
+                <%= f.submit "Update Password", class: "btn btn-primary", data: { password_change_target: "submitButton" } %>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <!-- User doesn't have a password (OAuth only), show set password form -->
+          <div class="alert alert-info mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <h3 class="font-bold">Set a password to enable email login</h3>
+              <p class="text-sm">You're currently using Google sign-in. Set a password to also sign in with your email address.</p>
+            </div>
+          </div>
+
+          <%= form_with url: set_password_path, method: :patch, local: true, data: { controller: "password-change" } do |f| %>
+            <div class="space-y-4">
+              <div class="form-control">
+                <%= f.label :new_password, "New Password", class: "label" %>
+                <%= f.password_field :new_password, class: "input input-bordered w-full", required: true, minlength: 6, data: { password_change_target: "newPassword" } %>
+                <label class="label">
+                  <span class="label-text-alt text-base-content/50">Minimum 6 characters</span>
+                </label>
+              </div>
+
+              <div class="form-control">
+                <%= f.label :new_password_confirmation, "Confirm New Password", class: "label" %>
+                <%= f.password_field :new_password_confirmation, class: "input input-bordered w-full", required: true, data: { password_change_target: "confirmPassword", action: "input->password-change#validateMatch" } %>
+                <label class="label">
+                  <span class="label-text-alt text-error" data-password-change-target="errorMessage"></span>
+                </label>
+              </div>
+
+              <div class="form-control mt-6">
+                <%= f.submit "Set Password", class: "btn btn-primary", data: { password_change_target: "submitButton" } %>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
   <!-- What You Get Section -->
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
