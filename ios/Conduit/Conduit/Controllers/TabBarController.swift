@@ -21,20 +21,13 @@ class TabBarController: UITabBarController {
         self.delegate = self
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        // No longer need special handling - each tab loads independently
-    }
-
     private func setupTabs() {
         // Home Tab - Main Rails app
         let homeNavigator = createNavigator(
             for: baseURL,
             title: "Home",
             icon: UIImage(systemName: "house"),
-            selectedIcon: UIImage(systemName: "house.fill"),
-            delayInitialLoad: false
+            selectedIcon: UIImage(systemName: "house.fill")
         )
 
         // Tasks Tab - Tasks page
@@ -43,8 +36,7 @@ class TabBarController: UITabBarController {
             for: tasksURL,
             title: "Tasks",
             icon: UIImage(systemName: "checklist"),
-            selectedIcon: UIImage(systemName: "checklist"),
-            delayInitialLoad: false
+            selectedIcon: UIImage(systemName: "checklist")
         )
 
         // Meals Tab - Meals page
@@ -53,8 +45,7 @@ class TabBarController: UITabBarController {
             for: mealsURL,
             title: "Meals",
             icon: UIImage(systemName: "fork.knife"),
-            selectedIcon: UIImage(systemName: "fork.knife"),
-            delayInitialLoad: false
+            selectedIcon: UIImage(systemName: "fork.knife")
         )
 
         // Chat Tab - Rails chat page
@@ -63,15 +54,14 @@ class TabBarController: UITabBarController {
             for: chatURL,
             title: "Chat",
             icon: UIImage(systemName: "message"),
-            selectedIcon: UIImage(systemName: "message.fill"),
-            delayInitialLoad: false
+            selectedIcon: UIImage(systemName: "message.fill")
         )
 
         // Set view controllers
         viewControllers = [homeNavigator, tasksNavigator, mealsNavigator, chatNavigator]
     }
 
-    private func createNavigator(for url: URL, title: String, icon: UIImage?, selectedIcon: UIImage?, delayInitialLoad: Bool = false) -> UINavigationController {
+    private func createNavigator(for url: URL, title: String, icon: UIImage?, selectedIcon: UIImage?) -> UINavigationController {
         // Create a new configuration for each tab, but share the website data store for cookies
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = sharedWebsiteDataStore  // Share cookies/session
@@ -88,10 +78,8 @@ class TabBarController: UITabBarController {
             selectedImage: selectedIcon
         )
 
-        // Start navigation unless delayed
-        if !delayInitialLoad {
-            navigator.route(url)
-        }
+        // Start navigation
+        navigator.route(url)
 
         return navigator
     }
