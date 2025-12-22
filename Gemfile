@@ -95,7 +95,7 @@ group :test do
   gem "selenium-webdriver"
   gem "rails-controller-testing"
   # Pin minitest to 5.x until Rails 8.1 compatibility is resolved
-  gem "minitest", "~> 5.27"
+  gem "minitest", "~> 6.0"
 end
 
 gem "jsbundling-rails", "~> 1.3"
