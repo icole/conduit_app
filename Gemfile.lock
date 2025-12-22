@@ -172,7 +172,7 @@ GEM
     et-orbi (1.4.0)
       tzinfo
     event_stream_parser (1.0.0)
-    faraday (2.14.0)
+    faraday (2.12.3)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
@@ -212,14 +212,14 @@ GEM
       activesupport (>= 6.1)
     google-apis-calendar_v3 (0.51.0)
       google-apis-core (>= 0.15.0, < 2.a)
-    google-apis-core (1.0.2)
-      addressable (~> 2.8, >= 2.8.7)
-      faraday (~> 2.13)
-      faraday-follow_redirects (~> 0.3)
-      googleauth (~> 1.14)
-      mini_mime (~> 1.1)
+    google-apis-core (0.18.0)
+      addressable (~> 2.5, >= 2.5.1)
+      googleauth (~> 1.9)
+      httpclient (>= 2.8.3, < 3.a)
+      mini_mime (~> 1.0)
+      mutex_m
       representable (~> 3.0)
-      retriable (~> 3.1)
+      retriable (>= 2.0, < 4.a)
     google-apis-drive_v3 (0.76.0)
       google-apis-core (>= 0.15.0, < 2.a)
     google-cloud-env (2.3.1)
@@ -238,6 +238,8 @@ GEM
     heroicon (1.0.0)
       rails (>= 5.2)
     hkdf (0.3.0)
+    httpclient (2.9.0)
+      mutex_m
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     image_processing (1.14.0)
@@ -300,6 +302,7 @@ GEM
     multi_xml (0.7.2)
       bigdecimal (~> 3.1)
     multipart-post (2.4.1)
+    mutex_m (0.3.0)
     net-http (0.9.1)
       uri (>= 0.11.1)
     net-http-persistent (4.0.6)
@@ -521,7 +524,7 @@ GEM
       fugit (~> 1.11)
       railties (>= 7.1)
       thor (>= 1.3.1)
-    sorbet-runtime (0.6.12784)
+    sorbet-runtime (0.5.12443)
     sshkit (1.25.0)
       base64
       logger
@@ -531,13 +534,13 @@ GEM
       ostruct
     stimulus-rails (1.3.4)
       railties (>= 6.0.0)
-    stream-chat-ruby (3.0.0)
-      faraday
-      faraday-multipart
-      faraday-net_http_persistent
-      jwt
-      net-http-persistent
-      sorbet-runtime
+    stream-chat-ruby (3.21.0)
+      faraday (~> 2.12.2)
+      faraday-multipart (~> 1.1.0)
+      faraday-net_http_persistent (~> 2.3.0)
+      jwt (~> 2.10)
+      net-http-persistent (~> 4.0)
+      sorbet-runtime (~> 0.5.11820)
     stringio (3.2.0)
     tailwindcss-rails (4.4.0)
       railties (>= 7.0.0)
@@ -634,7 +637,7 @@ DEPENDENCIES
   solid_cache
   solid_queue
   stimulus-rails
-  stream-chat-ruby (~> 3.0)
+  stream-chat-ruby (~> 3.21)
   tailwindcss-rails
   thruster
   turbo-rails
