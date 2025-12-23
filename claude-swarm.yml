@@ -16,7 +16,7 @@ swarm:
       description: "Rails architect coordinating full-stack development for ConduitApp"
       directory: .
       model: opus
-      connections: [ models, controllers, views, stimulus, services, jobs, tests, devops ]
+      connections: [ models, controllers, views, stimulus, native, services, jobs, tests, devops ]
       prompt_file: .claude-on-rails/prompts/architect.md
       vibe: true
 
@@ -66,8 +66,20 @@ swarm:
       allowed_tools: [ Read, Edit, Write, Bash, Grep, Glob, LS ]
       prompt_file: .claude-on-rails/prompts/stimulus.md
 
+    native:
+      description: "Hotwire Native iOS and Android development specialist"
+      directory: .
+      model: opus
+      connections: [ views, stimulus, controllers ]
+      allowed_tools: [ Read, Edit, Write, Bash, Grep, Glob, LS ]
+      prompt_file: .claude-on-rails/prompts/native.md
+      additional_directories:
+        - ./ios
+        - ./android
+        - ./app/controllers/native
+        - ./app/views/native
+        - ./config/initializers
 
-    
     services:
       description: "Service objects, business logic, and design patterns specialist"
       directory: ./app/services
