@@ -22,9 +22,9 @@
 <div id="meal_<%= meal.id %>" class="card bg-base-100 shadow-lg border-l-4 <%= border_class %>">
   <div class="card-body">
     <!-- Date & Time Header -->
-    <div class="flex justify-between items-start">
-      <div>
-        <div class="text-sm font-medium text-primary">
+    <div class="flex justify-between items-start gap-3">
+      <div class="min-w-0 flex-1">
+        <div class="text-sm font-semibold text-base-content">
           <% if is_today %>
             Today
           <% elsif is_tomorrow %>
@@ -34,10 +34,10 @@
           <% end %>
         </div>
         <h2 class="card-title text-lg mt-1">
-          <%= link_to meal.title, meal_path(meal), class: "link link-hover" %>
+          <%= link_to meal.title, meal_path(meal), class: "link link-hover truncate block" %>
         </h2>
       </div>
-      <div class="text-right">
+      <div class="text-right flex-shrink-0">
         <div class="badge badge-ghost"><%= meal.time_display %></div>
         <% if meal.cancelled? %>
           <div class="badge badge-error mt-1">Cancelled</div>
