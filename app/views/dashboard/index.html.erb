@@ -84,6 +84,17 @@
         <div id="event-feed">
           <%= render 'calendar_events/calendar_list', calendar_events: @events %>
         </div>
+
+        <% if @events[:events].present? %>
+          <div class="mt-4 text-right">
+            <%= link_to calendar_index_path, class: "link link-hover text-sm flex items-center justify-end gap-1" do %>
+              <span>View all events</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            <% end %>
+          </div>
+        <% end %>
       </div>
     </div>
 
