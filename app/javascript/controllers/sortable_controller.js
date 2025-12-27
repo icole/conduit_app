@@ -6,6 +6,20 @@ export default class extends Controller {
 
   connect() {
     this.initializeSortable()
+
+    // Reinitialize when Turbo updates the page
+    this.boundReinitialize = this.reinitialize.bind(this)
+    document.addEventListener("turbo:render", this.boundReinitialize)
+  }
+
+  reinitialize() {
+    // Destroy existing sortable if it exists
+    if (this.sortable) {
+      this.sortable.destroy()
+      this.sortable = null
+    }
+    // Reinitialize after a short delay to ensure DOM is ready
+    setTimeout(() => this.initializeSortable(), 100)
   }
 
   initializeSortable() {
@@ -15,10 +29,17 @@ export default class extends Controller {
         ghostClass: 'opacity-50',
         chosenClass: 'scale-105',
         dragClass: 'rotate-2',
-        filter: 'button, a, .btn, input, select, textarea', // Exclude interactive elements
-        preventOnFilter: false, // Allow clicking filtered elements
+        handle: '.badge-primary', // Only drag by the priority badge
+        filter: 'button, a, .btn, input, select, textarea',
+        preventOnFilter: false,
+        delay: 150,
+        delayOnTouchOnly: true,
+        touchStartThreshold: 5,
         onStart: (evt) => {
-          // Drag started
+          const swipeController = evt.item.swipeController
+          if (swipeController) {
+            swipeController.isSwiping = false
+          }
         },
         onEnd: this.onEnd.bind(this)
       })
@@ -46,6 +67,7 @@ export default class extends Controller {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'X-CSRF-Token': csrfToken
         },
         body: JSON.stringify({
@@ -97,5 +119,6 @@ export default class extends Controller {
     if (this.sortable) {
       this.sortable.destroy()
     }
+    document.removeEventListener("turbo:render", this.boundReinitialize)
   }
 }

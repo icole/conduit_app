@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_26_233448) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_27_075020) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -346,6 +346,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_26_233448) do
     t.bigint "deleted_by_id"
     t.text "description"
     t.datetime "discarded_at"
+    t.string "google_event_id"
     t.string "location"
     t.integer "max_attendees"
     t.bigint "meal_schedule_id"
@@ -360,6 +361,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_26_233448) do
     t.index ["created_by_id"], name: "index_meals_on_created_by_id"
     t.index ["deleted_by_id"], name: "index_meals_on_deleted_by_id"
     t.index ["discarded_at"], name: "index_meals_on_discarded_at"
+    t.index ["google_event_id"], name: "index_meals_on_google_event_id", unique: true
     t.index ["meal_schedule_id", "scheduled_at"], name: "index_meals_on_meal_schedule_id_and_scheduled_at"
     t.index ["meal_schedule_id"], name: "index_meals_on_meal_schedule_id"
     t.index ["rsvp_deadline"], name: "index_meals_on_rsvp_deadline"

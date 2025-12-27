@@ -1,27 +1,5 @@
-<% if @task.user.tasks.count == 1 %>
-  <%= turbo_stream.update "task-list" do %>
-    <ul id="task-list-items" class="task-list">
-      <%= render "tasks/task", task: @task %>
-    </ul>
-  <% end %>
-<% else %>
-  <% if request.referer&.include?('tasks') && params[:status].present? %>
-    <% if @task.status == params[:status] || params[:status].blank? %>
-      <%= turbo_stream.prepend "task-list-items" do %>
-        <%= render "tasks/task", task: @task %>
-      <% end %>
-    <% end %>
-  <% else %>
-    <%= turbo_stream.prepend "task-list-items" do %>
-      <%= render "tasks/task", task: @task %>
-    <% end %>
-  <% end %>
-<% end %>
-
-<%= turbo_stream.update "new_task" do %>
-  <%= render "tasks/form", task: Task.new %>
-<% end %>
-
-<%= turbo_stream.update "flash" do %>
-  <%= render "layouts/flash_messages" %>
-<% end %>
+<%= turbo_stream.update "new_task", partial: "tasks/form", locals: { task: Task.new } %>
+<%= turbo_stream.update "flash", partial: "layouts/flash_messages" %>
+<%= turbo_stream.update "status-filters", partial: "tasks/status_filters" %>
+<%= turbo_stream.update "deleted-filter", partial: "tasks/deleted_filter" %>
+<%= turbo_stream.prepend "task-list", partial: "tasks/task_card_mobile", locals: { task: @task, show_move_to_backlog: @task.status == 'active', show_prioritize: @task.status == 'backlog' } %>

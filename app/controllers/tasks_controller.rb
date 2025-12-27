@@ -1,6 +1,7 @@
 class TasksController < ApplicationController
   before_action :authenticate_user!
   before_action :set_task, only: [ :edit, :update, :destroy, :prioritize, :move_to_backlog, :reorder ]
+  before_action :set_discarded_task, only: [ :restore ]
 
   def index
     @current_view = params[:view] || "active"
@@ -26,6 +27,8 @@ class TasksController < ApplicationController
       base_query.overdue
     when "due_soon"
       base_query.due_soon
+    when "deleted"
+      Task.only_discarded.order(discarded_at: :desc)
     else
       base_query.active
     end
@@ -37,6 +40,7 @@ class TasksController < ApplicationController
     @backlog_tasks = base_query.backlog.limit(10)
     @active_tasks = base_query.prioritized
     @completed_tasks = base_query.completed.limit(10)
+    @deleted_count = Task.only_discarded.count
   end
 
   def new
@@ -45,13 +49,16 @@ class TasksController < ApplicationController
 
   def create
     @task = current_user.tasks.build(task_params)
-    @redirect_path = request.referer&.include?("tasks") ? tasks_path : dashboard_index_path
-
 
     respond_to do |format|
       if @task.save
-        format.html { redirect_to @redirect_path, notice: "Task was successfully created." }
-        format.turbo_stream
+        redirect_path = if request.referer&.include?("tasks")
+          tasks_path(view: @task.status == "active" ? "active" : "backlog")
+        else
+          dashboard_index_path
+        end
+        format.html { redirect_to redirect_path, notice: "Task was successfully created." }
+        format.turbo_stream { flash.now[:notice] = "Task was successfully created." }
       else
         format.html { render :new, status: :unprocessable_entity }
         format.turbo_stream { render turbo_stream: turbo_stream.replace("new_task", partial: "tasks/form", locals: { task: @task }) }
@@ -79,19 +86,33 @@ class TasksController < ApplicationController
     @redirect_path = request.referer&.include?("tasks") ? tasks_path : dashboard_index_path
 
     respond_to do |format|
-      format.html { redirect_to @redirect_path, notice: "Task was successfully deleted." }
-      format.turbo_stream
+      format.html { redirect_to @redirect_path, flash: { notice_with_undo: { message: "Task deleted.", undo_path: restore_task_path(@task) } } }
+      format.turbo_stream { flash.now[:notice_with_undo] = { message: "Task deleted.", undo_path: restore_task_path(@task) } }
     end
+  end
+
+  def restore
+    @task.undiscard
+    redirect_path = request.referer&.include?("tasks") ? tasks_path : dashboard_index_path
+    redirect_to redirect_path, notice: "Task restored."
   end
 
   def prioritize
     @task.prioritize!
-    redirect_to tasks_path, notice: "Task moved to active list."
+
+    respond_to do |format|
+      format.html { redirect_to tasks_path, notice: "Task moved to active list." }
+      format.turbo_stream { flash.now[:notice] = "Task moved to active list." }
+    end
   end
 
   def move_to_backlog
     @task.move_to_backlog!
-    redirect_to tasks_path, notice: "Task moved to backlog."
+
+    respond_to do |format|
+      format.html { redirect_to tasks_path, notice: "Task moved to backlog." }
+      format.turbo_stream { flash.now[:notice] = "Task moved to backlog." }
+    end
   end
 
   def reorder
@@ -138,6 +159,10 @@ class TasksController < ApplicationController
 
   def set_task
     @task = Task.find(params[:id])
+  end
+
+  def set_discarded_task
+    @task = Task.with_discarded.find(params[:id])
   end
 
   def task_params

@@ -80,6 +80,7 @@ Rails.application.routes.draw do
       patch :prioritize
       patch :move_to_backlog
       patch :reorder
+      post :restore
     end
   end
   resources :posts, only: [ :create, :update, :destroy ] do

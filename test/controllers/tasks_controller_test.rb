@@ -31,7 +31,8 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
            params: { task: { title: "Test Task", description: "Test description" } },
            headers: { "HTTP_REFERER" => tasks_url }
     end
-    assert_redirected_to tasks_url
+    # Task without due date or assignment goes to backlog
+    assert_redirected_to tasks_url(view: "backlog")
   end
 
   test "should create task and redirect to dashboard when not coming from tasks" do

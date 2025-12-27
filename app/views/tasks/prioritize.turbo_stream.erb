@@ -1,5 +1,3 @@
 <%= turbo_stream.remove dom_id(@task) %>
 <%= turbo_stream.update "flash", partial: "layouts/flash_messages" %>
-<%= turbo_stream.update "undo-notification-container", partial: "layouts/undo_notification" %>
-<%= turbo_stream.update "deleted-filter", partial: "tasks/deleted_filter" %>
 <%= turbo_stream.update "status-filters", partial: "tasks/status_filters" %>

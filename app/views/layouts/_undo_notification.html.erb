@@ -1,0 +1,9 @@
+<% if flash[:notice_with_undo] %>
+  <div id="undo-notification" data-controller="flash" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+    <div class="alert bg-neutral text-neutral-content shadow-lg px-6 py-3 rounded-lg flex items-center gap-4">
+      <span><%= flash[:notice_with_undo][:message] %></span>
+      <%= button_to "Undo", flash[:notice_with_undo][:undo_path], method: :post, class: "btn btn-sm btn-primary", data: { turbo_method: :post } %>
+      <button data-action="click->flash#dismiss" class="btn btn-sm btn-ghost" aria-label="Close">✕</button>
+    </div>
+  </div>
+<% end %>

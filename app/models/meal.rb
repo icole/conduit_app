@@ -19,6 +19,9 @@ class Meal < ApplicationRecord
 
   cascade_discard :comments
 
+  after_save :sync_to_google_calendar, if: :should_sync_to_calendar?
+  after_discard :delete_from_google_calendar
+
   scope :upcoming, -> { where(status: "upcoming").where("scheduled_at > ?", Time.current).order(:scheduled_at) }
   scope :past, -> { where("scheduled_at < ?", Time.current).order(scheduled_at: :desc) }
   scope :needs_cooks, -> { upcoming.left_joins(:meal_cooks).group(:id).having("COUNT(meal_cooks.id) = 0") }
@@ -168,6 +171,11 @@ class Meal < ApplicationRecord
     comments.count
   end
 
+  # Check if synced with Google Calendar
+  def synced_with_google?
+    google_event_id.present?
+  end
+
   private
 
   def rsvp_deadline_before_meal
@@ -175,5 +183,18 @@ class Meal < ApplicationRecord
     if rsvp_deadline >= scheduled_at
       errors.add(:rsvp_deadline, "must be before the meal time")
     end
+  end
+
+  def should_sync_to_calendar?
+    saved_change_to_title? || saved_change_to_scheduled_at? || saved_change_to_description? || !synced_with_google?
+  end
+
+  def sync_to_google_calendar
+    MealCalendarSyncJob.perform_later(id)
+  end
+
+  def delete_from_google_calendar
+    return unless google_event_id.present?
+    MealCalendarSyncJob.perform_later(id, action: "delete")
   end
 end

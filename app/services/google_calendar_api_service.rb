@@ -186,6 +186,73 @@ class GoogleCalendarApiService
     get_events(calendar_id: calendar_id, time_min: start_date.to_time, time_max: end_date.to_time, max_results: 2500)
   end
 
+  # Create a new event on the calendar
+  def create_event(calendar_id:, title:, start_time:, end_time:, description: nil, location: nil)
+    event = Google::Apis::CalendarV3::Event.new(
+      summary: title,
+      description: description,
+      location: location,
+      start: event_datetime(start_time),
+      end: event_datetime(end_time)
+    )
+
+    begin
+      result = calendar_service.insert_event(calendar_id, event)
+      { status: :success, event_id: result.id, html_link: result.html_link }
+    rescue Google::Apis::ClientError => e
+      Rails.logger.error("Google Calendar API Create Event Error: #{e.message}")
+      { error: e.message, status: :client_error }
+    rescue Google::Apis::ServerError => e
+      Rails.logger.error("Google Calendar API Create Event Error: #{e.message}")
+      { error: e.message, status: :server_error }
+    rescue Google::Apis::AuthorizationError => e
+      Rails.logger.error("Google Calendar API Create Event Error: #{e.message}")
+      { error: e.message, status: :auth_error }
+    end
+  end
+
+  # Update an existing event on the calendar
+  def update_event(calendar_id:, event_id:, title:, start_time:, end_time:, description: nil, location: nil)
+    event = Google::Apis::CalendarV3::Event.new(
+      summary: title,
+      description: description,
+      location: location,
+      start: event_datetime(start_time),
+      end: event_datetime(end_time)
+    )
+
+    begin
+      result = calendar_service.update_event(calendar_id, event_id, event)
+      { status: :success, event_id: result.id, html_link: result.html_link }
+    rescue Google::Apis::ClientError => e
+      Rails.logger.error("Google Calendar API Update Event Error: #{e.message}")
+      { error: e.message, status: :client_error }
+    rescue Google::Apis::ServerError => e
+      Rails.logger.error("Google Calendar API Update Event Error: #{e.message}")
+      { error: e.message, status: :server_error }
+    rescue Google::Apis::AuthorizationError => e
+      Rails.logger.error("Google Calendar API Update Event Error: #{e.message}")
+      { error: e.message, status: :auth_error }
+    end
+  end
+
+  # Delete an event from the calendar
+  def delete_event(calendar_id:, event_id:)
+    begin
+      calendar_service.delete_event(calendar_id, event_id)
+      { status: :success }
+    rescue Google::Apis::ClientError => e
+      Rails.logger.error("Google Calendar API Delete Event Error: #{e.message}")
+      { error: e.message, status: :client_error }
+    rescue Google::Apis::ServerError => e
+      Rails.logger.error("Google Calendar API Delete Event Error: #{e.message}")
+      { error: e.message, status: :server_error }
+    rescue Google::Apis::AuthorizationError => e
+      Rails.logger.error("Google Calendar API Delete Event Error: #{e.message}")
+      { error: e.message, status: :auth_error }
+    end
+  end
+
   # Share a calendar with a specific user by email
   def share_calendar_with_user(calendar_id:, email:, role: "reader")
     begin
@@ -221,6 +288,14 @@ class GoogleCalendarApiService
   end
 
   private
+
+  # Build an EventDateTime object for the Google Calendar API
+  def event_datetime(time)
+    Google::Apis::CalendarV3::EventDateTime.new(
+      date_time: time.iso8601,
+      time_zone: Time.zone.name
+    )
+  end
 
   # Format a collection of events for easier consumption
   def format_events(events)
