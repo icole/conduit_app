@@ -28,7 +28,7 @@ class PostsController < ApplicationController
   end
 
   def destroy
-    @post.destroy
+    @post.discard
 
     respond_to do |format|
       format.turbo_stream

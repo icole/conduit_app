@@ -1,4 +1,6 @@
 class Document < ApplicationRecord
+  include Discardable
+
   acts_as_tenant :community
 
   has_and_belongs_to_many :calendar_events

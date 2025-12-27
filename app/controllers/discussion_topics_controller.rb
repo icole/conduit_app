@@ -45,7 +45,7 @@ class DiscussionTopicsController < ApplicationController
 
   def destroy
     if @discussion_topic.user == current_user || current_user.admin?
-      @discussion_topic.destroy
+      @discussion_topic.discard
       redirect_to discussion_topics_path, notice: "Discussion topic was successfully deleted."
     else
       redirect_to discussion_topics_path, alert: "You are not authorized to delete this topic."

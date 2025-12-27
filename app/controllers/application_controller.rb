@@ -9,6 +9,7 @@ class ApplicationController < ActionController::Base
   set_current_tenant_through_filter
   before_action :set_tenant_from_domain
   before_action :authenticate_user!
+  before_action :set_current_attributes
   before_action :update_last_active, if: :user_signed_in?
 
   helper_method :current_user, :user_signed_in?, :google_account?, :current_community
@@ -91,5 +92,10 @@ class ApplicationController < ActionController::Base
     if current_user.last_active_at.nil? || current_user.last_active_at < 5.minutes.ago
       current_user.update_column(:last_active_at, Time.current)
     end
+  end
+
+  def set_current_attributes
+    Current.user = current_user
+    Current.community = current_community
   end
 end

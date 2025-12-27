@@ -1,10 +1,17 @@
 class Post < ApplicationRecord
+  include Discardable
+
   acts_as_tenant :community
 
   belongs_to :user
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
+
   validates :content, presence: true
+
+  cascade_discard :comments
+
+  before_create :set_created_by
 
   def liked_by?(user)
     likes.exists?(user: user)
@@ -20,5 +27,11 @@ class Post < ApplicationRecord
 
   def comments_count
     comments.count
+  end
+
+  private
+
+  def set_created_by
+    self.created_by ||= user
   end
 end

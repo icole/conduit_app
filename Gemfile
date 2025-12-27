@@ -27,6 +27,9 @@ gem "bcrypt", "~> 3.1.7"
 # Multi-tenancy support [https://github.com/ErwinM/acts_as_tenant]
 gem "acts_as_tenant", "~> 1.0"
 
+# Soft delete for content models [https://github.com/jhawthorn/discard]
+gem "discard", "~> 1.3"
+
 # JWT for secure token generation
 gem "jwt", "~> 2.7"
 

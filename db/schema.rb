@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_26_233448) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -64,7 +64,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
   create_table "calendar_events", force: :cascade do |t|
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.bigint "deleted_by_id"
     t.text "description"
+    t.datetime "discarded_at"
     t.datetime "end_time"
     t.string "google_event_id"
     t.string "location"
@@ -72,6 +75,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.index ["community_id"], name: "index_calendar_events_on_community_id"
+    t.index ["created_by_id"], name: "index_calendar_events_on_created_by_id"
+    t.index ["deleted_by_id"], name: "index_calendar_events_on_deleted_by_id"
+    t.index ["discarded_at"], name: "index_calendar_events_on_discarded_at"
   end
 
   create_table "calendar_events_documents", force: :cascade do |t|
@@ -123,7 +129,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
   create_table "chores", force: :cascade do |t|
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.bigint "deleted_by_id"
     t.text "description"
+    t.datetime "discarded_at"
     t.string "frequency"
     t.jsonb "frequency_details", default: {}
     t.string "name", null: false
@@ -132,6 +141,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
     t.string "status", default: "proposed", null: false
     t.datetime "updated_at", null: false
     t.index ["community_id"], name: "index_chores_on_community_id"
+    t.index ["created_by_id"], name: "index_chores_on_created_by_id"
+    t.index ["deleted_by_id"], name: "index_chores_on_deleted_by_id"
+    t.index ["discarded_at"], name: "index_chores_on_discarded_at"
     t.index ["next_due_date"], name: "index_chores_on_next_due_date"
     t.index ["proposed_by_id"], name: "index_chores_on_proposed_by_id"
     t.index ["status"], name: "index_chores_on_status"
@@ -142,11 +154,17 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
     t.string "commentable_type"
     t.text "content"
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.bigint "deleted_by_id"
+    t.datetime "discarded_at"
     t.bigint "parent_id"
     t.bigint "post_id"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable_type_and_commentable_id"
+    t.index ["created_by_id"], name: "index_comments_on_created_by_id"
+    t.index ["deleted_by_id"], name: "index_comments_on_deleted_by_id"
+    t.index ["discarded_at"], name: "index_comments_on_discarded_at"
     t.index ["parent_id"], name: "index_comments_on_parent_id"
     t.index ["post_id"], name: "index_comments_on_post_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
@@ -168,38 +186,56 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
     t.bigint "calendar_event_id"
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
     t.date "decision_date"
+    t.bigint "deleted_by_id"
     t.text "description"
+    t.datetime "discarded_at"
     t.bigint "document_id"
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.index ["calendar_event_id"], name: "index_decisions_on_calendar_event_id"
     t.index ["community_id"], name: "index_decisions_on_community_id"
+    t.index ["created_by_id"], name: "index_decisions_on_created_by_id"
     t.index ["decision_date"], name: "index_decisions_on_decision_date"
+    t.index ["deleted_by_id"], name: "index_decisions_on_deleted_by_id"
+    t.index ["discarded_at"], name: "index_decisions_on_discarded_at"
     t.index ["document_id"], name: "index_decisions_on_document_id"
   end
 
   create_table "discussion_topics", force: :cascade do |t|
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.bigint "deleted_by_id"
     t.text "description"
+    t.datetime "discarded_at"
     t.datetime "last_activity_at"
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["community_id"], name: "index_discussion_topics_on_community_id"
+    t.index ["created_by_id"], name: "index_discussion_topics_on_created_by_id"
+    t.index ["deleted_by_id"], name: "index_discussion_topics_on_deleted_by_id"
+    t.index ["discarded_at"], name: "index_discussion_topics_on_discarded_at"
     t.index ["user_id"], name: "index_discussion_topics_on_user_id"
   end
 
   create_table "documents", force: :cascade do |t|
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.bigint "deleted_by_id"
     t.text "description"
+    t.datetime "discarded_at"
     t.string "document_type"
     t.string "google_drive_url"
     t.string "title"
     t.datetime "updated_at", null: false
     t.index ["community_id"], name: "index_documents_on_community_id"
+    t.index ["created_by_id"], name: "index_documents_on_created_by_id"
+    t.index ["deleted_by_id"], name: "index_documents_on_deleted_by_id"
+    t.index ["discarded_at"], name: "index_documents_on_discarded_at"
   end
 
   create_table "drive_shares", force: :cascade do |t|
@@ -306,7 +342,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
     t.bigint "community_id", null: false
     t.text "cook_notes"
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.bigint "deleted_by_id"
     t.text "description"
+    t.datetime "discarded_at"
     t.string "location"
     t.integer "max_attendees"
     t.bigint "meal_schedule_id"
@@ -318,6 +357,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.index ["community_id"], name: "index_meals_on_community_id"
+    t.index ["created_by_id"], name: "index_meals_on_created_by_id"
+    t.index ["deleted_by_id"], name: "index_meals_on_deleted_by_id"
+    t.index ["discarded_at"], name: "index_meals_on_discarded_at"
     t.index ["meal_schedule_id", "scheduled_at"], name: "index_meals_on_meal_schedule_id_and_scheduled_at"
     t.index ["meal_schedule_id"], name: "index_meals_on_meal_schedule_id"
     t.index ["rsvp_deadline"], name: "index_meals_on_rsvp_deadline"
@@ -329,9 +371,15 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
     t.bigint "community_id", null: false
     t.text "content"
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.bigint "deleted_by_id"
+    t.datetime "discarded_at"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["community_id"], name: "index_posts_on_community_id"
+    t.index ["created_by_id"], name: "index_posts_on_created_by_id"
+    t.index ["deleted_by_id"], name: "index_posts_on_deleted_by_id"
+    t.index ["discarded_at"], name: "index_posts_on_discarded_at"
     t.index ["user_id"], name: "index_posts_on_user_id"
   end
 
@@ -350,7 +398,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
     t.integer "assigned_to_user_id"
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.bigint "deleted_by_id"
     t.text "description"
+    t.datetime "discarded_at"
     t.date "due_date"
     t.integer "priority_order"
     t.string "status"
@@ -359,6 +410,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
     t.bigint "user_id", null: false
     t.index ["assigned_to_user_id"], name: "index_tasks_on_assigned_to_user_id"
     t.index ["community_id"], name: "index_tasks_on_community_id"
+    t.index ["created_by_id"], name: "index_tasks_on_created_by_id"
+    t.index ["deleted_by_id"], name: "index_tasks_on_deleted_by_id"
+    t.index ["discarded_at"], name: "index_tasks_on_discarded_at"
     t.index ["due_date"], name: "index_tasks_on_due_date"
     t.index ["priority_order"], name: "index_tasks_on_priority_order"
     t.index ["user_id"], name: "index_tasks_on_user_id"
@@ -399,6 +453,8 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "calendar_events", "communities"
+  add_foreign_key "calendar_events", "users", column: "created_by_id"
+  add_foreign_key "calendar_events", "users", column: "deleted_by_id"
   add_foreign_key "calendar_events_documents", "calendar_events"
   add_foreign_key "calendar_events_documents", "documents"
   add_foreign_key "calendar_shares", "users"
@@ -407,16 +463,26 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
   add_foreign_key "chore_completions", "chores"
   add_foreign_key "chore_completions", "users", column: "completed_by_id"
   add_foreign_key "chores", "communities"
+  add_foreign_key "chores", "users", column: "created_by_id"
+  add_foreign_key "chores", "users", column: "deleted_by_id"
   add_foreign_key "chores", "users", column: "proposed_by_id"
   add_foreign_key "comments", "comments", column: "parent_id"
   add_foreign_key "comments", "posts"
   add_foreign_key "comments", "users"
+  add_foreign_key "comments", "users", column: "created_by_id"
+  add_foreign_key "comments", "users", column: "deleted_by_id"
   add_foreign_key "decisions", "calendar_events"
   add_foreign_key "decisions", "communities"
   add_foreign_key "decisions", "documents"
+  add_foreign_key "decisions", "users", column: "created_by_id"
+  add_foreign_key "decisions", "users", column: "deleted_by_id"
   add_foreign_key "discussion_topics", "communities"
   add_foreign_key "discussion_topics", "users"
+  add_foreign_key "discussion_topics", "users", column: "created_by_id"
+  add_foreign_key "discussion_topics", "users", column: "deleted_by_id"
   add_foreign_key "documents", "communities"
+  add_foreign_key "documents", "users", column: "created_by_id"
+  add_foreign_key "documents", "users", column: "deleted_by_id"
   add_foreign_key "drive_shares", "users"
   add_foreign_key "in_app_notifications", "users"
   add_foreign_key "invitations", "communities"
@@ -430,12 +496,18 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_17_224824) do
   add_foreign_key "meal_schedules", "users", column: "created_by_id"
   add_foreign_key "meals", "communities"
   add_foreign_key "meals", "meal_schedules"
+  add_foreign_key "meals", "users", column: "created_by_id"
+  add_foreign_key "meals", "users", column: "deleted_by_id"
   add_foreign_key "posts", "communities"
   add_foreign_key "posts", "users"
+  add_foreign_key "posts", "users", column: "created_by_id"
+  add_foreign_key "posts", "users", column: "deleted_by_id"
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "tasks", "communities"
   add_foreign_key "tasks", "users"
   add_foreign_key "tasks", "users", column: "assigned_to_user_id"
+  add_foreign_key "tasks", "users", column: "created_by_id"
+  add_foreign_key "tasks", "users", column: "deleted_by_id"
   add_foreign_key "topic_comments", "discussion_topics"
   add_foreign_key "topic_comments", "users"
   add_foreign_key "users", "communities"

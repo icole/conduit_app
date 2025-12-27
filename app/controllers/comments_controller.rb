@@ -23,7 +23,7 @@ class CommentsController < ApplicationController
 
   def destroy
     if @comment.user == current_user
-      @comment.destroy
+      @comment.discard
       respond_to do |format|
         # Set instance variables for turbo stream templates
         set_legacy_instance_variables

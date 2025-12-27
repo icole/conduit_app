@@ -1,4 +1,6 @@
 class Decision < ApplicationRecord
+  include Discardable
+
   acts_as_tenant :community
 
   belongs_to :calendar_event, optional: true

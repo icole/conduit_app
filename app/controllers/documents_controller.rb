@@ -120,10 +120,10 @@ class DocumentsController < ApplicationController
 
   # DELETE /documents/1 or /documents/1.json
   def destroy
-    @document.destroy!
+    @document.discard
 
     respond_to do |format|
-      format.html { redirect_to documents_path, status: :see_other, notice: "Document was successfully destroyed." }
+      format.html { redirect_to documents_path, status: :see_other, notice: "Document was successfully deleted." }
       format.json { head :no_content }
     end
   end

@@ -1,4 +1,6 @@
 class Meal < ApplicationRecord
+  include Discardable
+
   acts_as_tenant :community
 
   belongs_to :meal_schedule, optional: true
@@ -14,6 +16,8 @@ class Meal < ApplicationRecord
   validates :rsvp_deadline, presence: true
   validates :status, presence: true, inclusion: { in: %w[upcoming rsvps_closed completed cancelled] }
   validate :rsvp_deadline_before_meal
+
+  cascade_discard :comments
 
   scope :upcoming, -> { where(status: "upcoming").where("scheduled_at > ?", Time.current).order(:scheduled_at) }
   scope :past, -> { where("scheduled_at < ?", Time.current).order(scheduled_at: :desc) }

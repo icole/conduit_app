@@ -112,7 +112,7 @@ class CalendarEventsController < ApplicationController
     else
       # Deleting a local event - delete both local and Google (if synced)
       sync_to_google_calendar(@calendar_event, :delete)
-      @calendar_event.destroy
+      @calendar_event.discard
     end
 
     redirect_to calendar_index_path, notice: "Event was successfully deleted."

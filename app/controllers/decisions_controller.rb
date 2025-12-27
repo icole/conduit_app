@@ -54,7 +54,7 @@ class DecisionsController < ApplicationController
   end
 
   def destroy
-    @decision.destroy
+    @decision.discard
     redirect_to decisions_path, notice: "Decision was successfully deleted."
   end
 

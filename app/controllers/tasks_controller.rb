@@ -75,7 +75,7 @@ class TasksController < ApplicationController
   end
 
   def destroy
-    @task.destroy
+    @task.discard
     @redirect_path = request.referer&.include?("tasks") ? tasks_path : dashboard_index_path
 
     respond_to do |format|

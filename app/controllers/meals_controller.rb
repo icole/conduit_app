@@ -73,7 +73,7 @@ class MealsController < ApplicationController
   end
 
   def destroy
-    @meal.destroy
+    @meal.discard
     redirect_to meals_path, notice: "Meal removed."
   end
 

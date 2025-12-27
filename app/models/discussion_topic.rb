@@ -1,4 +1,6 @@
 class DiscussionTopic < ApplicationRecord
+  include Discardable
+
   acts_as_tenant :community
 
   belongs_to :user
@@ -8,6 +10,10 @@ class DiscussionTopic < ApplicationRecord
 
   validates :title, presence: true
   validates :description, presence: true
+
+  cascade_discard :comments
+
+  before_create :set_created_by
 
   scope :recent, -> { order(created_at: :desc) }
   scope :by_activity, -> { order(last_activity_at: :desc) }
@@ -32,5 +38,11 @@ class DiscussionTopic < ApplicationRecord
   # Helper method to check if user has commented (for UI state)
   def commented_by?(user)
     comments.exists?(user: user)
+  end
+
+  private
+
+  def set_created_by
+    self.created_by ||= user
   end
 end

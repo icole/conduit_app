@@ -59,8 +59,9 @@ class ChoresController < ApplicationController
   end
 
   def destroy
-    @chore.destroy
-    if @chore.proposed?
+    was_proposed = @chore.proposed?
+    @chore.discard
+    if was_proposed
       redirect_to chores_path(view: "proposed"), notice: "Chore removed successfully!"
     else
       redirect_to chores_path, notice: "Chore removed successfully!"

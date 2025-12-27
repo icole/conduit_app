@@ -1,4 +1,6 @@
 class Chore < ApplicationRecord
+  include Discardable
+
   acts_as_tenant :community
 
   belongs_to :proposed_by, class_name: "User"
@@ -12,6 +14,10 @@ class Chore < ApplicationRecord
   validates :frequency, inclusion: { in: %w[daily weekly biweekly monthly custom] }, allow_blank: true
   validates :frequency, presence: true, if: :active?
   validates :status, presence: true, inclusion: { in: %w[proposed active archived] }
+
+  cascade_discard :comments
+
+  before_create :set_created_by
 
   scope :proposed, -> { where(status: "proposed").order(created_at: :desc) }
   scope :active, -> { where(status: "active").order(next_due_date: :asc) }
@@ -121,5 +127,11 @@ class Chore < ApplicationRecord
   # For comments interface
   def comments_count
     comments.count
+  end
+
+  private
+
+  def set_created_by
+    self.created_by ||= proposed_by
   end
 end

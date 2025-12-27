@@ -1,4 +1,6 @@
 class Comment < ApplicationRecord
+  include Discardable
+
   belongs_to :user
   belongs_to :commentable, polymorphic: true
   belongs_to :post, optional: true # Keep for backward compatibility during transition
@@ -7,6 +9,10 @@ class Comment < ApplicationRecord
   has_many :likes, as: :likeable, dependent: :destroy
 
   validates :content, presence: true
+
+  cascade_discard :replies
+
+  before_create :set_created_by
 
   default_scope { order(created_at: :desc) }
   scope :top_level, -> { where(parent_id: nil) }
@@ -64,5 +70,11 @@ class Comment < ApplicationRecord
   # Check if this comment has any descendants
   def has_descendants?
     replies.exists? || replies.joins(:replies).exists?
+  end
+
+  private
+
+  def set_created_by
+    self.created_by ||= user
   end
 end

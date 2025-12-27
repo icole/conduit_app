@@ -1,4 +1,6 @@
 class Task < ApplicationRecord
+  include Discardable
+
   acts_as_tenant :community
 
   belongs_to :user
@@ -8,6 +10,7 @@ class Task < ApplicationRecord
   validates :status, presence: true, inclusion: { in: %w[backlog active completed] }
 
   before_save :auto_set_status_and_priority, if: :new_record?
+  before_create :set_created_by
 
   # Default status is 'backlog'
   attribute :status, :string, default: "backlog"
@@ -81,5 +84,9 @@ class Task < ApplicationRecord
       self.status = "active"
       self.priority_order = next_priority_order if priority_order.blank?
     end
+  end
+
+  def set_created_by
+    self.created_by ||= user
   end
 end
