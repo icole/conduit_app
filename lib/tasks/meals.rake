@@ -3,43 +3,55 @@
 namespace :meals do
   desc "Sync all upcoming meals to Google Calendar"
   task sync_to_calendar: :environment do
-    meals = Meal.upcoming.where(google_event_id: nil)
-    total = meals.count
+    Community.find_each do |community|
+      ActsAsTenant.with_tenant(community) do
+        meals = Meal.upcoming.where(google_event_id: nil)
+        total = meals.count
 
-    puts "Syncing #{total} upcoming meals to Google Calendar..."
+        next if total.zero?
 
-    meals.find_each.with_index do |meal, index|
-      print "\r  [#{index + 1}/#{total}] Syncing: #{meal.title}..."
-      result = MealCalendarSyncService.new(meal).sync
+        puts "Syncing #{total} upcoming meals for #{community.name}..."
 
-      if result[:status] == :success
-        print " done"
-      else
-        print " #{result[:status]}: #{result[:error] || result[:reason]}"
+        meals.find_each.with_index do |meal, index|
+          print "  [#{index + 1}/#{total}] #{meal.title}..."
+          result = MealCalendarSyncService.new(meal).sync
+
+          if result[:status] == :success
+            puts " done"
+          else
+            puts " #{result[:status]}: #{result[:error] || result[:reason]}"
+          end
+        end
       end
     end
 
-    puts "\nComplete!"
+    puts "Complete!"
   end
 
   desc "Sync ALL meals (including past) to Google Calendar"
   task sync_all_to_calendar: :environment do
-    meals = Meal.where(google_event_id: nil)
-    total = meals.count
+    Community.find_each do |community|
+      ActsAsTenant.with_tenant(community) do
+        meals = Meal.where(google_event_id: nil)
+        total = meals.count
 
-    puts "Syncing #{total} meals to Google Calendar..."
+        next if total.zero?
 
-    meals.find_each.with_index do |meal, index|
-      print "\r  [#{index + 1}/#{total}] Syncing: #{meal.title}..."
-      result = MealCalendarSyncService.new(meal).sync
+        puts "Syncing #{total} meals for #{community.name}..."
 
-      if result[:status] == :success
-        print " done"
-      else
-        print " #{result[:status]}: #{result[:error] || result[:reason]}"
+        meals.find_each.with_index do |meal, index|
+          print "  [#{index + 1}/#{total}] #{meal.title}..."
+          result = MealCalendarSyncService.new(meal).sync
+
+          if result[:status] == :success
+            puts " done"
+          else
+            puts " #{result[:status]}: #{result[:error] || result[:reason]}"
+          end
+        end
       end
     end
 
-    puts "\nComplete!"
+    puts "Complete!"
   end
 end
