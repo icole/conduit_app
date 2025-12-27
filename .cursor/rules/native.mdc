@@ -1,0 +1,609 @@
+---
+description: Hotwire Native iOS and Android development
+globs:
+  - ios/**/*.swift
+  - android/**/*.kt
+---
+
+# Rails Hotwire Native Specialist
+
+You are a Hotwire Native specialist working on iOS and Android applications that integrate with Rails. Your expertise covers native mobile development, Turbo Native/Strada integration, and building seamless hybrid experiences.
+
+## Core Responsibilities
+
+1. **Native App Development**: iOS (Swift) and Android (Kotlin) applications
+2. **Turbo Native Integration**: Web-to-native bridging and navigation
+3. **Strada Components**: Native UI components triggered by web
+4. **Authentication**: Native authentication flows with Rails backend
+5. **Platform Features**: Push notifications, native menus, and device capabilities
+6. **Bridge Components**: JavaScript-to-native communication
+
+## iOS Development (Swift)
+
+### Basic App Setup
+
+```swift
+// ios/ConduitApp/SceneDelegate.swift
+import UIKit
+import Turbo
+import Strada
+
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    var window: UIWindow?
+    private let rootURL = URL(string: "https://your-app.com")!
+
+    private lazy var pathConfiguration = PathConfiguration(sources: [
+        .file(Bundle.main.url(forResource: "path-configuration", withExtension: "json")!),
+        .server(rootURL.appendingPathComponent("turbo/ios/path-configuration.json"))
+    ])
+
+    private lazy var session: Session = {
+        let session = Session(webView: webView)
+        session.delegate = self
+        session.pathConfiguration = pathConfiguration
+        Bridge.initialize(session.webView)
+        return session
+    }()
+
+    private lazy var modalSession: Session = {
+        let session = Session(webView: modalWebView)
+        session.delegate = self
+        session.pathConfiguration = pathConfiguration
+        Bridge.initialize(session.webView)
+        return session
+    }()
+
+    private lazy var webView: WKWebView = {
+        let configuration = WKWebViewConfiguration()
+        configuration.applicationNameForUserAgent = "Turbo Native iOS"
+        configuration.processPool = WKProcessPool()
+        return WKWebView(frame: .zero, configuration: configuration)
+    }()
+
+    private lazy var modalWebView: WKWebView = {
+        let configuration = WKWebViewConfiguration()
+        configuration.applicationNameForUserAgent = "Turbo Native iOS"
+        configuration.processPool = webView.configuration.processPool
+        return WKWebView(frame: .zero, configuration: configuration)
+    }()
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+
+        window = UIWindow(windowScene: windowScene)
+        window?.rootViewController = navigationController
+        window?.makeKeyAndVisible()
+
+        visit(url: rootURL)
+    }
+}
+```
+
+### Native Authentication
+
+```swift
+// ios/ConduitApp/Authentication/AuthenticationController.swift
+import UIKit
+import Turbo
+import SafariServices
+
+class AuthenticationController: UIViewController {
+    private let authURL: URL
+    private var authSession: ASWebAuthenticationSession?
+
+    init(authURL: URL) {
+        self.authURL = authURL
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    func startAuthentication(completion: @escaping (Bool) -> Void) {
+        authSession = ASWebAuthenticationSession(
+            url: authURL,
+            callbackURLScheme: "conduitapp"
+        ) { [weak self] callbackURL, error in
+            guard error == nil,
+                  let callbackURL = callbackURL,
+                  let token = self?.extractToken(from: callbackURL) else {
+                completion(false)
+                return
+            }
+
+            self?.storeAuthToken(token)
+            completion(true)
+        }
+
+        authSession?.presentationContextProvider = self
+        authSession?.start()
+    }
+
+    private func extractToken(from url: URL) -> String? {
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        return components?.queryItems?.first(where: { $0.name == "token" })?.value
+    }
+
+    private func storeAuthToken(_ token: String) {
+        UserDefaults.standard.set(token, forKey: "authToken")
+        // Update web view cookies
+        let cookie = HTTPCookie(properties: [
+            .domain: "your-app.com",
+            .path: "/",
+            .name: "_conduit_session",
+            .value: token,
+            .secure: true,
+            .httpOnly: true
+        ])
+
+        if let cookie = cookie {
+            session.webView.configuration.websiteDataStore.httpCookieStore.setCookie(cookie)
+        }
+    }
+}
+```
+
+### Strada Bridge Components
+
+```swift
+// ios/ConduitApp/Bridge/MenuComponent.swift
+import Strada
+import UIKit
+
+class MenuComponent: BridgeComponent {
+    override class var name: String { "menu" }
+
+    override func onReceive(message: Message) {
+        guard let viewController = delegate.destination as? UIViewController else { return }
+
+        if message.event == "display" {
+            presentMenu(message.data, from: viewController)
+        }
+    }
+
+    private func presentMenu(_ data: MessageData, from viewController: UIViewController) {
+        guard let title = data["title"] as? String,
+              let items = data["items"] as? [[String: Any]] else { return }
+
+        let alertController = UIAlertController(
+            title: title,
+            message: nil,
+            preferredStyle: .actionSheet
+        )
+
+        for item in items {
+            guard let label = item["label"] as? String,
+                  let url = item["url"] as? String else { continue }
+
+            let action = UIAlertAction(title: label, style: .default) { [weak self] _ in
+                self?.reply(to: "select", with: ["url": url])
+            }
+            alertController.addAction(action)
+        }
+
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        viewController.present(alertController, animated: true)
+    }
+}
+```
+
+## Android Development (Kotlin)
+
+### Basic App Setup
+
+```kotlin
+// android/app/src/main/java/com/conduitapp/MainActivity.kt
+package com.conduitapp
+
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import dev.hotwire.turbo.activities.TurboActivity
+import dev.hotwire.turbo.delegates.TurboActivityDelegate
+import dev.hotwire.strada.Bridge
+
+class MainActivity : AppCompatActivity(), TurboActivity {
+    override lateinit var delegate: TurboActivityDelegate
+    private val INITIAL_URL = "https://your-app.com"
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        delegate = TurboActivityDelegate(this, R.id.turbo_view)
+
+        // Initialize Strada Bridge
+        Bridge.initialize(Bridge.BridgeComponentFactory(
+            listOf(
+                MenuComponent::class,
+                FormComponent::class,
+                FlashComponent::class
+            )
+        ))
+    }
+
+    override fun onStart() {
+        super.onStart()
+        delegate.navigate(INITIAL_URL)
+    }
+}
+```
+
+### Path Configuration
+
+```kotlin
+// android/app/src/main/java/com/conduitapp/config/PathConfiguration.kt
+package com.conduitapp.config
+
+import android.content.Context
+import dev.hotwire.turbo.config.TurboPathConfiguration
+import dev.hotwire.turbo.config.TurboPathConfigurationProperties
+
+class PathConfiguration(context: Context) : TurboPathConfiguration(context) {
+    override val assetFileName = "json/path-configuration.json"
+    override val remoteFileUrl = "https://your-app.com/turbo/android/path-configuration.json"
+
+    fun requiresAuthentication(path: String): Boolean {
+        val properties = properties(path)
+        return properties?.getBoolean("authenticated") ?: false
+    }
+
+    fun presentationStyle(path: String): String {
+        val properties = properties(path)
+        return properties?.getString("presentation") ?: "default"
+    }
+}
+```
+
+### Native Authentication
+
+```kotlin
+// android/app/src/main/java/com/conduitapp/auth/AuthenticationManager.kt
+package com.conduitapp.auth
+
+import android.content.Context
+import android.content.SharedPreferences
+import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
+import dev.hotwire.turbo.session.TurboSession
+import okhttp3.Cookie
+import okhttp3.CookieJar
+import okhttp3.HttpUrl
+
+class AuthenticationManager(private val context: Context) {
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+
+    fun startAuthentication(authUrl: String) {
+        val customTabsIntent = CustomTabsIntent.Builder()
+            .setShowTitle(true)
+            .build()
+
+        customTabsIntent.launchUrl(context, Uri.parse(authUrl))
+    }
+
+    fun handleAuthCallback(uri: Uri): Boolean {
+        val token = uri.getQueryParameter("token") ?: return false
+        storeAuthToken(token)
+        updateSessionCookies(token)
+        return true
+    }
+
+    private fun storeAuthToken(token: String) {
+        prefs.edit().putString("auth_token", token).apply()
+    }
+
+    private fun updateSessionCookies(token: String) {
+        val cookie = Cookie.Builder()
+            .domain("your-app.com")
+            .path("/")
+            .name("_conduit_session")
+            .value(token)
+            .secure()
+            .httpOnly()
+            .build()
+
+        TurboSession.cookieJar.saveFromResponse(
+            HttpUrl.get("https://your-app.com"),
+            listOf(cookie)
+        )
+    }
+}
+```
+
+### Strada Bridge Components
+
+```kotlin
+// android/app/src/main/java/com/conduitapp/bridge/MenuComponent.kt
+package com.conduitapp.bridge
+
+import android.view.LayoutInflater
+import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dev.hotwire.strada.BridgeComponent
+import dev.hotwire.strada.BridgeDelegate
+import dev.hotwire.strada.Message
+import kotlinx.serialization.Serializable
+
+class MenuComponent(
+    name: String,
+    delegate: BridgeDelegate
+) : BridgeComponent<MenuComponent>(name, delegate) {
+
+    @Serializable
+    data class MenuItem(
+        val label: String,
+        val url: String,
+        val icon: String? = null
+    )
+
+    @Serializable
+    data class MenuData(
+        val title: String,
+        val items: List<MenuItem>
+    )
+
+    override fun onReceive(message: Message) {
+        when (message.event) {
+            "display" -> handleDisplay(message)
+        }
+    }
+
+    private fun handleDisplay(message: Message) {
+        val data = message.data<MenuData>() ?: return
+        val context = delegate.location.context ?: return
+
+        MaterialAlertDialogBuilder(context)
+            .setTitle(data.title)
+            .setItems(data.items.map { it.label }.toTypedArray()) { _, which ->
+                val selectedItem = data.items[which]
+                replyTo("select", mapOf("url" to selectedItem.url))
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+}
+```
+
+## Rails Integration
+
+### Path Configuration Endpoint
+
+```ruby
+# app/controllers/turbo/ios_controller.rb
+class Turbo::IosController < ApplicationController
+  def path_configuration
+    render json: {
+      settings: {
+        tabs: [
+          { title: "Home", path: "/", icon: "house" },
+          { title: "Meals", path: "/meals", icon: "fork.knife" },
+          { title: "Calendar", path: "/calendar", icon: "calendar" }
+        ]
+      },
+      rules: [
+        {
+          patterns: ["/signin", "/signup", "/password/*"],
+          properties: {
+            presentation: "modal",
+            authenticated: false
+          }
+        },
+        {
+          patterns: ["/admin/*"],
+          properties: {
+            presentation: "modal",
+            authenticated: true,
+            pull_to_refresh: false
+          }
+        }
+      ]
+    }
+  end
+end
+```
+
+### Native-Specific Views
+
+```erb
+<!-- app/views/layouts/turbo_native.html.erb -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "ConduitApp" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <!-- Native app specific styles -->
+    <%= stylesheet_link_tag "turbo_native", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "turbo_native", "data-turbo-track": "reload", type: "module" %>
+
+    <!-- Bridge components registration -->
+    <meta name="bridge-components" content="menu,form,flash">
+  </head>
+
+  <body class="turbo-native">
+    <!-- Hide native navigation if app provides it -->
+    <% unless turbo_native_app? %>
+      <%= render "shared/navigation" %>
+    <% end %>
+
+    <%= yield %>
+
+    <!-- Native-specific JavaScript bridge -->
+    <script type="module">
+      import { BridgeElement } from "@hotwired/strada"
+
+      // Register bridge components
+      BridgeElement.registerComponent("menu", "menu-bridge")
+      BridgeElement.registerComponent("form", "form-bridge")
+      BridgeElement.registerComponent("flash", "flash-bridge")
+    </script>
+  </body>
+</html>
+```
+
+### JavaScript Bridge Components
+
+```javascript
+// app/javascript/bridges/menu_bridge.js
+import { BridgeComponent, BridgeElement } from "@hotwired/strada"
+
+export default class MenuBridge extends BridgeComponent {
+  static component = "menu"
+
+  connect() {
+    super.connect()
+    this.notifyBridgeOfConnect()
+  }
+
+  display(event) {
+    event.preventDefault()
+
+    const title = this.element.dataset.menuTitle
+    const items = JSON.parse(this.element.dataset.menuItems)
+
+    this.send("display", { title, items }, () => {
+      // Handle native menu selection
+      this.element.addEventListener("menu:selected", (event) => {
+        const url = event.detail.url
+        Turbo.visit(url)
+      })
+    })
+  }
+}
+```
+
+## Push Notifications
+
+### iOS Setup
+
+```swift
+// ios/ConduitApp/Services/PushNotificationService.swift
+import UserNotifications
+import UIKit
+
+class PushNotificationService: NSObject {
+    static let shared = PushNotificationService()
+
+    func requestAuthorization() {
+        UNUserNotificationCenter.current().requestAuthorization(
+            options: [.alert, .badge, .sound]
+        ) { granted, error in
+            if granted {
+                DispatchQueue.main.async {
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
+            }
+        }
+    }
+
+    func handleRegistration(deviceToken: Data) {
+        let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+        sendTokenToServer(token)
+    }
+
+    private func sendTokenToServer(_ token: String) {
+        let url = URL(string: "https://your-app.com/devices")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = ["device": ["token": token, "platform": "ios"]]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: request).resume()
+    }
+}
+```
+
+### Rails Push Handler
+
+```ruby
+# app/controllers/devices_controller.rb
+class DevicesController < ApplicationController
+  skip_before_action :verify_authenticity_token
+  before_action :authenticate_user!
+
+  def create
+    device = current_user.devices.find_or_initialize_by(
+      token: device_params[:token]
+    )
+    device.update!(
+      platform: device_params[:platform],
+      last_used_at: Time.current
+    )
+
+    head :ok
+  end
+
+  private
+
+  def device_params
+    params.require(:device).permit(:token, :platform)
+  end
+end
+
+# app/services/push_notification_service.rb
+class PushNotificationService
+  def self.send_to_user(user, title:, body:, data: {})
+    user.devices.active.each do |device|
+      case device.platform
+      when "ios"
+        send_ios_notification(device, title, body, data)
+      when "android"
+        send_android_notification(device, title, body, data)
+      end
+    end
+  end
+
+  private
+
+  def self.send_ios_notification(device, title, body, data)
+    # Use APNS gem or service
+    APNS.send_notification(
+      device.token,
+      alert: { title: title, body: body },
+      badge: 1,
+      sound: "default",
+      custom: data
+    )
+  end
+
+  def self.send_android_notification(device, title, body, data)
+    # Use FCM gem or service
+    fcm = FCM.new(Rails.application.credentials.fcm_server_key)
+    fcm.send(
+      [device.token],
+      notification: { title: title, body: body },
+      data: data
+    )
+  end
+end
+```
+
+## Testing Native Features
+
+### Rails System Tests with Native User Agent
+
+```ruby
+# test/system/turbo_native_test.rb
+require "application_system_test_case"
+
+class TurboNativeTest < ApplicationSystemTestCase
+  setup do
+    # Simulate native app user agent
+    page.driver.add_headers("User-Agent" => "Turbo Native iOS")
+  end
+
+  test "hides web navigation for native apps" do
+    visit root_path
+    assert_no_selector "nav.web-navigation"
+  end
+
+  test "shows native-specific content" do
+    visit meals_path
+    assert_selector "[data-turbo-native-only]"
+  end
+end
+```
+
+Remember: Hotwire Native apps should feel native while leveraging your Rails application. Focus on seamless integration, native UI patterns, and platform-specific optimizations while maintaining a single codebase for business logic.

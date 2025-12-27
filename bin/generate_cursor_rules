@@ -1,0 +1,163 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Generates .cursor/rules/ from .claude-on-rails/prompts/
+# Run this whenever the claude-on-rails gem updates your prompts
+
+require "fileutils"
+
+SOURCE_DIR = File.expand_path("../.claude-on-rails/prompts", __dir__)
+CONTEXT_FILE = File.expand_path("../.claude-on-rails/context.md", __dir__)
+TARGET_DIR = File.expand_path("../.cursor/rules", __dir__)
+
+# Map prompt files to Cursor glob patterns
+GLOB_MAPPINGS = {
+  "context.md" => {
+    description: "ConduitApp project context - cohousing community platform",
+    globs: nil, # Always available globally
+    always_apply: true
+  },
+  "architect.md" => {
+    description: "Rails architect - coordinates full-stack development",
+    globs: nil # Always available, no specific glob
+  },
+  "models.md" => {
+    description: "ActiveRecord models, migrations, and database design",
+    globs: "app/models/**/*.rb"
+  },
+  "controllers.md" => {
+    description: "Rails controllers, routing, and request handling",
+    globs: "app/controllers/**/*.rb"
+  },
+  "views.md" => {
+    description: "Rails views, layouts, partials, and ERB templates",
+    globs: "app/views/**/*.erb"
+  },
+  "stimulus.md" => {
+    description: "Stimulus.js controllers and Turbo/Hotwire integration",
+    globs: "app/javascript/**/*.js"
+  },
+  "services.md" => {
+    description: "Service objects and business logic",
+    globs: "app/services/**/*.rb"
+  },
+  "jobs.md" => {
+    description: "Background jobs and ActiveJob",
+    globs: "app/jobs/**/*.rb"
+  },
+  "tests.md" => {
+    description: "Minitest testing and test coverage",
+    globs: "test/**/*.rb"
+  },
+  "native.md" => {
+    description: "Hotwire Native iOS and Android development",
+    globs: ["ios/**/*.swift", "android/**/*.kt"]
+  },
+  "api.md" => {
+    description: "API controllers and JSON responses",
+    globs: "app/controllers/api/**/*.rb"
+  },
+  "devops.md" => {
+    description: "Deployment, Docker, and configuration",
+    globs: ["config/**/*.rb", "config/**/*.yml", "Dockerfile", "docker-compose*.yml"]
+  },
+  "git-workflow.md" => {
+    description: "Git workflow and commit practices",
+    globs: nil # Always available
+  },
+  "graphql.md" => {
+    description: "GraphQL schema and resolvers",
+    globs: "app/graphql/**/*.rb"
+  }
+}.freeze
+
+def generate_frontmatter(filename, mapping)
+  lines = ["---"]
+  lines << "description: #{mapping[:description]}"
+
+  if mapping[:globs]
+    globs = Array(mapping[:globs])
+    if globs.length == 1
+      lines << "globs: #{globs.first}"
+    else
+      lines << "globs:"
+      globs.each { |g| lines << "  - #{g}" }
+    end
+  end
+
+  # alwaysApply makes this rule apply to every conversation
+  lines << "alwaysApply: true" if mapping[:always_apply]
+
+  lines << "---"
+  lines.join("\n")
+end
+
+def process_prompt(source_file, filename)
+  mapping = GLOB_MAPPINGS[filename]
+
+  unless mapping
+    puts "  ⚠️  No mapping for #{filename}, skipping"
+    return nil
+  end
+
+  content = File.read(source_file)
+  frontmatter = generate_frontmatter(filename, mapping)
+
+  "#{frontmatter}\n\n#{content}"
+end
+
+def main
+  unless Dir.exist?(SOURCE_DIR)
+    puts "❌ Source directory not found: #{SOURCE_DIR}"
+    puts "   Make sure .claude-on-rails/prompts/ exists"
+    exit 1
+  end
+
+  # Create target directory
+  FileUtils.mkdir_p(TARGET_DIR)
+
+  puts "🔄 Generating Cursor rules from claude-on-rails prompts..."
+  puts "   Source: #{SOURCE_DIR}"
+  puts "   Target: #{TARGET_DIR}"
+  puts
+
+  prompt_files = Dir.glob(File.join(SOURCE_DIR, "*.md"))
+
+  # Also include the context.md file from parent directory
+  prompt_files.unshift(CONTEXT_FILE) if File.exist?(CONTEXT_FILE)
+
+  if prompt_files.empty?
+    puts "❌ No .md files found in #{SOURCE_DIR}"
+    exit 1
+  end
+
+  generated = 0
+  skipped = 0
+
+  prompt_files.each do |source_file|
+    filename = File.basename(source_file)
+    target_filename = filename.sub(/\.md$/, ".mdc")
+    target_file = File.join(TARGET_DIR, target_filename)
+
+    print "  #{filename} → #{target_filename}... "
+
+    result = process_prompt(source_file, filename)
+
+    if result
+      File.write(target_file, result)
+      puts "✅"
+      generated += 1
+    else
+      skipped += 1
+    end
+  end
+
+  puts
+  puts "✨ Done! Generated #{generated} rules, skipped #{skipped}"
+  puts
+  puts "Cursor will now use these rules based on file patterns."
+  puts "Re-run this script when claude-on-rails prompts are updated."
+end
+
+main
+
