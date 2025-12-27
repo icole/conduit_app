@@ -47,6 +47,6 @@ class DocumentsTest < ApplicationSystemTestCase
     end
     # Assert that you are redirected to the index page
     assert_current_path documents_path, wait: 30
-    assert_text "Document was successfully destroyed"
+    assert_text "Document was successfully deleted"
   end
 end
