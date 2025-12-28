@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class CalendarEventsController < ApplicationController
-  skip_before_action :authenticate_user! # Temporary for testing
   before_action :set_calendar_event, only: [ :show, :update ]
   before_action :set_calendar_event_for_edit, only: [ :edit ]
   before_action :set_calendar_event_for_destroy, only: [ :destroy ]
