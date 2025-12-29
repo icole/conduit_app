@@ -65,10 +65,14 @@ class SessionsController < ApplicationController
     redirect_to root_path, notice: "Logged out successfully!"
   end
 
-  # GET /auth_login?token=xxx
+  # GET /auth_login?token=xxx&redirect_to=/path
   # Used by mobile app to establish a session using auth token
   def auth_login
     token = params[:token]
+    redirect_path = params[:redirect_to].presence || root_path
+
+    # Sanitize redirect path to prevent open redirect
+    redirect_path = root_path unless redirect_path.start_with?("/")
 
     if token.present?
       user = verify_auth_token(token)
@@ -84,7 +88,7 @@ class SessionsController < ApplicationController
         session[:authenticated_via] = "mobile_token"
         session[:authenticated_at] = Time.current.to_i
 
-        Rails.logger.info "Auth login successful for user #{user.id}, session_id: #{session.id}"
+        Rails.logger.info "Auth login successful for user #{user.id}, session_id: #{session.id}, redirect_to: #{redirect_path}"
 
         # For WebView, return a simple HTML response that confirms auth and redirects
         respond_to do |format|
@@ -102,8 +106,8 @@ class SessionsController < ApplicationController
                   // Store auth success flag in localStorage for WebView
                   localStorage.setItem('conduit_authenticated', 'true');
                   localStorage.setItem('conduit_user_id', '#{user.id}');
-                  // Redirect to home
-                  window.location.href = '#{root_path}';
+                  // Redirect to requested path
+                  window.location.href = '#{redirect_path}';
                 </script>
               </body>
               </html>

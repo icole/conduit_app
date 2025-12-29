@@ -249,10 +249,13 @@ module Api
 
       def verify_google_id_token(id_token)
         # Accept Web, iOS, and Android client IDs from environment variables
+        # GOOGLE_ANDROID_CLIENT_IDS can be comma-separated for multiple IDs (debug, release, play store)
+        android_client_ids = ENV["GOOGLE_ANDROID_CLIENT_IDS"]&.split(",")&.map(&:strip) || []
+
         valid_client_ids = [
-          ENV["GOOGLE_CLIENT_ID"],           # Web client ID
-          ENV["GOOGLE_IOS_CLIENT_ID"],       # iOS client ID
-          ENV["GOOGLE_ANDROID_CLIENT_ID"]    # Android client ID
+          ENV["GOOGLE_CLIENT_ID"],                 # Web client ID
+          ENV["GOOGLE_IOS_CLIENT_ID"],             # iOS client ID
+          *android_client_ids                      # Android client IDs (comma-separated)
         ].compact.uniq
 
         if valid_client_ids.empty?

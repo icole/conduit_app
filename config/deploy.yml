@@ -10,10 +10,14 @@ ssh:
 
 proxy:
   ssl: true
-  host: <%= ENV["CONDUIT_DOMAIN"] %>
+  hosts:
+    - <%= ENV["CONDUIT_DOMAIN"] %>
+    - <%= ENV["CONDUIT_API_DOMAIN"] %>
+    - <%= ENV["CONDUIT_DEMO_DOMAIN"] %>
   healthcheck:
     interval: 5
-    timeout: 120
+    timeout: 180
+    path: /up
 
 registry:
   username: <%= ENV["DOCKER_USERNAME"] %>
@@ -25,7 +29,7 @@ env:
     - RAILS_MASTER_KEY
     - GOOGLE_CLIENT_ID
     - GOOGLE_IOS_CLIENT_ID
-    - GOOGLE_ANDROID_CLIENT_ID
+    - GOOGLE_ANDROID_CLIENT_IDS
     - GOOGLE_CLIENT_SECRET
     - CONDUIT_APP_DATABASE_PASSWORD
     - CALENDAR_CONFIG_CONTENT
