@@ -90,6 +90,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 self?.showMainApp()
             }
         }
+        loginVC.onSwitchCommunity = { [weak self] in
+            // Go back to community selector
+            self?.showCommunitySelectScreen()
+        }
 
         let navController = UINavigationController(rootViewController: loginVC)
         self.loginNavigationController = navController

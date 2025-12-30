@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.colecoding.conduit.BuildConfig
 import com.colecoding.conduit.MainActivity
 import com.colecoding.conduit.config.AppConfig
+import com.colecoding.conduit.config.CommunityManager
 import com.colecoding.conduit.databinding.ActivityLoginBinding
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -97,6 +98,17 @@ class LoginActivity : AppCompatActivity() {
         }
 
         binding.btnGoogleSignIn.setOnClickListener { signInWithGoogle() }
+
+        binding.btnSwitchCommunity.setOnClickListener { switchCommunity() }
+    }
+
+    private fun switchCommunity() {
+        // Clear community selection and go back to selector
+        CommunityManager.clearCommunityUrl(this)
+        val intent = Intent(this, CommunitySelectActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 
     private fun performLogin(email: String, password: String) {
