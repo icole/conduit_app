@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.webkit.CookieManager
+import android.webkit.WebStorage
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -280,17 +282,24 @@ class LoginActivity : AppCompatActivity() {
     private fun clearWebViewData() {
         Log.d(TAG, "Clearing all WebView data before showing main app")
 
-        // Clear all WebView cookies
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.removeAllCookies { success ->
-            Log.d(TAG, "WebView cookies cleared: $success")
+        // Must run on main thread for WebView operations
+        runOnUiThread {
+            try {
+                // Clear all WebView cookies
+                val cookieManager = CookieManager.getInstance()
+                cookieManager.removeAllCookies { success ->
+                    Log.d(TAG, "WebView cookies cleared: $success")
+                }
+                cookieManager.flush()
+
+                // Clear WebView storage (localStorage, sessionStorage, databases)
+                WebStorage.getInstance().deleteAllData()
+
+                Log.d(TAG, "WebView data cleared")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error clearing WebView data", e)
+            }
         }
-        cookieManager.flush()
-
-        // Clear WebView storage (localStorage, sessionStorage, databases)
-        WebStorage.getInstance().deleteAllData()
-
-        Log.d(TAG, "WebView data cleared")
     }
 
     private fun showLoading(show: Boolean) {
