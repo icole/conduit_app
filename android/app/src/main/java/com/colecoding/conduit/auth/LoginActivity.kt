@@ -69,8 +69,14 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setupCommunityName()
         setupGoogleSignIn()
         setupClickListeners()
+    }
+
+    private fun setupCommunityName() {
+        val communityName = CommunityManager.getCommunityName(this)
+        binding.communityName.text = communityName ?: "Select a community"
     }
 
     private fun setupGoogleSignIn() {
@@ -129,12 +135,24 @@ class LoginActivity : AppCompatActivity() {
                     setRequestProperty("Accept", "application/json")
                 }
 
+                // Include community domain to scope login
+                val communityUrl = CommunityManager.getCommunityUrl(this@LoginActivity)
+                val communityDomain = communityUrl?.let {
+                    try { java.net.URL(it).host } catch (e: Exception) { "" }
+                } ?: ""
+
+                Log.d(TAG, "Login - communityUrl: $communityUrl")
+                Log.d(TAG, "Login - communityDomain: $communityDomain")
+
                 val json =
                         JSONObject().apply {
                             put("email", email)
                             put("password", password)
+                            put("mobile", true)
+                            put("community_domain", communityDomain)
                         }
 
+                Log.d(TAG, "Login request body: $json")
                 OutputStreamWriter(connection.outputStream).use { it.write(json.toString()) }
 
                 val responseCode = connection.responseCode
@@ -197,6 +215,12 @@ class LoginActivity : AppCompatActivity() {
                     setRequestProperty("Accept", "application/json")
                 }
 
+                // Include community domain to scope login
+                val communityUrl = CommunityManager.getCommunityUrl(this@LoginActivity)
+                val communityDomain = communityUrl?.let {
+                    try { java.net.URL(it).host } catch (e: Exception) { "" }
+                } ?: ""
+
                 val json =
                         JSONObject().apply {
                             put("email", account.email)
@@ -204,6 +228,7 @@ class LoginActivity : AppCompatActivity() {
                             put("image_url", account.photoUrl?.toString())
                             // Include ID token for secure authentication
                             put("id_token", account.idToken)
+                            put("community_domain", communityDomain)
                         }
 
                 OutputStreamWriter(connection.outputStream).use { it.write(json.toString()) }
