@@ -95,14 +95,11 @@ namespace :stream_chat do
           begin
             old_channel = client.channel("team", channel_id: base_id)
 
-            # Use update_partial which doesn't require created_by
-            old_channel.update_partial(
-              set: {
-                community_id: community.id,
-                community_slug: community.slug
-              },
-              user_id: admin_user.id.to_s
-            )
+            # Use update_partial with positional args (set, unset)
+            old_channel.update_partial({
+              "community_id" => community.id,
+              "community_slug" => community.slug
+            })
             puts "    Updated #{base_id} with community metadata"
           rescue StreamChat::StreamAPIException => e
             if e.message.include?("Can't find channel")
@@ -122,28 +119,27 @@ namespace :stream_chat do
         channel_id = "#{community.slug}-#{channel_data[:id]}"
 
         begin
-          channel = client.channel("team", channel_id: channel_id)
+          # Initialize channel with custom_data
+          custom_data = {
+            "name" => channel_data[:name],
+            "description" => channel_data[:description],
+            "community_id" => community.id,
+            "community_slug" => community.slug,
+            "members" => [ admin_user.id.to_s ]
+          }
+          channel = client.channel("team", channel_id: channel_id, data: custom_data)
 
-          # Create the channel with get_or_create semantics
-          channel.create(admin_user.id.to_s, {
-            name: channel_data[:name],
-            description: channel_data[:description],
-            community_id: community.id,
-            community_slug: community.slug,
-            members: [ admin_user.id.to_s ]
-          })
+          # Create the channel (this will use custom_data set above)
+          channel.create(admin_user.id.to_s)
           puts "    Created/updated channel: #{channel_id}"
 
-          # Update metadata in case channel already existed
-          channel.update_partial(
-            set: {
-              name: channel_data[:name],
-              description: channel_data[:description],
-              community_id: community.id,
-              community_slug: community.slug
-            },
-            user_id: admin_user.id.to_s
-          )
+          # Ensure metadata is set
+          channel.update_partial({
+            "name" => channel_data[:name],
+            "description" => channel_data[:description],
+            "community_id" => community.id,
+            "community_slug" => community.slug
+          })
         rescue => e
           puts "    Error with channel #{channel_id}: #{e.message}"
         end
