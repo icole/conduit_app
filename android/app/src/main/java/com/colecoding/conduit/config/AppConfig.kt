@@ -11,24 +11,17 @@ object AppConfig {
     const val COMMUNITIES_API_URL = "https://api.conduitcoho.app"
 
     fun getBaseUrl(context: Context): String {
-        // Check for user-selected community URL first
-        val communityUrl = CommunityManager.getCommunityUrl(context)
-        if (communityUrl != null) {
-            Log.d(TAG, "Using selected community URL: $communityUrl")
-            return communityUrl
+        // In debug mode, use build config URL (localhost for emulator)
+        if (BuildConfig.DEBUG) {
+            val url = BuildConfig.BASE_URL
+            Log.d(TAG, "Debug mode - Using build config URL: $url")
+            return url
         }
 
-        // Check for runtime configuration file (similar to iOS Config.plist)
-        val configUrl = loadUrlFromConfig(context)
-        if (configUrl != null) {
-            Log.d(TAG, "Using URL from config: $configUrl")
-            return configUrl
-        }
-
-        // Fall back to build configuration
-        val url = BuildConfig.BASE_URL
-        Log.d(TAG, "Using build config URL: $url")
-        return url
+        // In release mode, always use the central API domain
+        // The backend determines the tenant from the JWT token
+        Log.d(TAG, "Release mode - Using central API URL: $COMMUNITIES_API_URL")
+        return COMMUNITIES_API_URL
     }
 
     private fun loadUrlFromConfig(context: Context): String? {
