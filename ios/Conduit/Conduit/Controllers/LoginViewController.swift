@@ -14,9 +14,11 @@ class LoginViewController: UIViewController {
     private let dividerLabel = UILabel()
     private let errorLabel = UILabel()
     private let activityIndicator = UIActivityIndicatorView(style: .medium)
+    private let switchCommunityButton = UIButton(type: .system)
 
     // Callback for successful login
     var onLoginSuccess: (() -> Void)?
+    var onSwitchCommunity: (() -> Void)?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -110,6 +112,12 @@ class LoginViewController: UIViewController {
         activityIndicator.hidesWhenStopped = true
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
 
+        // Switch Community Button
+        switchCommunityButton.setTitle("Switch Community", for: .normal)
+        switchCommunityButton.titleLabel?.font = .systemFont(ofSize: 16)
+        switchCommunityButton.setTitleColor(.systemBlue, for: .normal)
+        switchCommunityButton.translatesAutoresizingMaskIntoConstraints = false
+
         // Add subviews
         view.addSubview(logoImageView)
         view.addSubview(titleLabel)
@@ -120,6 +128,7 @@ class LoginViewController: UIViewController {
         view.addSubview(googleSignInButton)
         view.addSubview(errorLabel)
         view.addSubview(activityIndicator)
+        view.addSubview(switchCommunityButton)
     }
 
     private func setupGoogleLogo() {
@@ -208,7 +217,11 @@ class LoginViewController: UIViewController {
 
             // Activity Indicator
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityIndicator.topAnchor.constraint(equalTo: googleSignInButton.bottomAnchor, constant: 20)
+            activityIndicator.topAnchor.constraint(equalTo: googleSignInButton.bottomAnchor, constant: 20),
+
+            // Switch Community Button
+            switchCommunityButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            switchCommunityButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
         ])
     }
 
@@ -219,6 +232,9 @@ class LoginViewController: UIViewController {
         googleSignInButton.addTarget(self, action: #selector(googleSignInTapped), for: .touchUpInside)
         print("setupActions: Added googleSignInTapped action to button")
 
+        // Switch Community button
+        switchCommunityButton.addTarget(self, action: #selector(switchCommunityTapped), for: .touchUpInside)
+
         // Dismiss keyboard on tap
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
@@ -226,6 +242,12 @@ class LoginViewController: UIViewController {
         // Handle return key
         emailTextField.delegate = self
         passwordTextField.delegate = self
+    }
+
+    @objc private func switchCommunityTapped() {
+        // Clear community selection and go back to selector
+        CommunityManager.shared.clearCommunityURL()
+        onSwitchCommunity?()
     }
 
     @objc private func loginButtonTapped() {
