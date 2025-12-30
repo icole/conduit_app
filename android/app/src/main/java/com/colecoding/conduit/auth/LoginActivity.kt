@@ -103,7 +103,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun switchCommunity() {
-        // Clear community selection and go back to selector
+        // Clear all auth data and community selection
+        AuthManager.logout(this)
         CommunityManager.clearCommunityUrl(this)
         val intent = Intent(this, CommunitySelectActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

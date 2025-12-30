@@ -19,8 +19,13 @@ module Api
         if user&.authenticate(params[:password])
           # Set tenant for the user's community
           set_current_tenant(user.community)
-          # Set session for the user
+
+          # Clear any existing session first to prevent stale data
+          reset_session
+
+          # Set session for the user with their community
           session[:user_id] = user.id
+          session[:community_id] = user.community_id
 
           # For mobile apps, ensure cookie persists
           if request.user_agent&.include?("Conduit")
@@ -196,8 +201,12 @@ module Api
             user.save!
           end
 
+          # Clear any existing session first to prevent stale data
+          reset_session
+
           # Set session with extended expiry for mobile apps
           session[:user_id] = user.id
+          session[:community_id] = user.community_id
 
           # For mobile apps, ensure cookie persists
           if request.user_agent&.include?("Conduit")
