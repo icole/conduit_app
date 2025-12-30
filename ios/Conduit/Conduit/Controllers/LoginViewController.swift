@@ -7,6 +7,7 @@ class LoginViewController: UIViewController {
     // UI Elements
     private let logoImageView = UIImageView()
     private let titleLabel = UILabel()
+    private let communityLabel = UILabel()
     private let emailTextField = UITextField()
     private let passwordTextField = UITextField()
     private let loginButton = UIButton(type: .system)
@@ -48,6 +49,17 @@ class LoginViewController: UIViewController {
         titleLabel.font = .systemFont(ofSize: 32, weight: .bold)
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        // Community Name
+        if let communityName = CommunityManager.shared.getCommunityName() {
+            communityLabel.text = communityName
+        } else {
+            communityLabel.text = "Select a community"
+        }
+        communityLabel.font = .systemFont(ofSize: 16, weight: .medium)
+        communityLabel.textColor = .secondaryLabel
+        communityLabel.textAlignment = .center
+        communityLabel.translatesAutoresizingMaskIntoConstraints = false
 
         // Email TextField
         emailTextField.placeholder = "Email"
@@ -121,6 +133,7 @@ class LoginViewController: UIViewController {
         // Add subviews
         view.addSubview(logoImageView)
         view.addSubview(titleLabel)
+        view.addSubview(communityLabel)
         view.addSubview(emailTextField)
         view.addSubview(passwordTextField)
         view.addSubview(loginButton)
@@ -182,8 +195,13 @@ class LoginViewController: UIViewController {
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
             titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
 
+            // Community Label
+            communityLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            communityLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
+            communityLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
+
             // Email TextField
-            emailTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 60),
+            emailTextField.topAnchor.constraint(equalTo: communityLabel.bottomAnchor, constant: 40),
             emailTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
             emailTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
             emailTextField.heightAnchor.constraint(equalToConstant: 50),
@@ -383,14 +401,17 @@ class LoginViewController: UIViewController {
         let email = user.profile?.email ?? ""
         let name = user.profile?.name ?? ""
 
-        print("📧 Google Sign-In - Email: \(email)")
-        print("👤 Google Sign-In - Name: \(name)")
+        print("Google Sign-In - Email: \(email)")
+        print("Google Sign-In - Name: \(name)")
 
+        // Include community domain to scope login
+        let communityDomain = CommunityManager.shared.getCommunityURL()?.host ?? ""
         let body: [String: Any] = [
             "id_token": idToken,
             "email": email,
             "name": name,
-            "image_url": user.profile?.imageURL(withDimension: 200)?.absoluteString ?? ""
+            "image_url": user.profile?.imageURL(withDimension: 200)?.absoluteString ?? "",
+            "community_domain": communityDomain
         ]
 
         do {
@@ -447,11 +468,13 @@ class LoginViewController: UIViewController {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        // Create body
+        // Create body - include community domain to scope login
+        let communityDomain = CommunityManager.shared.getCommunityURL()?.host ?? ""
         let body: [String: Any] = [
             "email": email,
             "password": password,
-            "mobile": true
+            "mobile": true,
+            "community_domain": communityDomain
         ]
 
         do {

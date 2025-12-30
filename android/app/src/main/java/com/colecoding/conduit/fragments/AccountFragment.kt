@@ -43,22 +43,9 @@ class AccountFragment : Fragment() {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = 24
-            }
-        }
-        layout.addView(logoutButton)
-
-        // Switch Community button
-        val switchCommunityButton = Button(requireContext()).apply {
-            text = getString(R.string.community_switch)
-            setOnClickListener { showSwitchCommunityConfirmation() }
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
             )
         }
-        layout.addView(switchCommunityButton)
+        layout.addView(logoutButton)
 
         return layout
     }
@@ -69,17 +56,6 @@ class AccountFragment : Fragment() {
             .setMessage("Are you sure you want to logout?")
             .setPositiveButton(R.string.logout) { _, _ ->
                 (activity as? MainActivity)?.logout()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun showSwitchCommunityConfirmation() {
-        AlertDialog.Builder(requireContext())
-            .setTitle(R.string.community_switch)
-            .setMessage("This will log you out. Continue?")
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                (activity as? MainActivity)?.switchCommunity()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

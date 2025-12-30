@@ -7,9 +7,6 @@ class TabBarController: UITabBarController {
     // Callback for logout
     var onLogout: (() -> Void)?
 
-    // Callback for switching community
-    var onSwitchCommunity: (() -> Void)?
-
     // Use centralized configuration for base URL
     private let baseURL = AppConfig.baseURL
 
@@ -64,9 +61,6 @@ class TabBarController: UITabBarController {
         let accountVC = AccountViewController()
         accountVC.onLogout = { [weak self] in
             self?.onLogout?()
-        }
-        accountVC.onSwitchCommunity = { [weak self] in
-            self?.onSwitchCommunity?()
         }
         let accountNav = UINavigationController(rootViewController: accountVC)
         accountNav.tabBarItem = UITabBarItem(

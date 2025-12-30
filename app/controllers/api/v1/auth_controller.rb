@@ -17,6 +17,18 @@ module Api
         end
 
         if user&.authenticate(params[:password])
+          # Verify user belongs to the expected community (if specified)
+          if params[:community_domain].present?
+            expected_community = Community.find_by(domain: params[:community_domain])
+            Rails.logger.info "[LOGIN] community_domain param: #{params[:community_domain].inspect}"
+            Rails.logger.info "[LOGIN] expected_community: #{expected_community&.id} (#{expected_community&.name})"
+            Rails.logger.info "[LOGIN] user.community_id: #{user.community_id}, user.community: #{user.community&.name}"
+            if expected_community.nil? || user.community_id != expected_community.id
+              render json: { error: "User not found in this community" }, status: :unauthorized
+              return
+            end
+          end
+
           # Set tenant for the user's community
           set_current_tenant(user.community)
 
@@ -171,6 +183,15 @@ module Api
           Rails.logger.info "Google Auth: email=#{email}, existing_user=#{user.present?}"
 
           if user
+            # Verify user belongs to the expected community (if specified)
+            if params[:community_domain].present?
+              expected_community = Community.find_by(domain: params[:community_domain])
+              if expected_community.nil? || user.community_id != expected_community.id
+                render json: { error: "User not found in this community" }, status: :unauthorized
+                return
+              end
+            end
+
             # Set tenant for the user's community
             set_current_tenant(user.community)
 
