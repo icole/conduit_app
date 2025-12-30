@@ -7,6 +7,9 @@ class TabBarController: UITabBarController {
     // Callback for logout
     var onLogout: (() -> Void)?
 
+    // Callback for switching community
+    var onSwitchCommunity: (() -> Void)?
+
     // Use centralized configuration for base URL
     private let baseURL = AppConfig.baseURL
 

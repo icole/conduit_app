@@ -34,7 +34,8 @@ class TasksFragment : Fragment() {
 
         webView = view.findViewById(R.id.webview)
         setupWebView()
-        loadTasksPage()
+        // Don't load immediately - wait until fragment becomes visible
+        // This ensures the session cookie is established by HomeFragment first
     }
 
     private fun setupWebView() {
@@ -130,16 +131,28 @@ class TasksFragment : Fragment() {
     private fun loadTasksPage() {
         val baseUrl = com.colecoding.conduit.config.AppConfig.getBaseUrl(requireContext())
 
-        val url = "$baseUrl$TASKS_PATH"
-        Log.d(TAG, "Loading URL: $url")
+        // Check if session cookie exists
+        val cookieManager = CookieManager.getInstance()
+        val cookies = cookieManager.getCookie(baseUrl)
 
-        val token = AuthManager.getAuthToken(requireContext())
-        if (token != null) {
-            val headers = HashMap<String, String>()
-            headers["Authorization"] = "Bearer $token"
-            webView.loadUrl(url, headers)
-        } else {
+        if (cookies != null && cookies.contains("_conduit_app_session")) {
+            // Session exists, load directly
+            val url = "$baseUrl$TASKS_PATH"
+            Log.d(TAG, "Session cookie exists, loading URL: $url")
             webView.loadUrl(url)
+        } else {
+            // No session cookie, establish session first
+            val authToken = AuthManager.getAuthToken(requireContext())
+            if (authToken != null) {
+                Log.d(TAG, "No session cookie, establishing session first")
+                val authUrl = "$baseUrl/auth_login?token=$authToken&redirect_to=$TASKS_PATH"
+                webView.loadUrl(authUrl)
+            } else {
+                // No auth token, just try loading (will redirect to login)
+                val url = "$baseUrl$TASKS_PATH"
+                Log.d(TAG, "No auth token, loading URL: $url")
+                webView.loadUrl(url)
+            }
         }
     }
 
@@ -161,9 +174,9 @@ class TasksFragment : Fragment() {
         if (!hidden) {
             // Fragment is now visible
             webView.onResume()
-            // Reload if the WebView is blank
+            // Load if the WebView hasn't loaded yet
             if (webView.url == null || webView.url == "about:blank") {
-                Log.d(TAG, "WebView URL is blank, reloading")
+                Log.d(TAG, "WebView not loaded yet, loading now")
                 loadTasksPage()
             }
         } else {

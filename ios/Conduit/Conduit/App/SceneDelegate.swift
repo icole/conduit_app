@@ -14,6 +14,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: windowScene)
         self.window = window
 
+        // Check if community is selected first
+        if !CommunityManager.shared.hasCommunityURL() {
+            showCommunitySelectScreen()
+            window.makeKeyAndVisible()
+            return
+        }
+
         // Check authentication status and show appropriate screen
         if AuthenticationManager.shared.isAuthenticated() {
             // User might be authenticated, verify with server
@@ -56,6 +63,25 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.rootViewController = loadingVC
     }
 
+    private func showCommunitySelectScreen() {
+        let communitySelectVC = CommunitySelectViewController()
+        communitySelectVC.onCommunitySelected = { [weak self] in
+            // After community selected, proceed to login
+            self?.showLoginScreen()
+        }
+
+        let navController = UINavigationController(rootViewController: communitySelectVC)
+
+        // Animate transition if window already has a root view controller
+        if window?.rootViewController != nil {
+            UIView.transition(with: window!, duration: 0.3, options: .transitionCrossDissolve) {
+                self.window?.rootViewController = navController
+            }
+        } else {
+            window?.rootViewController = navController
+        }
+    }
+
     private func showLoginScreen() {
         let loginVC = LoginViewController()
         loginVC.onLoginSuccess = { [weak self] in
@@ -89,6 +115,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             ChatManager.shared.disconnect()
             AuthenticationManager.shared.logout()
             self?.showLoginScreen()
+        }
+
+        // Add switch community handler (clears community and shows selector)
+        tabBarController.onSwitchCommunity = { [weak self] in
+            ChatManager.shared.disconnect()
+            AuthenticationManager.shared.logout()
+            CommunityManager.shared.clearCommunityURL()
+            self?.showCommunitySelectScreen()
         }
 
         // Setup notification observer for push notification taps

@@ -9,6 +9,12 @@
     <string name="navigation_chat">Chat</string>
     <string name="navigation_profile">Profile</string>
 
+    <!-- Community Selection -->
+    <string name="community_select_title">Select Your Community</string>
+    <string name="community_select_subtitle">Choose the community you belong to</string>
+    <string name="community_continue">Continue</string>
+    <string name="community_switch">Switch Community</string>
+
     <!-- Authentication -->
     <string name="login_title">Sign In</string>
     <string name="login_email_hint">Email</string>
