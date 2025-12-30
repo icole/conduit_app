@@ -71,7 +71,27 @@ class StreamChannelService
       begin
         channel_id = community_channel_id(community, channel_data[:id])
         channel = client.channel("team", channel_id: channel_id)
-        channel.add_members([ user.id.to_s ])
+
+        # Try to query the channel first
+        begin
+          channel.query(user_id: user.id.to_s)
+          # Channel exists, just add the user
+          channel.add_members([ user.id.to_s ])
+        rescue StreamChat::StreamAPIException => e
+          if e.message.include?("Can't find channel")
+            # Channel doesn't exist, create it
+            Rails.logger.info "Creating channel #{channel_id} for community #{community.slug}"
+            channel.create(user.id.to_s, {
+              name: channel_data[:name],
+              description: channel_data[:description],
+              community_id: community.id,
+              community_slug: community.slug,
+              members: [ user.id.to_s ]
+            })
+          else
+            raise e
+          end
+        end
       rescue => e
         Rails.logger.warn "Could not add user to channel #{channel_id}: #{e.message}"
       end

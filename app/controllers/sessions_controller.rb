@@ -1,6 +1,8 @@
 class SessionsController < ApplicationController
   skip_before_action :authenticate_user!, only: [ :new, :create, :omniauth, :auth_login ]
   skip_before_action :verify_authenticity_token, only: [ :auth_login ]
+  skip_before_action :set_tenant_from_domain, only: [ :auth_login ]
+  before_action :set_tenant_from_token, only: [ :auth_login ]
 
   def new
     # Login page
@@ -134,6 +136,17 @@ class SessionsController < ApplicationController
   end
 
   private
+
+  def set_tenant_from_token
+    token = params[:token]
+    return unless token.present?
+
+    decoded = JwtService.decode(token)
+    return unless decoded && decoded[:community_id]
+
+    community = Community.find_by(id: decoded[:community_id])
+    set_current_tenant(community) if community
+  end
 
   def verify_auth_token(token)
     # Use JwtService to verify the token (same as in API controller)
