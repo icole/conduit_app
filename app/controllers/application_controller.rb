@@ -9,6 +9,7 @@ class ApplicationController < ActionController::Base
   set_current_tenant_through_filter
   before_action :set_tenant_from_domain
   before_action :authenticate_user!
+  before_action :verify_user_belongs_to_tenant!
   before_action :set_current_attributes
   before_action :update_last_active, if: :user_signed_in?
 
@@ -58,7 +59,19 @@ class ApplicationController < ActionController::Base
 
     # Find user without tenant scope to get their community
     user = ActsAsTenant.without_tenant { User.find_by(id: session[:user_id]) }
-    user&.community
+    return nil unless user
+
+    # If community_id is stored in session, verify it matches the user's actual community
+    # This is a safety check to prevent any tampering or stale session data
+    if session[:community_id] && session[:community_id] != user.community_id
+      Rails.logger.error "[SECURITY] Session community_id mismatch! " \
+        "Session has community_id: #{session[:community_id]}, " \
+        "but user #{user.id} belongs to community: #{user.community_id}. " \
+        "Using user's actual community for safety."
+      # Don't use the session community_id - use the user's actual community
+    end
+
+    user.community
   end
 
   def current_community
@@ -91,6 +104,43 @@ class ApplicationController < ActionController::Base
   def authorize_admin!
     unless current_user&.admin?
       redirect_to root_path, alert: "You are not authorized to access this page."
+    end
+  end
+
+  # CRITICAL SECURITY CHECK: Verify the logged-in user belongs to the current tenant
+  # This prevents any scenario where a user could see another community's data
+  # Optimized: Only checks when tenant was set from domain (not API domain),
+  # because API domain already uses user's actual community from session
+  def verify_user_belongs_to_tenant!
+    return unless user_signed_in?
+    return unless current_community
+
+    # Skip check for API domain - tenant is already set from user's community via session
+    return if api_domain?(request.host)
+
+    # For domain-based tenants, verify user belongs to this domain's community
+    # Use @current_user if already loaded to avoid extra query
+    user_community_id = @current_user&.community_id || session_user_community_id
+
+    if user_community_id && user_community_id != current_community.id
+      Rails.logger.error "[SECURITY] Tenant mismatch detected! " \
+        "User #{session[:user_id]} belongs to community #{user_community_id} " \
+        "but accessing domain for community #{current_community.id} (#{current_community.slug}). " \
+        "Request host: #{request.host}. User agent: #{request.user_agent}"
+
+      # Clear the session to prevent further issues
+      reset_session
+
+      # Fail the request - do NOT show any data
+      render plain: "Access denied - wrong community", status: :forbidden
+    end
+  end
+
+  # Helper to get user's community_id without loading full user object
+  def session_user_community_id
+    return nil unless session[:user_id]
+    ActsAsTenant.without_tenant do
+      User.where(id: session[:user_id]).pick(:community_id)
     end
   end
 

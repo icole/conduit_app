@@ -83,8 +83,9 @@ class SessionsController < ApplicationController
         # Clear any existing session first
         reset_session
 
-        # Set new session
+        # Set new session with user and community
         session[:user_id] = user.id
+        session[:community_id] = user.community_id
 
         # Add a flag to indicate mobile authentication
         session[:authenticated_via] = "mobile_token"

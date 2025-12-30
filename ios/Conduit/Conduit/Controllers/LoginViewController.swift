@@ -245,7 +245,8 @@ class LoginViewController: UIViewController {
     }
 
     @objc private func switchCommunityTapped() {
-        // Clear community selection and go back to selector
+        // Clear all auth data and community selection
+        AuthenticationManager.shared.logout()
         CommunityManager.shared.clearCommunityURL()
         onSwitchCommunity?()
     }
