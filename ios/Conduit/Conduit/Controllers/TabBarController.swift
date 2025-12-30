@@ -60,8 +60,23 @@ class TabBarController: UITabBarController {
             selectedIcon: UIImage(systemName: "message.fill")
         )
 
+        // Account Tab - Settings and logout
+        let accountVC = AccountViewController()
+        accountVC.onLogout = { [weak self] in
+            self?.onLogout?()
+        }
+        accountVC.onSwitchCommunity = { [weak self] in
+            self?.onSwitchCommunity?()
+        }
+        let accountNav = UINavigationController(rootViewController: accountVC)
+        accountNav.tabBarItem = UITabBarItem(
+            title: "Account",
+            image: UIImage(systemName: "person.circle"),
+            selectedImage: UIImage(systemName: "person.circle.fill")
+        )
+
         // Set view controllers
-        viewControllers = [homeNavigator, tasksNavigator, mealsNavigator, chatNavigator]
+        viewControllers = [homeNavigator, tasksNavigator, mealsNavigator, chatNavigator, accountNav]
     }
 
     private func createNavigator(for url: URL, title: String, icon: UIImage?, selectedIcon: UIImage?) -> UINavigationController {

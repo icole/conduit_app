@@ -15,6 +15,7 @@ import com.colecoding.conduit.auth.AuthManager
 import com.colecoding.conduit.auth.CommunitySelectActivity
 import com.colecoding.conduit.auth.LoginActivity
 import com.colecoding.conduit.config.CommunityManager
+import com.colecoding.conduit.fragments.AccountFragment
 import com.colecoding.conduit.fragments.CustomChatFragment
 import com.colecoding.conduit.fragments.HomeFragment
 import com.colecoding.conduit.fragments.TasksFragment
@@ -34,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private val tasksFragment = TasksFragment()
     private val mealsFragment = MealsFragment()
     private val chatFragment = CustomChatFragment()
+    private val accountFragment = AccountFragment()
     private var activeFragment: Fragment = homeFragment
 
     // Permission request launcher for notifications
@@ -78,6 +80,7 @@ class MainActivity : AppCompatActivity() {
         // Add all fragments but hide non-active ones
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction().apply {
+                add(R.id.fragment_container, accountFragment, "account").hide(accountFragment)
                 add(R.id.fragment_container, chatFragment, "chat").hide(chatFragment)
                 add(R.id.fragment_container, mealsFragment, "meals").hide(mealsFragment)
                 add(R.id.fragment_container, tasksFragment, "tasks").hide(tasksFragment)
@@ -114,6 +117,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.navigation_tasks -> tasksFragment
                 R.id.navigation_meals -> mealsFragment
                 R.id.navigation_chat -> chatFragment
+                R.id.navigation_account -> accountFragment
                 else -> homeFragment
             }
 

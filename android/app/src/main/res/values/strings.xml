@@ -8,6 +8,7 @@
     <string name="navigation_meals">Meals</string>
     <string name="navigation_chat">Chat</string>
     <string name="navigation_profile">Profile</string>
+    <string name="navigation_account">Account</string>
 
     <!-- Community Selection -->
     <string name="community_select_title">Select Your Community</string>
