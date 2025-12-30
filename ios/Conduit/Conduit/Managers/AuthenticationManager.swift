@@ -50,7 +50,7 @@ class AuthenticationManager {
         }.resume()
     }
 
-    /// Clear all authentication data
+    /// Clear all authentication data (synchronous version for backward compatibility)
     func logout() {
         // Clear HTTP cookies
         if let cookies = HTTPCookieStorage.shared.cookies {
@@ -59,16 +59,46 @@ class AuthenticationManager {
             }
         }
 
-        // Clear WKWebsiteDataStore cookies
+        // Clear URL cache
+        URLCache.shared.removeAllCachedResponses()
+
+        // Clear WKWebsiteDataStore - all types including cache
         let dataStore = WKWebsiteDataStore.default()
-        dataStore.fetchDataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()) { records in
-            dataStore.removeData(
-                ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
-                for: records,
-                completionHandler: {
-                    print("Cleared all web data")
-                }
-            )
+        let allTypes = WKWebsiteDataStore.allWebsiteDataTypes()
+
+        // Use semaphore to make this synchronous
+        let semaphore = DispatchSemaphore(value: 0)
+
+        dataStore.removeData(ofTypes: allTypes, modifiedSince: Date.distantPast) {
+            print("Cleared all WebView data (cookies, cache, localStorage, etc.)")
+            semaphore.signal()
+        }
+
+        // Wait up to 2 seconds for cleanup
+        _ = semaphore.wait(timeout: .now() + 2.0)
+    }
+
+    /// Clear all authentication data with completion handler
+    func logout(completion: @escaping () -> Void) {
+        // Clear HTTP cookies
+        if let cookies = HTTPCookieStorage.shared.cookies {
+            for cookie in cookies {
+                HTTPCookieStorage.shared.deleteCookie(cookie)
+            }
+        }
+
+        // Clear URL cache
+        URLCache.shared.removeAllCachedResponses()
+
+        // Clear WKWebsiteDataStore - all types including cache
+        let dataStore = WKWebsiteDataStore.default()
+        let allTypes = WKWebsiteDataStore.allWebsiteDataTypes()
+
+        dataStore.removeData(ofTypes: allTypes, modifiedSince: Date.distantPast) {
+            print("Cleared all WebView data (cookies, cache, localStorage, etc.)")
+            DispatchQueue.main.async {
+                completion()
+            }
         }
     }
 

@@ -117,16 +117,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         tabBarController.onLogout = { [weak self] in
             // Disconnect Stream Chat before logging out
             ChatManager.shared.disconnect()
-            AuthenticationManager.shared.logout()
-            self?.showLoginScreen()
+            // Use async logout to ensure all data is cleared before showing login
+            AuthenticationManager.shared.logout {
+                self?.showLoginScreen()
+            }
         }
 
         // Add switch community handler (clears community and shows selector)
         tabBarController.onSwitchCommunity = { [weak self] in
             ChatManager.shared.disconnect()
-            AuthenticationManager.shared.logout()
-            CommunityManager.shared.clearCommunityURL()
-            self?.showCommunitySelectScreen()
+            // Use async logout to ensure all data is cleared before showing selector
+            AuthenticationManager.shared.logout {
+                CommunityManager.shared.clearCommunityURL()
+                self?.showCommunitySelectScreen()
+            }
         }
 
         // Setup notification observer for push notification taps

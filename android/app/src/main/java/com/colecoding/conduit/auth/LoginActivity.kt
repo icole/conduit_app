@@ -268,10 +268,29 @@ class LoginActivity : AppCompatActivity() {
             Log.w(TAG, "No auth token in response")
         }
 
+        // Clear all WebView data before proceeding to ensure no stale community data
+        clearWebViewData()
+
         // Navigate to main activity
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
+    }
+
+    private fun clearWebViewData() {
+        Log.d(TAG, "Clearing all WebView data before showing main app")
+
+        // Clear all WebView cookies
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies { success ->
+            Log.d(TAG, "WebView cookies cleared: $success")
+        }
+        cookieManager.flush()
+
+        // Clear WebView storage (localStorage, sessionStorage, databases)
+        WebStorage.getInstance().deleteAllData()
+
+        Log.d(TAG, "WebView data cleared")
     }
 
     private fun showLoading(show: Boolean) {

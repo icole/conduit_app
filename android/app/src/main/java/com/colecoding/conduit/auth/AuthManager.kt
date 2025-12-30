@@ -3,6 +3,9 @@ package com.colecoding.conduit.auth
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import android.webkit.CookieManager
+import android.webkit.WebStorage
+import android.webkit.WebView
 import org.json.JSONObject
 
 object AuthManager {
@@ -105,8 +108,31 @@ object AuthManager {
     }
 
     fun logout(context: Context) {
-        Log.d(TAG, "Logging out user")
+        Log.d(TAG, "Logging out user - clearing all data")
+
+        // Clear SharedPreferences
         getPrefs(context).edit().clear().apply()
+
+        // Clear all WebView cookies
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies { success ->
+            Log.d(TAG, "Cookies cleared: $success")
+        }
+        cookieManager.flush()
+
+        // Clear WebView storage (localStorage, sessionStorage, databases)
+        WebStorage.getInstance().deleteAllData()
+
+        // Clear WebView cache
+        try {
+            // This requires a WebView instance, but we can clear the cache directory
+            context.cacheDir.deleteRecursively()
+            Log.d(TAG, "Cache directory cleared")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error clearing cache", e)
+        }
+
+        Log.d(TAG, "Logout complete - all data cleared")
     }
 
     suspend fun getStreamChatToken(context: Context): String? {
