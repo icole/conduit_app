@@ -20,16 +20,8 @@ enum AppConfig {
 
     // MARK: - Base URL
     static var baseURL: URL {
-        // Check for user-selected community URL first (for production)
-        if Environment.current == .production,
-           let communityURL = CommunityManager.shared.getCommunityURL() {
-            print("🏘️ Using selected community URL: \(communityURL.absoluteString)")
-            return communityURL
-        }
-
         let url: URL
 
-        // Check environment first - Debug always uses localhost
         switch Environment.current {
         case .development:
             // In Debug mode, always use localhost
@@ -37,20 +29,10 @@ enum AppConfig {
             url = URL(string: "http://localhost:3000")!
 
         case .production:
-            // In Release mode, check for Config.plist
-            if let configURL = loadProductionURLFromPlist() {
-                print("📋 Found Config.plist with URL: \(configURL.absoluteString)")
-                url = configURL
-            } else {
-                // Fallback to compile-time URL if set
-                #if PRODUCTION_URL
-                url = URL(string: PRODUCTION_URL)!
-                #else
-                // Default fallback - update this or use Config.plist
-                print("⚠️ No Config.plist found and no PRODUCTION_URL set")
-                url = URL(string: "https://your-production-url.com")!
-                #endif
-            }
+            // In production, always use the central API domain
+            // The backend determines the tenant from the JWT token
+            print("🏘️ Using central API URL: \(communitiesAPIURL.absoluteString)")
+            url = communitiesAPIURL
         }
 
         print("🔗 AppConfig: Using base URL: \(url.absoluteString)")

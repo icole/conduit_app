@@ -5,13 +5,20 @@ module Api
     class AuthController < ApplicationController
       skip_before_action :verify_authenticity_token
       skip_before_action :authenticate_user!
+      skip_before_action :set_tenant_from_domain
+      before_action :set_tenant_from_jwt, only: [ :stream_token, :check, :logout, :establish_session ]
       before_action :authenticate_api_user!, only: [ :stream_token, :check, :logout, :establish_session ]
 
       # POST /api/v1/login
       def login
-        user = User.find_by(email: params[:email]&.downcase)
+        # Search across all tenants since we're using API domain
+        user = ActsAsTenant.without_tenant do
+          User.find_by(email: params[:email]&.downcase)
+        end
 
         if user&.authenticate(params[:password])
+          # Set tenant for the user's community
+          set_current_tenant(user.community)
           # Set session for the user
           session[:user_id] = user.id
 
@@ -150,11 +157,17 @@ module Api
           end
 
           # First, check if user already exists with this email (regardless of provider)
-          user = User.find_by(email: email.downcase)
+          # Search across all tenants since we're using API domain
+          user = ActsAsTenant.without_tenant do
+            User.find_by(email: email.downcase)
+          end
 
           Rails.logger.info "Google Auth: email=#{email}, existing_user=#{user.present?}"
 
           if user
+            # Set tenant for the user's community
+            set_current_tenant(user.community)
+
             # Existing user - update their OAuth info if not already set
             user.update(
               provider: user.provider || "google_oauth2",
@@ -211,6 +224,18 @@ module Api
       end
 
       private
+
+      def set_tenant_from_jwt
+        auth_header = request.headers["Authorization"]
+        return unless auth_header.present? && auth_header.start_with?("Bearer ")
+
+        token = auth_header.split(" ").last
+        decoded = JwtService.decode(token)
+        return unless decoded && decoded[:community_id]
+
+        community = Community.find_by(id: decoded[:community_id])
+        set_current_tenant(community) if community
+      end
 
       def authenticate_api_user!
         # Try auth token first
