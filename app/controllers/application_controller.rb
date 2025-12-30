@@ -40,7 +40,25 @@ class ApplicationController < ActionController::Base
              Community.first
     end
 
+    # Handle API domain - determine community from logged-in user's session
+    if api_domain?(host)
+      return community_from_session
+    end
+
     Community.find_by(domain: host) || Community.find_by(domain: host.gsub(/^www\./, ""))
+  end
+
+  def api_domain?(host)
+    api_domain = ENV["CONDUIT_API_DOMAIN"] || "api.conduitcoho.app"
+    host == api_domain
+  end
+
+  def community_from_session
+    return nil unless session[:user_id]
+
+    # Find user without tenant scope to get their community
+    user = ActsAsTenant.without_tenant { User.find_by(id: session[:user_id]) }
+    user&.community
   end
 
   def current_community
