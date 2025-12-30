@@ -164,7 +164,7 @@ namespace :stream_chat do
       # Query all team channels
       response = client.query_channels(
         { "type" => { "$eq" => "team" } },
-        { "created_at" => -1 },
+        sort: { "created_at" => -1 },
         limit: 100
       )
 
