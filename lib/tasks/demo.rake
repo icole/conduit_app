@@ -55,24 +55,22 @@ namespace :demo do
       # Sample posts
       3.times do |i|
         Post.find_or_create_by!(
-          title: "Welcome Post #{i + 1}",
+          content: "Welcome to the demo community! This is sample post #{i + 1}. Feel free to explore the app!",
           user: user
-        ) do |post|
-          post.content = "This is a sample post for the demo community. Feel free to explore the app!"
-        end
+        )
       end
       puts "  Created sample posts"
 
       # Sample meals (upcoming)
       3.times do |i|
-        date = Date.today + (i + 1).weeks
+        scheduled_at = (Date.today + (i + 1).weeks).to_datetime.change(hour: 18)
         Meal.find_or_create_by!(
-          date: date,
+          scheduled_at: scheduled_at,
           community: community
         ) do |meal|
-          meal.title = "Community Dinner"
-          meal.chef = user
-          meal.description = "A delicious community meal"
+          meal.title = "Community Dinner #{i + 1}"
+          meal.description = "A delicious community meal for everyone to enjoy"
+          meal.rsvp_deadline = scheduled_at - 1.day
         end
       end
       puts "  Created sample meals"
@@ -80,11 +78,13 @@ namespace :demo do
       # Sample tasks
       3.times do |i|
         Task.find_or_create_by!(
-          name: "Sample Task #{i + 1}",
+          title: "Sample Task #{i + 1}",
           community: community
         ) do |task|
           task.description = "This is a sample task for demonstration"
           task.due_date = Date.today + (i + 1).weeks
+          task.user = user
+          task.status = "backlog"
         end
       end
       puts "  Created sample tasks"
@@ -110,10 +110,50 @@ namespace :demo do
   task destroy: :environment do
     community_slug = ENV.fetch("DEMO_COMMUNITY_SLUG", "demo")
 
+    # Safety check: prevent accidentally destroying production communities
+    protected_slugs = %w[crow-woods crowwoods production prod main]
+    if protected_slugs.include?(community_slug.downcase)
+      puts "ERROR: Cannot destroy protected community '#{community_slug}'"
+      puts "This task is only for demo/test communities."
+      exit 1
+    end
+
     community = Community.find_by(slug: community_slug)
 
     if community.nil?
       puts "Demo community not found (slug: #{community_slug})"
+      exit 0
+    end
+
+    # Safety check: ensure this looks like a demo community
+    unless community.domain.include?("demo") || community.name.downcase.include?("demo")
+      puts "ERROR: Community '#{community.name}' (#{community.domain}) does not appear to be a demo community."
+      puts "Domain or name must contain 'demo' to be destroyed with this task."
+      puts "If you really want to destroy this community, do it manually in the Rails console."
+      exit 1
+    end
+
+    puts ""
+    puts "=" * 50
+    puts "WARNING: This will permanently delete:"
+    puts "  Community: #{community.name}"
+    puts "  Domain: #{community.domain}"
+    puts "  Slug: #{community.slug}"
+
+    ActsAsTenant.with_tenant(community) do
+      puts "  Users: #{User.count}"
+      puts "  Posts: #{Post.count}"
+      puts "  Meals: #{Meal.count}"
+      puts "  Tasks: #{Task.count}"
+    end
+
+    puts "=" * 50
+    puts ""
+
+    # Require explicit confirmation unless CONFIRM=true
+    unless ENV["CONFIRM"] == "true"
+      puts "To proceed, run with CONFIRM=true:"
+      puts "  CONFIRM=true bin/rails demo:destroy"
       exit 0
     end
 
@@ -134,9 +174,11 @@ namespace :demo do
       User.destroy_all
     end
 
-    # Delete the community itself
+    # Delete the community itself (outside tenant scope)
     puts "  Deleting community..."
-    community.destroy!
+    ActsAsTenant.without_tenant do
+      community.destroy!
+    end
 
     puts ""
     puts "Demo community destroyed successfully!"
