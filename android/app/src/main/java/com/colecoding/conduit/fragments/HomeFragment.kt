@@ -50,6 +50,14 @@ class HomeFragment : Fragment() {
                     super.onPageFinished(view, url)
                     Log.d(TAG, "Page loaded: $url")
 
+                    // Flush cookies after each page load to ensure they persist
+                    CookieManager.getInstance().flush()
+
+                    // Log current cookies for debugging
+                    val baseUrl = AppConfig.getBaseUrl(requireContext())
+                    val cookies = CookieManager.getInstance().getCookie(baseUrl)
+                    Log.d(TAG, "Current cookies for $baseUrl: $cookies")
+
                     // Check if we just finished auth_login
                     if (url?.contains("auth_login") == true) {
                         Log.d(TAG, "Auth login page loaded, session should be established")

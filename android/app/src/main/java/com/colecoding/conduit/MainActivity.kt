@@ -12,7 +12,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.colecoding.conduit.auth.AuthManager
+import com.colecoding.conduit.auth.CommunitySelectActivity
 import com.colecoding.conduit.auth.LoginActivity
+import com.colecoding.conduit.config.CommunityManager
 import com.colecoding.conduit.fragments.CustomChatFragment
 import com.colecoding.conduit.fragments.HomeFragment
 import com.colecoding.conduit.fragments.TasksFragment
@@ -47,6 +49,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Check if community is selected first
+        if (!CommunityManager.hasCommunityUrl(this)) {
+            Log.d(TAG, "No community selected, redirecting to community selector")
+            startActivity(Intent(this, CommunitySelectActivity::class.java))
+            finish()
+            return
+        }
 
         // Check authentication
         if (!AuthManager.isAuthenticated(this)) {
@@ -122,6 +132,13 @@ class MainActivity : AppCompatActivity() {
     override fun onRestart() {
         super.onRestart()
 
+        // Check community selection on restart
+        if (!CommunityManager.hasCommunityUrl(this)) {
+            startActivity(Intent(this, CommunitySelectActivity::class.java))
+            finish()
+            return
+        }
+
         // Check authentication on restart
         if (!AuthManager.isAuthenticated(this)) {
             startActivity(Intent(this, LoginActivity::class.java))
@@ -137,6 +154,21 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "Logging out")
                 AuthManager.logout(this)
                 startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    fun switchCommunity() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.community_switch)
+            .setMessage("This will log you out. Continue?")
+            .setPositiveButton("Continue") { _, _ ->
+                Log.d(TAG, "Switching community")
+                AuthManager.logout(this)
+                CommunityManager.clearCommunityUrl(this)
+                startActivity(Intent(this, CommunitySelectActivity::class.java))
                 finish()
             }
             .setNegativeButton("Cancel", null)

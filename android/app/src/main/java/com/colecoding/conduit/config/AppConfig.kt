@@ -7,8 +7,18 @@ import com.colecoding.conduit.BuildConfig
 object AppConfig {
     private const val TAG = "AppConfig"
 
+    // Communities API URL
+    const val COMMUNITIES_API_URL = "https://api.conduitcoho.app"
+
     fun getBaseUrl(context: Context): String {
-        // Check for runtime configuration file first (similar to iOS Config.plist)
+        // Check for user-selected community URL first
+        val communityUrl = CommunityManager.getCommunityUrl(context)
+        if (communityUrl != null) {
+            Log.d(TAG, "Using selected community URL: $communityUrl")
+            return communityUrl
+        }
+
+        // Check for runtime configuration file (similar to iOS Config.plist)
         val configUrl = loadUrlFromConfig(context)
         if (configUrl != null) {
             Log.d(TAG, "Using URL from config: $configUrl")

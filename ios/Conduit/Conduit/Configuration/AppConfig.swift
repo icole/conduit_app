@@ -15,8 +15,18 @@ enum AppConfig {
         }
     }
 
+    // MARK: - Communities API URL
+    static let communitiesAPIURL = URL(string: "https://api.conduitcoho.app")!
+
     // MARK: - Base URL
     static var baseURL: URL {
+        // Check for user-selected community URL first (for production)
+        if Environment.current == .production,
+           let communityURL = CommunityManager.shared.getCommunityURL() {
+            print("🏘️ Using selected community URL: \(communityURL.absoluteString)")
+            return communityURL
+        }
+
         let url: URL
 
         // Check environment first - Debug always uses localhost
