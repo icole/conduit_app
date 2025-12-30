@@ -497,28 +497,37 @@ class LoginViewController: UIViewController {
     }
 
     private func handleLoginSuccess(response: HTTPURLResponse) {
-        // Save cookies to shared storage
+        // Save cookies to HTTPCookieStorage
         if let cookies = HTTPCookieStorage.shared.cookies(for: response.url!) {
             for cookie in cookies {
                 HTTPCookieStorage.shared.setCookie(cookie)
-                print("Saved cookie: \(cookie.name)")
+                print("Saved cookie: \(cookie.name) for domain: \(cookie.domain)")
             }
         }
 
-        // Also save to WKWebsiteDataStore for web views
+        // IMPORTANT: Clear ALL existing WebView data first, then set new cookies
+        // This ensures no stale data from previous community sessions
         let dataStore = WKWebsiteDataStore.default()
-        if let cookies = HTTPCookieStorage.shared.cookies(for: response.url!) {
+        let allTypes = WKWebsiteDataStore.allWebsiteDataTypes()
+
+        dataStore.removeData(ofTypes: allTypes, modifiedSince: Date.distantPast) { [weak self] in
+            print("Cleared all WebView data before setting new session")
+
+            // Now sync the new cookies from HTTPCookieStorage to WebView
+            let cookies = HTTPCookieStorage.shared.cookies ?? []
+            let group = DispatchGroup()
+
             for cookie in cookies {
-                dataStore.httpCookieStore.setCookie(cookie) { [weak self] in
-                    // After all cookies are set, notify success
-                    DispatchQueue.main.async {
-                        self?.onLoginSuccess?()
-                    }
+                group.enter()
+                dataStore.httpCookieStore.setCookie(cookie) {
+                    group.leave()
                 }
             }
-        } else {
-            // No cookies but still successful, proceed
-            onLoginSuccess?()
+
+            group.notify(queue: .main) {
+                print("Synced \(cookies.count) cookies to WebView after clearing")
+                self?.onLoginSuccess?()
+            }
         }
     }
 

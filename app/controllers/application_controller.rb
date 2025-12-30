@@ -107,32 +107,27 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  # CRITICAL SECURITY CHECK: Verify the logged-in user belongs to the current tenant
+  # Verify the logged-in user belongs to the current tenant
   # This prevents any scenario where a user could see another community's data
-  # Optimized: Only checks when tenant was set from domain (not API domain),
-  # because API domain already uses user's actual community from session
   def verify_user_belongs_to_tenant!
     return unless user_signed_in?
     return unless current_community
 
-    # Skip check for API domain - tenant is already set from user's community via session
-    return if api_domain?(request.host)
-
-    # For domain-based tenants, verify user belongs to this domain's community
     # Use @current_user if already loaded to avoid extra query
     user_community_id = @current_user&.community_id || session_user_community_id
 
     if user_community_id && user_community_id != current_community.id
-      Rails.logger.error "[SECURITY] Tenant mismatch detected! " \
+      Rails.logger.error "[TENANT] Mismatch detected! " \
         "User #{session[:user_id]} belongs to community #{user_community_id} " \
-        "but accessing domain for community #{current_community.id} (#{current_community.slug}). " \
+        "but tenant is #{current_community.id} (#{current_community.slug}). " \
+        "Session community_id: #{session[:community_id]}. " \
         "Request host: #{request.host}. User agent: #{request.user_agent}"
 
       # Clear the session to prevent further issues
       reset_session
 
       # Fail the request - do NOT show any data
-      render plain: "Access denied - wrong community", status: :forbidden
+      render plain: "Access denied - session error", status: :forbidden
     end
   end
 
