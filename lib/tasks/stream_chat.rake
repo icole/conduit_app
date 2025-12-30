@@ -94,14 +94,15 @@ namespace :stream_chat do
         default_channel_ids.each do |base_id|
           begin
             old_channel = client.channel("team", channel_id: base_id)
-            old_channel.query(user_id: admin_user.id.to_s)
 
-            # Channel exists! Update it with community_slug metadata
-            puts "    Found old channel '#{base_id}', updating with community_slug: #{community.slug}"
-            old_channel.update({
-              community_id: community.id,
-              community_slug: community.slug
-            }, user_id: admin_user.id.to_s)
+            # Use update_partial which doesn't require created_by
+            old_channel.update_partial(
+              set: {
+                community_id: community.id,
+                community_slug: community.slug
+              },
+              user_id: admin_user.id.to_s
+            )
             puts "    Updated #{base_id} with community metadata"
           rescue StreamChat::StreamAPIException => e
             if e.message.include?("Can't find channel")
@@ -123,35 +124,26 @@ namespace :stream_chat do
         begin
           channel = client.channel("team", channel_id: channel_id)
 
-          # Try to query first to see if it exists
-          begin
-            channel.query(user_id: admin_user.id.to_s)
-            # Channel exists, update metadata
-            channel.update({
+          # Create the channel with get_or_create semantics
+          channel.create(admin_user.id.to_s, {
+            name: channel_data[:name],
+            description: channel_data[:description],
+            community_id: community.id,
+            community_slug: community.slug,
+            members: [ admin_user.id.to_s ]
+          })
+          puts "    Created/updated channel: #{channel_id}"
+
+          # Update metadata in case channel already existed
+          channel.update_partial(
+            set: {
               name: channel_data[:name],
               description: channel_data[:description],
               community_id: community.id,
               community_slug: community.slug
-            }, user_id: admin_user.id.to_s)
-            puts "    Updated existing channel: #{channel_id}"
-          rescue StreamChat::StreamAPIException => e
-            if e.message.include?("Can't find channel")
-              # Create the channel
-              channel.create(admin_user.id.to_s, {
-                name: channel_data[:name],
-                description: channel_data[:description],
-                community_id: community.id,
-                community_slug: community.slug,
-                members: [ admin_user.id.to_s ]
-              })
-              puts "    Created new channel: #{channel_id}"
-            else
-              raise e
-            end
-          end
-
-          # Add admin user as member
-          channel.add_members([ admin_user.id.to_s ])
+            },
+            user_id: admin_user.id.to_s
+          )
         rescue => e
           puts "    Error with channel #{channel_id}: #{e.message}"
         end
