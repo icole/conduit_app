@@ -13,14 +13,16 @@ class StreamChatViewController: UIViewController {
     private let userAvatar: String?
     private let token: String?
     private let apiKey: String?
+    private let communitySlug: String?
     private var restrictedAccess: Bool = false
 
-    init(userId: String, userName: String, userAvatar: String? = nil, token: String? = nil, apiKey: String? = nil) {
+    init(userId: String, userName: String, userAvatar: String? = nil, token: String? = nil, apiKey: String? = nil, communitySlug: String? = nil) {
         self.userId = userId
         self.userName = userName
         self.userAvatar = userAvatar
         self.token = token
         self.apiKey = apiKey
+        self.communitySlug = communitySlug
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -564,21 +566,25 @@ class StreamChatViewController: UIViewController {
                 self.checkRegisteredDevices()
             }
 
-            // Create channel list query based on user's access level
+            // Create channel list query based on user's community
             let query: ChannelListQuery
-            if self.restrictedAccess {
-                // Restricted users only see demo channels they're members of
+            if let communitySlug = self.communitySlug {
+                // Filter by community slug to show only this community's channels
+                print("Filtering channels for community: \(communitySlug)")
                 query = ChannelListQuery(
                     filter: .and([
-                        .equal(.type, to: .custom("demo")),
-                        .containMembers(userIds: [client.currentUserId].compactMap { $0 })
+                        .equal(.type, to: .team),
+                        .equal("community_slug", to: communitySlug)
                     ])
                 )
-                print("Restricted mode: showing demo channels only")
             } else {
-                // Regular users see all team channels (not demo channels)
+                // Fallback: show channels user is a member of
+                print("No community slug, showing channels user is member of")
                 query = ChannelListQuery(
-                    filter: .equal(.type, to: .team)
+                    filter: .and([
+                        .equal(.type, to: .team),
+                        .containMembers(userIds: [client.currentUserId].compactMap { $0 })
+                    ])
                 )
             }
 

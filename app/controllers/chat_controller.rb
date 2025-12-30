@@ -44,7 +44,8 @@ class ChatController < ApplicationController
             avatar: current_user.avatar_url,
             restricted_access: current_user.restricted_access
           },
-          api_key: StreamChatClient.api_key
+          api_key: StreamChatClient.api_key,
+          community_slug: current_user.community.slug
         }
       end
       format.any do
@@ -56,7 +57,8 @@ class ChatController < ApplicationController
             avatar: current_user.avatar_url,
             restricted_access: current_user.restricted_access
           },
-          api_key: StreamChatClient.api_key
+          api_key: StreamChatClient.api_key,
+          community_slug: current_user.community.slug
         }
       end
     end
