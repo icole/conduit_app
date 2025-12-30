@@ -64,8 +64,27 @@ build_ios() {
     cd "$PROJECT_ROOT"
 }
 
+bump_android_version() {
+    local build_gradle="$PROJECT_ROOT/android/app/build.gradle"
+
+    # Extract current versionCode
+    local current_version_code=$(grep -E "versionCode [0-9]+" "$build_gradle" | sed 's/.*versionCode \([0-9]*\).*/\1/')
+    local new_version_code=$((current_version_code + 1))
+
+    # Update versionCode
+    sed -i '' "s/versionCode $current_version_code/versionCode $new_version_code/" "$build_gradle"
+
+    # Update versionName to match (1.0.X format)
+    sed -i '' "s/versionName \"[^\"]*\"/versionName \"1.0.$new_version_code\"/" "$build_gradle"
+
+    log_info "Bumped Android version: versionCode $current_version_code -> $new_version_code (versionName 1.0.$new_version_code)"
+}
+
 build_android() {
     log_info "Building Android app..."
+
+    # Bump version before building
+    bump_android_version
 
     cd "$PROJECT_ROOT/android"
 
