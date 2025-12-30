@@ -130,21 +130,24 @@ class CustomChatFragment : Fragment() {
         container.removeAllViews()
         container.addView(channelListView)
 
-        // Setup the channel list based on user's access level
+        // Setup the channel list based on user's community
         val userId = AuthManager.getUserId(requireContext()) ?: return
-        val isRestricted = AuthManager.isRestrictedAccess(requireContext())
+        val communitySlug = AuthManager.getCommunitySlug(requireContext())
 
-        val filter = if (isRestricted) {
-            // Restricted users only see demo channels they're members of
-            Log.d(TAG, "Creating restricted channel filter (demo channels only)")
+        val filter = if (communitySlug != null) {
+            // Filter by community slug to show only this community's channels
+            Log.d(TAG, "Creating channel filter for community: $communitySlug")
             Filters.and(
-                Filters.eq("type", "demo"),
-                Filters.`in`("members", listOf(userId))
+                Filters.eq("type", "team"),
+                Filters.eq("community_slug", communitySlug)
             )
         } else {
-            // Regular users see all team channels (not demo channels)
-            Log.d(TAG, "Creating channel filter to show all team channels")
-            Filters.eq("type", "team")
+            // Fallback: show channels user is a member of
+            Log.d(TAG, "No community slug, showing channels user is member of")
+            Filters.and(
+                Filters.eq("type", "team"),
+                Filters.`in`("members", listOf(userId))
+            )
         }
 
         val viewModelFactory = ChannelListViewModelFactory(

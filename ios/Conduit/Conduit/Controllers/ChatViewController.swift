@@ -100,7 +100,8 @@ class ChatViewController: HotwireNativeViewController {
                     userName: tokenData.userName,
                     userAvatar: tokenData.userAvatar,
                     token: tokenData.token,
-                    apiKey: tokenData.apiKey
+                    apiKey: tokenData.apiKey,
+                    communitySlug: tokenData.communitySlug
                 )
 
                 // Mark that we're showing Stream Chat
@@ -113,7 +114,7 @@ class ChatViewController: HotwireNativeViewController {
         }
     }
 
-    private func fetchStreamToken(completion: @escaping ((userId: String, userName: String, userAvatar: String?, token: String, apiKey: String)?) -> Void) {
+    private func fetchStreamToken(completion: @escaping ((userId: String, userName: String, userAvatar: String?, token: String, apiKey: String, communitySlug: String?)?) -> Void) {
         // Get token URL from AppConfig - add .json extension for Rails
         let tokenURL = AppConfig.baseURL.appendingPathComponent("chat/token.json")
 
@@ -154,7 +155,7 @@ class ChatViewController: HotwireNativeViewController {
         }
     }
 
-    private func performTokenRequest(_ request: URLRequest, completion: @escaping ((userId: String, userName: String, userAvatar: String?, token: String, apiKey: String)?) -> Void) {
+    private func performTokenRequest(_ request: URLRequest, completion: @escaping ((userId: String, userName: String, userAvatar: String?, token: String, apiKey: String, communitySlug: String?)?) -> Void) {
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("Token fetch error: \(error)")
@@ -190,7 +191,8 @@ class ChatViewController: HotwireNativeViewController {
             }
 
             let userAvatar = user["avatar"] as? String
-            completion((userId, userName, userAvatar, token, apiKey))
+            let communitySlug = json["community_slug"] as? String
+            completion((userId, userName, userAvatar, token, apiKey, communitySlug))
         }.resume()
     }
 

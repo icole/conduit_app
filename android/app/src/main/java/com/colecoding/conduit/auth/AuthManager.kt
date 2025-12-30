@@ -15,6 +15,7 @@ object AuthManager {
     private const val KEY_STREAM_TOKEN = "stream_chat_token"
     private const val KEY_AUTH_TOKEN = "auth_token"
     private const val KEY_RESTRICTED_ACCESS = "restricted_access"
+    private const val KEY_COMMUNITY_SLUG = "community_slug"
 
     private const val TAG = "AuthManager"
 
@@ -94,6 +95,15 @@ object AuthManager {
         return getPrefs(context).getBoolean(KEY_RESTRICTED_ACCESS, false)
     }
 
+    fun setCommunitySlug(context: Context, slug: String) {
+        Log.d(TAG, "Setting community slug: $slug")
+        getPrefs(context).edit().putString(KEY_COMMUNITY_SLUG, slug).apply()
+    }
+
+    fun getCommunitySlug(context: Context): String? {
+        return getPrefs(context).getString(KEY_COMMUNITY_SLUG, null)
+    }
+
     fun logout(context: Context) {
         Log.d(TAG, "Logging out user")
         getPrefs(context).edit().clear().apply()
@@ -155,6 +165,12 @@ object AuthManager {
 
                 // Store the token for future use
                 setStreamChatToken(context, token)
+
+                // Store community slug for channel filtering
+                if (jsonObject.has("community_slug")) {
+                    setCommunitySlug(context, jsonObject.getString("community_slug"))
+                    Log.d(TAG, "Community slug: ${jsonObject.getString("community_slug")}")
+                }
 
                 // Also update user data if present
                 if (jsonObject.has("user")) {

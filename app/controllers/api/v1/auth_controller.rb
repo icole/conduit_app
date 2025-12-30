@@ -126,7 +126,8 @@ module Api
               name: @current_user.name,
               avatar: @current_user.avatar_url
             },
-            api_key: StreamChatClient.api_key
+            api_key: StreamChatClient.api_key,
+            community_slug: @current_user.community.slug
           }, status: :ok
         else
           render json: { error: "Not authenticated" }, status: :unauthorized
