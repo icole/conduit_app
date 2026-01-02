@@ -69,6 +69,16 @@ class MealTest < ActiveSupport::TestCase
     assert_not_includes upcoming, @past_meal
   end
 
+  test "upcoming scope includes meals with rsvps_closed status" do
+    upcoming = Meal.upcoming
+    assert_includes upcoming, meals(:rsvps_closed)
+  end
+
+  test "upcoming scope excludes cancelled meals" do
+    upcoming = Meal.upcoming
+    assert_not_includes upcoming, @cancelled_meal
+  end
+
   test "needs_cooks scope returns meals without cooks" do
     needs_cooks = Meal.needs_cooks
     assert_includes needs_cooks, meals(:needs_cook)

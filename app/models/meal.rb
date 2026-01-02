@@ -22,7 +22,7 @@ class Meal < ApplicationRecord
   after_save :sync_to_google_calendar, if: :should_sync_to_calendar?
   after_discard :delete_from_google_calendar
 
-  scope :upcoming, -> { where(status: "upcoming").where("scheduled_at > ?", Time.current).order(:scheduled_at) }
+  scope :upcoming, -> { where(status: %w[upcoming rsvps_closed]).where("scheduled_at > ?", Time.current).order(:scheduled_at) }
   scope :past, -> { where("scheduled_at < ?", Time.current).order(scheduled_at: :desc) }
   scope :needs_cooks, -> { upcoming.left_joins(:meal_cooks).group(:id).having("COUNT(meal_cooks.id) = 0") }
   scope :for_week, ->(date) { where(scheduled_at: date.beginning_of_week..date.end_of_week).order(:scheduled_at) }
