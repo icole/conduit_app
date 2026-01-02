@@ -19,119 +19,78 @@
   end
 %>
 
-<div id="meal_<%= meal.id %>" class="card bg-base-100 shadow-lg border-l-4 <%= border_class %>">
-  <div class="card-body">
-    <!-- Date & Time Header -->
-    <div class="flex justify-between items-start gap-3">
-      <div class="min-w-0 flex-1">
-        <div class="text-sm font-semibold text-base-content">
-          <% if is_today %>
-            Today
-          <% elsif is_tomorrow %>
-            Tomorrow
-          <% else %>
-            <%= meal.scheduled_at.strftime("%A, %b %d") %>
-          <% end %>
+<%= link_to meal_path(meal), id: "meal_#{meal.id}", class: "card bg-base-100 shadow-lg border-l-4 #{border_class} hover:shadow-xl transition-shadow" do %>
+  <div class="card-body p-4">
+    <!-- Header: Date, Time, Status -->
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <div class="text-center min-w-12">
+          <div class="text-2xl font-bold <%= is_today ? 'text-primary' : '' %>"><%= meal.scheduled_at.day %></div>
+          <div class="text-xs text-base-content/60 uppercase"><%= meal.scheduled_at.strftime("%b") %></div>
         </div>
-        <h2 class="card-title text-lg mt-1">
-          <%= link_to meal.display_title, meal_path(meal), class: "link link-hover truncate block" %>
-        </h2>
+        <div>
+          <div class="font-semibold">
+            <% if is_today %>
+              Today
+            <% elsif is_tomorrow %>
+              Tomorrow
+            <% else %>
+              <%= meal.scheduled_at.strftime("%A") %>
+            <% end %>
+          </div>
+          <div class="text-sm text-base-content/70"><%= meal.time_display %></div>
+        </div>
       </div>
-      <div class="text-right flex-shrink-0">
-        <div class="badge badge-ghost"><%= meal.time_display %></div>
+      <div class="flex flex-col items-end gap-1">
         <% if meal.cancelled? %>
-          <div class="badge badge-error mt-1">Cancelled</div>
+          <div class="badge badge-error badge-sm">Cancelled</div>
         <% elsif !rsvps_open %>
-          <div class="badge badge-warning mt-1">RSVPs Closed</div>
+          <div class="badge badge-warning badge-sm">RSVPs Closed</div>
+        <% end %>
+        <% if user_is_cook %>
+          <div class="badge badge-success badge-sm">Cooking</div>
+        <% elsif user_attending %>
+          <div class="badge badge-info badge-sm">Going</div>
+        <% elsif user_maybe %>
+          <div class="badge badge-warning badge-sm">Maybe</div>
         <% end %>
       </div>
     </div>
 
-    <!-- Menu -->
-    <% if meal.menu.present? %>
-      <div class="mt-2 p-2 bg-base-200 rounded-lg">
-        <div class="flex items-start gap-2 text-sm">
-          <svg class="w-4 h-4 flex-shrink-0 mt-0.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-          </svg>
-          <span class="line-clamp-2"><%= meal.menu %></span>
-        </div>
-      </div>
-    <% end %>
-
-    <!-- Cooks Section -->
-    <div class="mt-3">
-      <div class="text-sm font-medium mb-2">Cooks:</div>
+    <!-- Cooks -->
+    <div class="flex items-center gap-2 mt-3 text-sm">
       <% if meal.cooks.any? %>
-        <div class="flex flex-wrap gap-2">
+        <span class="text-base-content/60">Cook<%= meal.cooks.count > 1 ? 's' : '' %>:</span>
+        <div class="flex flex-wrap gap-1">
           <% meal.meal_cooks.includes(:user).each do |mc| %>
-            <div class="badge badge-outline gap-1 <%= mc.head_cook? ? 'badge-primary' : '' %>">
-              <% if mc.head_cook? %>
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                </svg>
-              <% end %>
-              <%= mc.user.name %>
-            </div>
+            <span class="<%= mc.head_cook? ? 'font-medium' : '' %>">
+              <%= mc.user.name.split.first %><%= mc.head_cook? ? ' ★' : '' %><%= mc == meal.meal_cooks.last ? '' : ',' %>
+            </span>
           <% end %>
         </div>
         <% if needs_cook %>
-          <div class="text-warning text-sm flex items-center gap-1 mt-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-            Needs head cook!
-          </div>
+          <span class="text-warning text-xs">(needs head cook)</span>
         <% end %>
       <% else %>
-        <div class="text-warning text-sm flex items-center gap-1">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-          </svg>
-          Needs volunteers!
-        </div>
+        <span class="text-warning">Needs volunteers!</span>
       <% end %>
     </div>
 
-    <!-- Attendees Count -->
-    <div class="mt-2 text-sm text-base-content/70">
-      <span class="font-medium"><%= meal.total_attendees %></span> attending
-      <% if meal.guests_count > 0 %>
-        (including <%= meal.guests_count %> guests)
-      <% end %>
-    </div>
+    <!-- Menu (if present) -->
+    <% if meal.menu.present? %>
+      <div class="text-sm text-base-content/70 mt-2 line-clamp-1">
+        <span class="font-medium">Menu:</span> <%= meal.menu %>
+      </div>
+    <% end %>
 
-    <!-- Action Buttons -->
-    <div class="card-actions justify-end mt-4">
-      <% if user_is_cook %>
-        <span class="badge badge-success">You're cooking!</span>
-      <% elsif user_attending %>
-        <span class="badge badge-info">You're attending</span>
-      <% elsif user_maybe %>
-        <span class="badge badge-warning">Maybe</span>
-      <% elsif user_declined %>
-        <span class="badge badge-ghost">Can't make it</span>
-      <% elsif !meal.cancelled? && rsvps_open %>
-        <% if meal.cook_slots_available? %>
-          <!-- Mobile Button -->
-          <%= link_to cook_meal_path(meal), class: "btn btn-sm btn-outline lg:hidden" do %>
-            Volunteer to Cook
-          <% end %>
-          <!-- Desktop Button -->
-          <%= link_to meal_path(meal, anchor: "cook_signup"), class: "btn btn-sm btn-outline hidden lg:inline-flex" do %>
-            Volunteer to Cook
-          <% end %>
-        <% end %>
-
-        <!-- Mobile Button -->
-        <%= link_to rsvp_meal_path(meal), class: "btn btn-sm btn-primary lg:hidden" do %>
-          RSVP
-        <% end %>
-        <!-- Desktop Button -->
-        <%= link_to meal_path(meal, anchor: "rsvp_form"), class: "btn btn-sm btn-primary hidden lg:inline-flex" do %>
-          RSVP
-        <% end %>
+    <!-- Footer: Attendees count and actions -->
+    <div class="flex items-center justify-between mt-3 pt-3 border-t border-base-200">
+      <div class="text-sm text-base-content/60">
+        <span class="font-medium text-base-content"><%= meal.total_attendees %></span> attending
+      </div>
+      <% if !meal.cancelled? && rsvps_open && !user_is_cook && !user_attending && !user_maybe %>
+        <span class="text-primary text-sm font-medium">RSVP →</span>
       <% end %>
     </div>
   </div>
-</div>
+<% end %>
