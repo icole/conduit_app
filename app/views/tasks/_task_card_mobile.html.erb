@@ -94,7 +94,7 @@
             <% if can_swipe_to_backlog %>
               <li><%= link_to "To Backlog", move_to_backlog_task_path(task), data: { turbo_method: :patch }, class: "block px-3 py-2 rounded-lg hover:bg-base-200" %></li>
             <% end %>
-            <li><%= link_to "Edit", edit_task_path(task), data: { turbo_action: "advance" }, class: "block px-3 py-2 rounded-lg hover:bg-base-200" %></li>
+            <li><%= link_to "Edit", edit_task_path(task), data: { turbo_frame: "_top" }, class: "block px-3 py-2 rounded-lg hover:bg-base-200" %></li>
             <li><%= link_to "Delete", task_path(task), data: { turbo_method: :delete, turbo_confirm: 'Delete this task?' }, class: "block px-3 py-2 rounded-lg text-error hover:bg-base-200" %></li>
           <% end %>
         </ul>
