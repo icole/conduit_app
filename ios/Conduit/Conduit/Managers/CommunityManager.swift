@@ -6,6 +6,7 @@ class CommunityManager {
 
     private let communityURLKey = "conduit_community_url"
     private let communityNameKey = "conduit_community_name"
+    private let communityDomainKey = "conduit_community_domain"
 
     private init() {}
 
@@ -30,6 +31,7 @@ class CommunityManager {
     func clearCommunityURL() {
         UserDefaults.standard.removeObject(forKey: communityURLKey)
         UserDefaults.standard.removeObject(forKey: communityNameKey)
+        UserDefaults.standard.removeObject(forKey: communityDomainKey)
     }
 
     // MARK: - Community Name (for display)
@@ -40,5 +42,15 @@ class CommunityManager {
 
     func setCommunityName(_ name: String) {
         UserDefaults.standard.set(name, forKey: communityNameKey)
+    }
+
+    // MARK: - Community Domain (for authentication)
+
+    func getCommunityDomain() -> String? {
+        return UserDefaults.standard.string(forKey: communityDomainKey)
+    }
+
+    func setCommunityDomain(_ domain: String) {
+        UserDefaults.standard.set(domain, forKey: communityDomainKey)
     }
 }

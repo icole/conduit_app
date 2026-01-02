@@ -405,7 +405,7 @@ class LoginViewController: UIViewController {
         print("Google Sign-In - Name: \(name)")
 
         // Include community domain to scope login
-        let communityDomain = CommunityManager.shared.getCommunityURL()?.host ?? ""
+        let communityDomain = CommunityManager.shared.getCommunityDomain() ?? ""
         let body: [String: Any] = [
             "id_token": idToken,
             "email": email,
@@ -469,7 +469,7 @@ class LoginViewController: UIViewController {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
         // Create body - include community domain to scope login
-        let communityDomain = CommunityManager.shared.getCommunityURL()?.host ?? ""
+        let communityDomain = CommunityManager.shared.getCommunityDomain() ?? ""
         let body: [String: Any] = [
             "email": email,
             "password": password,

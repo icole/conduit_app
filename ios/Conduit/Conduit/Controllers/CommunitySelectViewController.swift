@@ -153,7 +153,8 @@ class CommunitySelectViewController: UIViewController {
         tableView.isHidden = true
         errorLabel.isHidden = true
 
-        let apiURL = URL(string: "https://api.conduitcoho.app/api/v1/communities")!
+        // In debug mode, use local API; in production, use central API
+        let apiURL = AppConfig.baseURL.appendingPathComponent("api/v1/communities")
 
         URLSession.shared.dataTask(with: apiURL) { [weak self] data, response, error in
             DispatchQueue.main.async {
@@ -195,18 +196,27 @@ class CommunitySelectViewController: UIViewController {
     @objc private func continueButtonTapped() {
         guard let community = selectedCommunity else { return }
 
-        // Build the full URL with https://
-        let urlString = "https://\(community.domain)"
-        guard let url = URL(string: urlString) else {
-            showError("Invalid community URL")
-            return
+        // In debug mode, use localhost; in production, use the community's actual domain
+        let url: URL
+        switch AppConfig.Environment.current {
+        case .development:
+            // Use localhost with the domain stored for reference
+            url = AppConfig.baseURL
+        case .production:
+            // Build the full URL with https://
+            guard let productionURL = URL(string: "https://\(community.domain)") else {
+                showError("Invalid community URL")
+                return
+            }
+            url = productionURL
         }
 
         // Save the selected community
         CommunityManager.shared.setCommunityURL(url)
         CommunityManager.shared.setCommunityName(community.name)
+        CommunityManager.shared.setCommunityDomain(community.domain)
 
-        print("Selected community: \(community.name) at \(url.absoluteString)")
+        print("Selected community: \(community.name) at \(url.absoluteString) (domain: \(community.domain))")
 
         onCommunitySelected?()
     }
