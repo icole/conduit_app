@@ -74,7 +74,17 @@ class MealCalendarSyncService
   end
 
   def event_title
-    "Community Meal: #{@meal.title}"
+    cook_names = @meal.cooks.map(&:name)
+    case cook_names.size
+    when 0
+      "Community Meal"
+    when 1
+      "#{cook_names.first}'s Meal"
+    when 2
+      "#{cook_names.first} & #{cook_names.second}'s Meal"
+    else
+      "#{cook_names[0..-2].join(', ')} & #{cook_names.last}'s Meal"
+    end
   end
 
   def event_description
@@ -82,6 +92,10 @@ class MealCalendarSyncService
 
     if @meal.description.present?
       parts << @meal.description
+    end
+
+    if @meal.menu.present?
+      parts << "Menu: #{@meal.menu}"
     end
 
     if @meal.cooks.any?
