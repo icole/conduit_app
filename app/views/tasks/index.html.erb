@@ -12,6 +12,7 @@
     </button>
   </div>
 
+  <%= turbo_frame_tag "tasks_content" do %>
   <!-- Combined filters section - status and assignment -->
   <div class="flex items-center justify-between gap-2 mb-4">
     <!-- Primary status filters -->
@@ -35,12 +36,12 @@
           <li class="menu-title">
             <span class="text-xs">Filter by assignee</span>
           </li>
-          <li><%= link_to "All Tasks", tasks_path(view: @current_view), class: "text-sm #{'active' unless params[:assigned_to]}" %></li>
-          <li><%= link_to "Assigned to Me", tasks_path(view: @current_view, assigned_to: current_user.id), class: "text-sm #{'active' if params[:assigned_to] == current_user.id.to_s}" %></li>
-          <li><%= link_to "Unassigned", tasks_path(view: @current_view, assigned_to: "unassigned"), class: "text-sm #{'active' if params[:assigned_to] == 'unassigned'}" %></li>
+          <li><%= link_to "All Tasks", tasks_path(view: @current_view), class: "text-sm #{'active' unless params[:assigned_to]}", data: { turbo_frame: "tasks_content" } %></li>
+          <li><%= link_to "Assigned to Me", tasks_path(view: @current_view, assigned_to: current_user.id), class: "text-sm #{'active' if params[:assigned_to] == current_user.id.to_s}", data: { turbo_frame: "tasks_content" } %></li>
+          <li><%= link_to "Unassigned", tasks_path(view: @current_view, assigned_to: "unassigned"), class: "text-sm #{'active' if params[:assigned_to] == 'unassigned'}", data: { turbo_frame: "tasks_content" } %></li>
           <div class="divider my-1"></div>
           <% User.where.not(id: current_user.id).order(:name).each do |user| %>
-            <li><%= link_to user.name, tasks_path(view: @current_view, assigned_to: user.id), class: "text-sm #{'active' if params[:assigned_to] == user.id.to_s}" %></li>
+            <li><%= link_to user.name, tasks_path(view: @current_view, assigned_to: user.id), class: "text-sm #{'active' if params[:assigned_to] == user.id.to_s}", data: { turbo_frame: "tasks_content" } %></li>
           <% end %>
         </ul>
       </div>
@@ -61,7 +62,7 @@
           assigned to <%= User.find_by(id: params[:assigned_to])&.name %>
         <% end %>
       </span>
-      <%= link_to "×", tasks_path(view: @current_view), class: "btn btn-ghost btn-xs ml-auto" %>
+      <%= link_to "×", tasks_path(view: @current_view), class: "btn btn-ghost btn-xs ml-auto", data: { turbo_frame: "tasks_content" } %>
     </div>
   <% end %>
 
@@ -70,13 +71,15 @@
     <div class="flex gap-2 mb-4">
       <% if Task.overdue.any? %>
         <%= link_to tasks_path(view: "overdue", assigned_to: params[:assigned_to]),
-            class: "btn btn-error btn-xs #{@current_view == 'overdue' ? '' : 'btn-outline'}" do %>
+            class: "btn btn-error btn-xs #{@current_view == 'overdue' ? '' : 'btn-outline'}",
+            data: { turbo_frame: "tasks_content" } do %>
           Overdue (<%= Task.overdue.count %>)
         <% end %>
       <% end %>
       <% if Task.due_soon.any? %>
         <%= link_to tasks_path(view: "due_soon", assigned_to: params[:assigned_to]),
-            class: "btn btn-warning btn-xs #{@current_view == 'due_soon' ? '' : 'btn-outline'}" do %>
+            class: "btn btn-warning btn-xs #{@current_view == 'due_soon' ? '' : 'btn-outline'}",
+            data: { turbo_frame: "tasks_content" } do %>
           Due Soon (<%= Task.due_soon.count %>)
         <% end %>
       <% end %>
@@ -117,7 +120,7 @@
               <div class="text-4xl mb-2">🎯</div>
               <p class="text-base-content/70">No active tasks</p>
               <p class="text-sm text-base-content/50">
-                <%= link_to "Browse backlog", tasks_path(view: "backlog"), class: "link link-primary" %> to prioritize tasks
+                <%= link_to "Browse backlog", tasks_path(view: "backlog"), class: "link link-primary", data: { turbo_frame: "tasks_content" } %> to prioritize tasks
               </p>
             </div>
           </div>
@@ -173,7 +176,7 @@
             <p class="text-sm sm:text-base text-base-content/70 mb-4">
               Deleted tasks will appear here for 30 days
             </p>
-            <%= link_to "Back to Active", tasks_path(view: "active"), class: "btn btn-primary btn-sm sm:btn-md" %>
+            <%= link_to "Back to Active", tasks_path(view: "active"), class: "btn btn-primary btn-sm sm:btn-md", data: { turbo_frame: "tasks_content" } %>
           </div>
         </div>
       <% end %>
@@ -207,6 +210,7 @@
       <% end %>
     </div>
   <% end %>
+  <% end %> <%# end turbo_frame_tag %>
 </div>
 </div>
 

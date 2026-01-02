@@ -2,21 +2,24 @@
 <% backlog_count = Task.backlog.count %>
 <div class="btn-group btn-group-sm">
   <%= link_to tasks_path(view: "active", assigned_to: params[:assigned_to]),
-      class: "btn #{@current_view == 'active' ? 'btn-primary' : 'btn-ghost'}" do %>
+      class: "btn #{@current_view == 'active' ? 'btn-primary' : 'btn-ghost'}",
+      data: { turbo_frame: "tasks_content" } do %>
     Active
     <% if active_count > 0 %>
       <span class="badge badge-xs"><%= active_count %></span>
     <% end %>
   <% end %>
   <%= link_to tasks_path(view: "backlog", assigned_to: params[:assigned_to]),
-      class: "btn #{@current_view == 'backlog' ? 'btn-primary' : 'btn-ghost'}" do %>
+      class: "btn #{@current_view == 'backlog' ? 'btn-primary' : 'btn-ghost'}",
+      data: { turbo_frame: "tasks_content" } do %>
     Backlog
     <% if backlog_count > 0 %>
       <span class="badge badge-xs"><%= backlog_count %></span>
     <% end %>
   <% end %>
   <%= link_to tasks_path(view: "completed", assigned_to: params[:assigned_to]),
-      class: "btn #{@current_view == 'completed' ? 'btn-primary' : 'btn-ghost'}" do %>
+      class: "btn #{@current_view == 'completed' ? 'btn-primary' : 'btn-ghost'}",
+      data: { turbo_frame: "tasks_content" } do %>
     Done
   <% end %>
 </div>
