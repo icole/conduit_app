@@ -48,28 +48,34 @@
         <!-- Guest Count -->
         <div class="form-control">
           <label class="label">
-            <span class="label-text font-medium">Bringing guests?</span>
+            <span class="label-text font-medium">Extra guests</span>
           </label>
-          <div class="join">
-            <span class="join-item btn btn-disabled">+</span>
-            <input type="number" name="meal_rsvp[guests_count]"
+          <div class="flex items-center gap-3">
+            <button type="button" class="btn btn-circle btn-outline btn-sm" onclick="const i=document.getElementById('guests_count'); i.value=Math.max(0,parseInt(i.value||0)-1)">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+              </svg>
+            </button>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" name="meal_rsvp[guests_count]" id="guests_count"
                    value="<%= my_rsvp&.guests_count || 0 %>"
-                   min="0" max="10"
-                   class="join-item input input-bordered w-20 text-center">
-            <span class="join-item btn btn-disabled">guests</span>
+                   class="input input-bordered w-16 text-lg font-semibold text-center">
+            <button type="button" class="btn btn-circle btn-outline btn-sm" onclick="const i=document.getElementById('guests_count'); i.value=Math.min(10,parseInt(i.value||0)+1)">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+            </button>
           </div>
-          <label class="label">
-            <span class="label-text-alt">How many additional people are you bringing?</span>
-          </label>
         </div>
 
         <!-- Notes -->
         <div class="form-control">
-          <label class="label">
-            <span class="label-text font-medium">Dietary restrictions or notes</span>
+          <label class="label" for="notes">
+            <span class="label-text font-medium">Dietary notes</span>
           </label>
-          <textarea name="meal_rsvp[notes]" class="textarea textarea-bordered" rows="2"
-                    placeholder="e.g., vegetarian, allergies, etc."><%= my_rsvp&.notes %></textarea>
+          <input type="text" name="meal_rsvp[notes]" id="notes"
+                 value="<%= my_rsvp&.notes %>"
+                 class="input input-bordered w-full"
+                 placeholder="Allergies, vegetarian, etc.">
         </div>
 
         <button type="submit" class="btn btn-primary btn-block">
