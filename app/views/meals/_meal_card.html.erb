@@ -58,20 +58,18 @@
     </div>
 
     <!-- Cooks -->
-    <div class="flex items-center gap-2 mt-3 text-sm">
-      <% if meal.cooks.any? %>
-        <span class="text-base-content/60">Cook<%= meal.cooks.count > 1 ? 's' : '' %>:</span>
-        <div class="flex flex-wrap gap-1">
-          <% meal.meal_cooks.includes(:user).each do |mc| %>
-            <span class="<%= mc.head_cook? ? 'font-medium' : '' %>">
-              <%= mc.user.name.split.first %><%= mc.head_cook? ? ' ★' : '' %><%= mc == meal.meal_cooks.last ? '' : ',' %>
-            </span>
-          <% end %>
-        </div>
-        <% if needs_cook %>
-          <span class="text-warning text-xs">(needs head cook)</span>
-        <% end %>
-      <% else %>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-sm">
+      <% head_cook = meal.meal_cooks.find { |mc| mc.head_cook? } %>
+      <% helpers = meal.meal_cooks.reject { |mc| mc.head_cook? } %>
+      <% if head_cook %>
+        <span><span class="text-base-content/60">Cook:</span> <%= head_cook.user.name.split.first %></span>
+      <% elsif needs_cook %>
+        <span class="text-warning">Needs cook!</span>
+      <% end %>
+      <% if helpers.any? %>
+        <span><span class="text-base-content/60">Helpers:</span> <%= helpers.map { |mc| mc.user.name.split.first }.join(', ') %></span>
+      <% end %>
+      <% if meal.cooks.empty? %>
         <span class="text-warning">Needs volunteers!</span>
       <% end %>
     </div>
