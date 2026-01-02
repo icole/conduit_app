@@ -60,13 +60,17 @@ When working on this project:
 
 ## Test-Driven Development (TDD)
 
-This project follows TDD practices. When implementing new features or fixing bugs:
+**IMPORTANT: This project strictly follows TDD. Always write tests BEFORE implementation code.**
 
-1. **Write a failing test first** - Before writing any implementation code, create a test that describes the expected behavior
-2. **Run the test to confirm it fails** - Verify the test fails for the right reason
+For ALL changes (new features, bug fixes, refactors):
+
+1. **Write a failing test first** - Before writing ANY implementation code, create a test that describes the expected behavior. For bug fixes, write a test that reproduces the bug.
+2. **Run the test to confirm it fails** - Verify the test fails for the right reason (not due to syntax errors)
 3. **Implement the minimum code to pass** - Write just enough code to make the test pass
 4. **Refactor if needed** - Clean up the code while keeping tests green
 5. **Run all tests** - Ensure no regressions were introduced
+
+**Do not skip step 1.** Even for "obvious" fixes, the test-first approach ensures the bug is properly understood and prevents regressions.
 
 ### Test Types
 

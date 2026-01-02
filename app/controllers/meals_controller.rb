@@ -2,9 +2,10 @@ class MealsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_meal, only: [ :show, :edit, :update, :destroy,
                                    :volunteer_cook, :withdraw_cook,
-                                   :rsvp, :cancel_rsvp, :close_rsvps,
+                                   :rsvp, :cancel_rsvp, :close_rsvps, :reopen_rsvps,
                                    :complete, :cancel, :cook, :show_rsvp,
                                    :update_menu ]
+  before_action :authorize_rsvp_management!, only: [ :close_rsvps, :reopen_rsvps ]
 
   helper_method :meals_back_path
 
@@ -153,6 +154,12 @@ class MealsController < ApplicationController
     redirect_to @meal, notice: "RSVPs have been closed."
   end
 
+  # POST /meals/:id/reopen_rsvps
+  def reopen_rsvps
+    @meal.reopen_rsvps!
+    redirect_to @meal, notice: "RSVPs have been reopened."
+  end
+
   # POST /meals/:id/complete
   def complete
     @meal.complete!
@@ -187,6 +194,12 @@ class MealsController < ApplicationController
 
   def set_meal
     @meal = Meal.find(params[:id])
+  end
+
+  def authorize_rsvp_management!
+    unless @meal.user_is_cook?(current_user) || current_user.admin?
+      redirect_to @meal, alert: "Only cooks or admins can manage RSVPs."
+    end
   end
 
   def meal_params

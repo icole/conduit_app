@@ -250,12 +250,75 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
   end
 
   # Close RSVPs action tests
-  test "should close RSVPs" do
+  test "should close RSVPs when user is cook" do
+    # User one is a cook for upcoming_meal
     post close_rsvps_meal_url(@meal)
     assert_redirected_to meal_url(@meal)
     @meal.reload
     assert @meal.rsvps_closed?
     assert_equal "RSVPs have been closed.", flash[:notice]
+  end
+
+  test "should close RSVPs when user is admin" do
+    delete logout_url
+    admin = users(:admin_user)
+    sign_in_user({ uid: admin.uid, name: admin.name, email: admin.email })
+
+    post close_rsvps_meal_url(@needs_cook_meal)
+    assert_redirected_to meal_url(@needs_cook_meal)
+    @needs_cook_meal.reload
+    assert @needs_cook_meal.rsvps_closed?
+    assert_equal "RSVPs have been closed.", flash[:notice]
+  end
+
+  test "should not close RSVPs when user is not cook or admin" do
+    delete logout_url
+    regular = users(:regular_user)
+    sign_in_user({ uid: regular.uid, name: regular.name, email: regular.email })
+
+    post close_rsvps_meal_url(@needs_cook_meal)
+    assert_redirected_to meal_url(@needs_cook_meal)
+    @needs_cook_meal.reload
+    assert_not @needs_cook_meal.rsvps_closed?
+    assert_equal "Only cooks or admins can manage RSVPs.", flash[:alert]
+  end
+
+  # Reopen RSVPs action tests
+  test "should reopen RSVPs when user is cook" do
+    # User one is a cook for upcoming_meal, let's close it first
+    @meal.close_rsvps!
+
+    post reopen_rsvps_meal_url(@meal)
+    assert_redirected_to meal_url(@meal)
+    @meal.reload
+    assert @meal.rsvps_open?
+    assert_equal "RSVPs have been reopened.", flash[:notice]
+  end
+
+  test "should reopen RSVPs when user is admin" do
+    delete logout_url
+    admin = users(:admin_user)
+    sign_in_user({ uid: admin.uid, name: admin.name, email: admin.email })
+
+    meal = meals(:rsvps_closed)
+    post reopen_rsvps_meal_url(meal)
+    assert_redirected_to meal_url(meal)
+    meal.reload
+    assert meal.rsvps_open?
+    assert_equal "RSVPs have been reopened.", flash[:notice]
+  end
+
+  test "should not reopen RSVPs when user is not cook or admin" do
+    delete logout_url
+    regular = users(:regular_user)
+    sign_in_user({ uid: regular.uid, name: regular.name, email: regular.email })
+
+    meal = meals(:rsvps_closed)
+    post reopen_rsvps_meal_url(meal)
+    assert_redirected_to meal_url(meal)
+    meal.reload
+    assert meal.rsvps_closed?
+    assert_equal "Only cooks or admins can manage RSVPs.", flash[:alert]
   end
 
   # Complete meal action tests

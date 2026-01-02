@@ -21,6 +21,7 @@ admin_user:
   uid: 987654321
   name: Admin User
   email: admin@example.com
+  provider: google_oauth2
   password_digest: <%= BCrypt::Password.create('password') %>
   admin: true
 
@@ -29,6 +30,7 @@ regular_user:
   uid: 987654322
   name: Regular User
   email: regular@example.com
+  provider: google_oauth2
   password_digest: <%= BCrypt::Password.create('password') %>
   admin: false
 

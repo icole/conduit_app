@@ -39,6 +39,7 @@ Rails.application.routes.draw do
       get :rsvp, to: "meals#show_rsvp"
       delete :cancel_rsvp
       post :close_rsvps
+      post :reopen_rsvps
       post :complete
       post :cancel
       patch :update_menu

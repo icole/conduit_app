@@ -25,8 +25,13 @@
             </label>
             <ul tabindex="0" class="dropdown-content z-10 menu p-2 shadow bg-base-100 rounded-box w-52">
               <li><%= link_to "Edit Meal", edit_meal_path(@meal) %></li>
-              <% if @meal.upcoming? %>
+              <% if @meal.upcoming? && (@meal.user_is_cook?(current_user) || current_user.admin?) %>
                 <li><%= button_to "Close RSVPs", close_rsvps_meal_path(@meal), method: :post, form: { data: { turbo_confirm: "Close RSVPs early?" } } %></li>
+              <% end %>
+              <% if @meal.rsvps_closed? && (@meal.user_is_cook?(current_user) || current_user.admin?) %>
+                <li><%= button_to "Reopen RSVPs", reopen_rsvps_meal_path(@meal), method: :post, form: { data: { turbo_confirm: "Reopen RSVPs for this meal?" } } %></li>
+              <% end %>
+              <% if @meal.upcoming? %>
                 <li><%= button_to "Cancel Meal", cancel_meal_path(@meal), method: :post, class: "text-error", form: { data: { turbo_confirm: "Cancel this meal?" } } %></li>
               <% end %>
               <% if @meal.rsvps_closed? || @meal.completed? %>

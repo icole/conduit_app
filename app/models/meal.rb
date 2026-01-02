@@ -154,7 +154,12 @@ class Meal < ApplicationRecord
   end
 
   def reopen_rsvps!
-    update!(rsvps_closed: false, status: "upcoming")
+    new_deadline = rsvp_deadline
+    if rsvp_deadline < Time.current
+      # Set deadline to 1 hour before meal, or 1 hour from now (whichever is later)
+      new_deadline = [ scheduled_at - 1.hour, 1.hour.from_now ].max
+    end
+    update!(rsvps_closed: false, status: "upcoming", rsvp_deadline: new_deadline)
   end
 
   # For likes/comments interface
