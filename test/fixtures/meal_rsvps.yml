@@ -31,3 +31,10 @@ past_attendance:
   user: two
   status: attending
   guests_count: 1
+
+late_plate:
+  meal: upcoming_meal
+  user: email_user
+  status: late_plate
+  guests_count: 0
+  notes: "Will pick up after work"

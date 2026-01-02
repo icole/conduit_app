@@ -132,6 +132,18 @@ class Meal < ApplicationRecord
     cooks_count + rsvps_attending
   end
 
+  def total_plates
+    # Total plates needed: cooks + attending (with guests) + late plates
+    cooks_count = meal_cooks.count
+    attending_plates = meal_rsvps.attending.sum { |r| 1 + r.guests_count }
+    late_plates = meal_rsvps.late_plate.count
+    cooks_count + attending_plates + late_plates
+  end
+
+  def late_plate_count
+    meal_rsvps.late_plate.count
+  end
+
   def attending_count
     meal_rsvps.attending.count
   end

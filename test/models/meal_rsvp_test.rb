@@ -76,6 +76,16 @@ class MealRsvpTest < ActiveSupport::TestCase
     assert_not @rsvp.declined?
   end
 
+  test "late_plate? returns true for late_plate status" do
+    assert meal_rsvps(:late_plate).late_plate?
+    assert_not @rsvp.late_plate?
+  end
+
+  test "late_plate is a valid status" do
+    @rsvp.status = "late_plate"
+    assert @rsvp.valid?
+  end
+
   # Display helpers
   test "guests_display returns correct text for guests" do
     assert_equal "+2 guests", @rsvp.guests_display
@@ -87,11 +97,25 @@ class MealRsvpTest < ActiveSupport::TestCase
     assert_nil @rsvp.guests_display
   end
 
-  test "total_count includes user and guests" do
+  test "total_count includes user and guests for attending" do
     assert_equal 3, @rsvp.total_count # 1 user + 2 guests
 
     @rsvp.guests_count = 0
     assert_equal 1, @rsvp.total_count
+  end
+
+  test "total_count returns 0 for late_plate (not seated)" do
+    late_plate_rsvp = meal_rsvps(:late_plate)
+    assert_equal 0, late_plate_rsvp.total_count
+  end
+
+  test "plates_count returns 1 for late_plate" do
+    late_plate_rsvp = meal_rsvps(:late_plate)
+    assert_equal 1, late_plate_rsvp.plates_count
+  end
+
+  test "plates_count includes user and guests for attending" do
+    assert_equal 3, @rsvp.plates_count # 1 user + 2 guests
   end
 
   # Scope tests
@@ -114,6 +138,18 @@ class MealRsvpTest < ActiveSupport::TestCase
     declined.each do |rsvp|
       assert_equal "declined", rsvp.status
     end
+  end
+
+  test "late_plate scope returns only late_plate RSVPs" do
+    late_plates = MealRsvp.late_plate
+    late_plates.each do |rsvp|
+      assert_equal "late_plate", rsvp.status
+    end
+  end
+
+  test "status_display returns Late Plate for late_plate status" do
+    late_plate_rsvp = meal_rsvps(:late_plate)
+    assert_equal "Late Plate", late_plate_rsvp.status_display
   end
 
   test "user can RSVP to multiple meals" do

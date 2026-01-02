@@ -2,7 +2,7 @@ class MealRsvp < ApplicationRecord
   belongs_to :meal
   belongs_to :user
 
-  validates :status, presence: true, inclusion: { in: %w[attending declined maybe] }
+  validates :status, presence: true, inclusion: { in: %w[attending declined maybe late_plate] }
   validates :guests_count, numericality: { greater_than_or_equal_to: 0 }
   validates :user_id, uniqueness: { scope: :meal_id, message: "has already RSVPed" }
   validate :rsvps_still_open, on: :create
@@ -11,13 +11,15 @@ class MealRsvp < ApplicationRecord
   scope :attending, -> { where(status: "attending") }
   scope :declined, -> { where(status: "declined") }
   scope :maybe, -> { where(status: "maybe") }
+  scope :late_plate, -> { where(status: "late_plate") }
   scope :recent, -> { order(created_at: :desc) }
   scope :with_guests, -> { attending.where("guests_count > 0") }
 
   STATUSES = {
     attending: "attending",
     declined: "declined",
-    maybe: "maybe"
+    maybe: "maybe",
+    late_plate: "late_plate"
   }.freeze
 
   def attending?
@@ -32,8 +34,18 @@ class MealRsvp < ApplicationRecord
     status == "maybe"
   end
 
+  def late_plate?
+    status == "late_plate"
+  end
+
   def total_count
+    # Late plates are not counted as attending (not seated at meal)
     attending? ? 1 + guests_count : 0
+  end
+
+  def plates_count
+    # Late plates and attending both need plates
+    (attending? || late_plate?) ? 1 + guests_count : 0
   end
 
   def status_display
@@ -41,6 +53,7 @@ class MealRsvp < ApplicationRecord
     when "attending" then "Attending"
     when "declined" then "Not Attending"
     when "maybe" then "Maybe"
+    when "late_plate" then "Late Plate"
     else status&.humanize
     end
   end

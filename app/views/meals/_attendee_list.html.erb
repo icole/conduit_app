@@ -1,9 +1,15 @@
 <div class="card bg-base-100 shadow-xl">
   <div class="card-body">
-    <h3 class="card-title text-lg">
+    <h3 class="card-title text-lg flex-wrap gap-2">
       Who's Coming
-      <span class="badge badge-primary"><%= meal.total_attendees %></span>
+      <span class="badge badge-primary"><%= meal.total_attendees %> attending</span>
+      <% if meal.late_plate_count > 0 %>
+        <span class="badge badge-secondary"><%= meal.late_plate_count %> late plate<%= meal.late_plate_count > 1 ? 's' : '' %></span>
+      <% end %>
     </h3>
+    <% if meal.late_plate_count > 0 %>
+      <p class="text-sm text-base-content/60"><%= meal.total_plates %> plates total</p>
+    <% end %>
 
     <!-- Cooks Section -->
     <% if meal.cooks.any? %>
@@ -80,6 +86,32 @@
       </div>
     <% end %>
 
+    <!-- Late Plates Section -->
+    <% if late_plate_rsvps.any? %>
+      <div class="mt-4">
+        <h4 class="text-sm font-medium text-base-content/70 mb-2">
+          Late Plates (<%= late_plate_rsvps.count %>)
+        </h4>
+        <div class="space-y-2">
+          <% late_plate_rsvps.each do |rsvp| %>
+            <div class="flex items-center gap-2">
+              <div class="avatar placeholder">
+                <div class="bg-secondary/20 text-secondary rounded-full w-8">
+                  <span class="text-xs"><%= rsvp.user.name.first(2).upcase %></span>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm truncate"><%= rsvp.user.name %></div>
+                <% if rsvp.notes.present? %>
+                  <div class="text-xs text-base-content/50 truncate"><%= rsvp.notes %></div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
     <!-- Not Attending Section -->
     <% if declined_rsvps.any? %>
       <div class="mt-4">
@@ -104,7 +136,7 @@
     <% end %>
 
     <!-- Empty State -->
-    <% if meal.cooks.empty? && attending_rsvps.empty? && maybe_rsvps.empty? %>
+    <% if meal.cooks.empty? && attending_rsvps.empty? && maybe_rsvps.empty? && late_plate_rsvps.empty? %>
       <div class="text-center py-4 text-base-content/50">
         <p>No RSVPs yet</p>
       </div>
