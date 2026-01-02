@@ -12,10 +12,11 @@ class MealTest < ActiveSupport::TestCase
     assert @meal.valid?
   end
 
-  test "should require title" do
+  test "should auto-generate title when blank" do
     @meal.title = nil
-    assert_not @meal.valid?
-    assert_includes @meal.errors[:title], "can't be blank"
+    @meal.valid?
+    assert @meal.title.present?, "Title should be auto-generated"
+    assert_match @meal.scheduled_at.strftime("%A"), @meal.title
   end
 
   test "should require scheduled_at" do

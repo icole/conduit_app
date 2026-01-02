@@ -36,7 +36,7 @@
                     <div class="text-xs text-base-content/70"><%= meal.scheduled_at.strftime("%b") %></div>
                   </div>
                   <div>
-                    <div class="font-medium"><%= meal.title %></div>
+                    <div class="font-medium"><%= meal.display_title %></div>
                     <div class="text-sm text-base-content/70">
                       <%= meal.time_display %>
                       <% if my_role %>
@@ -84,7 +84,7 @@
                     <div class="text-xs text-base-content/70"><%= meal.scheduled_at.strftime("%b") %></div>
                   </div>
                   <div>
-                    <div class="font-medium"><%= meal.title %></div>
+                    <div class="font-medium"><%= meal.display_title %></div>
                     <div class="text-sm text-base-content/70">
                       <%= meal.time_display %>
                       <% if my_rsvp&.guests_count.to_i > 0 %>

@@ -9,13 +9,6 @@
     </div>
   <% end %>
 
-  <div class="form-control">
-    <%= f.label :title, class: "label" do %>
-      <span class="label-text font-medium">Title</span>
-    <% end %>
-    <%= f.text_field :title, class: "input input-bordered w-full", placeholder: "e.g., Tuesday Dinner - Dec 17" %>
-  </div>
-
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div class="form-control">
       <%= f.label :scheduled_at, class: "label" do %>
@@ -33,13 +26,6 @@
         <span class="label-text-alt">When should RSVPs close?</span>
       </label>
     </div>
-  </div>
-
-  <div class="form-control">
-    <%= f.label :location, class: "label" do %>
-      <span class="label-text font-medium">Location</span>
-    <% end %>
-    <%= f.text_field :location, class: "input input-bordered w-full", placeholder: "e.g., Common House Kitchen" %>
   </div>
 
   <div class="form-control">

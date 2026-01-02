@@ -37,7 +37,7 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
   test "should show meal" do
     get meal_url(@meal)
     assert_response :success
-    assert_select "h1", @meal.title
+    assert_select "h1", @meal.display_title
   end
 
   test "should show attendee list" do
@@ -65,14 +65,14 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
   test "should get cook page" do
     get cook_meal_url(@needs_cook_meal)
     assert_response :success
-    assert_select "h1", @needs_cook_meal.title
+    assert_select "h1", @needs_cook_meal.display_title
     assert_select "form[action=?]", volunteer_cook_meal_path(@needs_cook_meal, role: "head_cook")
   end
 
   test "should get show_rsvp page" do
     get rsvp_meal_url(@meal)
     assert_response :success
-    assert_select "h1", @meal.title
+    assert_select "h1", @meal.display_title
     assert_select "form[action=?]", rsvp_meal_path(@meal)
   end
 
@@ -106,9 +106,8 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
     assert_no_difference("Meal.count") do
       post meals_url, params: {
         meal: {
-          title: "", # Invalid - blank title
-          scheduled_date: 5.days.from_now.to_date,
-          scheduled_time: "18:00"
+          scheduled_at: nil, # Invalid - blank scheduled_at
+          rsvp_deadline: nil
         }
       }
     end
@@ -137,7 +136,7 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
 
   test "should not update meal with invalid params" do
     patch meal_url(@meal), params: {
-      meal: { title: "" }
+      meal: { scheduled_at: nil }
     }
     assert_response :unprocessable_entity
   end

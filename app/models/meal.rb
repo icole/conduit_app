@@ -11,11 +11,12 @@ class Meal < ApplicationRecord
   has_many :comments, as: :commentable, dependent: :destroy
   has_many :likes, as: :likeable, dependent: :destroy
 
-  validates :title, presence: true
   validates :scheduled_at, presence: true
   validates :rsvp_deadline, presence: true
   validates :status, presence: true, inclusion: { in: %w[upcoming rsvps_closed completed cancelled] }
   validate :rsvp_deadline_before_meal
+
+  before_validation :generate_title, if: -> { title.blank? && scheduled_at.present? }
 
   cascade_discard :comments
 
@@ -193,7 +194,26 @@ class Meal < ApplicationRecord
     google_event_id.present?
   end
 
+  # Display title with cook names
+  def display_title
+    first_names = cooks.map { |cook| cook.name.split.first }
+    case first_names.size
+    when 0
+      "Community Meal"
+    when 1
+      "Community Meal (#{first_names.first})"
+    when 2
+      "Community Meal (#{first_names.first} & #{first_names.second})"
+    else
+      "Community Meal (#{first_names[0..-2].join(', ')} & #{first_names.last})"
+    end
+  end
+
   private
+
+  def generate_title
+    self.title = scheduled_at.strftime("%A, %B %-d")
+  end
 
   def rsvp_deadline_before_meal
     return unless scheduled_at && rsvp_deadline

@@ -15,42 +15,41 @@ class MealCalendarSyncServiceTest < ActiveSupport::TestCase
     ActsAsTenant.current_tenant = nil
   end
 
-  test "event_title shows cook names when cooks are assigned" do
+  test "event_title shows first names of cooks in parentheses" do
     # Add cooks to the meal
-    head_cook = users(:one)
-    helper = users(:two)
+    head_cook = users(:one)  # Jane Smith
+    helper = users(:two)     # Mike Davis
     @meal.meal_cooks.create!(user: head_cook, role: "head_cook")
     @meal.meal_cooks.create!(user: helper, role: "helper")
 
     title = @service.send(:event_title)
 
-    # Should include cook names, not meal title
-    assert_includes title, head_cook.name
-    assert_includes title, helper.name
-    assert_not_includes title, @meal.title
+    assert_equal "Community Meal (Jane & Mike)", title
   end
 
-  test "event_title shows single cook name with possessive" do
-    cook = users(:one)
+  test "event_title shows single cook first name" do
+    cook = users(:one)  # Jane Smith
     @meal.meal_cooks.create!(user: cook, role: "head_cook")
 
     title = @service.send(:event_title)
 
-    assert_equal "#{cook.name}'s Meal", title
+    assert_equal "Community Meal (Jane)", title
   end
 
-  test "event_title shows two cooks joined with ampersand" do
-    cook1 = users(:one)
-    cook2 = users(:two)
+  test "event_title shows three cooks with commas and ampersand" do
+    cook1 = users(:one)    # Jane Smith
+    cook2 = users(:two)    # Mike Davis
+    cook3 = users(:three)  # Alice Johnson
     @meal.meal_cooks.create!(user: cook1, role: "head_cook")
     @meal.meal_cooks.create!(user: cook2, role: "helper")
+    @meal.meal_cooks.create!(user: cook3, role: "helper")
 
     title = @service.send(:event_title)
 
-    assert_equal "#{cook1.name} & #{cook2.name}'s Meal", title
+    assert_equal "Community Meal (Jane, Mike & Alice)", title
   end
 
-  test "event_title falls back to Community Meal when no cooks" do
+  test "event_title is just Community Meal when no cooks" do
     # needs_cook meal has no cooks
     title = @service.send(:event_title)
 

@@ -42,7 +42,7 @@
           </div>
         </div>
           <div class="pr-12">
-            <h1 class="text-2xl sm:text-3xl font-bold"><%= @meal.title %></h1>
+            <h1 class="text-2xl sm:text-3xl font-bold"><%= @meal.display_title %></h1>
             <div class="flex flex-wrap gap-3 mt-3">
               <div class="badge badge-lg badge-ghost gap-2 p-3">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,14 +50,6 @@
                 </svg>
                 <span class="whitespace-nowrap"><%= @meal.full_display %></span>
               </div>
-              <% if @meal.location.present? %>
-                <div class="badge badge-lg badge-ghost gap-2 p-3">
-                  <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                  </svg>
-                  <span class="whitespace-nowrap"><%= @meal.location %></span>
-                </div>
-              <% end %>
             </div>
           </div>
 

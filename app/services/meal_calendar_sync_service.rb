@@ -74,16 +74,16 @@ class MealCalendarSyncService
   end
 
   def event_title
-    cook_names = @meal.cooks.map(&:name)
-    case cook_names.size
+    first_names = @meal.cooks.map { |cook| cook.name.split.first }
+    case first_names.size
     when 0
       "Community Meal"
     when 1
-      "#{cook_names.first}'s Meal"
+      "Community Meal (#{first_names.first})"
     when 2
-      "#{cook_names.first} & #{cook_names.second}'s Meal"
+      "Community Meal (#{first_names.first} & #{first_names.second})"
     else
-      "#{cook_names[0..-2].join(', ')} & #{cook_names.last}'s Meal"
+      "Community Meal (#{first_names[0..-2].join(', ')} & #{first_names.last})"
     end
   end
 
