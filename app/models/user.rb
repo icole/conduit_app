@@ -59,6 +59,9 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 6 }, if: -> { provider.blank? && (new_record? || password_digest_changed?) }
   validates :password, confirmation: true, if: -> { password.present? }
 
+  # Handle discarded records before destroy - Discardable's default scope hides them from dependent: :destroy
+  before_destroy :cleanup_discarded_records
+
   def self.from_omniauth(auth, invitation_token = nil)
     user = where(provider: auth.provider, uid: auth.uid).first_or_initialize do |user|
       user.email = auth.info.email
@@ -128,6 +131,15 @@ class User < ApplicationRecord
   end
 
   private
+
+  def cleanup_discarded_records
+    # Delete discarded records that reference this user via user_id
+    # These are hidden by Discardable's default_scope and missed by dependent: :destroy
+    Task.unscoped.where(user_id: id).discarded.delete_all
+    Post.unscoped.where(user_id: id).discarded.delete_all
+    Comment.unscoped.where(user_id: id).discarded.delete_all
+    DiscussionTopic.unscoped.where(user_id: id).discarded.delete_all
+  end
 
   def gravatar_url
     # Fallback avatar using Gravatar
