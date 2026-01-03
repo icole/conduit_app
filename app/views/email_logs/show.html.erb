@@ -1,0 +1,78 @@
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+  <div class="mb-6">
+    <%= link_to "← Back to Email Logs", email_logs_path, class: "link link-hover" %>
+  </div>
+
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <div class="flex justify-between items-start mb-4">
+        <h1 class="text-2xl font-bold">Email Details</h1>
+        <% case @email_log.status %>
+        <% when "delivered" %>
+          <span class="badge badge-success">Delivered</span>
+        <% when "failed" %>
+          <span class="badge badge-error">Failed</span>
+        <% else %>
+          <span class="badge badge-warning">Pending</span>
+        <% end %>
+      </div>
+
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-base-content/70">To</label>
+            <p class="font-medium"><%= @email_log.to %></p>
+          </div>
+          <div>
+            <label class="text-sm text-base-content/70">From</label>
+            <p class="font-medium"><%= @email_log.from || "-" %></p>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-sm text-base-content/70">Subject</label>
+          <p class="font-medium"><%= @email_log.subject || "-" %></p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-base-content/70">Mailer</label>
+            <p class="font-medium">
+              <% if @email_log.mailer_class.present? %>
+                <%= @email_log.mailer_class %><% if @email_log.mailer_action.present? %>#<%= @email_log.mailer_action %><% end %>
+              <% else %>
+                -
+              <% end %>
+            </p>
+          </div>
+          <div>
+            <label class="text-sm text-base-content/70">Sent At</label>
+            <p class="font-medium">
+              <%= @email_log.sent_at&.strftime("%B %d, %Y at %l:%M %p") || "-" %>
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-base-content/70">Created At</label>
+            <p class="font-medium"><%= @email_log.created_at.strftime("%B %d, %Y at %l:%M %p") %></p>
+          </div>
+          <div>
+            <label class="text-sm text-base-content/70">Log ID</label>
+            <p class="font-medium text-base-content/70">#<%= @email_log.id %></p>
+          </div>
+        </div>
+
+        <% if @email_log.error_message.present? %>
+          <div class="alert alert-error">
+            <div>
+              <strong>Error:</strong>
+              <p><%= @email_log.error_message %></p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

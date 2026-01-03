@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_03_063507) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_03_083049) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -250,6 +250,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_03_063507) do
     t.bigint "user_id", null: false
     t.index ["folder_id", "user_id"], name: "index_drive_shares_on_folder_id_and_user_id", unique: true
     t.index ["user_id"], name: "index_drive_shares_on_user_id"
+  end
+
+  create_table "email_logs", force: :cascade do |t|
+    t.bigint "community_id", null: false
+    t.datetime "created_at", null: false
+    t.text "error_message"
+    t.string "from"
+    t.string "mailer_action"
+    t.string "mailer_class"
+    t.datetime "sent_at"
+    t.string "status", default: "pending", null: false
+    t.string "subject"
+    t.string "to", null: false
+    t.datetime "updated_at", null: false
+    t.index ["community_id", "created_at"], name: "index_email_logs_on_community_id_and_created_at"
+    t.index ["community_id"], name: "index_email_logs_on_community_id"
+    t.index ["status"], name: "index_email_logs_on_status"
   end
 
   create_table "household_dues_payments", force: :cascade do |t|
@@ -509,6 +526,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_03_063507) do
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "documents", "users", column: "deleted_by_id"
   add_foreign_key "drive_shares", "users"
+  add_foreign_key "email_logs", "communities"
   add_foreign_key "household_dues_payments", "households"
   add_foreign_key "households", "communities"
   add_foreign_key "in_app_notifications", "users"

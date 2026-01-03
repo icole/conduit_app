@@ -78,6 +78,7 @@ Rails.application.routes.draw do
 
   resources :users, only: [ :index, :edit, :update, :destroy ]
   resources :households, except: [ :show ]
+  resources :email_logs, only: [ :index, :show ]
   resources :dues, only: [ :index ] do
     collection do
       post :toggle

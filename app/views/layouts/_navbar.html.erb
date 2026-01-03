@@ -27,6 +27,7 @@
                 <li><%= link_to "Users", users_path %></li>
                 <li><%= link_to "Households", households_path %></li>
                 <li><%= link_to "Monthly Dues", dues_path %></li>
+                <li><%= link_to "Email Logs", email_logs_path %></li>
               </ul>
             </details>
           </li>
@@ -50,7 +51,7 @@
         <!-- Admin Dropdown (if admin) -->
         <% if user_signed_in? && current_user.admin? %>
           <li class="dropdown dropdown-hover">
-            <div tabindex="0" role="button" class="btn btn-ghost btn-sm #{'btn-active' if controller_name.in?(['invitations', 'users', 'households', 'dues'])}">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-sm #{'btn-active' if controller_name.in?(['invitations', 'users', 'households', 'dues', 'email_logs'])}">
               Admin
               <%= heroicon "chevron-down", variant: :outline, options: { class: "h-3 w-3 ml-1" } %>
             </div>
@@ -59,6 +60,7 @@
               <li><%= link_to "Users", users_path, class: "#{'active' if controller_name == 'users'}" %></li>
               <li><%= link_to "Households", households_path, class: "#{'active' if controller_name == 'households'}" %></li>
               <li><%= link_to "Monthly Dues", dues_path, class: "#{'active' if controller_name == 'dues'}" %></li>
+              <li><%= link_to "Email Logs", email_logs_path, class: "#{'active' if controller_name == 'email_logs'}" %></li>
             </ul>
           </li>
         <% end %>
