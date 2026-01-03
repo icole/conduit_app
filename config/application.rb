@@ -27,6 +27,9 @@ module ConduitApp
     # Configure ActionMailbox to use Mailgun
     config.action_mailbox.ingress = :mailgun
 
+    # Use custom delivery job for email logging
+    config.action_mailer.delivery_job = "EmailDeliveryJob"
+
     # Allow session cookies for mobile apps
     config.session_store :cookie_store,
       key: "_conduit_app_session",
