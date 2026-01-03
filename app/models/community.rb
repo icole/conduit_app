@@ -2,6 +2,7 @@ class Community < ApplicationRecord
   # has_many associations are optional with acts_as_tenant
   # but useful for admin/reporting queries
   has_many :users, dependent: :destroy
+  has_many :households, dependent: :destroy
   has_many :posts, dependent: :destroy
   has_many :tasks, dependent: :destroy
   has_many :chores, dependent: :destroy
@@ -32,5 +33,9 @@ class Community < ApplicationRecord
 
   def smtp_from_address
     "#{smtp_from_name} <#{settings&.dig('smtp_username') || ENV['SMTP_USERNAME']}>"
+  end
+
+  def dues_tracking_enabled?
+    monthly_dues_amount.present? && monthly_dues_amount > 0
   end
 end

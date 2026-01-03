@@ -33,6 +33,7 @@ class User < ApplicationRecord
   has_many :discussion_topics, dependent: :destroy
   has_many :drive_shares, dependent: :destroy
   belongs_to :invitation, optional: true
+  belongs_to :household, optional: true
 
   # Chores associations
   has_many :proposed_chores, class_name: "Chore", foreign_key: "proposed_by_id", dependent: :destroy

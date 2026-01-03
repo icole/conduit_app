@@ -35,6 +35,15 @@
         </div>
 
         <div class="form-control">
+          <%= form.label :household_id, class: "label" do %>
+            <span class="label-text">Household</span>
+          <% end %>
+          <%= form.collection_select :household_id, Household.order(:name), :id, :name,
+              { include_blank: "No Household" },
+              { class: "select select-bordered w-full" } %>
+        </div>
+
+        <div class="form-control">
           <label class="label cursor-pointer justify-start gap-3">
             <%= form.check_box :admin, class: "checkbox" %>
             <span class="label-text">Administrator Access</span>

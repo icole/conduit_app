@@ -1,0 +1,32 @@
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+  <h1 class="text-2xl font-bold mb-6">Dues Settings</h1>
+
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <%= form_with(model: @community, url: dues_settings_path, method: :patch, class: "space-y-6") do |form| %>
+        <div class="form-control">
+          <%= form.label :monthly_dues_amount, class: "label" do %>
+            <span class="label-text">Monthly Dues Amount</span>
+          <% end %>
+          <label class="input input-bordered flex items-center gap-2">
+            <span class="text-base-content/70">$</span>
+            <%= form.number_field :monthly_dues_amount,
+                class: "grow",
+                step: 0.01, min: 0,
+                placeholder: "0.00" %>
+          </label>
+          <label class="label">
+            <span class="label-text-alt text-base-content/70">
+              Leave empty or set to 0 to disable dues tracking display
+            </span>
+          </label>
+        </div>
+
+        <div class="flex gap-4">
+          <%= form.submit "Save Settings", class: "btn btn-primary" %>
+          <%= link_to "Back to Dues", dues_path, class: "btn btn-ghost" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

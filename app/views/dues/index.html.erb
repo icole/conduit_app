@@ -1,0 +1,70 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Monthly Dues - <%= @year %></h1>
+    <div class="flex gap-2 items-center">
+      <%= link_to dues_path(year: @year - 1), class: "btn btn-ghost btn-sm" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        <%= @year - 1 %>
+      <% end %>
+      <%= link_to dues_path(year: @year + 1), class: "btn btn-ghost btn-sm" do %>
+        <%= @year + 1 %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+        </svg>
+      <% end %>
+      <%= link_to "Settings", dues_settings_path, class: "btn btn-outline btn-sm" %>
+    </div>
+  </div>
+
+  <% if current_community.dues_tracking_enabled? %>
+    <p class="mb-4 text-base-content/70">
+      Monthly dues amount: <strong><%= number_to_currency(current_community.monthly_dues_amount) %></strong>
+    </p>
+  <% end %>
+
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <% if @households.any? %>
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th class="sticky left-0 bg-base-100 z-10">Household</th>
+                <% @months.each do |month| %>
+                  <th class="text-center"><%= Date::ABBR_MONTHNAMES[month] %></th>
+                <% end %>
+              </tr>
+            </thead>
+            <tbody>
+              <% @households.each do |household| %>
+                <tr class="hover">
+                  <td class="sticky left-0 bg-base-100 z-10 font-medium"><%= household.name %></td>
+                  <% @months.each do |month| %>
+                    <td class="text-center">
+                      <% paid = @payment_status.dig(household.id, month) || false %>
+                      <%= turbo_frame_tag "dues_#{household.id}_#{month}" do %>
+                        <%= button_to toggle_dues_path(household_id: household.id, year: @year, month: month),
+                            method: :post,
+                            class: "btn btn-xs #{paid ? 'btn-success' : 'btn-outline'}",
+                            data: { turbo_frame: "dues_#{household.id}_#{month}" } do %>
+                          <%= paid ? "Paid" : "-" %>
+                        <% end %>
+                      <% end %>
+                    </td>
+                  <% end %>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-8">
+          <p class="text-base-content/70 mb-4">No households have been created yet.</p>
+          <%= link_to "Create Households First", households_path, class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

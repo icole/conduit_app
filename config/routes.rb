@@ -77,6 +77,14 @@ Rails.application.routes.draw do
   mount ActionMailbox::Engine => "/rails/action_mailbox"
 
   resources :users, only: [ :index, :edit, :update, :destroy ]
+  resources :households, except: [ :show ]
+  resources :dues, only: [ :index ] do
+    collection do
+      post :toggle
+      get :settings
+      patch :settings, action: :update_settings
+    end
+  end
   resources :tasks, without: [ :show ] do
     member do
       patch :prioritize

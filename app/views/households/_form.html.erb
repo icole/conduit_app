@@ -1,0 +1,28 @@
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <%= form_with(model: household, class: "space-y-6") do |form| %>
+      <% if household.errors.any? %>
+        <div class="alert alert-error">
+          <ul class="list-disc list-inside">
+            <% household.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="form-control">
+        <%= form.label :name, class: "label" do %>
+          <span class="label-text">Household Name</span>
+        <% end %>
+        <%= form.text_field :name, class: "input input-bordered w-full",
+            placeholder: "e.g., The Smith Family, Unit 12" %>
+      </div>
+
+      <div class="flex gap-4">
+        <%= form.submit class: "btn btn-primary" %>
+        <%= link_to "Cancel", households_path, class: "btn btn-ghost" %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,11 @@
+<%= turbo_stream.replace "dues_#{@household.id}_#{@month}" do %>
+  <% paid = @household.dues_paid_for?(year: @year, month: @month) %>
+  <%= turbo_frame_tag "dues_#{@household.id}_#{@month}" do %>
+    <%= button_to toggle_dues_path(household_id: @household.id, year: @year, month: @month),
+        method: :post,
+        class: "btn btn-xs #{paid ? 'btn-success' : 'btn-outline'}",
+        data: { turbo_frame: "dues_#{@household.id}_#{@month}" } do %>
+      <%= paid ? "Paid" : "-" %>
+    <% end %>
+  <% end %>
+<% end %>

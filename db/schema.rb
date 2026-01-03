@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_03_015708) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_03_063507) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -173,6 +173,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_03_015708) do
   create_table "communities", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "domain", null: false
+    t.decimal "monthly_dues_amount", precision: 10, scale: 2
     t.string "name", null: false
     t.jsonb "settings", default: {}
     t.string "slug", null: false
@@ -249,6 +250,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_03_015708) do
     t.bigint "user_id", null: false
     t.index ["folder_id", "user_id"], name: "index_drive_shares_on_folder_id_and_user_id", unique: true
     t.index ["user_id"], name: "index_drive_shares_on_user_id"
+  end
+
+  create_table "household_dues_payments", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "household_id", null: false
+    t.integer "month", null: false
+    t.boolean "paid", default: false, null: false
+    t.datetime "updated_at", null: false
+    t.integer "year", null: false
+    t.index ["household_id", "year", "month"], name: "index_household_dues_on_household_year_month", unique: true
+    t.index ["household_id"], name: "index_household_dues_payments_on_household_id"
+  end
+
+  create_table "households", force: :cascade do |t|
+    t.bigint "community_id", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["community_id", "name"], name: "index_households_on_community_id_and_name", unique: true
+    t.index ["community_id"], name: "index_households_on_community_id"
   end
 
   create_table "in_app_notifications", force: :cascade do |t|
@@ -438,6 +459,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_03_015708) do
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
     t.string "email", null: false
+    t.bigint "household_id"
     t.bigint "invitation_id"
     t.datetime "last_active_at"
     t.string "name", null: false
@@ -449,6 +471,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_03_015708) do
     t.index ["community_id", "email"], name: "index_users_on_community_id_and_email", unique: true
     t.index ["community_id", "provider", "uid"], name: "index_users_on_community_id_and_provider_and_uid", unique: true
     t.index ["community_id"], name: "index_users_on_community_id"
+    t.index ["household_id"], name: "index_users_on_household_id"
     t.index ["invitation_id"], name: "index_users_on_invitation_id"
   end
 
@@ -486,6 +509,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_03_015708) do
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "documents", "users", column: "deleted_by_id"
   add_foreign_key "drive_shares", "users"
+  add_foreign_key "household_dues_payments", "households"
+  add_foreign_key "households", "communities"
   add_foreign_key "in_app_notifications", "users"
   add_foreign_key "invitations", "communities"
   add_foreign_key "invitations", "users"
@@ -513,5 +538,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_03_015708) do
   add_foreign_key "topic_comments", "discussion_topics"
   add_foreign_key "topic_comments", "users"
   add_foreign_key "users", "communities"
+  add_foreign_key "users", "households"
   add_foreign_key "users", "invitations"
 end
