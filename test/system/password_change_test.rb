@@ -86,6 +86,7 @@ class PasswordChangeTest < ApplicationSystemTestCase
 
     # Navigate to account settings
     visit account_path
+    assert_selector "#password-change-section", wait: 5
 
     # Try to set password that's too short (less than 6 characters)
     within "#password-change-section" do
@@ -95,12 +96,13 @@ class PasswordChangeTest < ApplicationSystemTestCase
 
       # Remove HTML5 minlength validation to test server-side validation
       page.execute_script("document.querySelector('input[name=\"new_password\"]').removeAttribute('minlength')")
+      page.execute_script("document.querySelector('input[name=\"new_password_confirmation\"]').removeAttribute('minlength')")
 
       click_button "Update Password"
     end
 
-    # Should see validation error
-    assert_text "Password is too short (minimum is 6 characters)"
+    # Should see validation error in flash alert
+    assert_selector ".alert-error", text: "Password is too short", wait: 5
   end
 
   test "password change requires matching confirmation" do
