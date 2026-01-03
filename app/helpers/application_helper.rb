@@ -11,14 +11,20 @@ module ApplicationHelper
     # Split the text into words and capitalize each word unless it's a small word
     result = text.downcase.split.map.with_index do |word, index|
       # Capitalize first word, last word, or non-small words
-      if index == 0 || index == text.split.size - 1 || !small_words.include?(word.downcase)
-        word.capitalize
+      if index == 0 || index == text.split.size - 1 || !small_words.include?(word.gsub(/[^a-z]/, ""))
+        capitalize_with_punctuation(word)
       else
         word.downcase
       end
     end
 
     result.join(" ")
+  end
+
+  # Capitalizes a word even if it starts with punctuation like parentheses
+  # Example: "(ian)" becomes "(Ian)", "john" becomes "John"
+  def capitalize_with_punctuation(word)
+    word.sub(/([a-z])/) { |match| match.upcase }
   end
 
   # Strips HTML tags and attachment filenames from ActionText content for clean previews
