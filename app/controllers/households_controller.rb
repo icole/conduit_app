@@ -27,6 +27,7 @@ class HouseholdsController < ApplicationController
 
   def update
     if @household.update(household_params)
+      update_household_members
       redirect_to households_path, notice: "Household was successfully updated."
     else
       render :edit, status: :unprocessable_entity
@@ -46,5 +47,17 @@ class HouseholdsController < ApplicationController
 
   def household_params
     params.require(:household).permit(:name)
+  end
+
+  def update_household_members
+    return unless params[:household][:user_ids]
+
+    submitted_user_ids = params[:household][:user_ids].reject(&:blank?).map(&:to_i)
+
+    # Remove users who were unchecked
+    @household.users.where.not(id: submitted_user_ids).update_all(household_id: nil)
+
+    # Add users who were checked
+    User.where(id: submitted_user_ids).update_all(household_id: @household.id)
   end
 end

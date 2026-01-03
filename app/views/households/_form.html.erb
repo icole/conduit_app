@@ -19,6 +19,30 @@
             placeholder: "e.g., The Smith Family, Unit 12" %>
       </div>
 
+      <% if household.persisted? %>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Members</span>
+          </label>
+          <div class="border border-base-300 rounded-lg p-4 space-y-2 max-h-64 overflow-y-auto">
+            <% User.order(:name).each do |user| %>
+              <label class="flex items-center gap-3 cursor-pointer hover:bg-base-200 p-2 rounded">
+                <%= check_box_tag "household[user_ids][]", user.id,
+                    household.user_ids.include?(user.id),
+                    id: "user_#{user.id}",
+                    class: "checkbox checkbox-sm" %>
+                <span class="flex-1"><%= user.name %></span>
+                <span class="text-sm text-base-content/50"><%= user.email %></span>
+              </label>
+            <% end %>
+            <%= hidden_field_tag "household[user_ids][]", "" %>
+          </div>
+          <label class="label">
+            <span class="label-text-alt text-base-content/70">Select users who belong to this household</span>
+          </label>
+        </div>
+      <% end %>
+
       <div class="flex gap-4">
         <%= form.submit class: "btn btn-primary" %>
         <%= link_to "Cancel", households_path, class: "btn btn-ghost" %>
