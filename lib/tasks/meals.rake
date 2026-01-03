@@ -54,4 +54,31 @@ namespace :meals do
 
     puts "Complete!"
   end
+
+  desc "Update existing calendar events with current title and menu info"
+  task update_calendar_events: :environment do
+    Community.find_each do |community|
+      ActsAsTenant.with_tenant(community) do
+        meals = Meal.upcoming.where.not(google_event_id: nil)
+        total = meals.count
+
+        next if total.zero?
+
+        puts "Updating #{total} calendar events for #{community.name}..."
+
+        meals.find_each.with_index do |meal, index|
+          print "  [#{index + 1}/#{total}] #{meal.title}..."
+          result = MealCalendarSyncService.new(meal).sync
+
+          if result[:status] == :success
+            puts " updated"
+          else
+            puts " #{result[:status]}: #{result[:error] || result[:reason]}"
+          end
+        end
+      end
+    end
+
+    puts "Complete!"
+  end
 end
