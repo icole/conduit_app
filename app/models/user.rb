@@ -10,6 +10,26 @@ class User < ApplicationRecord
   has_many :comments, dependent: :destroy
   has_many :tasks, dependent: :destroy
   has_many :assigned_tasks, class_name: "Task", foreign_key: "assigned_to_user_id", dependent: :nullify
+
+  # Discardable associations - nullify created_by and deleted_by references when user is deleted
+  has_many :created_tasks, class_name: "Task", foreign_key: "created_by_id", dependent: :nullify
+  has_many :deleted_tasks, class_name: "Task", foreign_key: "deleted_by_id", dependent: :nullify
+  has_many :created_posts, class_name: "Post", foreign_key: "created_by_id", dependent: :nullify
+  has_many :deleted_posts, class_name: "Post", foreign_key: "deleted_by_id", dependent: :nullify
+  has_many :created_comments, class_name: "Comment", foreign_key: "created_by_id", dependent: :nullify
+  has_many :deleted_comments, class_name: "Comment", foreign_key: "deleted_by_id", dependent: :nullify
+  has_many :created_decisions, class_name: "Decision", foreign_key: "created_by_id", dependent: :nullify
+  has_many :deleted_decisions, class_name: "Decision", foreign_key: "deleted_by_id", dependent: :nullify
+  has_many :created_discussion_topics, class_name: "DiscussionTopic", foreign_key: "created_by_id", dependent: :nullify
+  has_many :deleted_discussion_topics, class_name: "DiscussionTopic", foreign_key: "deleted_by_id", dependent: :nullify
+  has_many :created_documents, class_name: "Document", foreign_key: "created_by_id", dependent: :nullify
+  has_many :deleted_documents, class_name: "Document", foreign_key: "deleted_by_id", dependent: :nullify
+  has_many :created_calendar_events, class_name: "CalendarEvent", foreign_key: "created_by_id", dependent: :nullify
+  has_many :deleted_calendar_events, class_name: "CalendarEvent", foreign_key: "deleted_by_id", dependent: :nullify
+  has_many :created_chores, class_name: "Chore", foreign_key: "created_by_id", dependent: :nullify
+  has_many :deleted_chores, class_name: "Chore", foreign_key: "deleted_by_id", dependent: :nullify
+  has_many :created_meals, class_name: "Meal", foreign_key: "created_by_id", dependent: :nullify
+  has_many :deleted_meals, class_name: "Meal", foreign_key: "deleted_by_id", dependent: :nullify
   has_many :discussion_topics, dependent: :destroy
   has_many :drive_shares, dependent: :destroy
   belongs_to :invitation, optional: true
