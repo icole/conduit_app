@@ -10,17 +10,9 @@ class UsersController < ApplicationController
   end
 
   def update
-    Rails.logger.info "=== USER UPDATE ==="
-    Rails.logger.info "Params: #{params[:user].inspect}"
-    Rails.logger.info "User params: #{user_params.inspect}"
-    Rails.logger.info "Before: household_id=#{@user.household_id}"
-
     if update_user
-      @user.reload
-      Rails.logger.info "After: household_id=#{@user.household_id}"
       redirect_to users_path, notice: "User was successfully updated."
     else
-      Rails.logger.info "Update failed: #{@user.errors.full_messages}"
       render :edit, status: :unprocessable_entity
     end
   end
