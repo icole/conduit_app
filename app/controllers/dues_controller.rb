@@ -33,7 +33,7 @@ class DuesController < ApplicationController
 
   def update_settings
     if current_community.update(community_params)
-      redirect_to dues_settings_path, notice: "Dues settings updated successfully."
+      redirect_to settings_dues_path, notice: "Dues settings updated successfully."
     else
       @community = current_community
       render :settings, status: :unprocessable_entity
