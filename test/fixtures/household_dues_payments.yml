@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+smith_january_paid:
+  household: smith_household
+  year: 2026
+  month: 1
+  paid: true
+
+smith_february_unpaid:
+  household: smith_household
+  year: 2026
+  month: 2
+  paid: false
+
+jones_january_paid:
+  household: jones_household
+  year: 2026
+  month: 1
+  paid: true

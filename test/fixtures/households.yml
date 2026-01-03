@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+smith_household:
+  community: crow_woods
+  name: The Smith Family
+
+jones_household:
+  community: crow_woods
+  name: Jones Unit
+
+empty_household:
+  community: crow_woods
+  name: Vacant Unit
+
+other_community_household:
+  community: other_community
+  name: Other Household
