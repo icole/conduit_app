@@ -108,7 +108,7 @@ class MealsTest < ApplicationSystemTestCase
     assert_text "Looking forward to this meal!"
   end
 
-  test "attending RSVP shows 'You're attending' badge on meals list" do
+  test "attending RSVP shows 'Going' badge on meals list" do
     # Create a meal and RSVP as attending
     meal = Meal.create!(
       title: "Test Meal for RSVP Badge",
@@ -122,11 +122,11 @@ class MealsTest < ApplicationSystemTestCase
     visit meals_path
 
     within "#meal_#{meal.id}" do
-      assert_selector ".badge", text: "You're attending"
+      assert_selector ".badge", text: "Going"
     end
   end
 
-  test "declined RSVP shows 'Can't make it' badge on meals list" do
+  test "declined RSVP shows no attendance badge on meals list" do
     # Create a meal and RSVP as declined
     meal = Meal.create!(
       title: "Test Meal for Declined RSVP",
@@ -140,9 +140,10 @@ class MealsTest < ApplicationSystemTestCase
     visit meals_path
 
     within "#meal_#{meal.id}" do
-      assert_no_selector ".badge", text: "You're attending"
-      # Should show "Can't make it" badge
-      assert_selector ".badge", text: "Can't make it"
+      # Declined users don't get a badge - no Going/Maybe/Cooking shown
+      assert_no_selector ".badge", text: "Going"
+      assert_no_selector ".badge", text: "Maybe"
+      assert_no_selector ".badge", text: "Cooking"
     end
   end
 
@@ -160,8 +161,8 @@ class MealsTest < ApplicationSystemTestCase
     visit meals_path
 
     within "#meal_#{meal.id}" do
-      # Maybe should show a different indicator, not "You're attending"
-      assert_no_selector ".badge", text: "You're attending"
+      # Maybe should show a different indicator, not "Going"
+      assert_no_selector ".badge", text: "Going"
       assert_selector ".badge", text: "Maybe"
     end
   end
@@ -180,8 +181,8 @@ class MealsTest < ApplicationSystemTestCase
     visit meals_path
 
     within "#meal_#{meal.id}" do
-      # Should show warning about needing a head cook
-      assert_text "Needs head cook!"
+      # Should show warning about needing a cook (head cook)
+      assert_text "Needs cook!"
     end
   end
 
