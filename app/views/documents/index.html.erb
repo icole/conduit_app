@@ -18,14 +18,14 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          Import from Community Docs
+          Import from Google Drive
         <% end %>
       <% end %>
       <%= link_to new_document_path, class: "btn btn-primary" do %>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Add Document
+        New Document
       <% end %>
     </div>
   </div>
@@ -54,9 +54,9 @@
                   <% end %>
                 </th>
                 <th>
-                  <%= link_to documents_path(sort: 'created_at', direction: (params[:sort] == 'created_at' && params[:direction] == 'asc') ? 'desc' : 'asc') do %>
-                    Created
-                    <% if params[:sort] == 'created_at' || params[:sort].nil? %>
+                  <%= link_to documents_path(sort: 'updated_at', direction: (params[:sort] == 'updated_at' && params[:direction] == 'asc') ? 'desc' : 'asc') do %>
+                    Last Modified
+                    <% if params[:sort] == 'updated_at' || params[:sort].nil? %>
                       <%= (params[:direction] == 'asc') ? '↑' : '↓' %>
                     <% end %>
                   <% end %>
@@ -66,29 +66,48 @@
             </thead>
             <tbody>
               <% @documents.each do |document| %>
-                <tr>
+                <tr class="hover:bg-base-200 cursor-pointer" onclick="window.location='<%= document.native? ? edit_document_path(document) : document.safe_google_drive_url %>'">
                   <td>
-                    <%= safe_google_drive_link(document, document.title, target: "_blank", class: "font-medium") || content_tag(:span, "-", class: "text-base-content/50") %>
+                    <div class="flex items-center gap-2">
+                      <% if document.native? %>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      <% else %>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                      <% end %>
+                      <span class="font-medium"><%= document.title %></span>
+                    </div>
                   </td>
                   <td>
-                    <% badge_color = case document.document_type
-                                     when 'Google Doc' then 'badge-info'
-                                     when 'Google Sheet' then 'badge-success'
-                                     when 'Google Slides' then 'badge-warning'
-                                     else 'badge-ghost'
-                                     end %>
-                    <span class="badge <%= badge_color %> badge-sm">
-                      <%= document.document_type %>
-                    </span>
+                    <% if document.native? %>
+                      <span class="badge badge-primary badge-sm">Native</span>
+                    <% else %>
+                      <% badge_color = case document.document_type
+                                       when 'Google Doc' then 'badge-info'
+                                       when 'Google Sheet' then 'badge-success'
+                                       when 'Google Slides' then 'badge-warning'
+                                       else 'badge-ghost'
+                                       end %>
+                      <span class="badge <%= badge_color %> badge-sm">
+                        <%= document.document_type %>
+                      </span>
+                    <% end %>
                   </td>
                   <td class="text-sm text-base-content/70">
-                    <%= document.created_at.strftime("%b %d, %Y") %>
+                    <%= time_ago_in_words(document.updated_at) %> ago
                   </td>
                   <td>
-                    <div class="flex justify-end gap-2">
-                      <%= button_to "Delete", document_path(document), method: :delete,
-                          data: { turbo_confirm: "Are you sure?" },
-                          class: "btn btn-xs btn-outline btn-error" %>
+                    <div class="flex justify-end gap-2" onclick="event.stopPropagation()">
+                      <%= button_to document_path(document), method: :delete,
+                          data: { turbo_confirm: "Are you sure you want to delete '#{document.title}'?" },
+                          class: "btn btn-xs btn-outline btn-error" do %>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      <% end %>
                     </div>
                   </td>
                 </tr>
@@ -103,8 +122,8 @@
       <div class="card-body text-center">
         <div class="text-4xl mb-4">📄</div>
         <h3 class="font-bold text-xl mb-2">No documents yet</h3>
-        <p class="text-base-content/70 mb-4">Add your first document to link it to calendar events and decisions.</p>
-        <%= link_to "Add Your First Document", new_document_path, class: "btn btn-primary mx-auto" %>
+        <p class="text-base-content/70 mb-4">Create your first document to start collaborating with your community.</p>
+        <%= link_to "Create Your First Document", new_document_path, class: "btn btn-primary mx-auto" %>
       </div>
     </div>
   <% end %>

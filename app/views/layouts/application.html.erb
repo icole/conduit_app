@@ -39,9 +39,15 @@
     <%= render "layouts/navbar" %>
   <% end %>
   <div id="flash"><%= render "layouts/flash_messages" %></div>
-  <div class="w-full max-w-7xl mx-auto flex-1 px-4 <%= hotwire_native_app? ? 'pt-4 pb-8' : 'py-8' %>">
-    <%= yield %>
-  </div>
+  <% if content_for?(:full_bleed) %>
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <%= yield %>
+    </div>
+  <% else %>
+    <div class="w-full max-w-7xl mx-auto flex-1 px-4 <%= hotwire_native_app? ? 'pt-4 pb-8' : 'py-8' %>">
+      <%= yield %>
+    </div>
+  <% end %>
 </main>
 <div id="undo-notification-container"><%= render "layouts/undo_notification" %></div>
 </body>

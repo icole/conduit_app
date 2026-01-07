@@ -1,16 +1,17 @@
 class DocumentsController < ApplicationController
-  before_action :set_document, only: %i[ show edit update destroy ]
+  before_action :set_document, only: %i[ show edit update destroy update_content ]
   before_action :authenticate_user!
+  skip_before_action :verify_authenticity_token, only: [ :update_content ]
 
   # GET /documents or /documents.json
   def index
     # Sortable columns
-    sort_column = params[:sort] || "created_at"
+    sort_column = params[:sort] || "updated_at"
     sort_direction = params[:direction] || "desc"
 
     # Validate sort column to prevent SQL injection
     allowed_columns = %w[title document_type created_at updated_at]
-    sort_column = "created_at" unless allowed_columns.include?(sort_column)
+    sort_column = "updated_at" unless allowed_columns.include?(sort_column)
 
     # Validate sort direction
     sort_direction = "desc" unless %w[asc desc].include?(sort_direction)
@@ -79,6 +80,10 @@ class DocumentsController < ApplicationController
 
   # GET /documents/1 or /documents/1.json
   def show
+    # Native documents go straight to edit mode (like Google Docs)
+    if @document.native?
+      redirect_to edit_document_path(@document)
+    end
   end
 
   # GET /documents/new
@@ -128,6 +133,16 @@ class DocumentsController < ApplicationController
     end
   end
 
+  # PATCH /documents/1/content
+  # API endpoint for the React editor to save content
+  def update_content
+    if @document.update(content: params[:content])
+      render json: { status: "ok", updated_at: @document.updated_at }
+    else
+      render json: { status: "error", errors: @document.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_document
@@ -136,6 +151,6 @@ class DocumentsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def document_params
-      params.require(:document).permit(:title, :description, :google_drive_url, :document_type)
+      params.require(:document).permit(:title, :description, :google_drive_url, :document_type, :content, :storage_type)
     end
 end

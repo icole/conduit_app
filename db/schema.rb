@@ -235,6 +235,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_13_022008) do
 
   create_table "documents", force: :cascade do |t|
     t.bigint "community_id", null: false
+    t.text "content"
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
     t.bigint "deleted_by_id"
@@ -242,6 +243,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_13_022008) do
     t.datetime "discarded_at"
     t.string "document_type"
     t.string "google_drive_url"
+    t.integer "storage_type", default: 0, null: false
     t.string "title"
     t.datetime "updated_at", null: false
     t.index ["community_id"], name: "index_documents_on_community_id"

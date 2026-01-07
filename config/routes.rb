@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
   # API routes for mobile app
   namespace :api do
+    # Liveblocks authentication for collaborative editing
+    post "liveblocks/auth", to: "liveblocks#auth"
+    get "liveblocks/users", to: "liveblocks#users"
+
     namespace :v1 do
       resources :communities, only: [ :index ]
       post "login", to: "auth#login"
@@ -114,6 +118,9 @@ Rails.application.routes.draw do
     resources :likes, only: [ :create, :destroy ]
   end
   resources :documents do
+    member do
+      patch :update_content
+    end
     collection do
       get :refresh_from_google_drive
     end
