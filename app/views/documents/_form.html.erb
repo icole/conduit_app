@@ -1,4 +1,4 @@
-<%= form_with(model: document, class: "contents") do |form| %>
+<%= form_with(model: document, class: "contents", data: { controller: "document-form" }) do |form| %>
   <% if document.errors.any? %>
     <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
       <h2><%= pluralize(document.errors.count, "error") %> prohibited this document from being saved:</h2>
@@ -22,13 +22,35 @@
   </div>
 
   <div class="my-5">
-    <%= form.label :google_drive_url %>
-    <%= form.text_field :google_drive_url, class: ["block shadow-sm rounded-md border px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": document.errors[:google_drive_url].none?, "border-red-400 focus:outline-red-600": document.errors[:google_drive_url].any?}] %>
+    <%= form.label :storage_type, "Document Type" %>
+    <div class="mt-2 flex gap-4">
+      <label class="inline-flex items-center">
+        <%= form.radio_button :storage_type, "native", class: "mr-2", data: { action: "change->document-form#toggleStorageType" } %>
+        <span>Native Editor (collaborative)</span>
+      </label>
+      <label class="inline-flex items-center">
+        <%= form.radio_button :storage_type, "google_drive", class: "mr-2", data: { action: "change->document-form#toggleStorageType" } %>
+        <span>Google Drive Link</span>
+      </label>
+    </div>
   </div>
 
-  <div class="my-5">
-    <%= form.label :document_type %>
-    <%= form.text_field :document_type, class: ["block shadow-sm rounded-md border px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": document.errors[:document_type].none?, "border-red-400 focus:outline-red-600": document.errors[:document_type].any?}] %>
+  <div id="google-drive-fields" class="<%= 'hidden' if document.native? %>" data-document-form-target="googleDriveFields">
+    <div class="my-5">
+      <%= form.label :google_drive_url %>
+      <%= form.text_field :google_drive_url, class: ["block shadow-sm rounded-md border px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": document.errors[:google_drive_url].none?, "border-red-400 focus:outline-red-600": document.errors[:google_drive_url].any?}] %>
+    </div>
+
+    <div class="my-5">
+      <%= form.label :document_type %>
+      <%= form.select :document_type, ["Google Doc", "Google Sheet", "Google Slides"], {}, class: "block shadow-sm rounded-md border px-3 py-2 mt-2 w-full border-gray-400 focus:outline-blue-600" %>
+    </div>
+  </div>
+
+  <div id="native-editor-hint" class="<%= 'hidden' unless document.native? && document.new_record? %>" data-document-form-target="nativeHint">
+    <div class="my-5 p-4 bg-blue-50 rounded-md text-blue-800">
+      <p>After creating this document, you'll be able to edit its content using the collaborative editor.</p>
+    </div>
   </div>
 
   <div class="inline">

@@ -1,31 +1,53 @@
-<div id="<%= dom_id document %>" class="w-full sm:w-auto my-5 space-y-5">
+<div id="<%= dom_id document %>" class="w-full my-5 space-y-5">
   <div>
     <strong class="block font-medium mb-1">Title:</strong>
     <%= document.title %>
   </div>
-  <div>
-    <strong class="block font-medium mb-1">Description:</strong>
-    <%= document.description %>
-  </div>
-  <div>
-    <strong class="block font-medium mb-1">Google Drive Document:</strong>
-    <% safe_link = safe_google_drive_link(document) %>
-    <% if safe_link %>
-      <%= safe_link %>
-    <% else %>
-      <span class="text-gray-500">Invalid or missing Google Drive URL</span>
-    <% end %>
-  </div>
-  <div>
-    <strong class="block font-medium mb-1">Document type:</strong>
-    <% badge_color = case document.document_type
-                     when 'Google Doc' then 'bg-blue-100 text-blue-800'
-                     when 'Google Sheet' then 'bg-green-100 text-green-800'
-                     when 'Google Slides' then 'bg-yellow-100 text-yellow-800'
-                     else 'bg-gray-100 text-gray-800'
-                     end %>
-    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= badge_color %>">
-      <%= document.document_type %>
-    </span>
-  </div>
+  <% if document.description.present? %>
+    <div>
+      <strong class="block font-medium mb-1">Description:</strong>
+      <%= document.description %>
+    </div>
+  <% end %>
+
+  <% if document.native? %>
+    <div>
+      <strong class="block font-medium mb-1">Document Type:</strong>
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+        Native Document
+      </span>
+    </div>
+    <div class="mt-4">
+      <strong class="block font-medium mb-2">Content:</strong>
+      <div
+        id="document-editor-react"
+        data-document-id="<%= document.id %>"
+        data-initial-content="<%= document.content %>"
+        data-read-only="true"
+        class="min-h-[200px]"
+      ></div>
+    </div>
+  <% else %>
+    <div>
+      <strong class="block font-medium mb-1">Google Drive Document:</strong>
+      <% safe_link = safe_google_drive_link(document) %>
+      <% if safe_link %>
+        <%= safe_link %>
+      <% else %>
+        <span class="text-gray-500">Invalid or missing Google Drive URL</span>
+      <% end %>
+    </div>
+    <div>
+      <strong class="block font-medium mb-1">Document type:</strong>
+      <% badge_color = case document.document_type
+                       when 'Google Doc' then 'bg-blue-100 text-blue-800'
+                       when 'Google Sheet' then 'bg-green-100 text-green-800'
+                       when 'Google Slides' then 'bg-yellow-100 text-yellow-800'
+                       else 'bg-gray-100 text-gray-800'
+                       end %>
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= badge_color %>">
+        <%= document.document_type %>
+      </span>
+    </div>
+  <% end %>
 </div>

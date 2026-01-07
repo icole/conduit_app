@@ -1,19 +1,48 @@
 {
   "dependencies": {
+    "@liveblocks/client": "^2.0.0",
+    "@liveblocks/react": "^2.0.0",
+    "@liveblocks/react-tiptap": "^2.0.0",
+    "@liveblocks/react-ui": "^2.0.0",
+    "@liveblocks/yjs": "^2.0.0",
     "@rails/actiontext": "^8.0.200",
+    "@tiptap/core": "^2.0.0",
+    "@tiptap/extension-collaboration": "^2.0.0",
+    "@tiptap/extension-collaboration-cursor": "^2.0.0",
+    "@tiptap/extension-color": "^2.0.0",
+    "@tiptap/extension-highlight": "^2.0.0",
+    "@tiptap/extension-image": "^2.0.0",
+    "@tiptap/extension-link": "^2.0.0",
+    "@tiptap/extension-placeholder": "^2.0.0",
+    "@tiptap/extension-table": "^2.0.0",
+    "@tiptap/extension-table-cell": "^2.0.0",
+    "@tiptap/extension-table-header": "^2.0.0",
+    "@tiptap/extension-table-row": "^2.0.0",
+    "@tiptap/extension-task-item": "^2.0.0",
+    "@tiptap/extension-task-list": "^2.0.0",
+    "@tiptap/extension-text-align": "^2.0.0",
+    "@tiptap/extension-text-style": "^2.0.0",
+    "@tiptap/extension-underline": "^2.0.0",
+    "@tiptap/pm": "^2.0.0",
+    "@tiptap/react": "^2.0.0",
+    "@tiptap/starter-kit": "^2.0.0",
+    "@types/react": "^18.0.0",
     "daisyui": "^5.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "stream-chat": "^9.26.0",
     "stream-chat-react": "^13.13.0",
-    "trix": "^2.1.15"
+    "trix": "^2.1.15",
+    "y-prosemirror": "^1.2.0",
+    "y-protocols": "^1.0.0",
+    "yjs": "^13.0.0"
   },
   "devDependencies": {
     "esbuild": "^0.27.0"
   },
   "scripts": {
-    "build": "esbuild app/javascript/react/*.jsx --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets --loader:.jsx=jsx --loader:.eot=file --loader:.woff=file --loader:.woff2=file --loader:.ttf=file --loader:.svg=file",
+    "build": "esbuild app/javascript/react/*.jsx --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets --loader:.jsx=jsx --loader:.eot=file --loader:.woff=file --loader:.woff2=file --loader:.ttf=file --loader:.svg=file --loader:.css=css",
     "build:css": "tailwindcss -i ./app/assets/stylesheets/application.tailwind.css -o ./app/assets/builds/tailwind.css --minify",
-    "build:production": "NODE_ENV=production esbuild app/javascript/react/*.jsx --bundle --minify --format=esm --outdir=app/assets/builds --public-path=/assets --loader:.jsx=jsx --loader:.eot=file --loader:.woff=file --loader:.woff2=file --loader:.ttf=file --loader:.svg=file"
+    "build:production": "NODE_ENV=production esbuild app/javascript/react/*.jsx --bundle --minify --format=esm --outdir=app/assets/builds --public-path=/assets --loader:.jsx=jsx --loader:.eot=file --loader:.woff=file --loader:.woff2=file --loader:.ttf=file --loader:.svg=file --loader:.css=css"
   }
 }

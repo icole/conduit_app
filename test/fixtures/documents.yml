@@ -6,6 +6,7 @@ one:
   description: A sample Google Document for testing
   google_drive_url: https://docs.google.com/document/d/1FakeDocumentId123456789abcdefghijklmnopqrstuvwxyz/edit
   document_type: Google Doc
+  storage_type: google_drive
 
 two:
   community: crow_woods
@@ -13,3 +14,11 @@ two:
   description: A sample Google Spreadsheet for testing
   google_drive_url: https://docs.google.com/spreadsheets/d/1FakeSpreadsheetId987654321zyxwvutsrqponmlkjihgfedcba/edit
   document_type: Google Sheet
+  storage_type: google_drive
+
+native_doc:
+  community: crow_woods
+  title: Native Document
+  description: A document with native content
+  storage_type: native
+  content: "<p>This is native content stored in the database.</p>"
