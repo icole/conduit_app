@@ -1,6 +1,4 @@
 class ChatController < ApplicationController
-  include TurboNative
-
   before_action :authenticate_user!, except: [ :debug ]
   before_action :ensure_stream_configured, except: [ :debug, :token ]
 

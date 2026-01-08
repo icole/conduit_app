@@ -1,52 +1,73 @@
 <div>
   <!-- Header Section -->
-  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-    <div>
-      <h1 class="text-xl sm:text-2xl font-bold">Community Meals</h1>
-      <p class="text-sm sm:text-base text-base-content/70 mt-1">Weekly shared dinners - sign up to cook or RSVP to attend!</p>
-    </div>
-    <div class="flex flex-wrap gap-2 items-center">
-      <%= render "view_toggle", current_view: "list" %>
-      <div class="hidden sm:flex gap-2">
-        <%= link_to my_meals_meals_path, class: "btn btn-outline btn-sm" do %>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-          </svg>
-          My Meals
-        <% end %>
-        <%= link_to meal_schedules_path, class: "btn btn-outline btn-sm" do %>
-          Schedules
-        <% end %>
-      </div>
-      <%= link_to new_meal_path, class: "btn btn-primary btn-sm" do %>
+  <div class="flex justify-between items-center gap-2 <%= hotwire_native_app? ? 'mb-2 px-1' : 'mb-4' %>">
+    <h1 class="<%= hotwire_native_app? ? 'text-lg font-semibold' : 'text-xl sm:text-2xl font-bold' %>">Meals</h1>
+    <div class="flex items-center gap-2">
+      <% unless hotwire_native_app? %>
+        <%= render "view_toggle", current_view: "list" %>
+        <div class="hidden sm:flex gap-2">
+          <%= link_to my_meals_meals_path, class: "btn btn-outline btn-sm" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            My Meals
+          <% end %>
+          <%= link_to meal_schedules_path, class: "btn btn-outline btn-sm" do %>
+            Schedules
+          <% end %>
+        </div>
+      <% end %>
+      <%= link_to new_meal_path, class: "btn btn-primary btn-sm gap-1" do %>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
         </svg>
-        <span class="hidden sm:inline">Add Meal</span>
+        <span class="<%= hotwire_native_app? ? '' : 'hidden sm:inline' %>">Add</span>
       <% end %>
     </div>
   </div>
 
   <!-- Tab Navigation -->
-  <div class="overflow-x-auto mb-6">
-    <div class="tabs tabs-boxed w-fit min-w-full sm:min-w-0">
-      <%= link_to meals_path(view: "upcoming"),
-          class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'upcoming'}" do %>
-        Upcoming
-      <% end %>
-      <%= link_to meals_path(view: "needs_cooks"),
-          class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'needs_cooks'}" do %>
-        Needs Cooks (<%= @needs_cooks_count %>)
-      <% end %>
-      <%= link_to meals_path(view: "past"),
-          class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'past'}" do %>
-        Past Meals
-      <% end %>
+  <% if hotwire_native_app? %>
+    <div class="flex items-center gap-1 mb-4">
+      <div class="inline-flex rounded-lg border border-base-300 p-0.5 bg-base-100">
+        <%= link_to meals_path(view: "upcoming"),
+            class: "btn btn-sm h-8 min-h-0 px-3 #{@current_view == 'upcoming' ? 'btn-primary' : 'btn-ghost'}" do %>
+          Upcoming
+        <% end %>
+        <%= link_to meals_path(view: "needs_cooks"),
+            class: "btn btn-sm h-8 min-h-0 px-2 gap-1 #{@current_view == 'needs_cooks' ? 'btn-primary' : 'btn-ghost'}" do %>
+          <span>Need Cooks</span>
+          <% if @needs_cooks_count > 0 %>
+            <span class="<%= @current_view == 'needs_cooks' ? 'badge badge-xs bg-white text-primary border-0 font-semibold' : 'badge badge-xs badge-primary' %>"><%= @needs_cooks_count %></span>
+          <% end %>
+        <% end %>
+        <%= link_to meals_path(view: "past"),
+            class: "btn btn-sm h-8 min-h-0 px-3 #{@current_view == 'past' ? 'btn-primary' : 'btn-ghost'}" do %>
+          Past
+        <% end %>
+      </div>
     </div>
-  </div>
+  <% else %>
+    <div class="overflow-x-auto mb-6">
+      <div class="tabs tabs-boxed w-fit min-w-full sm:min-w-0">
+        <%= link_to meals_path(view: "upcoming"),
+            class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'upcoming'}" do %>
+          Upcoming
+        <% end %>
+        <%= link_to meals_path(view: "needs_cooks"),
+            class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'needs_cooks'}" do %>
+          Needs Cooks (<%= @needs_cooks_count %>)
+        <% end %>
+        <%= link_to meals_path(view: "past"),
+            class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'past'}" do %>
+          Past Meals
+        <% end %>
+      </div>
+    </div>
+  <% end %>
 
-  <!-- Meal Cards Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <!-- Meal Cards Grid/List -->
+  <div class="<%= hotwire_native_app? ? 'bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' %>">
     <% if @meals.present? %>
       <% @meals.each do |meal| %>
         <%= render "meal_card", meal: meal %>

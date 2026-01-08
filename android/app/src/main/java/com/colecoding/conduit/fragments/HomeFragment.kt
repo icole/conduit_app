@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.fragment.app.Fragment
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.colecoding.conduit.auth.AuthManager
 import com.colecoding.conduit.config.AppConfig
 import android.webkit.CookieManager
@@ -19,13 +20,27 @@ class HomeFragment : Fragment() {
     }
 
     private lateinit var webView: WebView
+    private lateinit var swipeRefresh: SwipeRefreshLayout
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        // Create SwipeRefreshLayout as the root view
+        swipeRefresh = SwipeRefreshLayout(requireContext()).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+
         webView = WebView(requireContext()).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+
             settings.apply {
                 javaScriptEnabled = true
                 domStorageEnabled = true
@@ -49,6 +64,7 @@ class HomeFragment : Fragment() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
                     Log.d(TAG, "Page loaded: $url")
+                    swipeRefresh.isRefreshing = false
 
                     // Flush cookies after each page load to ensure they persist
                     CookieManager.getInstance().flush()
@@ -66,13 +82,22 @@ class HomeFragment : Fragment() {
             }
         }
 
+        // Add WebView to SwipeRefreshLayout
+        swipeRefresh.addView(webView)
+
+        // Setup pull to refresh
+        swipeRefresh.setOnRefreshListener {
+            Log.d(TAG, "Pull to refresh triggered")
+            webView.reload()
+        }
+
         // Setup cookies after WebView is created
         setupCookies()
 
         // First establish session, then load home
         establishSessionAndLoad()
 
-        return webView
+        return swipeRefresh
     }
 
     private fun setupCookies() {

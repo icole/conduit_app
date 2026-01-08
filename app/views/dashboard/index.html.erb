@@ -1,4 +1,88 @@
-<!-- Main Content Grid - Mobile First Responsive -->
+<% if hotwire_native_app? %>
+  <!-- Native Mobile View - Compact list-based layout -->
+  <div class="space-y-4">
+    <!-- Upcoming Events Section -->
+    <section>
+      <div class="flex items-center justify-between mb-2 px-1">
+        <h2 class="text-lg font-semibold flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Upcoming
+        </h2>
+        <%= link_to calendar_index_path, class: "text-sm text-primary font-medium" do %>
+          View all →
+        <% end %>
+      </div>
+      <div class="bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200">
+        <% if @events[:events].present? %>
+          <% @events[:events].first(5).each do |event| %>
+            <div class="px-3 py-2.5">
+              <div class="font-medium text-sm truncate"><%= event[:summary] %></div>
+              <div class="text-xs text-base-content/60 mt-0.5">
+                <%= event[:start_time].strftime("%a, %b %-d") %>
+                <% if event[:start_time].strftime("%H:%M") != "00:00" %>
+                  · <%= event[:start_time].strftime("%-I:%M %p") %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="px-3 py-4 text-center text-sm text-base-content/50">
+            No upcoming events
+          </div>
+        <% end %>
+      </div>
+    </section>
+
+    <!-- Documents Section -->
+    <section>
+      <div class="flex items-center justify-between mb-2 px-1">
+        <h2 class="text-lg font-semibold flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Documents
+        </h2>
+        <% if @drive_folder_already_shared %>
+          <%= render partial: 'shared/drive_folder_access_button', locals: {
+            folder_id: ENV["GOOGLE_DRIVE_FOLDER_ID"],
+            folder_name: "Community Files",
+            button_text: "Open",
+            button_class: "text-sm text-primary font-medium"
+          } %>
+        <% end %>
+      </div>
+      <div class="bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200">
+        <% if @drive_folder_already_shared && @recent_files&.dig(:files)&.any? %>
+          <% @recent_files[:files].first(4).each do |file| %>
+            <a href="<%= file[:web_view_link] %>" target="_blank" class="flex items-center gap-3 px-3 py-2.5 hover:bg-base-200/50">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/40 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span class="text-sm truncate"><%= file[:name] %></span>
+            </a>
+          <% end %>
+        <% elsif !@drive_folder_already_shared %>
+          <div class="px-3 py-4 text-center">
+            <p class="text-sm text-base-content/50 mb-2">Access shared community files</p>
+            <%= render partial: 'shared/drive_folder_access_button', locals: {
+              folder_id: ENV["GOOGLE_DRIVE_FOLDER_ID"],
+              folder_name: "Community Files",
+              button_text: "Get Access",
+              button_class: "btn btn-primary btn-sm"
+            } %>
+          </div>
+        <% else %>
+          <div class="px-3 py-4 text-center text-sm text-base-content/50">
+            No recent documents
+          </div>
+        <% end %>
+      </div>
+    </section>
+  </div>
+<% else %>
+<!-- Main Content Grid - Desktop/Web View -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-4" data-controller="posts">
   <!-- Posts Column - Hidden on mobile, shown on desktop -->
   <div class="hidden lg:block col-span-1 lg:col-span-1 order-1">
@@ -148,3 +232,4 @@
     </div>
   </div>
 </div>
+<% end %>

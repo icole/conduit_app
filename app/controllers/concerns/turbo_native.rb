@@ -1,16 +1,14 @@
 # frozen_string_literal: true
 
-# Concern to detect and handle Turbo Native requests
+# Include the standard Turbo Native navigation module from turbo-rails gem.
+# This provides hotwire_native_app? and turbo_native_app? helpers that detect
+# user agents containing "Turbo Native" or "Hotwire Native".
+#
+# See: https://github.com/hotwired/turbo-rails
 module TurboNative
   extend ActiveSupport::Concern
 
   included do
-    helper_method :turbo_native_app?
-  end
-
-  private
-
-  def turbo_native_app?
-    request.user_agent.to_s.include?("Turbo Native")
+    include Turbo::Native::Navigation
   end
 end

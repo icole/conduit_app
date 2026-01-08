@@ -1,34 +1,32 @@
-<!-- Reduce padding on mobile for better space utilization -->
-<div class="-mx-2 sm:mx-0">
-<div data-controller="tasks" class="px-2 sm:px-0">
-  <!-- Mobile-optimized header -->
-  <div class="flex justify-between items-center mb-4 gap-2">
-    <h2 class="text-xl sm:text-2xl font-bold">Tasks</h2>
-    <button class="btn btn-primary btn-sm sm:btn-md" data-action="click->tasks#showForm" title="New Task">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+<div data-controller="tasks" class="<%= hotwire_native_app? ? '' : '-mx-2 sm:mx-0 px-2 sm:px-0' %>">
+  <!-- Header -->
+  <div class="flex justify-between items-center gap-2 <%= hotwire_native_app? ? 'mb-2 px-1' : 'mb-4' %>">
+    <h1 class="<%= hotwire_native_app? ? 'text-lg font-semibold' : 'text-xl sm:text-2xl font-bold' %>">Tasks</h1>
+    <button class="<%= hotwire_native_app? ? 'btn btn-primary btn-sm gap-1' : 'btn btn-primary btn-sm sm:btn-md' %>" data-action="click->tasks#showForm" title="New Task">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
       </svg>
-      <span class="hidden sm:inline">New Task</span>
+      <span class="<%= hotwire_native_app? ? '' : 'hidden sm:inline' %>">Add</span>
     </button>
   </div>
 
   <%= turbo_frame_tag "tasks_content" do %>
   <!-- Combined filters section - status and assignment -->
-  <div class="flex items-center justify-between gap-2 mb-4">
+  <div class="flex items-center justify-between gap-1 sm:gap-2 mb-4">
     <!-- Primary status filters -->
-    <div id="status-filters">
+    <div id="status-filters" class="flex-shrink-0">
       <%= render "tasks/status_filters" %>
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
       <div id="deleted-filter">
         <%= render "tasks/deleted_filter" %>
       </div>
 
       <!-- Assignment filter -->
       <div class="dropdown dropdown-end">
-        <label tabindex="0" class="btn btn-ghost btn-sm btn-circle">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <label tabindex="0" class="btn btn-ghost btn-sm btn-square">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
           </svg>
         </label>
@@ -50,7 +48,7 @@
 
   <!-- Show active filter if one is applied -->
   <% if params[:assigned_to].present? %>
-    <div class="alert alert-info py-2 mb-4">
+    <div class="alert alert-info py-2 <%= hotwire_native_app? ? 'mb-2' : 'mb-4' %>">
       <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-4 w-4" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
       <span class="text-sm">
         Showing tasks
@@ -66,28 +64,33 @@
     </div>
   <% end %>
 
-  <!-- Show due date filters if relevant -->
-  <% if Task.overdue.any? || Task.due_soon.any? %>
-    <div class="flex gap-2 mb-4">
-      <% if Task.overdue.any? %>
-        <%= link_to tasks_path(view: "overdue", assigned_to: params[:assigned_to]),
-            class: "btn btn-error btn-xs #{@current_view == 'overdue' ? '' : 'btn-outline'}",
-            data: { turbo_frame: "tasks_content" } do %>
-          Overdue (<%= Task.overdue.count %>)
+  <!-- Show due date filters only on active/backlog views, scoped to current view -->
+  <% if %w[active backlog].include?(@current_view) %>
+    <% current_scope = @current_view == 'active' ? Task.active : Task.backlog %>
+    <% overdue_in_view = current_scope.overdue %>
+    <% due_soon_in_view = current_scope.due_soon %>
+    <% if overdue_in_view.any? || due_soon_in_view.any? %>
+      <div class="flex gap-2 <%= hotwire_native_app? ? 'mb-2' : 'mb-4' %>">
+        <% if overdue_in_view.any? %>
+          <%= link_to tasks_path(view: "overdue", assigned_to: params[:assigned_to]),
+              class: "btn btn-error btn-xs btn-outline",
+              data: { turbo_frame: "tasks_content" } do %>
+            Overdue (<%= overdue_in_view.count %>)
+          <% end %>
         <% end %>
-      <% end %>
-      <% if Task.due_soon.any? %>
-        <%= link_to tasks_path(view: "due_soon", assigned_to: params[:assigned_to]),
-            class: "btn btn-warning btn-xs #{@current_view == 'due_soon' ? '' : 'btn-outline'}",
-            data: { turbo_frame: "tasks_content" } do %>
-          Due Soon (<%= Task.due_soon.count %>)
+        <% if due_soon_in_view.any? %>
+          <%= link_to tasks_path(view: "due_soon", assigned_to: params[:assigned_to]),
+              class: "btn btn-warning btn-xs btn-outline",
+              data: { turbo_frame: "tasks_content" } do %>
+            Due Soon (<%= due_soon_in_view.count %>)
+          <% end %>
         <% end %>
-      <% end %>
-    </div>
+      </div>
+    <% end %>
   <% end %>
 
   <!-- New task form -->
-  <div id="new-task-form" class="<%= 'hidden' unless @task&.errors&.any? %> mb-6">
+  <div id="new-task-form" class="<%= 'hidden' unless @task&.errors&.any? %> <%= hotwire_native_app? ? 'mb-2' : 'mb-6' %>">
     <div class="card bg-base-100 border border-base-300 rounded-lg p-4">
       <%= turbo_frame_tag "new_task" do %>
         <%= render "tasks/form", task: Task.new %>
@@ -97,28 +100,30 @@
 
   <% if @current_view == "active" %>
     <!-- Active Tasks View -->
-    <div class="space-y-2">
-      <% if @active_tasks.any? %>
-        <div class="flex items-center gap-4 mb-2 text-xs sm:text-sm text-base-content/60 sm:hidden">
-          <div class="flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-            </svg>
-            <span>Swipe to backlog</span>
+    <div class="<%= hotwire_native_app? ? '' : 'space-y-2' %>">
+      <% unless hotwire_native_app? %>
+        <% if @active_tasks.any? %>
+          <div class="flex items-center gap-4 mb-2 text-xs sm:text-sm text-base-content/60 sm:hidden">
+            <div class="flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+              </svg>
+              <span>Swipe to backlog</span>
+            </div>
           </div>
-        </div>
+        <% end %>
       <% end %>
 
-      <div id="task-list">
+      <div id="task-list" class="<%= hotwire_native_app? ? 'bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200' : '' %>">
         <% @active_tasks.each do |task| %>
           <%= render "tasks/task_card_mobile", task: task, show_move_to_backlog: true %>
         <% end %>
 
         <% if @active_tasks.empty? %>
           <div class="card bg-base-100 border border-base-200">
-            <div class="card-body text-center p-8">
-              <div class="text-4xl mb-2">🎯</div>
-              <p class="text-base-content/70">No active tasks</p>
+            <div class="card-body text-center py-8 px-4">
+              <div class="text-3xl mb-2">🎯</div>
+              <p class="font-medium text-base-content/70">No active tasks</p>
               <p class="text-sm text-base-content/50">
                 <%= link_to "Browse backlog", tasks_path(view: "backlog"), class: "link link-primary", data: { turbo_frame: "tasks_content" } %> to prioritize tasks
               </p>
@@ -129,28 +134,30 @@
     </div>
   <% elsif @current_view == "backlog" %>
     <!-- Backlog View -->
-    <div class="space-y-2">
-      <% if @backlog_tasks.any? %>
-        <div class="flex items-center gap-4 mb-2 text-xs sm:text-sm text-base-content/60">
-          <div class="flex items-center gap-1 sm:hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-            <span>Swipe to activate</span>
+    <div class="<%= hotwire_native_app? ? '' : 'space-y-2' %>">
+      <% unless hotwire_native_app? %>
+        <% if @backlog_tasks.any? %>
+          <div class="flex items-center gap-4 mb-2 text-xs sm:text-sm text-base-content/60">
+            <div class="flex items-center gap-1 sm:hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+              <span>Swipe to activate</span>
+            </div>
           </div>
-        </div>
+        <% end %>
       <% end %>
 
-      <div class="space-y-0">
+      <div class="<%= hotwire_native_app? ? 'bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200' : 'space-y-0' %>">
         <% @backlog_tasks.each do |task| %>
           <%= render "tasks/task_card_mobile", task: task, show_prioritize: true %>
         <% end %>
 
         <% if @backlog_tasks.empty? %>
           <div class="card bg-base-100 border border-base-200">
-            <div class="card-body text-center p-8">
-              <div class="text-4xl mb-2">📋</div>
-              <p class="text-base-content/70">No tasks in backlog</p>
+            <div class="card-body text-center py-8 px-4">
+              <div class="text-3xl mb-2">📋</div>
+              <p class="font-medium text-base-content/70">No tasks in backlog</p>
               <p class="text-sm text-base-content/50">All tasks have been prioritized!</p>
             </div>
           </div>
@@ -170,13 +177,10 @@
         <% end %>
       <% else %>
         <div class="card bg-base-100 border border-base-200">
-          <div class="card-body text-center p-8">
-            <div class="text-4xl mb-4">🗑️</div>
-            <h3 class="text-lg sm:text-xl font-medium mb-2">No deleted tasks</h3>
-            <p class="text-sm sm:text-base text-base-content/70 mb-4">
-              Deleted tasks will appear here for 30 days
-            </p>
-            <%= link_to "Back to Active", tasks_path(view: "active"), class: "btn btn-primary btn-sm sm:btn-md", data: { turbo_frame: "tasks_content" } %>
+          <div class="card-body text-center py-8 px-4">
+            <div class="text-3xl mb-2">🗑️</div>
+            <p class="font-medium text-base-content/70">No deleted tasks</p>
+            <p class="text-sm text-base-content/50">Deleted tasks will appear here for 30 days</p>
           </div>
         </div>
       <% end %>
@@ -190,21 +194,32 @@
         <% end %>
       <% else %>
         <div class="card bg-base-100 border border-base-200">
-          <div class="card-body text-center p-8">
-            <div class="text-4xl mb-4">📋</div>
-            <h3 class="text-lg sm:text-xl font-medium mb-2">No <%= @current_view.humanize.downcase %> tasks</h3>
-            <p class="text-sm sm:text-base text-base-content/70 mb-4">
+          <div class="card-body text-center py-8 px-4">
+            <div class="text-3xl mb-2">
+              <% if @current_view == "completed" %>✅<% elsif @current_view == "overdue" %>🎉<% else %>📋<% end %>
+            </div>
+            <p class="font-medium text-base-content/70">
+              <% if @current_view == "completed" %>
+                No completed tasks
+              <% elsif @current_view == "overdue" %>
+                No overdue tasks
+              <% elsif @current_view == "due_soon" %>
+                No tasks due soon
+              <% else %>
+                No tasks found
+              <% end %>
+            </p>
+            <p class="text-sm text-base-content/50">
               <% if @current_view == "completed" %>
                 Tasks you complete will appear here
               <% elsif @current_view == "overdue" %>
-                Great! No overdue tasks
+                Great! You're all caught up
               <% elsif @current_view == "due_soon" %>
                 No tasks due in the next few days
               <% else %>
                 No tasks match this filter
               <% end %>
             </p>
-            <button class="btn btn-primary btn-sm sm:btn-md" data-action="click->tasks#showForm">Create a new task</button>
           </div>
         </div>
       <% end %>

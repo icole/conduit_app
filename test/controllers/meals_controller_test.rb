@@ -12,7 +12,7 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
     get meals_url
     assert_response :success
-    assert_select "h1", "Community Meals"
+    assert_select "h1", "Meals"
   end
 
   test "should get index with upcoming view" do

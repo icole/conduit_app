@@ -4,6 +4,7 @@ class ApplicationController < ActionController::Base
 
   include RestrictedAccess
   include ActsAsTenant::ControllerExtensions
+  include TurboNative
 
   # Set tenant from domain - must run before authenticate_user!
   set_current_tenant_through_filter

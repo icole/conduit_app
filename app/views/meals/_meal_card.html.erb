@@ -7,6 +7,7 @@
   user_maybe = meal.user_maybe?(current_user)
   user_declined = meal.user_declined?(current_user)
   rsvps_open = meal.rsvps_open?
+  native_app = hotwire_native_app? rescue false
 
   border_class = if meal.cancelled?
     "border-error/50 opacity-60"
@@ -19,6 +20,47 @@
   end
 %>
 
+<% if native_app %>
+  <%= link_to meal_path(meal), id: "meal_#{meal.id}", class: "block px-3 py-2.5 hover:bg-base-200/50" do %>
+    <div class="flex items-center gap-3">
+      <div class="text-center min-w-10 <%= needs_cook ? 'text-warning' : (is_today ? 'text-primary' : '') %>">
+        <div class="text-lg font-bold"><%= meal.scheduled_at.day %></div>
+        <div class="text-xs text-base-content/60 uppercase"><%= meal.scheduled_at.strftime("%b") %></div>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="font-medium text-sm">
+            <% if is_today %>Today<% elsif is_tomorrow %>Tomorrow<% else %><%= meal.scheduled_at.strftime("%A") %><% end %>
+          </span>
+          <span class="text-xs text-base-content/60"><%= meal.time_display %></span>
+        </div>
+        <div class="text-xs text-base-content/60 mt-0.5 truncate">
+          <% head_cook = meal.meal_cooks.find { |mc| mc.head_cook? } %>
+          <% if head_cook %>
+            Cook: <%= head_cook.user.name.split.first %>
+          <% elsif needs_cook %>
+            <span class="text-warning">Needs cook!</span>
+          <% end %>
+          <% if meal.menu.present? %>
+            · <%= truncate(meal.menu, length: 30) %>
+          <% end %>
+        </div>
+      </div>
+      <div class="flex flex-col items-end gap-0.5">
+        <% if meal.cancelled? %>
+          <span class="badge badge-error badge-xs">Cancelled</span>
+        <% elsif user_is_cook %>
+          <span class="badge badge-success badge-xs">Cooking</span>
+        <% elsif user_attending %>
+          <span class="badge badge-info badge-xs">Going</span>
+        <% elsif user_maybe %>
+          <span class="badge badge-warning badge-xs">Maybe</span>
+        <% end %>
+        <span class="text-xs text-base-content/50"><%= meal.total_attendees %> going</span>
+      </div>
+    </div>
+  <% end %>
+<% else %>
 <%= link_to meal_path(meal), id: "meal_#{meal.id}", class: "card bg-base-100 shadow-lg border-l-4 #{border_class} hover:shadow-xl transition-shadow" do %>
   <div class="card-body p-4">
     <!-- Header: Date, Time, Status -->
@@ -91,4 +133,5 @@
       <% end %>
     </div>
   </div>
+<% end %>
 <% end %>

@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
 import androidx.fragment.app.Fragment
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.colecoding.conduit.R
 import com.colecoding.conduit.auth.AuthManager
 
@@ -18,6 +19,7 @@ class TasksFragment : Fragment() {
     }
 
     private lateinit var webView: WebView
+    private lateinit var swipeRefresh: SwipeRefreshLayout
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,9 +35,19 @@ class TasksFragment : Fragment() {
         Log.d(TAG, "onViewCreated")
 
         webView = view.findViewById(R.id.webview)
+        swipeRefresh = view.findViewById(R.id.swipe_refresh)
+
         setupWebView()
+        setupSwipeRefresh()
         // Don't load immediately - wait until fragment becomes visible
         // This ensures the session cookie is established by HomeFragment first
+    }
+
+    private fun setupSwipeRefresh() {
+        swipeRefresh.setOnRefreshListener {
+            Log.d(TAG, "Pull to refresh triggered")
+            webView.reload()
+        }
     }
 
     private fun setupWebView() {
@@ -46,13 +58,14 @@ class TasksFragment : Fragment() {
             domStorageEnabled = true
             databaseEnabled = true
             cacheMode = WebSettings.LOAD_NO_CACHE
-            userAgentString = "$userAgentString ConduitAndroid/1.0"
+            userAgentString = "$userAgentString Conduit-Android/1.0 (Turbo Native)"
         }
 
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "Page loaded: $url")
+                swipeRefresh.isRefreshing = false
 
                 // Inject auth token
                 val token = AuthManager.getAuthToken(requireContext())
@@ -81,10 +94,6 @@ class TasksFragment : Fragment() {
 
                                 const bottomNav = document.querySelector('.bottom-navigation');
                                 if (bottomNav) bottomNav.style.display = 'none';
-
-                                // Add padding to top of content
-                                const main = document.querySelector('main');
-                                if (main) main.style.paddingTop = '20px';
                             }, 100);
                         })();
                     """.trimIndent()
