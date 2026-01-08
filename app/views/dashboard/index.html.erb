@@ -1,7 +1,7 @@
 <!-- Main Content Grid - Mobile First Responsive -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-4" data-controller="posts">
-  <!-- Posts Column -->
-  <div class="col-span-1 lg:col-span-1 order-1">
+  <!-- Posts Column - Hidden on mobile, shown on desktop -->
+  <div class="hidden lg:block col-span-1 lg:col-span-1 order-1">
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-6">
@@ -48,13 +48,13 @@
     </div>
   </div>
 
-  <!-- Right Sidebar -->
+  <!-- Main content on mobile, sidebar on desktop -->
   <div class="col-span-1 lg:col-span-1 order-2 space-y-4 sm:space-y-6">
     <!-- Upcoming Events -->
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 mb-2">
-          <h3 class="card-title text-base sm:text-lg font-semibold flex items-center gap-2">
+          <h2 class="card-title text-xl lg:text-lg font-semibold flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
@@ -101,8 +101,8 @@
     <!-- Documents Section -->
     <%= render 'dashboard/documents_section' %>
 
-    <!-- Tasks -->
-    <div class="card bg-base-100 shadow-xl" data-controller="tasks">
+    <!-- Tasks - Hidden on mobile, shown on desktop -->
+    <div class="hidden lg:block card bg-base-100 shadow-xl" data-controller="tasks">
       <div class="card-body">
         <h3 class="card-title text-base sm:text-lg font-semibold">✅ My Tasks</h3>
         <p class="text-xs text-base-content/70">Tasks assigned to you</p>

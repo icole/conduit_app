@@ -29,8 +29,8 @@ class ApplicationController < ActionController::Base
   end
 
   def find_community_by_host(host)
-    # Handle localhost in development
-    if Rails.env.development? && host.include?("localhost")
+    # Handle localhost in development (including Android emulator's 10.0.2.2)
+    if Rails.env.development? && (host.include?("localhost") || host == "10.0.2.2")
       return Community.find_by(slug: "crow-woods")
     end
 

@@ -136,13 +136,17 @@ class LoginActivity : AppCompatActivity() {
                 }
 
                 // Include community domain to scope login
-                val communityUrl = CommunityManager.getCommunityUrl(this@LoginActivity)
-                val communityDomain = communityUrl?.let {
-                    try { java.net.URL(it).host } catch (e: Exception) { "" }
-                } ?: ""
+                // In debug mode, use "localhost" since the database has that as the domain
+                val communityDomain = if (BuildConfig.DEBUG) {
+                    "localhost"
+                } else {
+                    val communityUrl = CommunityManager.getCommunityUrl(this@LoginActivity)
+                    communityUrl?.let {
+                        try { java.net.URL(it).host } catch (e: Exception) { "" }
+                    } ?: ""
+                }
 
-                Log.d(TAG, "Login - communityUrl: $communityUrl")
-                Log.d(TAG, "Login - communityDomain: $communityDomain")
+                Log.d(TAG, "Login - communityDomain: $communityDomain (debug=${BuildConfig.DEBUG})")
 
                 val json =
                         JSONObject().apply {
@@ -216,10 +220,17 @@ class LoginActivity : AppCompatActivity() {
                 }
 
                 // Include community domain to scope login
-                val communityUrl = CommunityManager.getCommunityUrl(this@LoginActivity)
-                val communityDomain = communityUrl?.let {
-                    try { java.net.URL(it).host } catch (e: Exception) { "" }
-                } ?: ""
+                // In debug mode, use "localhost" since the database has that as the domain
+                val communityDomain = if (BuildConfig.DEBUG) {
+                    "localhost"
+                } else {
+                    val communityUrl = CommunityManager.getCommunityUrl(this@LoginActivity)
+                    communityUrl?.let {
+                        try { java.net.URL(it).host } catch (e: Exception) { "" }
+                    } ?: ""
+                }
+
+                Log.d(TAG, "Google auth - communityDomain: $communityDomain (debug=${BuildConfig.DEBUG})")
 
                 val json =
                         JSONObject().apply {
