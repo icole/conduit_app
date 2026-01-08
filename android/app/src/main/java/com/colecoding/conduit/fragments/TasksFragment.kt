@@ -1,6 +1,8 @@
 package com.colecoding.conduit.fragments
 
+import android.net.Uri
 import android.os.Bundle
+import androidx.browser.customtabs.CustomTabsIntent
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.colecoding.conduit.R
 import com.colecoding.conduit.auth.AuthManager
+import com.colecoding.conduit.config.AppConfig
 
 class TasksFragment : Fragment() {
 
@@ -103,15 +106,32 @@ class TasksFragment : Fragment() {
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                val url = request?.url?.toString()
+                val url = request?.url?.toString() ?: return false
                 Log.d(TAG, "shouldOverrideUrlLoading: $url")
 
-                // Keep navigation within the app for conduit URLs
-                if (url?.contains("conduit") == true || url?.contains("localhost") == true) {
-                    return false
-                }
+                // Check if this is an internal URL (our app)
+                val baseUrl = AppConfig.getBaseUrl(requireContext())
+                val isInternalUrl = url.startsWith(baseUrl) ||
+                        url.contains("localhost") ||
+                        url.contains("10.0.2.2") ||
+                        url.contains("conduit")
 
-                return true
+                return if (isInternalUrl) {
+                    // Let WebView handle internal URLs
+                    false
+                } else {
+                    // Open external URLs in Chrome Custom Tab (in-app browser)
+                    Log.d(TAG, "Opening external URL in Custom Tab: $url")
+                    try {
+                        val customTabsIntent = CustomTabsIntent.Builder()
+                            .setShowTitle(true)
+                            .build()
+                        customTabsIntent.launchUrl(requireContext(), Uri.parse(url))
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to open Custom Tab: ${e.message}")
+                    }
+                    true
+                }
             }
 
             override fun onReceivedError(

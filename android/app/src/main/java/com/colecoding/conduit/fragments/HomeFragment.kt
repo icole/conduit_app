@@ -1,11 +1,14 @@
 package com.colecoding.conduit.fragments
 
+import android.net.Uri
 import android.os.Bundle
+import androidx.browser.customtabs.CustomTabsIntent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebResourceRequest
 import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.colecoding.conduit.auth.AuthManager
@@ -56,9 +59,33 @@ class HomeFragment : Fragment() {
             }
 
             webViewClient = object : WebViewClient() {
-                override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                    // Let the WebView handle all URLs in the home tab
-                    return false
+                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                    val url = request?.url?.toString() ?: return false
+                    Log.d(TAG, "shouldOverrideUrlLoading: $url")
+
+                    // Check if this is an internal URL (our app)
+                    val baseUrl = AppConfig.getBaseUrl(requireContext())
+                    val isInternalUrl = url.startsWith(baseUrl) ||
+                            url.contains("localhost") ||
+                            url.contains("10.0.2.2") ||
+                            url.contains("conduit")
+
+                    return if (isInternalUrl) {
+                        // Let WebView handle internal URLs
+                        false
+                    } else {
+                        // Open external URLs in Chrome Custom Tab (in-app browser)
+                        Log.d(TAG, "Opening external URL in Custom Tab: $url")
+                        try {
+                            val customTabsIntent = CustomTabsIntent.Builder()
+                                .setShowTitle(true)
+                                .build()
+                            customTabsIntent.launchUrl(requireContext(), Uri.parse(url))
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to open Custom Tab: ${e.message}")
+                        }
+                        true
+                    }
                 }
 
                 override fun onPageFinished(view: WebView?, url: String?) {
