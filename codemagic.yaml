@@ -22,6 +22,10 @@ workflows:
           include: true
 
     scripts:
+      - name: Set up google-services.json
+        script: |
+          echo $GOOGLE_SERVICES_JSON | base64 --decode > android/app/google-services.json
+
       - name: Set up local.properties
         script: |
           cd android
@@ -135,6 +139,10 @@ workflows:
 
     scripts:
       # Android
+      - name: Set up google-services.json
+        script: |
+          echo $GOOGLE_SERVICES_JSON | base64 --decode > android/app/google-services.json
+
       - name: Set up local.properties
         script: |
           cd android
