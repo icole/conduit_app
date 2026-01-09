@@ -53,7 +53,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.colecoding.conduit
+        bundle_identifier: com.colecoding.ConduitApp
       groups:
         - app_secrets
       vars:
@@ -115,7 +115,7 @@ workflows:
         - Conduit Release
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.colecoding.conduit
+        bundle_identifier: com.colecoding.ConduitApp
       vars:
         PACKAGE_NAME: "com.colecoding.conduitapp"
         XCODE_PROJECT: "ios/Conduit/Conduit.xcodeproj"
