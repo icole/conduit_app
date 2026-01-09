@@ -42,12 +42,13 @@ workflows:
           keyPassword=$CM_KEY_PASSWORD
           EOF
 
-      - name: Increment Android version code
+      - name: Increment Android version
         script: |
           LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal || echo "0")
           NEW_VERSION_CODE=$((LATEST_BUILD + 1))
           sed -i '' "s/versionCode [0-9]*/versionCode $NEW_VERSION_CODE/" android/app/build.gradle
-          echo "Set versionCode to $NEW_VERSION_CODE"
+          sed -i '' "s/versionName \"[^\"]*\"/versionName \"1.0.$NEW_VERSION_CODE\"/" android/app/build.gradle
+          echo "Set versionCode to $NEW_VERSION_CODE, versionName to 1.0.$NEW_VERSION_CODE"
 
       - name: Build Android release
         script: |
@@ -176,12 +177,13 @@ workflows:
           keyPassword=$CM_KEY_PASSWORD
           EOF
 
-      - name: Increment Android version code
+      - name: Increment Android version
         script: |
           LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal || echo "0")
           NEW_VERSION_CODE=$((LATEST_BUILD + 1))
           sed -i '' "s/versionCode [0-9]*/versionCode $NEW_VERSION_CODE/" android/app/build.gradle
-          echo "Set versionCode to $NEW_VERSION_CODE"
+          sed -i '' "s/versionName \"[^\"]*\"/versionName \"1.0.$NEW_VERSION_CODE\"/" android/app/build.gradle
+          echo "Set versionCode to $NEW_VERSION_CODE, versionName to 1.0.$NEW_VERSION_CODE"
 
       - name: Build Android release
         script: |
