@@ -10,7 +10,7 @@ workflows:
         - android_keystore         # Contains CM_KEYSTORE, CM_KEY_PASSWORD, CM_KEY_ALIAS, CM_KEYSTORE_PASSWORD
         - app_secrets              # Contains STREAM_API_KEY_RELEASE, GOOGLE_CLIENT_ID
       android_signing:
-        - conduit_keystore
+        - Conduit Release
       vars:
         PACKAGE_NAME: "com.colecoding.conduitapp"
 
@@ -112,7 +112,7 @@ workflows:
         - android_keystore
         - app_secrets
       android_signing:
-        - conduit_keystore
+        - Conduit Release
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.colecoding.conduit
