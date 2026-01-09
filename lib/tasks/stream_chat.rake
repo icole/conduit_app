@@ -188,6 +188,70 @@ namespace :stream_chat do
     end
   end
 
+  desc "Fix user-created channels missing community_slug. " \
+       "Pass COMMUNITY_SLUG=slug to assign them to a specific community."
+  task fix_user_channels: :environment do
+    unless StreamChatClient.configured?
+      puts "Stream Chat is not configured. Skipping."
+      next
+    end
+
+    community_slug = ENV["COMMUNITY_SLUG"]
+    unless community_slug.present?
+      puts "Usage: rake stream_chat:fix_user_channels COMMUNITY_SLUG=your-community-slug"
+      puts "This will add community_slug to all channels that are missing it."
+      next
+    end
+
+    community = Community.find_by(slug: community_slug)
+    unless community
+      puts "Community with slug '#{community_slug}' not found."
+      next
+    end
+
+    client = StreamChatClient.client
+
+    puts "Fetching all team channels..."
+
+    begin
+      # Query all team channels
+      response = client.query_channels(
+        { "type" => { "$eq" => "team" } },
+        sort: { "created_at" => -1 },
+        limit: 100
+      )
+
+      channels_fixed = 0
+      channels_skipped = 0
+
+      response["channels"].each do |channel_data|
+        channel_info = channel_data["channel"]
+        channel_id = channel_info["id"]
+
+        if channel_info["community_slug"].present?
+          puts "  ✓ #{channel_id} - already has community_slug: #{channel_info['community_slug']}"
+          channels_skipped += 1
+        else
+          puts "  → Fixing #{channel_id}..."
+          channel = client.channel("team", channel_id: channel_id)
+          channel.update_partial({
+            "community_id" => community.id,
+            "community_slug" => community.slug
+          })
+          puts "    Added community_slug: #{community.slug}"
+          channels_fixed += 1
+        end
+      end
+
+      puts "\n=== Summary ==="
+      puts "Channels fixed: #{channels_fixed}"
+      puts "Channels already OK: #{channels_skipped}"
+    rescue => e
+      puts "Error: #{e.message}"
+      puts e.backtrace.first(5).join("\n")
+    end
+  end
+
   desc "Add all community users to their community's channels"
   task sync_users: :environment do
     unless StreamChatClient.configured?
