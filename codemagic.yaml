@@ -52,8 +52,6 @@ workflows:
 
     environment:
       ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.colecoding.ConduitApp
         provisioning_profiles:
           - Conduit Distribution
         certificates:
@@ -118,8 +116,6 @@ workflows:
       android_signing:
         - Conduit Release
       ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.colecoding.ConduitApp
         provisioning_profiles:
           - Conduit Distribution
         certificates:
