@@ -93,6 +93,10 @@ workflows:
           include: true
 
     scripts:
+      - name: Set up GoogleService-Info.plist
+        script: |
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > ios/Conduit/Conduit/GoogleService-Info.plist
+
       - name: Set up code signing
         script: |
           xcode-project use-profiles
@@ -189,6 +193,10 @@ workflows:
           ./gradlew bundleRelease
 
       # iOS
+      - name: Set up GoogleService-Info.plist
+        script: |
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > ios/Conduit/Conduit/GoogleService-Info.plist
+
       - name: Set up code signing
         script: |
           xcode-project use-profiles

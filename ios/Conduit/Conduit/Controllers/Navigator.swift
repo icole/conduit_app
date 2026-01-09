@@ -1,6 +1,7 @@
 import UIKit
 import HotwireNative
 internal import WebKit
+import SafariServices
 
 class Navigator: UINavigationController {
     let session: Session
@@ -126,8 +127,45 @@ extension Navigator: SessionDelegate {
     }
 
     func session(_ session: Session, decidePolicyFor navigationAction: WKNavigationAction) -> WebViewPolicyManager.Decision {
-        // Allow all navigation by default
+        guard let url = navigationAction.request.url else {
+            return .allow
+        }
+
+        // Check if this is an external URL that should open in Safari
+        if isExternalURL(url) {
+            openInSafariViewController(url)
+            return .cancel
+        }
+
         return .allow
+    }
+
+    private func isExternalURL(_ url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else { return false }
+
+        // List of external domains that should open in Safari
+        let externalDomains = [
+            "docs.google.com",
+            "drive.google.com",
+            "sheets.google.com",
+            "slides.google.com",
+            "forms.google.com",
+            "accounts.google.com"
+        ]
+
+        return externalDomains.contains { host.contains($0) }
+    }
+
+    private func openInSafariViewController(_ url: URL) {
+        let safariVC = SFSafariViewController(url: url)
+        safariVC.preferredControlTintColor = .systemBlue
+
+        // Present from the top-most view controller
+        if let topVC = topViewController {
+            topVC.present(safariVC, animated: true)
+        } else {
+            present(safariVC, animated: true)
+        }
     }
 
     func session(_ session: Session, didFailRequestForVisitable visitable: Visitable, error: Error) {
