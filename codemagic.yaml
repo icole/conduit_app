@@ -32,6 +32,16 @@ workflows:
           echo "STREAM_API_KEY_RELEASE=$STREAM_API_KEY_RELEASE" >> local.properties
           echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> local.properties
 
+      - name: Set up key.properties for signing
+        script: |
+          cp "$CM_KEYSTORE_PATH" android/release.keystore
+          cat > android/key.properties <<EOF
+          storeFile=release.keystore
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          keyPassword=$CM_KEY_PASSWORD
+          EOF
+
       - name: Increment Android version code
         script: |
           LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal || echo "0")
@@ -155,6 +165,16 @@ workflows:
           cd android
           echo "STREAM_API_KEY_RELEASE=$STREAM_API_KEY_RELEASE" >> local.properties
           echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> local.properties
+
+      - name: Set up key.properties for signing
+        script: |
+          cp "$CM_KEYSTORE_PATH" android/release.keystore
+          cat > android/key.properties <<EOF
+          storeFile=release.keystore
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          keyPassword=$CM_KEY_PASSWORD
+          EOF
 
       - name: Increment Android version code
         script: |
