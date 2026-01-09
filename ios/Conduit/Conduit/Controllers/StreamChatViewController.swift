@@ -599,6 +599,7 @@ class StreamChatViewController: UIViewController {
             // Create custom channel list view controller with channel creation support
             let channelListVC = CustomChannelListVC()
             channelListVC.controller = channelList
+            channelListVC.communitySlug = self.communitySlug  // Pass community slug for channel creation
 
             // Add as child view controller
             self.addChild(channelListVC)

@@ -4,6 +4,9 @@ import StreamChatUI
 
 class CustomChannelListVC: ChatChannelListVC {
 
+    // Community slug for channel creation - set by parent view controller
+    var communitySlug: String?
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -215,6 +218,11 @@ class CustomChannelListVC: ChatChannelListVC {
         // Make the channel public by setting it as open for all members
         extraData["public"] = .bool(true)
         extraData["open"] = .bool(true)  // Allow anyone to join
+
+        // Add community_slug so the channel appears in community-filtered lists
+        if let communitySlug = communitySlug {
+            extraData["community_slug"] = .string(communitySlug)
+        }
 
         do {
             // Create the channel with the current user as the initial member

@@ -293,6 +293,12 @@ class CustomChatFragment : Fragment() {
                 extraData["public"] = true
                 extraData["open"] = true  // Allow anyone to join
 
+                // Add community_slug so the channel appears in community-filtered lists
+                val communitySlug = AuthManager.getCommunitySlug(requireContext())
+                if (communitySlug != null) {
+                    extraData["community_slug"] = communitySlug
+                }
+
                 // Create channel with creator as initial member
                 // The public flag will make it discoverable to others
                 channelClient.create(
