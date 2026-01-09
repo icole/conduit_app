@@ -32,6 +32,13 @@ workflows:
           echo "STREAM_API_KEY_RELEASE=$STREAM_API_KEY_RELEASE" >> local.properties
           echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> local.properties
 
+      - name: Increment Android version code
+        script: |
+          LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal || echo "0")
+          NEW_VERSION_CODE=$((LATEST_BUILD + 1))
+          sed -i '' "s/versionCode [0-9]*/versionCode $NEW_VERSION_CODE/" android/app/build.gradle
+          echo "Set versionCode to $NEW_VERSION_CODE"
+
       - name: Build Android release
         script: |
           cd android
@@ -148,6 +155,13 @@ workflows:
           cd android
           echo "STREAM_API_KEY_RELEASE=$STREAM_API_KEY_RELEASE" >> local.properties
           echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> local.properties
+
+      - name: Increment Android version code
+        script: |
+          LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal || echo "0")
+          NEW_VERSION_CODE=$((LATEST_BUILD + 1))
+          sed -i '' "s/versionCode [0-9]*/versionCode $NEW_VERSION_CODE/" android/app/build.gradle
+          echo "Set versionCode to $NEW_VERSION_CODE"
 
       - name: Build Android release
         script: |
