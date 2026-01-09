@@ -48,7 +48,7 @@
         </div>
 
         <!-- Files List (also handles empty state via the partial) -->
-        <div data-drive-sync-target="filesList">
+        <div data-drive-sync-target="filesList" class="<%= @drive_sync_loading ? 'hidden' : '' %>">
           <%= render 'files_list', files: @recent_files&.dig(:files) %>
         </div>
       </div>

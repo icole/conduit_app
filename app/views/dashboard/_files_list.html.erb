@@ -2,7 +2,7 @@
   <div class="divide-y divide-base-200 rounded-lg border border-base-200 overflow-hidden">
     <% files.each do |file| %>
       <a href="<%= file[:web_link] %>" target="_blank" rel="noopener noreferrer"
-         class="flex items-center gap-3 p-2 hover:bg-base-200 transition-colors">
+         class="flex items-center gap-3 p-3 min-h-[52px] hover:bg-base-200 active:bg-base-300 transition-colors cursor-pointer touch-manipulation">
         <div class="flex-shrink-0">
           <% if file[:icon_link] %>
             <img src="<%= file[:icon_link] %>" alt="File icon" class="h-6 w-6" />
@@ -13,7 +13,7 @@
           <% end %>
         </div>
         <div class="flex-grow min-w-0">
-          <p class="font-medium text-sm line-clamp-1"><%= proper_title_case(file[:name]) %></p>
+          <p class="font-medium text-sm line-clamp-1 text-primary underline underline-offset-2"><%= proper_title_case(file[:name]) %></p>
           <p class="text-xs text-base-content/60">
             Updated <%= time_ago_in_words(file[:updated_at]) %> ago
           </p>
