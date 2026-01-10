@@ -31,12 +31,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bottomNavigation: BottomNavigationView
 
     // Keep fragment instances to avoid recreation
-    private val homeFragment = HomeFragment()
-    private val tasksFragment = TasksFragment()
-    private val mealsFragment = MealsFragment()
-    private val chatFragment = CustomChatFragment()
-    private val accountFragment = AccountFragment()
-    private var activeFragment: Fragment = homeFragment
+    private lateinit var homeFragment: HomeFragment
+    private lateinit var tasksFragment: TasksFragment
+    private lateinit var mealsFragment: MealsFragment
+    private lateinit var chatFragment: CustomChatFragment
+    private lateinit var accountFragment: AccountFragment
+    private lateinit var activeFragment: Fragment
+
+    private companion object {
+        const val KEY_ACTIVE_FRAGMENT = "active_fragment_tag"
+    }
 
     // Permission request launcher for notifications
     private val notificationPermissionLauncher = registerForActivityResult(
@@ -75,10 +79,17 @@ class MainActivity : AppCompatActivity() {
 
         // Set up bottom navigation
         bottomNavigation = findViewById(R.id.bottom_navigation)
-        setupBottomNavigation()
 
-        // Add all fragments but hide non-active ones
+        // Initialize or restore fragments
         if (savedInstanceState == null) {
+            // First launch - create new fragments
+            homeFragment = HomeFragment()
+            tasksFragment = TasksFragment()
+            mealsFragment = MealsFragment()
+            chatFragment = CustomChatFragment()
+            accountFragment = AccountFragment()
+            activeFragment = homeFragment
+
             supportFragmentManager.beginTransaction().apply {
                 add(R.id.fragment_container, accountFragment, "account").hide(accountFragment)
                 add(R.id.fragment_container, chatFragment, "chat").hide(chatFragment)
@@ -87,7 +98,31 @@ class MainActivity : AppCompatActivity() {
                 add(R.id.fragment_container, homeFragment, "home")
                 commit()
             }
+        } else {
+            // Restore fragments from FragmentManager
+            homeFragment = supportFragmentManager.findFragmentByTag("home") as? HomeFragment ?: HomeFragment()
+            tasksFragment = supportFragmentManager.findFragmentByTag("tasks") as? TasksFragment ?: TasksFragment()
+            mealsFragment = supportFragmentManager.findFragmentByTag("meals") as? MealsFragment ?: MealsFragment()
+            chatFragment = supportFragmentManager.findFragmentByTag("chat") as? CustomChatFragment ?: CustomChatFragment()
+            accountFragment = supportFragmentManager.findFragmentByTag("account") as? AccountFragment ?: AccountFragment()
+
+            // Restore active fragment
+            val activeTag = savedInstanceState.getString(KEY_ACTIVE_FRAGMENT, "home")
+            activeFragment = supportFragmentManager.findFragmentByTag(activeTag) ?: homeFragment
+
+            // Sync bottom navigation with restored state
+            val selectedId = when (activeTag) {
+                "home" -> R.id.navigation_home
+                "tasks" -> R.id.navigation_tasks
+                "meals" -> R.id.navigation_meals
+                "chat" -> R.id.navigation_chat
+                "account" -> R.id.navigation_account
+                else -> R.id.navigation_home
+            }
+            bottomNavigation.selectedItemId = selectedId
         }
+
+        setupBottomNavigation()
 
         // Request notification permission for Android 13+
         requestNotificationPermission()
@@ -131,6 +166,20 @@ class MainActivity : AppCompatActivity() {
 
             true
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Save the active fragment tag
+        val activeTag = when (activeFragment) {
+            homeFragment -> "home"
+            tasksFragment -> "tasks"
+            mealsFragment -> "meals"
+            chatFragment -> "chat"
+            accountFragment -> "account"
+            else -> "home"
+        }
+        outState.putString(KEY_ACTIVE_FRAGMENT, activeTag)
     }
 
     override fun onRestart() {
