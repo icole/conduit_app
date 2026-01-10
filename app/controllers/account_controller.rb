@@ -55,4 +55,31 @@ class AccountController < ApplicationController
       redirect_to account_path, alert: @user.errors.full_messages.join(", ")
     end
   end
+
+  # Show account deletion confirmation page
+  def delete
+    @user = current_user
+  end
+
+  # Delete the user's account and associated data
+  def destroy
+    @user = current_user
+
+    # Verify confirmation text
+    unless params[:confirmation] == @user.email
+      redirect_to delete_account_path, alert: "Please type your email address to confirm deletion."
+      return
+    end
+
+    # Log the deletion for audit purposes
+    Rails.logger.info "User #{@user.id} (#{@user.email}) requested account deletion"
+
+    # Destroy the user (associated data will be handled by dependent: :destroy)
+    if @user.destroy
+      reset_session
+      redirect_to root_path, notice: "Your account and all associated data have been permanently deleted."
+    else
+      redirect_to delete_account_path, alert: "Unable to delete account. Please contact support."
+    end
+  end
 end

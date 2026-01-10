@@ -210,4 +210,17 @@
       </div>
     </div>
   </div>
+
+  <!-- Danger Zone -->
+  <div class="card bg-base-100 shadow-xl mt-6 border border-error/20">
+    <div class="card-body">
+      <h2 class="card-title text-error">Danger Zone</h2>
+      <p class="text-base-content/70 mt-2">
+        Once you delete your account, there is no going back. Please be certain.
+      </p>
+      <div class="mt-4">
+        <%= link_to "Delete my account", delete_account_path, class: "btn btn-outline btn-error" %>
+      </div>
+    </div>
+  </div>
 </div>
