@@ -44,8 +44,23 @@ workflows:
 
       - name: Increment Android version
         script: |
-          LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal,alpha,beta,production || echo "0")
+          # Query each track separately and find the max version code
+          INTERNAL=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal 2>/dev/null || echo "0")
+          ALPHA=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=alpha 2>/dev/null || echo "0")
+          BETA=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=beta 2>/dev/null || echo "0")
+          PROD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=production 2>/dev/null || echo "0")
+
+          echo "Found versions - internal: $INTERNAL, alpha: $ALPHA, beta: $BETA, production: $PROD"
+
+          # Find the maximum
+          LATEST_BUILD=$INTERNAL
+          [ "$ALPHA" -gt "$LATEST_BUILD" ] 2>/dev/null && LATEST_BUILD=$ALPHA
+          [ "$BETA" -gt "$LATEST_BUILD" ] 2>/dev/null && LATEST_BUILD=$BETA
+          [ "$PROD" -gt "$LATEST_BUILD" ] 2>/dev/null && LATEST_BUILD=$PROD
+
           NEW_VERSION_CODE=$((LATEST_BUILD + 1))
+          echo "Latest build: $LATEST_BUILD, new version code: $NEW_VERSION_CODE"
+
           sed -i '' "s/versionCode [0-9]*/versionCode $NEW_VERSION_CODE/" android/app/build.gradle
           sed -i '' "s/versionName \"[^\"]*\"/versionName \"1.0.$NEW_VERSION_CODE\"/" android/app/build.gradle
           echo "Set versionCode to $NEW_VERSION_CODE, versionName to 1.0.$NEW_VERSION_CODE"
@@ -183,8 +198,23 @@ workflows:
 
       - name: Increment Android version
         script: |
-          LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal,alpha,beta,production || echo "0")
+          # Query each track separately and find the max version code
+          INTERNAL=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal 2>/dev/null || echo "0")
+          ALPHA=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=alpha 2>/dev/null || echo "0")
+          BETA=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=beta 2>/dev/null || echo "0")
+          PROD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=production 2>/dev/null || echo "0")
+
+          echo "Found versions - internal: $INTERNAL, alpha: $ALPHA, beta: $BETA, production: $PROD"
+
+          # Find the maximum
+          LATEST_BUILD=$INTERNAL
+          [ "$ALPHA" -gt "$LATEST_BUILD" ] 2>/dev/null && LATEST_BUILD=$ALPHA
+          [ "$BETA" -gt "$LATEST_BUILD" ] 2>/dev/null && LATEST_BUILD=$BETA
+          [ "$PROD" -gt "$LATEST_BUILD" ] 2>/dev/null && LATEST_BUILD=$PROD
+
           NEW_VERSION_CODE=$((LATEST_BUILD + 1))
+          echo "Latest build: $LATEST_BUILD, new version code: $NEW_VERSION_CODE"
+
           sed -i '' "s/versionCode [0-9]*/versionCode $NEW_VERSION_CODE/" android/app/build.gradle
           sed -i '' "s/versionName \"[^\"]*\"/versionName \"1.0.$NEW_VERSION_CODE\"/" android/app/build.gradle
           echo "Set versionCode to $NEW_VERSION_CODE, versionName to 1.0.$NEW_VERSION_CODE"
