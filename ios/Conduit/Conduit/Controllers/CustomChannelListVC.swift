@@ -275,6 +275,9 @@ class CustomChannelListVC: ChatChannelListVC {
             } else {
                 print("Channel created successfully")
 
+                // Sync community members to the channel via Rails endpoint
+                self?.syncCommunityMembers(channelId: finalChannelId)
+
                 // Add a welcome message to the new channel
                 channelController.createNewMessage(
                     text: "Welcome to #\(name)! 🎉"
@@ -291,6 +294,52 @@ class CustomChannelListVC: ChatChannelListVC {
                 self?.navigateToChannel(channelController: channelController)
             }
         }
+    }
+
+    private func syncCommunityMembers(channelId: String) {
+        // Call Rails endpoint to add all community members to the channel
+        let baseURL = AppConfig.baseURL
+        let syncURL = baseURL.appendingPathComponent("chat/channels/\(channelId)/sync_members")
+
+        var request = URLRequest(url: syncURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        // Include cookies for authentication
+        if let cookies = HTTPCookieStorage.shared.cookies(for: baseURL) {
+            let headers = HTTPCookie.requestHeaderFields(with: cookies)
+            for (header, value) in headers {
+                request.setValue(value, forHTTPHeaderField: header)
+            }
+        }
+
+        // Get CSRF token from cookies if available
+        if let cookies = HTTPCookieStorage.shared.cookies(for: baseURL),
+           let csrfCookie = cookies.first(where: { $0.name == "CSRF-TOKEN" }) {
+            request.setValue(csrfCookie.value, forHTTPHeaderField: "X-CSRF-Token")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Failed to sync community members: \(error)")
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    if let data = data,
+                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let membersAdded = json["members_added"] as? Int {
+                        print("Successfully synced \(membersAdded) community members to channel")
+                    }
+                } else {
+                    print("Failed to sync members, status: \(httpResponse.statusCode)")
+                    if let data = data, let body = String(data: data, encoding: .utf8) {
+                        print("Response: \(body)")
+                    }
+                }
+            }
+        }.resume()
     }
 
     private func navigateToChannel(channelController: ChatChannelController) {

@@ -308,6 +308,9 @@ class CustomChatFragment : Fragment() {
                     if (result.isSuccess) {
                         Log.d(TAG, "Channel created successfully: $name")
 
+                        // Sync community members to the channel via Rails endpoint
+                        syncCommunityMembers(channelId)
+
                         // Send welcome message
                         channelClient.sendMessage(
                             Message(
@@ -493,6 +496,43 @@ class CustomChatFragment : Fragment() {
     private fun showToast(message: String) {
         activity?.runOnUiThread {
             android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun syncCommunityMembers(channelId: String) {
+        lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    val baseUrl = AuthManager.getBaseUrl(requireContext())
+                    val url = java.net.URL("$baseUrl/chat/channels/$channelId/sync_members")
+                    val connection = url.openConnection() as java.net.HttpURLConnection
+
+                    connection.requestMethod = "POST"
+                    connection.setRequestProperty("Content-Type", "application/json")
+
+                    // Add session cookie for authentication
+                    val sessionCookie = AuthManager.getSessionCookie(requireContext())
+                    if (sessionCookie != null) {
+                        connection.setRequestProperty("Cookie", sessionCookie)
+                    }
+
+                    connection.doOutput = true
+                    connection.outputStream.write("{}".toByteArray())
+
+                    val responseCode = connection.responseCode
+                    if (responseCode == 200) {
+                        val response = connection.inputStream.bufferedReader().readText()
+                        Log.d(TAG, "Successfully synced community members: $response")
+                    } else {
+                        Log.e(TAG, "Failed to sync members, status: $responseCode")
+                        val errorResponse = connection.errorStream?.bufferedReader()?.readText()
+                        Log.e(TAG, "Error response: $errorResponse")
+                    }
+                    connection.disconnect()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error syncing community members", e)
+            }
         }
     }
 }

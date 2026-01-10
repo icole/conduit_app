@@ -252,6 +252,60 @@ namespace :stream_chat do
     end
   end
 
+  desc "Sync all community members to a specific channel. " \
+       "Pass CHANNEL_ID=channel-id to sync members."
+  task sync_channel_members: :environment do
+    unless StreamChatClient.configured?
+      puts "Stream Chat is not configured. Skipping."
+      next
+    end
+
+    channel_id = ENV["CHANNEL_ID"]
+    unless channel_id.present?
+      puts "Usage: rake stream_chat:sync_channel_members CHANNEL_ID=pets-1768001867"
+      puts "This will add all community members to the specified channel."
+      next
+    end
+
+    client = StreamChatClient.client
+
+    begin
+      # Query the channel to get its community_slug
+      channel = client.channel("team", channel_id: channel_id)
+
+      # Use first admin user to query
+      admin_user = User.find_by(admin: true) || User.first
+      channel_data = channel.query(user_id: admin_user.id.to_s)
+      channel_info = channel_data["channel"]
+
+      community_slug = channel_info["community_slug"]
+      unless community_slug.present?
+        puts "Channel #{channel_id} has no community_slug set. Run fix_user_channels first."
+        next
+      end
+
+      community = Community.find_by(slug: community_slug)
+      unless community
+        puts "Community with slug '#{community_slug}' not found."
+        next
+      end
+
+      puts "Channel: #{channel_id}"
+      puts "Community: #{community.name} (#{community_slug})"
+
+      # Get all users from the community
+      community_user_ids = community.users.pluck(:id).map(&:to_s)
+      puts "Adding #{community_user_ids.length} members..."
+
+      channel.add_members(community_user_ids)
+
+      puts "Successfully added all community members to channel!"
+    rescue => e
+      puts "Error: #{e.message}"
+      puts e.backtrace.first(5).join("\n")
+    end
+  end
+
   desc "Add all community users to their community's channels"
   task sync_users: :environment do
     unless StreamChatClient.configured?

@@ -68,6 +68,55 @@ class ChatController < ApplicationController
     render layout: turbo_native_app? ? "turbo_native" : "application"
   end
 
+  # POST /chat/channels/:channel_id/sync_members
+  # Add all community members to a newly created channel
+  def sync_channel_members
+    channel_id = params[:channel_id]
+
+    unless channel_id.present?
+      render json: { error: "channel_id is required" }, status: :bad_request
+      return
+    end
+
+    begin
+      client = StreamChatClient.client
+      channel = client.channel("team", channel_id: channel_id)
+
+      # Query the channel to get its data
+      channel_data = channel.query(user_id: current_user.id.to_s)
+      channel_info = channel_data["channel"]
+
+      # Verify the channel belongs to the current user's community
+      channel_community_slug = channel_info["community_slug"]
+      user_community_slug = current_user.community.slug
+
+      if channel_community_slug != user_community_slug
+        render json: { error: "Channel does not belong to your community" }, status: :forbidden
+        return
+      end
+
+      # Get all users from the current community
+      community_user_ids = current_user.community.users.pluck(:id).map(&:to_s)
+
+      # Add all community members to the channel
+      channel.add_members(community_user_ids)
+
+      Rails.logger.info "Added #{community_user_ids.length} members to channel #{channel_id}"
+
+      render json: {
+        success: true,
+        channel_id: channel_id,
+        members_added: community_user_ids.length
+      }
+    rescue StreamChat::StreamAPIException => e
+      Rails.logger.error "Failed to sync channel members: #{e.message}"
+      render json: { error: e.message }, status: :unprocessable_entity
+    rescue => e
+      Rails.logger.error "Error syncing channel members: #{e.message}"
+      render json: { error: "Failed to sync members" }, status: :internal_server_error
+    end
+  end
+
   # GET /chat/debug
   # Debug page to check Stream configuration
   def debug

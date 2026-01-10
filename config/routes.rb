@@ -151,6 +151,7 @@ Rails.application.routes.draw do
       get :debug # Debug endpoint to check configuration
     end
   end
+  post "chat/channels/:channel_id/sync_members", to: "chat#sync_channel_members", as: :sync_channel_members
 
   # Authentication routes
   get "login", to: "sessions#new"
