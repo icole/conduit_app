@@ -273,8 +273,10 @@ namespace :stream_chat do
       # Query the channel to get its community_slug
       channel = client.channel("team", channel_id: channel_id)
 
-      # Use first admin user to query
-      admin_user = User.find_by(admin: true) || User.first
+      # Use first admin user to query (without tenant scope)
+      admin_user = ActsAsTenant.without_tenant do
+        User.find_by(admin: true) || User.first
+      end
       channel_data = channel.query(user_id: admin_user.id.to_s)
       channel_info = channel_data["channel"]
 
@@ -293,8 +295,10 @@ namespace :stream_chat do
       puts "Channel: #{channel_id}"
       puts "Community: #{community.name} (#{community_slug})"
 
-      # Get all users from the community
-      community_user_ids = community.users.pluck(:id).map(&:to_s)
+      # Get all users from the community (within tenant scope)
+      community_user_ids = ActsAsTenant.with_tenant(community) do
+        User.pluck(:id).map(&:to_s)
+      end
       puts "Adding #{community_user_ids.length} members..."
 
       channel.add_members(community_user_ids)
