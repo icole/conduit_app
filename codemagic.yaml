@@ -44,7 +44,7 @@ workflows:
 
       - name: Increment Android version
         script: |
-          LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=alpha || echo "0")
+          LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal,alpha,beta,production || echo "0")
           NEW_VERSION_CODE=$((LATEST_BUILD + 1))
           sed -i '' "s/versionCode [0-9]*/versionCode $NEW_VERSION_CODE/" android/app/build.gradle
           sed -i '' "s/versionName \"[^\"]*\"/versionName \"1.0.$NEW_VERSION_CODE\"/" android/app/build.gradle
@@ -181,7 +181,7 @@ workflows:
 
       - name: Increment Android version
         script: |
-          LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=alpha || echo "0")
+          LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal,alpha,beta,production || echo "0")
           NEW_VERSION_CODE=$((LATEST_BUILD + 1))
           sed -i '' "s/versionCode [0-9]*/versionCode $NEW_VERSION_CODE/" android/app/build.gradle
           sed -i '' "s/versionName \"[^\"]*\"/versionName \"1.0.$NEW_VERSION_CODE\"/" android/app/build.gradle
