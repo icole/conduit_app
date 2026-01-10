@@ -14,12 +14,13 @@ workflows:
       vars:
         PACKAGE_NAME: "com.colecoding.conduitapp"
 
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: main
-          include: true
+    # Disabled auto-trigger until Play Console setup is complete
+    # triggering:
+    #   events:
+    #     - push
+    #   branch_patterns:
+    #     - pattern: main
+    #       include: true
 
     scripts:
       - name: Set up google-services.json
@@ -100,12 +101,13 @@ workflows:
         XCODE_SCHEME: "Conduit"
         APP_STORE_APP_ID: "6756144999"
 
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: main
-          include: true
+    # Disabled auto-trigger - run manually from Codemagic dashboard
+    # triggering:
+    #   events:
+    #     - push
+    #   branch_patterns:
+    #     - pattern: main
+    #       include: true
 
     scripts:
       - name: Set up GoogleService-Info.plist
