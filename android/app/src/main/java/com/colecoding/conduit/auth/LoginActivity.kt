@@ -4,8 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.webkit.CookieManager
-import android.webkit.WebStorage
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -306,36 +304,15 @@ class LoginActivity : AppCompatActivity() {
             Log.w(TAG, "No auth token in response")
         }
 
-        // Clear all WebView data before proceeding to ensure no stale community data
-        clearWebViewData()
+        // Note: We no longer clear WebView cookies here because:
+        // 1. The auth_login endpoint will establish a fresh session
+        // 2. Clearing cookies asynchronously creates race conditions
+        // 3. Cookie manager is a singleton - all WebViews share cookies
 
         // Navigate to main activity
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
-    }
-
-    private fun clearWebViewData() {
-        Log.d(TAG, "Clearing all WebView data before showing main app")
-
-        // Must run on main thread for WebView operations
-        runOnUiThread {
-            try {
-                // Clear all WebView cookies
-                val cookieManager = CookieManager.getInstance()
-                cookieManager.removeAllCookies { success ->
-                    Log.d(TAG, "WebView cookies cleared: $success")
-                }
-                cookieManager.flush()
-
-                // Clear WebView storage (localStorage, sessionStorage, databases)
-                WebStorage.getInstance().deleteAllData()
-
-                Log.d(TAG, "WebView data cleared")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error clearing WebView data", e)
-            }
-        }
     }
 
     private fun showLoading(show: Boolean) {

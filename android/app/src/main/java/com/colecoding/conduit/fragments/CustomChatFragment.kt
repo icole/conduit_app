@@ -503,7 +503,7 @@ class CustomChatFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val baseUrl = AuthManager.getBaseUrl(requireContext())
+                    val baseUrl = com.colecoding.conduit.config.AppConfig.getBaseUrl(requireContext())
                     val url = java.net.URL("$baseUrl/chat/channels/$channelId/sync_members")
                     val connection = url.openConnection() as java.net.HttpURLConnection
 

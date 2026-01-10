@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         applicationId "com.colecoding.conduitapp"
-        minSdk 24
+        minSdk 28  // Required by hotwire-native-android
         targetSdk 35
         versionCode 14
         versionName "1.0.14"
@@ -98,9 +98,6 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.7.5'
     implementation 'androidx.navigation:navigation-ui-ktx:2.7.5'
 
-    // Hotwire Native
-    implementation 'dev.hotwire:turbo:7.0.0-rc16'
-
     // Stream Chat
     implementation "io.getstream:stream-chat-android-ui-components:$stream_chat_version"
     implementation "io.getstream:stream-chat-android-client:$stream_chat_version"
@@ -123,6 +120,10 @@ dependencies {
 
     // Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+
+    // Hotwire Native
+    implementation "dev.hotwire:core:$hotwire_native_version"
+    implementation "dev.hotwire:navigation-fragments:$hotwire_native_version"
 
     // Testing
     testImplementation 'junit:junit:4.13.2'

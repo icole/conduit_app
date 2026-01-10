@@ -1,11 +1,16 @@
 package com.colecoding.conduit
 
-import android.app.Activity
 import android.app.Application
-import android.os.Bundle
 import android.util.Log
+import android.webkit.CookieManager
+import com.colecoding.conduit.fragments.WebFragment
+import com.colecoding.conduit.fragments.WebModalFragment
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
+import dev.hotwire.core.config.Hotwire
+import dev.hotwire.core.turbo.config.PathConfiguration
+import dev.hotwire.navigation.config.defaultFragmentDestination
+import dev.hotwire.navigation.config.registerFragmentDestinations
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.logger.ChatLogLevel
 import io.getstream.chat.android.offline.plugin.factory.StreamOfflinePluginFactory
@@ -23,6 +28,12 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        // Configure Hotwire Native
+        configureHotwire()
+
+        // Configure cookies for WebView session persistence
+        configureCookies()
 
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
@@ -46,6 +57,34 @@ class MainApplication : Application() {
 
         // Initialize Stream Chat (but don't connect yet - will connect after login)
         initializeStreamChat()
+    }
+
+    private fun configureHotwire() {
+        // Load path configuration from assets
+        Hotwire.loadPathConfiguration(
+            context = this,
+            location = PathConfiguration.Location(
+                assetFilePath = "json/path-configuration.json"
+            )
+        )
+
+        // Register fragment destinations
+        Hotwire.registerFragmentDestinations(
+            WebFragment::class,
+            WebModalFragment::class
+        )
+
+        // Set default fragment
+        Hotwire.defaultFragmentDestination = WebFragment::class
+
+        Log.d(TAG, "Hotwire configured")
+    }
+
+    private fun configureCookies() {
+        // Configure cookies for session persistence
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.setAcceptCookie(true)
+        Log.d(TAG, "Cookie manager configured for session persistence")
     }
 
     private fun initializeStreamChat() {
