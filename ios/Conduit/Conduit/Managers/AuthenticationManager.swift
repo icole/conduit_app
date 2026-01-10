@@ -4,11 +4,34 @@ internal import WebKit
 class AuthenticationManager {
     static let shared = AuthenticationManager()
 
+    private let authTokenKey = "auth_token"
+    private let userIdKey = "user_id"
+
     private init() {}
 
-    /// Check if user is authenticated by verifying session cookie exists
+    /// Store auth token from login response
+    func storeAuthToken(_ token: String, userId: Int? = nil) {
+        UserDefaults.standard.set(token, forKey: authTokenKey)
+        if let userId = userId {
+            UserDefaults.standard.set(userId, forKey: userIdKey)
+        }
+        print("Stored auth token")
+    }
+
+    /// Get stored auth token
+    func getAuthToken() -> String? {
+        return UserDefaults.standard.string(forKey: authTokenKey)
+    }
+
+    /// Check if user is authenticated by verifying auth token or session cookie exists
     func isAuthenticated() -> Bool {
-        // Check for Rails session cookie
+        // First check for auth token (more reliable)
+        if let token = getAuthToken(), !token.isEmpty {
+            print("Authentication check - Auth token found")
+            return true
+        }
+
+        // Fallback to checking for Rails session cookie
         let cookies = HTTPCookieStorage.shared.cookies ?? []
         let hasSessionCookie = cookies.contains { cookie in
             cookie.name == "_conduit_app_session"
@@ -26,7 +49,12 @@ class AuthenticationManager {
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        // Add cookies
+        // Add auth token if available
+        if let authToken = getAuthToken() {
+            request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        }
+
+        // Also add cookies as fallback
         if let cookies = HTTPCookieStorage.shared.cookies(for: authCheckURL) {
             let headers = HTTPCookie.requestHeaderFields(with: cookies)
             for (header, value) in headers {
@@ -52,6 +80,10 @@ class AuthenticationManager {
 
     /// Clear all authentication data (synchronous version for backward compatibility)
     func logout() {
+        // Clear auth token
+        UserDefaults.standard.removeObject(forKey: authTokenKey)
+        UserDefaults.standard.removeObject(forKey: userIdKey)
+
         // Clear HTTP cookies
         if let cookies = HTTPCookieStorage.shared.cookies {
             for cookie in cookies {
@@ -80,6 +112,10 @@ class AuthenticationManager {
 
     /// Clear all authentication data with completion handler
     func logout(completion: @escaping () -> Void) {
+        // Clear auth token
+        UserDefaults.standard.removeObject(forKey: authTokenKey)
+        UserDefaults.standard.removeObject(forKey: userIdKey)
+
         // Clear HTTP cookies
         if let cookies = HTTPCookieStorage.shared.cookies {
             for cookie in cookies {

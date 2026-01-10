@@ -442,8 +442,8 @@ class LoginViewController: UIViewController {
                 }
 
                 if httpResponse.statusCode == 200 {
-                    // Success - save cookies and proceed
-                    self?.handleLoginSuccess(response: httpResponse)
+                    // Success - save auth token and cookies, then proceed
+                    self?.handleLoginSuccess(response: httpResponse, data: data)
                 } else {
                     // Try to parse error message
                     if let data = data,
@@ -501,8 +501,8 @@ class LoginViewController: UIViewController {
                 }
 
                 if httpResponse.statusCode == 200 {
-                    // Success - save cookies and proceed
-                    self?.handleLoginSuccess(response: httpResponse)
+                    // Success - save auth token and cookies, then proceed
+                    self?.handleLoginSuccess(response: httpResponse, data: data)
                 } else if httpResponse.statusCode == 401 {
                     self?.showError("Invalid email or password")
                 } else {
@@ -519,7 +519,17 @@ class LoginViewController: UIViewController {
         }.resume()
     }
 
-    private func handleLoginSuccess(response: HTTPURLResponse) {
+    private func handleLoginSuccess(response: HTTPURLResponse, data: Data?) {
+        // Parse and store auth token from response
+        if let data = data,
+           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            if let authToken = json["auth_token"] as? String {
+                let userId = (json["user"] as? [String: Any])?["id"] as? Int
+                AuthenticationManager.shared.storeAuthToken(authToken, userId: userId)
+                print("Stored auth token from login response")
+            }
+        }
+
         // Save cookies to HTTPCookieStorage
         if let cookies = HTTPCookieStorage.shared.cookies(for: response.url!) {
             for cookie in cookies {
