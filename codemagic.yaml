@@ -44,7 +44,7 @@ workflows:
 
       - name: Increment Android version
         script: |
-          LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal || echo "0")
+          LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=alpha || echo "0")
           NEW_VERSION_CODE=$((LATEST_BUILD + 1))
           sed -i '' "s/versionCode [0-9]*/versionCode $NEW_VERSION_CODE/" android/app/build.gradle
           sed -i '' "s/versionName \"[^\"]*\"/versionName \"1.0.$NEW_VERSION_CODE\"/" android/app/build.gradle
@@ -62,8 +62,8 @@ workflows:
     publishing:
       google_play:
         credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-        track: internal
-        submit_as_draft: true
+        track: alpha  # Closed testing track
+        submit_as_draft: false  # Auto-rollout to testers
 
   ios-workflow:
     name: iOS Build & Deploy
@@ -122,7 +122,7 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
-        submit_to_testflight: false
+        submit_to_testflight: true  # Auto-submit to TestFlight for external testers
 
   # Combined workflow for releases
   release-workflow:
@@ -181,7 +181,7 @@ workflows:
 
       - name: Increment Android version
         script: |
-          LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal || echo "0")
+          LATEST_BUILD=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=alpha || echo "0")
           NEW_VERSION_CODE=$((LATEST_BUILD + 1))
           sed -i '' "s/versionCode [0-9]*/versionCode $NEW_VERSION_CODE/" android/app/build.gradle
           sed -i '' "s/versionName \"[^\"]*\"/versionName \"1.0.$NEW_VERSION_CODE\"/" android/app/build.gradle
@@ -222,9 +222,9 @@ workflows:
     publishing:
       google_play:
         credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-        track: internal
-        submit_as_draft: true
+        track: alpha  # Closed testing track
+        submit_as_draft: false  # Auto-rollout to testers
 
       app_store_connect:
         auth: integration
-        submit_to_testflight: false
+        submit_to_testflight: true  # Auto-submit to TestFlight for external testers
