@@ -1,7 +1,9 @@
 package com.colecoding.conduit.fragments
 
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.view.Gravity
 import androidx.browser.customtabs.CustomTabsIntent
 import android.view.LayoutInflater
 import android.view.View
@@ -9,8 +11,12 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.WebResourceRequest
+import android.widget.FrameLayout
+import android.widget.ProgressBar
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.colecoding.conduit.R
 import com.colecoding.conduit.auth.AuthManager
 import com.colecoding.conduit.config.AppConfig
 import android.webkit.CookieManager
@@ -24,17 +30,29 @@ class HomeFragment : Fragment() {
 
     private lateinit var webView: WebView
     private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var loadingIndicator: ProgressBar
+    private lateinit var rootContainer: FrameLayout
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Create SwipeRefreshLayout as the root view
-        swipeRefresh = SwipeRefreshLayout(requireContext()).apply {
+        // Create a FrameLayout as root to hold SwipeRefresh and loading indicator
+        rootContainer = FrameLayout(requireContext()).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            // Set background color to match theme
+            setBackgroundColor(ContextCompat.getColor(requireContext(), android.R.color.background_light))
+        }
+
+        // Create SwipeRefreshLayout
+        swipeRefresh = SwipeRefreshLayout(requireContext()).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
             )
         }
 
@@ -43,6 +61,8 @@ class HomeFragment : Fragment() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
+            // Set background to match app theme while loading
+            setBackgroundColor(ContextCompat.getColor(requireContext(), android.R.color.background_light))
 
             settings.apply {
                 javaScriptEnabled = true
@@ -93,6 +113,9 @@ class HomeFragment : Fragment() {
                     Log.d(TAG, "Page loaded: $url")
                     swipeRefresh.isRefreshing = false
 
+                    // Hide loading indicator
+                    loadingIndicator.visibility = View.GONE
+
                     // Flush cookies after each page load to ensure they persist
                     CookieManager.getInstance().flush()
 
@@ -112,6 +135,20 @@ class HomeFragment : Fragment() {
         // Add WebView to SwipeRefreshLayout
         swipeRefresh.addView(webView)
 
+        // Create loading indicator
+        loadingIndicator = ProgressBar(requireContext()).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.CENTER
+            )
+            isIndeterminate = true
+        }
+
+        // Add views to root container
+        rootContainer.addView(swipeRefresh)
+        rootContainer.addView(loadingIndicator)
+
         // Setup pull to refresh
         swipeRefresh.setOnRefreshListener {
             Log.d(TAG, "Pull to refresh triggered")
@@ -124,7 +161,7 @@ class HomeFragment : Fragment() {
         // First establish session, then load home
         establishSessionAndLoad()
 
-        return swipeRefresh
+        return rootContainer
     }
 
     private fun setupCookies() {
