@@ -122,7 +122,9 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
-        submit_to_testflight: true  # Auto-submit to TestFlight for external testers
+        submit_to_testflight: true
+        beta_groups:
+          - External Testers  # Change this to match your group name in App Store Connect
 
   # Combined workflow for releases
   release-workflow:
@@ -227,4 +229,6 @@ workflows:
 
       app_store_connect:
         auth: integration
-        submit_to_testflight: true  # Auto-submit to TestFlight for external testers
+        submit_to_testflight: true
+        beta_groups:
+          - External Testers  # Change this to match your group name in App Store Connect
