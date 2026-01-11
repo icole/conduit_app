@@ -162,6 +162,7 @@ module Api
               email = verified_data["email"]
               name = verified_data["name"]
               image_url = verified_data["picture"]
+              google_uid = verified_data["sub"]  # Google's unique user ID
             else
               render json: { error: "Invalid Google ID token" }, status: :unauthorized
               return
@@ -172,13 +173,16 @@ module Api
             email = params[:email]
             name = params[:name]
             image_url = params[:image_url]
+            google_uid = nil
           end
 
-          # First, check if user already exists with this email OR has linked this Google account
+          # First, check if user already exists:
+          # 1. By email (primary lookup)
+          # 2. By Google UID (for users who linked different Google account)
           # Search across all tenants since we're using API domain
           user = ActsAsTenant.without_tenant do
             User.find_by(email: email.downcase) ||
-              User.find_by(provider: 'google_oauth2', uid: email.downcase)
+              (google_uid.present? && User.find_by(provider: 'google_oauth2', uid: google_uid))
           end
 
           Rails.logger.info "Google Auth: email=#{email}, existing_user=#{user.present?}"
@@ -199,7 +203,7 @@ module Api
             # Existing user - update their OAuth info if not already set
             user.update(
               provider: user.provider || "google_oauth2",
-              uid: user.uid || params[:email],
+              uid: user.uid || google_uid,
               avatar_url: user.avatar_url.presence || image_url,
               name: user.name.presence || name
             )
@@ -231,7 +235,7 @@ module Api
               name: name,
               password: SecureRandom.hex(16), # Random password for OAuth users
               provider: "google_oauth2",
-              uid: params[:email], # Using email as UID for simplicity
+              uid: google_uid,
               avatar_url: image_url
             )
 
