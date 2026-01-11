@@ -52,7 +52,7 @@ class DashboardController < ApplicationController
           scope: Google::Apis::CalendarV3::AUTH_CALENDAR)
         service = GoogleCalendarApiService.new(auth)
         @events = service.get_events(max_results: 5)
-      rescue => e
+      rescue StandardError => e
         Rails.logger.error("Failed to load calendar events: #{e.message}")
         @events = { events: [], status: :error, error: e.message }
       end

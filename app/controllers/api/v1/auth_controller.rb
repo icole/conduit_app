@@ -268,7 +268,7 @@ module Api
             auth_token: auth_token,
             session_cookie: session.id
           }, status: :ok
-        rescue => e
+        rescue StandardError => e
           Rails.logger.error "Google auth error: #{e.message}"
           render json: { error: "Authentication failed" }, status: :unauthorized
         end
@@ -372,7 +372,7 @@ module Api
           else
             Rails.logger.error "Google ID token verification failed: #{response.code}"
           end
-        rescue => e
+        rescue StandardError => e
           Rails.logger.error "Error verifying Google ID token: #{e.message}"
         end
 

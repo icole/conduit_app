@@ -17,7 +17,7 @@ class MealCalendarSyncJob < ApplicationJob
       result = service.delete
       Rails.logger.info "Meal #{meal_id} calendar delete: #{result[:status]}"
     end
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error "MealCalendarSyncJob error for meal #{meal_id}: #{e.message}"
   end
 end

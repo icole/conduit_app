@@ -111,7 +111,7 @@ class ChatController < ApplicationController
     rescue StreamChat::StreamAPIException => e
       Rails.logger.error "Failed to sync channel members: #{e.message}"
       render json: { error: e.message }, status: :unprocessable_entity
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "Error syncing channel members: #{e.message}"
       render json: { error: "Failed to sync members" }, status: :internal_server_error
     end

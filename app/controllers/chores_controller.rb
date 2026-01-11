@@ -71,7 +71,7 @@ class ChoresController < ApplicationController
   def complete
     @chore.mark_complete!(current_user, notes: params[:notes])
     redirect_to chores_path, notice: "Chore marked as complete!"
-  rescue => e
+  rescue StandardError => e
     redirect_to chores_path, alert: "Error marking chore as complete: #{e.message}"
   end
 
@@ -90,7 +90,7 @@ class ChoresController < ApplicationController
       begin
         @chore.approve!
         redirect_to chores_path(view: "proposed"), notice: "Chore approved and activated!"
-      rescue => e
+      rescue StandardError => e
         if e.message.include?("frequency")
           redirect_to chores_path(view: "proposed"), alert: "Cannot approve chore: frequency must be set first. Please edit the chore to add a frequency."
         else

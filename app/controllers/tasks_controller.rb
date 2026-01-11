@@ -148,7 +148,7 @@ class TasksController < ApplicationController
 
       @task.reload
       render json: { success: true, new_order: @task.priority_order }
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "Error in reorder: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
       render json: { success: false, error: e.message }, status: 500

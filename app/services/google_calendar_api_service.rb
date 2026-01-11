@@ -351,7 +351,7 @@ class GoogleCalendarApiService
           )
           calendar[:upcoming_event_count] = events.items.count
         end
-      rescue => e
+      rescue StandardError => e
         Rails.logger.error("Error getting event count for calendar #{calendar[:id]}: #{e.message}")
         calendar[:upcoming_event_count] = 0
       end

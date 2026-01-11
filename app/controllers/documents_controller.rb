@@ -71,7 +71,7 @@ class DocumentsController < ApplicationController
       else
         redirect_to documents_path, alert: "Failed to fetch documents from Google Drive: #{result[:error]}"
       end
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error("Error importing documents from Google Drive: #{e.message}")
       redirect_to documents_path, alert: "Error importing documents: #{e.message}"
     end

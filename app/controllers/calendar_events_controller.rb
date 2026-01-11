@@ -149,7 +149,7 @@ class CalendarEventsController < ApplicationController
       else
         redirect_to calendar_index_path, alert: "Failed to import event: #{@calendar_event.errors.full_messages.join(', ')}"
       end
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "Failed to import Google Calendar event: #{e.message}"
       redirect_to calendar_index_path, alert: "Failed to import event from Google Calendar"
     end
@@ -236,7 +236,7 @@ class CalendarEventsController < ApplicationController
         redirect_to calendar_index_path, alert: "Failed to import event: #{@calendar_event.errors.full_messages.join(', ')}"
         nil
       end
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "Failed to import Google Calendar event: #{e.message}"
       redirect_to calendar_index_path, alert: "Failed to import event from Google Calendar"
     end
@@ -253,7 +253,7 @@ class CalendarEventsController < ApplicationController
       service.calendar_service.delete_event(ENV["GOOGLE_CALENDAR_ID"], google_event_id)
 
       Rails.logger.info "Successfully deleted Google Calendar event: #{google_event_id}"
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "Failed to delete Google Calendar event: #{e.message}"
       # Don't fail the operation - just log the error
     end
@@ -281,7 +281,7 @@ class CalendarEventsController < ApplicationController
       else
         Rails.logger.error "Unexpected action received in sync_to_google_calendar: #{action.inspect}"
       end
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "Failed to sync with Google Calendar: #{e.message}"
       # Don't fail the local operation if Google sync fails
     end
