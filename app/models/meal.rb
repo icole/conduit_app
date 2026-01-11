@@ -2,6 +2,7 @@ class Meal < ApplicationRecord
   include Discardable
 
   acts_as_tenant :community
+  has_rich_text :menu
 
   belongs_to :meal_schedule, optional: true
   has_many :meal_cooks, -> { order(:id) }, dependent: :destroy
