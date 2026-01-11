@@ -182,7 +182,7 @@ module Api
           # Search across all tenants since we're using API domain
           user = ActsAsTenant.without_tenant do
             User.find_by(email: email.downcase) ||
-              (google_uid.present? && User.find_by(provider: 'google_oauth2', uid: google_uid))
+              (google_uid.present? && User.find_by(provider: "google_oauth2", uid: google_uid))
           end
 
           Rails.logger.info "Google Auth: email=#{email}, existing_user=#{user.present?}"
@@ -363,11 +363,11 @@ module Api
 
             # Verify the audience matches one of our client IDs (Web, iOS, or Android)
             if valid_client_ids.include?(data["aud"])
-              Rails.logger.info "Google ID token verified for audience: #{data['aud']}"
+              Rails.logger.info "Google ID token verified for audience: #{data["aud"]}"
               return data
             else
-              Rails.logger.error "Google ID token has invalid audience: #{data['aud']}"
-              Rails.logger.error "Expected one of: #{valid_client_ids.join(', ')}"
+              Rails.logger.error "Google ID token has invalid audience: #{data["aud"]}"
+              Rails.logger.error "Expected one of: #{valid_client_ids.join(", ")}"
             end
           else
             Rails.logger.error "Google ID token verification failed: #{response.code}"
