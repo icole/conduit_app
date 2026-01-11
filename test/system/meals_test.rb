@@ -22,9 +22,9 @@ class MealsTest < ApplicationSystemTestCase
       click_on "Edit"
     end
 
-    # Fill in the menu
+    # Fill in the menu using rich text area
     within "#menu_edit_form" do
-      fill_in "meal[menu]", with: "Tonight we're having pasta with marinara sauce, garlic bread, and salad!"
+      fill_in_rich_text_area "meal_menu", with: "Tonight we're having pasta with marinara sauce, garlic bread, and salad!"
       click_on "Save Menu"
     end
 
@@ -37,7 +37,7 @@ class MealsTest < ApplicationSystemTestCase
 
     # Verify it's in the database
     @meal.reload
-    assert_equal "Tonight we're having pasta with marinara sauce, garlic bread, and salad!", @meal.menu
+    assert_equal "Tonight we're having pasta with marinara sauce, garlic bread, and salad!", @meal.menu.to_plain_text
   end
 
   test "non-cook cannot see edit button for menu" do
@@ -65,9 +65,9 @@ class MealsTest < ApplicationSystemTestCase
       click_on "Edit"
     end
 
-    # Fill in the menu
+    # Fill in the menu using rich text area
     within "#menu_edit_form" do
-      fill_in "meal[menu]", with: "Helper's menu update: Soup and sandwiches"
+      fill_in_rich_text_area "meal_menu", with: "Helper's menu update: Soup and sandwiches"
       click_on "Save Menu"
     end
 
@@ -75,7 +75,7 @@ class MealsTest < ApplicationSystemTestCase
     assert_text "Helper's menu update: Soup and sandwiches"
 
     @meal.reload
-    assert_equal "Helper's menu update: Soup and sandwiches", @meal.menu
+    assert_equal "Helper's menu update: Soup and sandwiches", @meal.menu.to_plain_text
   end
 
   test "menu displays on meal card in index" do

@@ -42,7 +42,7 @@
             <span class="text-warning">Needs cook!</span>
           <% end %>
           <% if meal.menu.present? %>
-            · <%= truncate(meal.menu, length: 30) %>
+            · <%= truncate(meal.menu.to_plain_text, length: 30) %>
           <% end %>
         </div>
       </div>
@@ -118,8 +118,8 @@
 
     <!-- Menu (if present) -->
     <% if meal.menu.present? %>
-      <div class="text-sm text-base-content/70 mt-2 line-clamp-1">
-        <span class="font-medium">Menu:</span> <%= meal.menu %>
+      <div class="text-sm text-base-content/70 mt-2 line-clamp-2">
+        <span class="font-medium">Menu:</span> <%= meal.menu.to_plain_text %>
       </div>
     <% end %>
 
