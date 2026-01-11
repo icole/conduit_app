@@ -174,10 +174,11 @@ module Api
             image_url = params[:image_url]
           end
 
-          # First, check if user already exists with this email (regardless of provider)
+          # First, check if user already exists with this email OR has linked this Google account
           # Search across all tenants since we're using API domain
           user = ActsAsTenant.without_tenant do
-            User.find_by(email: email.downcase)
+            User.find_by(email: email.downcase) ||
+              User.find_by(provider: 'google_oauth2', uid: email.downcase)
           end
 
           Rails.logger.info "Google Auth: email=#{email}, existing_user=#{user.present?}"
