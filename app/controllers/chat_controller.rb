@@ -356,13 +356,19 @@ class ChatController < ApplicationController
       end
     end
 
-    # Fall back to session authentication (for web)
-    if current_user
-      @api_current_user = current_user
-      set_current_tenant(current_user.community) if current_user.community
-    else
-      render json: { error: "Authentication required" }, status: :unauthorized
+    # Fall back to session authentication
+    # Must find user WITHOUT tenant scope since tenant isn't set yet
+    # (set_tenant_from_domain is skipped for mobile API actions)
+    if session[:user_id]
+      user = ActsAsTenant.without_tenant { User.find_by(id: session[:user_id]) }
+      if user
+        @api_current_user = user
+        set_current_tenant(user.community) if user.community
+        return
+      end
     end
+
+    render json: { error: "Authentication required" }, status: :unauthorized
   end
 
   # Use @api_current_user for mobile API endpoints, fallback to current_user
