@@ -616,3 +616,13 @@ trix-editor .attachment__size {
   font-size: 0.75rem;
   opacity: 0.7;
 }
+
+/* Style links in rendered Action Text content */
+.trix-content a:not(.attachment__name) {
+  color: oklch(var(--p));
+  text-decoration: underline;
+}
+
+.trix-content a:not(.attachment__name):hover {
+  color: oklch(var(--pf));
+}
