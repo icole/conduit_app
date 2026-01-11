@@ -198,15 +198,21 @@ class CustomChannelListVC: ChatChannelListVC {
             return
         }
 
+        guard let communitySlug = communitySlug else {
+            showError("Community not available")
+            return
+        }
+
         // Generate a channel ID from the name (lowercase, replace spaces with hyphens)
-        let channelId = name
+        // Prefix with community slug for multi-tenancy
+        let baseId = name
             .lowercased()
             .replacingOccurrences(of: " ", with: "-")
             .replacingOccurrences(of: "[^a-z0-9-]", with: "", options: .regularExpression)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
 
-        // Ensure channel ID is not empty and add timestamp to make it unique
-        let timestamp = Int(Date().timeIntervalSince1970)
-        let finalChannelId = channelId.isEmpty ? "channel-\(timestamp)" : "\(channelId)-\(timestamp)"
+        // Format: {community-slug}-{channel-name}
+        let finalChannelId = baseId.isEmpty ? "\(communitySlug)-channel" : "\(communitySlug)-\(baseId)"
 
         // Create the channel with description in extraData if provided
         let channelController: ChatChannelController
@@ -218,11 +224,6 @@ class CustomChannelListVC: ChatChannelListVC {
         // Make the channel public by setting it as open for all members
         extraData["public"] = .bool(true)
         extraData["open"] = .bool(true)  // Allow anyone to join
-
-        // Add community_slug so the channel appears in community-filtered lists
-        if let communitySlug = communitySlug {
-            extraData["community_slug"] = .string(communitySlug)
-        }
 
         do {
             // Create the channel with the current user as the initial member

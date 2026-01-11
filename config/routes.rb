@@ -151,6 +151,9 @@ Rails.application.routes.draw do
       get :debug # Debug endpoint to check configuration
     end
   end
+  post "chat/channels", to: "chat#create_channel", as: :create_chat_channel
+  patch "chat/channels/:channel_id", to: "chat#update_channel", as: :update_chat_channel
+  delete "chat/channels/:channel_id", to: "chat#destroy_channel", as: :destroy_chat_channel
   post "chat/channels/:channel_id/sync_members", to: "chat#sync_channel_members", as: :sync_channel_members
 
   # Authentication routes

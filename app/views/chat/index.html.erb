@@ -1,32 +1,275 @@
-<%# Community Chat - Web Interface %>
-<div class="<%= turbo_native_app? ? '' : 'container mx-auto p-4' %>">
-  <% unless turbo_native_app? %>
-    <div class="mb-4">
-      <h1 class="text-2xl font-bold">Community Chat</h1>
+<%# Community Chat - Full Screen Slack-like Interface %>
+<% if StreamChatClient.configured? %>
+  <%= stylesheet_link_tag "chat", "data-turbo-track": "reload" %>
+
+  <div
+    id="stream-chat-react"
+    class="stream-chat-fullscreen"
+    data-api-key="<%= StreamChatClient.api_key %>"
+    data-user-token="<%= @stream_token %>"
+    data-user-data="<%= @user_data.to_json %>"
+    data-is-admin="<%= current_user.admin? %>"
+  >
+    <!-- Loading state -->
+    <div class="flex items-center justify-center h-full bg-base-100">
+      <div class="loading loading-spinner loading-lg text-primary"></div>
     </div>
-  <% end %>
+  </div>
 
-  <% if StreamChatClient.configured? %>
-    <!-- Stream Chat React Container -->
-    <%= stylesheet_link_tag "chat", "data-turbo-track": "reload" %>
+  <%= javascript_include_tag "chat", type: "module", "data-turbo-track": "reload" %>
 
-    <div
-      id="stream-chat-react"
-      class="bg-base-100 <%= turbo_native_app? ? '' : 'rounded-lg shadow-lg border border-base-300' %>"
-      style="height: <%= turbo_native_app? ? '100vh' : '75vh' %>"
-      data-api-key="<%= StreamChatClient.api_key %>"
-      data-user-token="<%= @stream_token %>"
-      data-user-data="<%= @user_data.to_json %>"
-    >
-      <!-- Loading state -->
-      <div class="flex items-center justify-center h-full">
-        <div class="loading loading-spinner loading-lg"></div>
-      </div>
-    </div>
+  <style>
+    /* Full screen chat layout */
+    .stream-chat-fullscreen {
+      position: fixed;
+      top: 64px; /* Height of navbar */
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+    }
 
-    <%= javascript_include_tag "chat", type: "module", "data-turbo-track": "reload" %>
-  <% else %>
-    <!-- Configuration Required -->
+    /* Hide the default page container styling */
+    body:has(.stream-chat-fullscreen) main {
+      padding: 0 !important;
+      max-width: none !important;
+    }
+
+    /* Sidebar styling - DaisyUI theme */
+    .chat-sidebar {
+      background: oklch(var(--b2));
+      border-right: 1px solid oklch(var(--b3));
+    }
+
+    .chat-sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid oklch(var(--b3));
+    }
+
+    .chat-sidebar-header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: oklch(var(--bc));
+    }
+
+    .chat-channel-section {
+      padding: 12px 0;
+    }
+
+    .chat-channel-section-header {
+      padding: 0 16px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: oklch(var(--bc) / 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .chat-channel-item {
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: oklch(var(--bc) / 0.8);
+      transition: background-color 0.15s ease;
+      font-size: 15px;
+      border-radius: 0;
+    }
+
+    .chat-channel-item:hover {
+      background: oklch(var(--b3));
+      color: oklch(var(--bc));
+    }
+
+    .chat-channel-item.active {
+      background: oklch(var(--p) / 0.15);
+      color: oklch(var(--p));
+      font-weight: 500;
+    }
+
+    .chat-channel-item .hash {
+      font-size: 16px;
+      font-weight: 400;
+      opacity: 0.6;
+    }
+
+    .chat-channel-item.active .hash {
+      opacity: 1;
+      color: oklch(var(--p));
+    }
+
+    .chat-channel-item .unread-badge {
+      margin-left: auto;
+      background: oklch(var(--er));
+      color: oklch(var(--erc));
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    /* New channel button */
+    .chat-new-channel-btn {
+      padding: 10px 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: oklch(var(--bc) / 0.6);
+      font-size: 14px;
+      border-top: 1px solid oklch(var(--b3));
+      transition: color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .chat-new-channel-btn:hover {
+      background: oklch(var(--b3));
+      color: oklch(var(--bc));
+    }
+
+    .chat-new-channel-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 300;
+    }
+
+    /* Main chat area */
+    .chat-main {
+      background: oklch(var(--b1));
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header-custom {
+      padding: 12px 20px;
+      border-bottom: 1px solid oklch(var(--b3));
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: oklch(var(--b1));
+    }
+
+    .chat-header-custom h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: oklch(var(--bc));
+    }
+
+    .chat-header {
+      padding: 12px 20px;
+      border-bottom: 1px solid oklch(var(--b3));
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: oklch(var(--b1));
+    }
+
+    .chat-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: oklch(var(--bc));
+    }
+
+    .chat-header .channel-description {
+      color: oklch(var(--bc) / 0.6);
+      font-size: 13px;
+    }
+
+    /* Override Stream Chat styles to match DaisyUI theme */
+    .str-chat {
+      --str-chat__primary-color: oklch(var(--p));
+      --str-chat__active-primary-color: oklch(var(--pf));
+      --str-chat__text-color: oklch(var(--bc));
+      --str-chat__secondary-text-color: oklch(var(--bc) / 0.6);
+      --str-chat__background-color: oklch(var(--b1));
+    }
+
+    .str-chat__channel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid oklch(var(--b3));
+      background: oklch(var(--b1));
+      box-shadow: none;
+    }
+
+    .str-chat__message-input {
+      padding: 16px 20px;
+      background: oklch(var(--b1));
+      border-top: 1px solid oklch(var(--b3));
+    }
+
+    .str-chat__input-flat {
+      border: 1px solid oklch(var(--bc) / 0.3);
+      border-radius: 8px;
+      background: oklch(var(--b1));
+    }
+
+    .str-chat__input-flat:focus-within {
+      border-color: oklch(var(--p));
+      box-shadow: 0 0 0 1px oklch(var(--p));
+    }
+
+    .str-chat__message-list {
+      background: oklch(var(--b1));
+      padding: 0 20px;
+    }
+
+    .str-chat__li {
+      padding: 8px 0;
+    }
+
+    .str-chat__message-simple {
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+
+    .str-chat__message-simple:hover {
+      background: oklch(var(--b2));
+    }
+
+    .str-chat__avatar {
+      border-radius: 4px;
+    }
+
+    /* Empty state styling */
+    .chat-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: oklch(var(--bc) / 0.6);
+      text-align: center;
+      padding: 40px;
+    }
+
+    .chat-empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .chat-empty-state h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: oklch(var(--bc));
+      margin-bottom: 8px;
+    }
+
+    .chat-empty-state p {
+      font-size: 15px;
+      max-width: 400px;
+    }
+  </style>
+<% else %>
+  <!-- Configuration Required -->
+  <div class="container mx-auto p-8">
     <div class="alert alert-warning">
       <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -48,5 +291,5 @@ STREAM_API_SECRET=your_api_secret_here</pre>
         </div>
       </div>
     </div>
-  <% end %>
-</div>
+  </div>
+<% end %>

@@ -267,15 +267,25 @@ class CustomChatFragment : Fragment() {
             try {
                 val client = ChatClient.instance()
                 val userId = AuthManager.getUserId(requireContext()) ?: return@launch
+                val communitySlug = AuthManager.getCommunitySlug(requireContext())
 
-                // Generate a unique channel ID
-                val channelId = name.lowercase()
+                if (communitySlug == null) {
+                    showToast("Community not available")
+                    return@launch
+                }
+
+                // Generate channel ID with community slug prefix
+                // Format: {community-slug}-{channel-name}
+                val baseId = name.lowercase()
                     .replace(" ", "-")
                     .replace(Regex("[^a-z0-9-]"), "")
-                    .let {
-                        if (it.isEmpty()) "channel-${System.currentTimeMillis()}"
-                        else "$it-${System.currentTimeMillis()}"
-                    }
+                    .trim('-')
+
+                val channelId = if (baseId.isEmpty()) {
+                    "$communitySlug-channel"
+                } else {
+                    "$communitySlug-$baseId"
+                }
 
                 // Create the channel
                 val channelClient = client.channel(
@@ -292,12 +302,6 @@ class CustomChatFragment : Fragment() {
                 // Make the channel public and open for everyone
                 extraData["public"] = true
                 extraData["open"] = true  // Allow anyone to join
-
-                // Add community_slug so the channel appears in community-filtered lists
-                val communitySlug = AuthManager.getCommunitySlug(requireContext())
-                if (communitySlug != null) {
-                    extraData["community_slug"] = communitySlug
-                }
 
                 // Create channel with creator as initial member
                 // The public flag will make it discoverable to others

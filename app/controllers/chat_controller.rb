@@ -68,6 +68,142 @@ class ChatController < ApplicationController
     render layout: turbo_native_app? ? "turbo_native" : "application"
   end
 
+  # POST /chat/channels
+  # Create a new channel with all community members
+  def create_channel
+    channel_name = params[:name]&.strip
+
+    unless channel_name.present?
+      render json: { error: "Channel name is required" }, status: :bad_request
+      return
+    end
+
+    begin
+      client = StreamChatClient.client
+      community = current_user.community
+
+      # Create a slug from the channel name, prefixed with community slug
+      base_id = channel_name.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/^-|-$/, "")
+      channel_id = "#{community.slug}-#{base_id}"
+
+      # Get all community users and sync them to Stream
+      community_users = community.users.select(:id, :name, :avatar_url, :admin)
+      users_to_sync = community_users.map do |user|
+        {
+          id: user.id.to_s,
+          name: user.name,
+          image: user.avatar_url,
+          role: user.admin? ? "admin" : "user"
+        }
+      end
+
+      # Upsert all users to Stream (creates them if they don't exist)
+      client.upsert_users(users_to_sync)
+
+      community_user_ids = community_users.map { |u| u.id.to_s }
+
+      # Create the channel with data
+      channel = client.channel("team", channel_id: channel_id, data: {
+        name: channel_name,
+        members: community_user_ids
+      })
+      channel.create(current_user.id.to_s)
+
+      Rails.logger.info "Created channel #{channel_id} with #{community_user_ids.length} members"
+
+      render json: {
+        success: true,
+        channel_id: channel_id,
+        name: channel_name,
+        members_count: community_user_ids.length
+      }
+    rescue StreamChat::StreamAPIException => e
+      Rails.logger.error "Failed to create channel: #{e.message}"
+      render json: { error: e.message }, status: :unprocessable_entity
+    rescue StandardError => e
+      Rails.logger.error "Error creating channel: #{e.message}"
+      render json: { error: "Failed to create channel" }, status: :internal_server_error
+    end
+  end
+
+  # PATCH /chat/channels/:channel_id
+  # Rename a channel (any community member)
+  def update_channel
+    channel_id = params[:channel_id]
+    new_name = params[:name]&.strip
+
+    unless channel_id.present? && new_name.present?
+      render json: { error: "Channel ID and name are required" }, status: :bad_request
+      return
+    end
+
+    begin
+      client = StreamChatClient.client
+      channel = client.channel("team", channel_id: channel_id)
+
+      # Verify channel belongs to community by checking channel ID prefix
+      community_slug = current_user.community.slug
+      unless channel_id.start_with?("#{community_slug}-")
+        render json: { error: "Channel does not belong to your community" }, status: :forbidden
+        return
+      end
+
+      # Query to verify channel exists
+      channel.query(user_id: current_user.id.to_s)
+
+      # Update the channel name
+      channel.update({ name: new_name }, user_id: current_user.id.to_s)
+
+      Rails.logger.info "Renamed channel #{channel_id} to '#{new_name}'"
+
+      render json: { success: true, channel_id: channel_id, name: new_name }
+    rescue StreamChat::StreamAPIException => e
+      Rails.logger.error "Failed to rename channel: #{e.message}"
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+  end
+
+  # DELETE /chat/channels/:channel_id
+  # Delete a channel (admin only)
+  def destroy_channel
+    channel_id = params[:channel_id]
+
+    unless current_user.admin?
+      render json: { error: "Only admins can delete channels" }, status: :forbidden
+      return
+    end
+
+    unless channel_id.present?
+      render json: { error: "Channel ID is required" }, status: :bad_request
+      return
+    end
+
+    begin
+      client = StreamChatClient.client
+      channel = client.channel("team", channel_id: channel_id)
+
+      # Verify channel belongs to community by checking channel ID prefix
+      community_slug = current_user.community.slug
+      unless channel_id.start_with?("#{community_slug}-")
+        render json: { error: "Channel does not belong to your community" }, status: :forbidden
+        return
+      end
+
+      # Query to verify channel exists
+      channel.query(user_id: current_user.id.to_s)
+
+      # Delete the channel
+      channel.delete
+
+      Rails.logger.info "Deleted channel #{channel_id}"
+
+      render json: { success: true, channel_id: channel_id }
+    rescue StreamChat::StreamAPIException => e
+      Rails.logger.error "Failed to delete channel: #{e.message}"
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+  end
+
   # POST /chat/channels/:channel_id/sync_members
   # Add all community members to a newly created channel
   def sync_channel_members
