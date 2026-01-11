@@ -117,7 +117,7 @@ class User < ApplicationRecord
     return unless StreamChatClient.configured?
 
     StreamChatClient.client.upsert_user(stream_user_data)
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error "Failed to sync user #{id} to Stream Chat: #{e.message}"
   end
 
@@ -126,7 +126,7 @@ class User < ApplicationRecord
 
     # Generate a Stream Chat token for this user
     StreamChatClient.client.create_token(stream_user_id)
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error "Failed to generate Stream Chat token for user #{id}: #{e.message}"
     nil
   end

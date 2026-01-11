@@ -119,7 +119,7 @@ class GoogleDriveApiService
             fields: fields
           )
           all_files.concat(folder_response.files) if folder_response.files
-        rescue => e
+        rescue StandardError => e
           Rails.logger.warn("Error getting files from subfolder #{subfolder[:id]}: #{e.message}")
         end
       end
@@ -257,7 +257,7 @@ class GoogleDriveApiService
             folders_to_process << subfolder.id
           end
         end
-      rescue => e
+      rescue StandardError => e
         Rails.logger.warn("Error getting subfolders for folder #{current_folder}: #{e.message}")
       end
     end

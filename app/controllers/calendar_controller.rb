@@ -56,7 +56,7 @@ class CalendarController < ApplicationController
         @google_events_result = { events: [], status: :success }
         @calendar_events = []
       end
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "Failed to load Google Calendar events: #{e.message}"
       Rails.logger.error e.backtrace
       @google_events_result = { events: [], status: :error }

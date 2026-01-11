@@ -58,7 +58,7 @@ class StreamChannelService
     end
 
     true
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error "Failed to setup channels: #{e.message}"
     false
   end
@@ -92,7 +92,7 @@ class StreamChannelService
             raise e
           end
         end
-      rescue => e
+      rescue StandardError => e
         Rails.logger.warn "Could not add user to channel #{channel_id}: #{e.message}"
       end
     end
