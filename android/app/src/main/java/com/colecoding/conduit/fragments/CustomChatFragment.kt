@@ -296,10 +296,18 @@ class CustomChatFragment : Fragment() {
                 connection.setRequestProperty("Content-Type", "application/json")
                 connection.setRequestProperty("Accept", "application/json")
 
-                // Add session cookie for authentication
-                val sessionCookie = AuthManager.getSessionCookie(requireContext())
-                if (sessionCookie != null) {
-                    connection.setRequestProperty("Cookie", sessionCookie)
+                // Use JWT auth token (preferred for mobile API)
+                val authToken = AuthManager.getAuthToken(requireContext())
+                if (authToken != null) {
+                    connection.setRequestProperty("Authorization", "Bearer $authToken")
+                    Log.d(TAG, "Using auth token for channel creation")
+                } else {
+                    // Fall back to session cookie
+                    val sessionCookie = AuthManager.getSessionCookie(requireContext())
+                    if (sessionCookie != null) {
+                        connection.setRequestProperty("Cookie", sessionCookie)
+                        Log.d(TAG, "Using session cookie for channel creation")
+                    }
                 }
 
                 connection.doOutput = true

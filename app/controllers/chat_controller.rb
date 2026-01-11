@@ -1,13 +1,23 @@
 class ChatController < ApplicationController
-  # Skip tenant-from-domain for mobile API endpoints - tenant will be set from authenticated user
-  skip_before_action :set_tenant_from_domain, only: [ :token, :create_channel, :update_channel, :destroy_channel, :sync_channel_members ]
+  # Mobile API endpoints that use JWT auth
+  MOBILE_API_ACTIONS = [ :create_channel, :update_channel, :destroy_channel, :sync_channel_members ].freeze
 
-  before_action :authenticate_user!, except: [ :debug ]
-  before_action :set_tenant_from_user, only: [ :token, :create_channel, :update_channel, :destroy_channel, :sync_channel_members ]
+  # Skip tenant-from-domain for mobile API endpoints - tenant will be set from authenticated user
+  skip_before_action :set_tenant_from_domain, only: [ :token ] + MOBILE_API_ACTIONS
+
+  # Skip standard session auth for mobile API endpoints - they use JWT
+  skip_before_action :authenticate_user!, only: MOBILE_API_ACTIONS
+  before_action :authenticate_user!, except: [ :debug ] + MOBILE_API_ACTIONS
+
+  # Mobile API auth - supports both JWT and session
+  before_action :set_tenant_from_jwt, only: MOBILE_API_ACTIONS
+  before_action :authenticate_api_or_session!, only: MOBILE_API_ACTIONS
+
+  before_action :set_tenant_from_user, only: [ :token ]
   before_action :ensure_stream_configured, except: [ :debug, :token ]
 
   # Skip CSRF for API endpoints called from mobile apps
-  skip_forgery_protection only: [ :create_channel, :update_channel, :destroy_channel, :sync_channel_members ]
+  skip_forgery_protection only: MOBILE_API_ACTIONS
 
   # GET /chat
   def index
@@ -87,7 +97,8 @@ class ChatController < ApplicationController
 
     begin
       client = StreamChatClient.client
-      community = current_user.community
+      user = api_current_user
+      community = user.community
 
       # Create a slug from the channel name, prefixed with community slug
       base_id = channel_name.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/^-|-$/, "")
@@ -95,12 +106,12 @@ class ChatController < ApplicationController
 
       # Get all community users and sync them to Stream
       community_users = community.users.select(:id, :name, :avatar_url, :admin)
-      users_to_sync = community_users.map do |user|
+      users_to_sync = community_users.map do |u|
         {
-          id: user.id.to_s,
-          name: user.name,
-          image: user.avatar_url,
-          role: user.admin? ? "admin" : "user"
+          id: u.id.to_s,
+          name: u.name,
+          image: u.avatar_url,
+          role: u.admin? ? "admin" : "user"
         }
       end
 
@@ -115,7 +126,7 @@ class ChatController < ApplicationController
         members: community_user_ids,
         community_slug: community.slug
       })
-      channel.create(current_user.id.to_s)
+      channel.create(user.id.to_s)
 
       Rails.logger.info "Created channel #{channel_id} with #{community_user_ids.length} members"
 
@@ -147,20 +158,21 @@ class ChatController < ApplicationController
 
     begin
       client = StreamChatClient.client
+      user = api_current_user
       channel = client.channel("team", channel_id: channel_id)
 
       # Verify channel belongs to community by checking channel ID prefix
-      community_slug = current_user.community.slug
+      community_slug = user.community.slug
       unless channel_id.start_with?("#{community_slug}-")
         render json: { error: "Channel does not belong to your community" }, status: :forbidden
         return
       end
 
       # Query to verify channel exists
-      channel.query(user_id: current_user.id.to_s)
+      channel.query(user_id: user.id.to_s)
 
       # Update the channel name
-      channel.update({ name: new_name }, user_id: current_user.id.to_s)
+      channel.update({ name: new_name }, user_id: user.id.to_s)
 
       Rails.logger.info "Renamed channel #{channel_id} to '#{new_name}'"
 
@@ -175,8 +187,9 @@ class ChatController < ApplicationController
   # Delete a channel (admin only)
   def destroy_channel
     channel_id = params[:channel_id]
+    user = api_current_user
 
-    unless current_user.admin?
+    unless user.admin?
       render json: { error: "Only admins can delete channels" }, status: :forbidden
       return
     end
@@ -191,14 +204,14 @@ class ChatController < ApplicationController
       channel = client.channel("team", channel_id: channel_id)
 
       # Verify channel belongs to community by checking channel ID prefix
-      community_slug = current_user.community.slug
+      community_slug = user.community.slug
       unless channel_id.start_with?("#{community_slug}-")
         render json: { error: "Channel does not belong to your community" }, status: :forbidden
         return
       end
 
       # Query to verify channel exists
-      channel.query(user_id: current_user.id.to_s)
+      channel.query(user_id: user.id.to_s)
 
       # Delete the channel
       channel.delete
@@ -216,6 +229,7 @@ class ChatController < ApplicationController
   # Add all community members to a newly created channel
   def sync_channel_members
     channel_id = params[:channel_id]
+    user = api_current_user
 
     unless channel_id.present?
       render json: { error: "channel_id is required" }, status: :bad_request
@@ -227,12 +241,12 @@ class ChatController < ApplicationController
       channel = client.channel("team", channel_id: channel_id)
 
       # Query the channel to get its data
-      channel_data = channel.query(user_id: current_user.id.to_s)
+      channel_data = channel.query(user_id: user.id.to_s)
       channel_info = channel_data["channel"]
 
       # Verify the channel belongs to the current user's community
       channel_community_slug = channel_info["community_slug"]
-      user_community_slug = current_user.community.slug
+      user_community_slug = user.community.slug
 
       if channel_community_slug != user_community_slug
         render json: { error: "Channel does not belong to your community" }, status: :forbidden
@@ -240,7 +254,7 @@ class ChatController < ApplicationController
       end
 
       # Get all users from the current community
-      community_user_ids = current_user.community.users.pluck(:id).map(&:to_s)
+      community_user_ids = user.community.users.pluck(:id).map(&:to_s)
 
       # Add all community members to the channel
       channel.add_members(community_user_ids)
@@ -310,5 +324,47 @@ class ChatController < ApplicationController
     return unless current_user&.community
 
     set_current_tenant(current_user.community)
+  end
+
+  # JWT authentication for mobile API endpoints
+  def set_tenant_from_jwt
+    auth_header = request.headers["Authorization"]
+    return unless auth_header.present? && auth_header.start_with?("Bearer ")
+
+    token = auth_header.split(" ").last
+    decoded = JwtService.decode(token)
+    return unless decoded && decoded[:community_id]
+
+    community = Community.find_by(id: decoded[:community_id])
+    set_current_tenant(community) if community
+  end
+
+  def authenticate_api_or_session!
+    # Try JWT auth first (for mobile apps)
+    auth_header = request.headers["Authorization"]
+
+    if auth_header.present? && auth_header.start_with?("Bearer ")
+      token = auth_header.split(" ").last
+      user = JwtService.verify_auth_token(token)
+
+      if user
+        @api_current_user = user
+        set_current_tenant(user.community) if user.community
+        return
+      end
+    end
+
+    # Fall back to session authentication (for web)
+    if current_user
+      @api_current_user = current_user
+      set_current_tenant(current_user.community) if current_user.community
+    else
+      render json: { error: "Authentication required" }, status: :unauthorized
+    end
+  end
+
+  # Use @api_current_user for mobile API endpoints, fallback to current_user
+  def api_current_user
+    @api_current_user || current_user
   end
 end
