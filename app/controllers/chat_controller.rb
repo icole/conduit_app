@@ -1,9 +1,9 @@
 class ChatController < ApplicationController
   # Mobile API endpoints that use JWT auth
-  MOBILE_API_ACTIONS = [ :create_channel, :update_channel, :destroy_channel, :sync_channel_members ].freeze
+  MOBILE_API_ACTIONS = [ :token, :create_channel, :update_channel, :destroy_channel, :sync_channel_members ].freeze
 
   # Skip tenant-from-domain for mobile API endpoints - tenant will be set from authenticated user
-  skip_before_action :set_tenant_from_domain, only: [ :token ] + MOBILE_API_ACTIONS
+  skip_before_action :set_tenant_from_domain, only: MOBILE_API_ACTIONS
 
   # Skip standard session auth for mobile API endpoints - they use JWT
   skip_before_action :authenticate_user!, only: MOBILE_API_ACTIONS
@@ -13,7 +13,6 @@ class ChatController < ApplicationController
   before_action :set_tenant_from_jwt, only: MOBILE_API_ACTIONS
   before_action :authenticate_api_or_session!, only: MOBILE_API_ACTIONS
 
-  before_action :set_tenant_from_user, only: [ :token ]
   before_action :ensure_stream_configured, except: [ :debug, :token ]
 
   # Skip CSRF for API endpoints called from mobile apps
@@ -49,31 +48,32 @@ class ChatController < ApplicationController
       return
     end
 
+    user = api_current_user
     respond_to do |format|
       format.json do
         render json: {
-          token: generate_stream_token,
+          token: generate_stream_token(user),
           user: {
-            id: current_user.id.to_s,
-            name: current_user.name,
-            avatar: current_user.avatar_url,
-            restricted_access: current_user.restricted_access
+            id: user.id.to_s,
+            name: user.name,
+            avatar: user.avatar_url,
+            restricted_access: user.restricted_access
           },
           api_key: StreamChatClient.api_key,
-          community_slug: current_user.community.slug
+          community_slug: user.community.slug
         }
       end
       format.any do
         render json: {
-          token: generate_stream_token,
+          token: generate_stream_token(user),
           user: {
-            id: current_user.id.to_s,
-            name: current_user.name,
-            avatar: current_user.avatar_url,
-            restricted_access: current_user.restricted_access
+            id: user.id.to_s,
+            name: user.name,
+            avatar: user.avatar_url,
+            restricted_access: user.restricted_access
           },
           api_key: StreamChatClient.api_key,
-          community_slug: current_user.community.slug
+          community_slug: user.community.slug
         }
       end
     end
@@ -291,23 +291,25 @@ class ChatController < ApplicationController
 
   private
 
-  def generate_stream_token
+  def generate_stream_token(user = nil)
+    user ||= current_user
     # Sync user to Stream first
-    sync_user_to_stream
+    sync_user_to_stream(user)
 
     # Ensure user is in default channels
-    StreamChannelService.ensure_user_in_default_channels(current_user)
+    StreamChannelService.ensure_user_in_default_channels(user)
 
     # Generate token
-    StreamChatClient.client.create_token(current_user.id.to_s)
+    StreamChatClient.client.create_token(user.id.to_s)
   end
 
-  def sync_user_to_stream
+  def sync_user_to_stream(user = nil)
+    user ||= current_user
     StreamChatClient.client.upsert_user({
-      id: current_user.id.to_s,
-      name: current_user.name,
-      image: current_user.avatar_url,
-      role: current_user.admin? ? "admin" : "user"
+      id: user.id.to_s,
+      name: user.name,
+      image: user.avatar_url,
+      role: user.admin? ? "admin" : "user"
     })
   rescue StreamChat::StreamAPIException => e
     Rails.logger.error "Failed to sync user to Stream: #{e.message}"
