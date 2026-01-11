@@ -13,7 +13,7 @@ class StreamChatViewController: UIViewController {
     private let userAvatar: String?
     private let token: String?
     private let apiKey: String?
-    private let communitySlug: String?
+    private var communitySlug: String?  // Made var so it can be updated from token data
     private var restrictedAccess: Bool = false
 
     init(userId: String, userName: String, userAvatar: String? = nil, token: String? = nil, apiKey: String? = nil, communitySlug: String? = nil) {
@@ -303,6 +303,11 @@ class StreamChatViewController: UIViewController {
                         // Store the restrictedAccess value
                         self?.restrictedAccess = tokenData.user.restrictedAccess
 
+                        // Store community slug for channel creation
+                        if let slug = tokenData.communitySlug {
+                            self?.communitySlug = slug
+                        }
+
                         // Setup UI on main thread
                         DispatchQueue.main.async { [weak self] in
                             self?.setupChannelList()
@@ -340,7 +345,8 @@ class StreamChatViewController: UIViewController {
                         let tokenData = TokenData(
                             token: token,
                             user: userData,
-                            apiKey: apiKey
+                            apiKey: apiKey,
+                            communitySlug: self.communitySlug  // Use the communitySlug passed in init
                         )
                         self.initializeStreamChat(with: tokenData)
                     }
@@ -413,6 +419,12 @@ class StreamChatViewController: UIViewController {
         self.restrictedAccess = tokenData.user.restrictedAccess
         if self.restrictedAccess {
             print("User has restricted access")
+        }
+
+        // Store community slug for channel creation
+        if let slug = tokenData.communitySlug {
+            self.communitySlug = slug
+            print("Community slug: \(slug)")
         }
 
         // Check if ChatManager already has a connected client for this user
@@ -666,11 +678,13 @@ struct TokenData: Decodable {
     let token: String
     let user: UserData
     let apiKey: String
+    let communitySlug: String?
 
     enum CodingKeys: String, CodingKey {
         case token
         case user
         case apiKey = "api_key"
+        case communitySlug = "community_slug"
     }
 }
 

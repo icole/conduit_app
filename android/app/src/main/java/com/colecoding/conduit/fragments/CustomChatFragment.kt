@@ -265,75 +265,78 @@ class CustomChatFragment : Fragment() {
     private fun createChannel(name: String, description: String) {
         lifecycleScope.launch {
             try {
-                val client = ChatClient.instance()
-                val userId = AuthManager.getUserId(requireContext()) ?: return@launch
-                val communitySlug = AuthManager.getCommunitySlug(requireContext())
+                // Use server endpoint to create channel with all community members
+                val channelId = createChannelViaServer(name)
 
-                if (communitySlug == null) {
-                    showToast("Community not available")
-                    return@launch
-                }
+                if (channelId != null) {
+                    Log.d(TAG, "Channel created successfully via server: $channelId")
 
-                // Generate channel ID with community slug prefix
-                // Format: {community-slug}-{channel-name}
-                val baseId = name.lowercase()
-                    .replace(" ", "-")
-                    .replace(Regex("[^a-z0-9-]"), "")
-                    .trim('-')
+                    // Watch the channel on the client
+                    val client = ChatClient.instance()
+                    val channelClient = client.channel(channelType = "team", channelId = channelId)
 
-                val channelId = if (baseId.isEmpty()) {
-                    "$communitySlug-channel"
-                } else {
-                    "$communitySlug-$baseId"
-                }
-
-                // Create the channel
-                val channelClient = client.channel(
-                    channelType = "team",
-                    channelId = channelId
-                )
-
-                val extraData = mutableMapOf<String, Any>()
-                extraData["name"] = name  // Set the channel name
-                if (description.isNotEmpty()) {
-                    extraData["description"] = description
-                }
-
-                // Make the channel public and open for everyone
-                extraData["public"] = true
-                extraData["open"] = true  // Allow anyone to join
-
-                // Create channel with creator as initial member
-                // The public flag will make it discoverable to others
-                channelClient.create(
-                    memberIds = listOf(userId), // Include creator as initial member
-                    extraData = extraData
-                ).enqueue { result ->
-                    if (result.isSuccess) {
-                        Log.d(TAG, "Channel created successfully: $name")
-
-                        // Sync community members to the channel via Rails endpoint
-                        syncCommunityMembers(channelId)
-
-                        // Send welcome message
-                        channelClient.sendMessage(
-                            Message(
-                                text = "Welcome to #$name! 🎉"
-                            )
-                        ).enqueue()
-
-                        // Channel list will auto-refresh via Stream SDK
-
-                        // Show success message
-                        showToast("Channel created: $name")
-                    } else {
-                        Log.e(TAG, "Failed to create channel: ${result.errorOrNull()}")
-                        showToast("Failed to create channel")
+                    channelClient.watch().enqueue { result ->
+                        if (result.isSuccess) {
+                            Log.d(TAG, "Now watching new channel")
+                            // Channel list will auto-refresh via Stream SDK
+                            showToast("Channel created: $name")
+                        } else {
+                            Log.e(TAG, "Failed to watch channel: ${result.errorOrNull()}")
+                            showToast("Channel created: $name")
+                        }
                     }
+                } else {
+                    showToast("Failed to create channel")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error creating channel", e)
                 showToast("Error creating channel")
+            }
+        }
+    }
+
+    private suspend fun createChannelViaServer(name: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val baseUrl = com.colecoding.conduit.config.AppConfig.getBaseUrl(requireContext())
+                val url = java.net.URL("$baseUrl/chat/channels")
+                val connection = url.openConnection() as java.net.HttpURLConnection
+
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("Accept", "application/json")
+
+                // Add session cookie for authentication
+                val sessionCookie = AuthManager.getSessionCookie(requireContext())
+                if (sessionCookie != null) {
+                    connection.setRequestProperty("Cookie", sessionCookie)
+                }
+
+                connection.doOutput = true
+
+                // Create request body
+                val requestBody = org.json.JSONObject().apply {
+                    put("name", name)
+                }
+                connection.outputStream.write(requestBody.toString().toByteArray())
+
+                val responseCode = connection.responseCode
+                if (responseCode == 200) {
+                    val response = connection.inputStream.bufferedReader().readText()
+                    val jsonResponse = org.json.JSONObject(response)
+                    val channelId = jsonResponse.getString("channel_id")
+                    Log.d(TAG, "Server created channel with ID: $channelId")
+                    connection.disconnect()
+                    channelId
+                } else {
+                    val errorResponse = connection.errorStream?.bufferedReader()?.readText()
+                    Log.e(TAG, "Failed to create channel via server, status: $responseCode, error: $errorResponse")
+                    connection.disconnect()
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error creating channel via server", e)
+                null
             }
         }
     }
@@ -503,40 +506,4 @@ class CustomChatFragment : Fragment() {
         }
     }
 
-    private fun syncCommunityMembers(channelId: String) {
-        lifecycleScope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    val baseUrl = com.colecoding.conduit.config.AppConfig.getBaseUrl(requireContext())
-                    val url = java.net.URL("$baseUrl/chat/channels/$channelId/sync_members")
-                    val connection = url.openConnection() as java.net.HttpURLConnection
-
-                    connection.requestMethod = "POST"
-                    connection.setRequestProperty("Content-Type", "application/json")
-
-                    // Add session cookie for authentication
-                    val sessionCookie = AuthManager.getSessionCookie(requireContext())
-                    if (sessionCookie != null) {
-                        connection.setRequestProperty("Cookie", sessionCookie)
-                    }
-
-                    connection.doOutput = true
-                    connection.outputStream.write("{}".toByteArray())
-
-                    val responseCode = connection.responseCode
-                    if (responseCode == 200) {
-                        val response = connection.inputStream.bufferedReader().readText()
-                        Log.d(TAG, "Successfully synced community members: $response")
-                    } else {
-                        Log.e(TAG, "Failed to sync members, status: $responseCode")
-                        val errorResponse = connection.errorStream?.bufferedReader()?.readText()
-                        Log.e(TAG, "Error response: $errorResponse")
-                    }
-                    connection.disconnect()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error syncing community members", e)
-            }
-        }
-    }
 }

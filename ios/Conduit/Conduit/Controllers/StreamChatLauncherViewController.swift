@@ -157,6 +157,7 @@ class StreamChatLauncherViewController: UIViewController {
             DispatchQueue.main.async {
                 print("Successfully fetched Stream token for user: \(tokenData.userId)")
                 print("API Key: \(tokenData.apiKey)")
+                print("Community slug: \(tokenData.communitySlug ?? "nil")")
 
                 // Navigate to Stream Chat with token data
                 self.navigateToStreamChat(
@@ -164,7 +165,8 @@ class StreamChatLauncherViewController: UIViewController {
                     userName: tokenData.userName,
                     userAvatar: tokenData.userAvatar,
                     token: tokenData.token,
-                    apiKey: tokenData.apiKey
+                    apiKey: tokenData.apiKey,
+                    communitySlug: tokenData.communitySlug
                 )
             }
         }
@@ -175,7 +177,8 @@ class StreamChatLauncherViewController: UIViewController {
                                      userName: String? = nil,
                                      userAvatar: String? = nil,
                                      token: String? = nil,
-                                     apiKey: String? = nil) {
+                                     apiKey: String? = nil,
+                                     communitySlug: String? = nil) {
         print("StreamChatLauncherViewController: Navigating to Stream Chat (existing: \(useExistingConnection))")
 
         let streamChatVC: StreamChatViewController
@@ -184,6 +187,7 @@ class StreamChatLauncherViewController: UIViewController {
            let client = ChatManager.shared.chatClient,
            let currentUserId = client.currentUserId {
             // Use existing connection - pass minimal info
+            // Note: communitySlug will be fetched from token endpoint in StreamChatViewController
             streamChatVC = StreamChatViewController(
                 userId: currentUserId,
                 userName: "",  // Will be fetched from existing client
@@ -201,7 +205,8 @@ class StreamChatLauncherViewController: UIViewController {
                 userName: userName,
                 userAvatar: userAvatar,
                 token: token,
-                apiKey: apiKey
+                apiKey: apiKey,
+                communitySlug: communitySlug
             )
         } else {
             print("Error: Missing required data for Stream Chat")
@@ -214,7 +219,7 @@ class StreamChatLauncherViewController: UIViewController {
         self.navigationController?.setViewControllers([streamChatVC], animated: true)
     }
 
-    private func fetchStreamToken(completion: @escaping ((userId: String, userName: String, userAvatar: String?, token: String, apiKey: String)?) -> Void) {
+    private func fetchStreamToken(completion: @escaping ((userId: String, userName: String, userAvatar: String?, token: String, apiKey: String, communitySlug: String?)?) -> Void) {
         // Get token URL from AppConfig - add .json extension for Rails
         let tokenURL = AppConfig.baseURL.appendingPathComponent("chat/token.json")
 
@@ -272,7 +277,8 @@ class StreamChatLauncherViewController: UIViewController {
             }
 
             let userAvatar = user["avatar"] as? String
-            completion((userId, userName, userAvatar, token, apiKey))
+            let communitySlug = json["community_slug"] as? String
+            completion((userId, userName, userAvatar, token, apiKey, communitySlug))
         }.resume()
     }
 

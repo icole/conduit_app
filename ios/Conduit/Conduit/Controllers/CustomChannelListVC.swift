@@ -198,111 +198,47 @@ class CustomChannelListVC: ChatChannelListVC {
             return
         }
 
-        guard let communitySlug = communitySlug else {
-            showError("Community not available")
-            return
-        }
-
-        // Generate a channel ID from the name (lowercase, replace spaces with hyphens)
-        // Prefix with community slug for multi-tenancy
-        let baseId = name
-            .lowercased()
-            .replacingOccurrences(of: " ", with: "-")
-            .replacingOccurrences(of: "[^a-z0-9-]", with: "", options: .regularExpression)
-            .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
-
-        // Format: {community-slug}-{channel-name}
-        let finalChannelId = baseId.isEmpty ? "\(communitySlug)-channel" : "\(communitySlug)-\(baseId)"
-
-        // Create the channel with description in extraData if provided
-        let channelController: ChatChannelController
-        var extraData: [String: RawJSON] = [:]
-        if let description = description, !description.isEmpty {
-            extraData["description"] = .string(description)
-        }
-
-        // Make the channel public by setting it as open for all members
-        extraData["public"] = .bool(true)
-        extraData["open"] = .bool(true)  // Allow anyone to join
-
-        do {
-            // Create the channel with the current user as the initial member
-            // The public flag will make it discoverable to others
-            let channelId = ChannelId(type: .team, id: finalChannelId)
-
-            // Get current user ID
-            guard let currentUserId = client.currentUserId else {
-                showError("Unable to get current user ID")
-                return
-            }
-
-            channelController = try client.channelController(
-                createChannelWithId: channelId,
-                name: name,
-                imageURL: nil,
-                members: [currentUserId], // Include creator as initial member
-                isCurrentUserMember: true, // Ensure creator is a member
-                extraData: extraData
-            )
-        } catch {
-            print("Failed to create channel controller: \(error)")
-            showError("Failed to create channel: \(error.localizedDescription)")
-            return
-        }
-
-        // Note: Channel description can be set in extraData during creation
-        // Stream SDK v4 doesn't support updating extraData after creation directly
-        // Description would need to be part of initial channel creation
-
         // Show loading indicator
         showLoadingIndicator()
 
-        // Synchronize to create the channel
-        channelController.synchronize { [weak self] error in
-            self?.hideLoadingIndicator()
+        // Use server endpoint to create channel with all community members
+        createChannelViaServer(name: name) { [weak self] result in
+            DispatchQueue.main.async {
+                self?.hideLoadingIndicator()
 
-            if let error = error {
-                print("Channel creation error: \(error)")
+                switch result {
+                case .success(let channelId):
+                    print("Channel created successfully via server: \(channelId)")
 
-                // Parse Stream error for permission issues
-                let errorMessage = error.localizedDescription
-                if errorMessage.lowercased().contains("permission") ||
-                   errorMessage.lowercased().contains("unauthorized") ||
-                   errorMessage.lowercased().contains("not allowed") {
-                    self?.showError("Permission Denied: Users are not allowed to create channels. Please contact your admin to enable this feature.")
-                } else {
-                    self?.showError("Failed to create channel: \(errorMessage)")
-                }
-            } else {
-                print("Channel created successfully")
+                    // Watch the channel on the client
+                    let cid = ChannelId(type: .team, id: channelId)
+                    let channelController = client.channelController(for: cid)
+                    channelController.synchronize { error in
+                        if let error = error {
+                            print("Failed to watch channel: \(error)")
+                        } else {
+                            // The channel list should automatically update
+                            self?.controller?.synchronize { _ in }
 
-                // Sync community members to the channel via Rails endpoint
-                self?.syncCommunityMembers(channelId: finalChannelId)
-
-                // Add a welcome message to the new channel
-                channelController.createNewMessage(
-                    text: "Welcome to #\(name)! 🎉"
-                ) { result in
-                    if case .failure(let error) = result {
-                        print("Failed to send welcome message: \(error)")
+                            // Navigate to the new channel
+                            self?.navigateToChannel(channelController: channelController)
+                        }
                     }
+
+                case .failure(let error):
+                    print("Channel creation error: \(error)")
+                    self?.showError(error.localizedDescription)
                 }
-
-                // The channel list should automatically update, but we can force a refresh
-                self?.controller?.synchronize { _ in }
-
-                // Optionally, navigate to the new channel
-                self?.navigateToChannel(channelController: channelController)
             }
         }
     }
 
-    private func syncCommunityMembers(channelId: String) {
-        // Call Rails endpoint to add all community members to the channel
+    private func createChannelViaServer(name: String, completion: @escaping (Result<String, Error>) -> Void) {
+        // Call Rails endpoint to create channel with all community members
         let baseURL = AppConfig.baseURL
-        let syncURL = baseURL.appendingPathComponent("chat/channels/\(channelId)/sync_members")
+        let createURL = baseURL.appendingPathComponent("chat/channels")
 
-        var request = URLRequest(url: syncURL)
+        var request = URLRequest(url: createURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
@@ -320,25 +256,32 @@ class CustomChannelListVC: ChatChannelListVC {
             request.setValue(csrfCookie.value, forHTTPHeaderField: "X-CSRF-Token")
         }
 
+        // Create request body
+        let body: [String: Any] = ["name": name]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                print("Failed to sync community members: \(error)")
+                completion(.failure(error))
                 return
             }
 
-            if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode == 200 {
-                    if let data = data,
-                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let membersAdded = json["members_added"] as? Int {
-                        print("Successfully synced \(membersAdded) community members to channel")
-                    }
-                } else {
-                    print("Failed to sync members, status: \(httpResponse.statusCode)")
-                    if let data = data, let body = String(data: data, encoding: .utf8) {
-                        print("Response: \(body)")
-                    }
-                }
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(.failure(NSError(domain: "CustomChannelListVC", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])))
+                return
+            }
+
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                completion(.failure(NSError(domain: "CustomChannelListVC", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to parse response"])))
+                return
+            }
+
+            if httpResponse.statusCode == 200, let channelId = json["channel_id"] as? String {
+                completion(.success(channelId))
+            } else {
+                let errorMessage = json["error"] as? String ?? "Failed to create channel"
+                completion(.failure(NSError(domain: "CustomChannelListVC", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
             }
         }.resume()
     }
