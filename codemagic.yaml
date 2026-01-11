@@ -14,13 +14,12 @@ workflows:
       vars:
         PACKAGE_NAME: "com.colecoding.conduitapp"
 
-    # Disabled auto-trigger until Play Console setup is complete
-    # triggering:
-    #   events:
-    #     - push
-    #   branch_patterns:
-    #     - pattern: main
-    #       include: true
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
 
     scripts:
       - name: Set up google-services.json
@@ -79,7 +78,7 @@ workflows:
       google_play:
         credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
         track: alpha  # Closed testing track
-        submit_as_draft: true  # Draft until app setup is complete in Play Console
+        submit_as_draft: false  # Auto-rollout to testers
 
   ios-workflow:
     name: iOS Build & Deploy
@@ -101,13 +100,12 @@ workflows:
         XCODE_SCHEME: "Conduit"
         APP_STORE_APP_ID: "6756144999"
 
-    # Disabled auto-trigger - run manually from Codemagic dashboard
-    # triggering:
-    #   events:
-    #     - push
-    #   branch_patterns:
-    #     - pattern: main
-    #       include: true
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
 
     scripts:
       - name: Set up GoogleService-Info.plist
@@ -257,7 +255,7 @@ workflows:
       google_play:
         credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
         track: alpha  # Closed testing track
-        submit_as_draft: true  # Draft until app setup is complete in Play Console
+        submit_as_draft: false  # Auto-rollout to testers
 
       app_store_connect:
         auth: integration
