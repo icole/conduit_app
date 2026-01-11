@@ -2,6 +2,9 @@ class ChatController < ApplicationController
   before_action :authenticate_user!, except: [ :debug ]
   before_action :ensure_stream_configured, except: [ :debug, :token ]
 
+  # Skip CSRF for API endpoints called from mobile apps
+  skip_forgery_protection only: [ :create_channel, :update_channel, :destroy_channel, :sync_channel_members ]
+
   # GET /chat
   def index
     Rails.logger.info "ChatController#index - user_id: #{session[:user_id]}, current_user: #{current_user&.id}, turbo_native: #{turbo_native_app?}, user_agent: #{request.user_agent}"
