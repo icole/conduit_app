@@ -12,6 +12,11 @@ Rails.application.routes.draw do
     end
   end
 
+  # Webhooks
+  namespace :webhooks do
+    post "stream", to: "stream#create"
+  end
+
   resources :decisions
   resources :chores do
     member do
