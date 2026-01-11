@@ -76,10 +76,18 @@ class MainActivity : HotwireActivity() {
      * If no session cookie exists, uses auth_login to establish the session first.
      */
     override fun navigatorConfigurations(): List<NavigatorConfiguration> {
-        // If no community URL set, return empty - we'll redirect to community select
+        // If no community URL set, return a placeholder config
+        // We'll redirect to community select in onCreate(), but HotwireActivityDelegate
+        // requires at least one configuration to initialize
         if (!CommunityManager.hasCommunityUrl(this)) {
-            Log.d(TAG, "No community URL, returning empty navigator configs")
-            return emptyList()
+            Log.d(TAG, "No community URL, returning placeholder navigator config")
+            return listOf(
+                NavigatorConfiguration(
+                    name = "placeholder",
+                    startLocation = "about:blank",
+                    navigatorHostId = R.id.home_navigator_host
+                )
+            )
         }
 
         // Use AppConfig.getBaseUrl() to ensure we use the same server that generated the auth token
