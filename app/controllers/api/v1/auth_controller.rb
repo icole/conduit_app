@@ -203,7 +203,28 @@ module Api
               name: user.name.presence || name
             )
           else
-            # New user - create with Google OAuth info
+            # New user - need to set tenant first
+            if params[:community_domain].blank?
+              render json: { error: "Community domain is required for new users" }, status: :bad_request
+              return
+            end
+
+            community = Community.find_by(domain: params[:community_domain])
+            if community.nil?
+              render json: { error: "Community not found" }, status: :not_found
+              return
+            end
+
+            # Set tenant before creating user
+            set_current_tenant(community)
+
+            # Check invitation requirement only for truly new users
+            if !Rails.env.test? && !User.valid_invitation?(params[:invitation_token])
+              render json: { error: "Access restricted to invited users only" }, status: :forbidden
+              return
+            end
+
+            # Create with Google OAuth info
             user = User.new(
               email: email.downcase,
               name: name,
@@ -212,12 +233,6 @@ module Api
               uid: params[:email], # Using email as UID for simplicity
               avatar_url: image_url
             )
-
-            # Check invitation requirement only for truly new users
-            if !Rails.env.test? && !User.valid_invitation?(params[:invitation_token])
-              render json: { error: "Access restricted to invited users only" }, status: :forbidden
-              return
-            end
 
             user.save!
           end
