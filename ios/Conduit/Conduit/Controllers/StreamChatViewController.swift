@@ -578,27 +578,16 @@ class StreamChatViewController: UIViewController {
                 self.checkRegisteredDevices()
             }
 
-            // Create channel list query based on user's community
-            let query: ChannelListQuery
-            if let communitySlug = self.communitySlug {
-                // Filter by community slug to show only this community's channels
-                print("Filtering channels for community: \(communitySlug)")
-                query = ChannelListQuery(
-                    filter: .and([
-                        .equal(.type, to: .team),
-                        .equal("community_slug", to: communitySlug)
-                    ])
-                )
-            } else {
-                // Fallback: show channels user is a member of
-                print("No community slug, showing channels user is member of")
-                query = ChannelListQuery(
-                    filter: .and([
-                        .equal(.type, to: .team),
-                        .containMembers(userIds: [client.currentUserId].compactMap { $0 })
-                    ])
-                )
-            }
+            // Create channel list query - filter by membership
+            // This is more reliable than filtering by community_slug extraData
+            // since all community members are added to channels
+            print("Filtering channels where user is a member")
+            let query = ChannelListQuery(
+                filter: .and([
+                    .equal(.type, to: .team),
+                    .containMembers(userIds: [client.currentUserId].compactMap { $0 })
+                ])
+            )
 
             // Create channel list controller
             let channelList = client.channelListController(query: query)

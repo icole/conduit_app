@@ -130,25 +130,15 @@ class CustomChatFragment : Fragment() {
         container.removeAllViews()
         container.addView(channelListView)
 
-        // Setup the channel list based on user's community
+        // Setup the channel list - filter by membership
+        // This is more reliable than filtering by community_slug extraData
+        // since all community members are added to channels
         val userId = AuthManager.getUserId(requireContext()) ?: return
-        val communitySlug = AuthManager.getCommunitySlug(requireContext())
-
-        val filter = if (communitySlug != null) {
-            // Filter by community slug to show only this community's channels
-            Log.d(TAG, "Creating channel filter for community: $communitySlug")
-            Filters.and(
-                Filters.eq("type", "team"),
-                Filters.eq("community_slug", communitySlug)
-            )
-        } else {
-            // Fallback: show channels user is a member of
-            Log.d(TAG, "No community slug, showing channels user is member of")
-            Filters.and(
-                Filters.eq("type", "team"),
-                Filters.`in`("members", listOf(userId))
-            )
-        }
+        Log.d(TAG, "Filtering channels where user is a member")
+        val filter = Filters.and(
+            Filters.eq("type", "team"),
+            Filters.`in`("members", listOf(userId))
+        )
 
         val viewModelFactory = ChannelListViewModelFactory(
             filter = filter,

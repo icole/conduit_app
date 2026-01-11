@@ -108,7 +108,8 @@ class ChatController < ApplicationController
       # Create the channel with data
       channel = client.channel("team", channel_id: channel_id, data: {
         name: channel_name,
-        members: community_user_ids
+        members: community_user_ids,
+        community_slug: community.slug
       })
       channel.create(current_user.id.to_s)
 
