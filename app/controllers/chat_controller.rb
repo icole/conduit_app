@@ -1,5 +1,9 @@
 class ChatController < ApplicationController
+  # Skip tenant-from-domain for mobile API endpoints - tenant will be set from authenticated user
+  skip_before_action :set_tenant_from_domain, only: [ :token, :create_channel, :update_channel, :destroy_channel, :sync_channel_members ]
+
   before_action :authenticate_user!, except: [ :debug ]
+  before_action :set_tenant_from_user, only: [ :token, :create_channel, :update_channel, :destroy_channel, :sync_channel_members ]
   before_action :ensure_stream_configured, except: [ :debug, :token ]
 
   # Skip CSRF for API endpoints called from mobile apps
@@ -300,5 +304,11 @@ class ChatController < ApplicationController
     unless StreamChatClient.configured?
       redirect_to root_path, alert: "Chat is not configured. Please add Stream API credentials."
     end
+  end
+
+  def set_tenant_from_user
+    return unless current_user&.community
+
+    set_current_tenant(current_user.community)
   end
 end
