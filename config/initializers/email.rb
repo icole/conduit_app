@@ -23,7 +23,8 @@ if Rails.env.production?
       authentication: :login,
       enable_starttls_auto: true,
       open_timeout: 10,
-      read_timeout: 10
+      read_timeout: 10,
+      openssl_verify_mode: OpenSSL::SSL::VERIFY_NONE
     }
     config.action_mailer.raise_delivery_errors = true
   end
