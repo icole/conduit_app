@@ -20,6 +20,10 @@ namespace :email do
       smtp.enable_starttls_auto
       smtp.open_timeout = 10
       smtp.read_timeout = 10
+      # Disable SSL verification to work around CRL issues with Namecheap
+      context = OpenSSL::SSL::SSLContext.new
+      context.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      smtp.enable_starttls(context)
 
       smtp.start("crowwoods.com", ENV["SMTP_USERNAME"], ENV["SMTP_PASSWORD"], :login) do
         puts "\n✅ SMTP connection successful! Credentials are valid."
@@ -66,7 +70,8 @@ namespace :email do
       authentication: :login,
       enable_starttls_auto: true,
       open_timeout: 10,
-      read_timeout: 10
+      read_timeout: 10,
+      openssl_verify_mode: OpenSSL::SSL::VERIFY_NONE
     }
 
     # Use the first community's name if available, fallback to "Conduit"
