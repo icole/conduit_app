@@ -2,7 +2,8 @@ class ApplicationMailer < ActionMailer::Base
   default from: -> {
     tenant = ActsAsTenant.current_tenant
     from_name = tenant&.smtp_from_name || "Conduit"
-    "#{from_name} <#{ENV.fetch('SMTP_USERNAME', 'info@conduit.app')}>"
+    from_email = tenant&.smtp_from_email || ENV.fetch("DEFAULT_FROM_EMAIL", "noreply@conduitcoho.app")
+    "#{from_name} <#{from_email}>"
   }
   layout "mailer"
 
