@@ -58,7 +58,7 @@ namespace :email do
     # Get the from address from the first community or use default
     community = ActsAsTenant.without_tenant { Community.first }
     from_name = community&.smtp_from_name || "Conduit"
-    from_email = community&.smtp_from_email || "noreply@crowwoods.com"
+    from_email = community&.smtp_from_email || "noreply@conduitcoho.app"
     from_address = "#{from_name} <#{from_email}>"
 
     puts "Sending test email to #{to_address}..."
