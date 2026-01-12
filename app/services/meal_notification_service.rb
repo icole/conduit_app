@@ -11,7 +11,8 @@ class MealNotificationService
         body: body,
         url: url,
         notification_type: InAppNotification::TYPES[:meal_reminder],
-        notifiable: meal
+        notifiable: meal,
+        mailer: -> { MealMailer.meal_reminder(meal, user) }
       )
     end
 
@@ -26,7 +27,8 @@ class MealNotificationService
         body: body,
         url: url,
         notification_type: InAppNotification::TYPES[:rsvp_deadline],
-        notifiable: meal
+        notifiable: meal,
+        mailer: -> { MealMailer.rsvp_deadline_warning(meal, user) }
       )
     end
 
@@ -45,7 +47,8 @@ class MealNotificationService
         body: body,
         url: url,
         notification_type: InAppNotification::TYPES[:cook_assigned],
-        notifiable: meal
+        notifiable: meal,
+        mailer: -> { MealMailer.cook_confirmation(meal_cook) }
       )
 
       # Notify other cooks about new team member
@@ -64,14 +67,15 @@ class MealNotificationService
           body: body,
           url: url,
           notification_type: InAppNotification::TYPES[:rsvps_closed],
-          notifiable: meal
+          notifiable: meal,
+          mailer: -> { MealMailer.rsvps_closed_summary(meal, cook) }
         )
       end
     end
 
     private
 
-    def send_all_channels(user:, title:, body:, url:, notification_type:, notifiable:)
+    def send_all_channels(user:, title:, body:, url:, notification_type:, notifiable:, mailer: nil)
       # 1. Create in-app notification
       user.in_app_notifications.create!(
         title: title,
@@ -90,8 +94,9 @@ class MealNotificationService
         tag: "meal-#{notifiable.id}"
       )
 
-      # 3. Send email notification
-      MealMailer.notification_email(user, title, body, url).deliver_later
+      # 3. Send email notification (use custom mailer if provided, otherwise generic)
+      email = mailer&.call || MealMailer.notification_email(user, title, body, url)
+      email.deliver_later
     rescue StandardError => e
       Rails.logger.error("Failed to send notification to user #{user.id}: #{e.message}")
     end
