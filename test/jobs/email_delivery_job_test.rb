@@ -4,7 +4,7 @@ require "test_helper"
 
 class EmailDeliveryJobTest < ActiveJob::TestCase
   setup do
-    @user = users(:john)
+    @user = users(:one)
     @community = communities(:crow_woods)
     ActsAsTenant.current_tenant = @community
   end

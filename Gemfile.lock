@@ -127,6 +127,7 @@ GEM
       fiber-local (~> 1.1)
       json
     crass (1.0.6)
+    csv (3.3.5)
     date (3.5.1)
     debug (1.11.1)
       irb (~> 1.10)
@@ -240,6 +241,10 @@ GEM
     heroicon (1.0.0)
       rails (>= 5.2)
     hkdf (0.3.0)
+    httparty (0.24.0)
+      csv
+      mini_mime (>= 1.0.0)
+      multi_xml (>= 0.5.2)
     httpclient (2.9.0)
       mutex_m
     i18n (1.14.8)
@@ -450,6 +455,8 @@ GEM
       declarative (< 0.1.0)
       trailblazer-option (>= 0.1.1, < 0.2.0)
       uber (< 0.2.0)
+    resend (0.27.0)
+      httparty (>= 0.21.0)
     retriable (3.1.2)
     rexml (3.4.4)
     rubocop (1.81.7)
@@ -639,6 +646,7 @@ DEPENDENCIES
   puma (>= 5.0)
   rails (~> 8.1.2)
   rails-controller-testing
+  resend (~> 0.17)
   rubocop-rails-omakase
   selenium-webdriver
   sentry-rails
