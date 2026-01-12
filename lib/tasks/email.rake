@@ -1,6 +1,44 @@
 require "ostruct"
 
 namespace :email do
+  desc "Test SMTP connection without sending an email"
+  task test_connection: :environment do
+    require "net/smtp"
+
+    puts "Testing SMTP connection..."
+    puts "Server: mail.privateemail.com:587"
+    puts "Username: #{ENV['SMTP_USERNAME']}"
+
+    if ENV["SMTP_USERNAME"].blank? || ENV["SMTP_PASSWORD"].blank?
+      puts "\n❌ ERROR: SMTP credentials are not set!"
+      puts "Set SMTP_USERNAME and SMTP_PASSWORD environment variables."
+      exit 1
+    end
+
+    begin
+      smtp = Net::SMTP.new("mail.privateemail.com", 587)
+      smtp.enable_starttls_auto
+      smtp.open_timeout = 10
+      smtp.read_timeout = 10
+
+      smtp.start("crowwoods.com", ENV["SMTP_USERNAME"], ENV["SMTP_PASSWORD"], :login) do
+        puts "\n✅ SMTP connection successful! Credentials are valid."
+      end
+    rescue Net::SMTPAuthenticationError => e
+      puts "\n❌ SMTP Authentication FAILED!"
+      puts "Error: #{e.message}"
+      puts "\nPossible causes:"
+      puts "  - Incorrect username or password"
+      puts "  - Account is locked"
+      puts "  - 2FA enabled (need app-specific password)"
+      exit 1
+    rescue StandardError => e
+      puts "\n❌ SMTP Connection failed!"
+      puts "Error: #{e.class}: #{e.message}"
+      exit 1
+    end
+  end
+
   desc "Send a test email to verify SMTP configuration"
   task :test, [ :to ] => :environment do |t, args|
     to_address = args[:to] || ENV["SMTP_USERNAME"]
@@ -25,8 +63,10 @@ namespace :email do
       domain: "crowwoods.com",
       user_name: ENV["SMTP_USERNAME"],
       password: ENV["SMTP_PASSWORD"],
-      authentication: :plain,
-      enable_starttls_auto: true
+      authentication: :login,
+      enable_starttls_auto: true,
+      open_timeout: 10,
+      read_timeout: 10
     }
 
     # Use the first community's name if available, fallback to "Conduit"
