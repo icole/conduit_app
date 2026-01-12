@@ -7,10 +7,18 @@ class ApplicationMailer < ActionMailer::Base
   }
   layout "mailer"
 
-  # Add community ID header for email logging
+  before_action :set_url_options
   after_action :set_community_header
 
   private
+
+  def set_url_options
+    tenant = ActsAsTenant.current_tenant
+    if tenant&.domain.present?
+      default_url_options[:host] = tenant.domain
+      default_url_options[:protocol] = "https"
+    end
+  end
 
   def set_community_header
     tenant = ActsAsTenant.current_tenant
