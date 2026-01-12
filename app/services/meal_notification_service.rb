@@ -48,7 +48,7 @@ class MealNotificationService
         url: url,
         notification_type: InAppNotification::TYPES[:cook_assigned],
         notifiable: meal,
-        mailer: -> { MealMailer.cook_confirmation(meal_cook) }
+        skip_email: true  # TODO: Re-enable cook confirmation email
       )
 
       # Notify other cooks about new team member
@@ -75,7 +75,7 @@ class MealNotificationService
 
     private
 
-    def send_all_channels(user:, title:, body:, url:, notification_type:, notifiable:, mailer: nil)
+    def send_all_channels(user:, title:, body:, url:, notification_type:, notifiable:, mailer: nil, skip_email: false)
       # 1. Create in-app notification
       user.in_app_notifications.create!(
         title: title,
@@ -95,8 +95,10 @@ class MealNotificationService
       )
 
       # 3. Send email notification (use custom mailer if provided, otherwise generic)
-      email = mailer&.call || MealMailer.notification_email(user, title, body, url)
-      email.deliver_later
+      unless skip_email
+        email = mailer&.call || MealMailer.notification_email(user, title, body, url)
+        email.deliver_later
+      end
     rescue StandardError => e
       Rails.logger.error("Failed to send notification to user #{user.id}: #{e.message}")
     end
