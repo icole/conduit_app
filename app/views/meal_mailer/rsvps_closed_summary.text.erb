@@ -1,0 +1,20 @@
+Hi <%= @cook.name.split.first %>,
+
+RSVPs are now closed for your meal. Here's the final count:
+
+<%= @total %> people attending
+
+<%= @meal.title %>
+<%= @meal.full_display %>
+
+<% if @attendees.any? %>
+Who's Coming:
+<% @attendees.each do |rsvp| %>
+- <%= rsvp.user.name %><% if rsvp.guests_count > 0 %> (+<%= rsvp.guests_count %> guest<%= rsvp.guests_count > 1 ? 's' : '' %>)<% end %>
+<% end %>
+<% end %>
+
+View full details: <%= meal_url(@meal) %>
+
+--
+This email was sent from Conduit - your community management platform.

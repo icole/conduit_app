@@ -1,0 +1,16 @@
+Hi <%= @user.name.split.first %>,
+
+Your RSVP has been recorded.
+
+<%= @meal.title %>
+<%= @meal.full_display %>
+<% if @meal.head_cook %>Cook: <%= @meal.head_cook.name %><% end %>
+
+Your response: <%= @rsvp.status.titleize %><% if @rsvp.attending? && @rsvp.guests_count > 0 %> (+<%= @rsvp.guests_count %> guest<%= @rsvp.guests_count > 1 ? 's' : '' %>)<% end %>
+
+You can change your RSVP anytime before the deadline.
+
+View details: <%= meal_url(@meal) %>
+
+--
+This email was sent from Conduit - your community management platform.

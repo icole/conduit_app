@@ -1,0 +1,13 @@
+Hi <%= @user.name.split.first %>,
+
+Thanks for volunteering to cook! You're signed up as <%= @meal_cook.head_cook? ? "Head Cook" : "Helper" %>.
+
+<%= @meal.title %>
+<%= @meal.full_display %>
+
+You can update the menu and view RSVPs on the meal page.
+
+View details: <%= meal_url(@meal) %>
+
+--
+This email was sent from Conduit - your community management platform.

@@ -1,0 +1,17 @@
+Hi <%= @user.name.split.first %>,
+
+RSVPs are closing soon! Don't forget to let us know if you're coming.
+
+<%= @meal.title %>
+<%= @meal.full_display %>
+<% if @meal.head_cook %>Cook: <%= @meal.head_cook.name %><% end %>
+<% if @meal.menu.present? %>
+Menu: <%= @meal.menu.to_plain_text.truncate(200) %>
+<% end %>
+
+RSVP Deadline: <%= @meal.rsvp_deadline.strftime("%A, %B %d at %l:%M %p") %>
+
+RSVP now: <%= meal_url(@meal) %>
+
+--
+This email was sent from Conduit - your community management platform.

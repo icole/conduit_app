@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: #d97706; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+    .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; border-top: none; }
+    .button { display: inline-block; background: #d97706; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin-top: 16px; }
+    .footer { padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
+    .details { background: white; padding: 16px; border-radius: 6px; margin: 16px 0; }
+    .warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 6px; margin: 16px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0; font-size: 24px;">RSVP Deadline Approaching</h1>
+    </div>
+    <div class="content">
+      <p>Hi <%= @user.name.split.first %>,</p>
+
+      <div class="warning">
+        <strong>RSVPs are closing soon!</strong> Don't forget to let us know if you're coming.
+      </div>
+
+      <div class="details">
+        <strong><%= @meal.title %></strong><br>
+        <span><%= @meal.full_display %></span>
+        <% if @meal.head_cook %>
+          <br><span>Cook: <%= @meal.head_cook.name %></span>
+        <% end %>
+        <% if @meal.menu.present? %>
+          <br><br><strong>Menu:</strong> <%= @meal.menu.to_plain_text.truncate(200) %>
+        <% end %>
+        <br><br>
+        <strong>RSVP Deadline:</strong> <%= @meal.rsvp_deadline.strftime("%A, %B %d at %l:%M %p") %>
+      </div>
+
+      <a href="<%= meal_url(@meal) %>" class="button">RSVP Now</a>
+    </div>
+    <div class="footer">
+      <p>This email was sent from Conduit - your community management platform.</p>
+    </div>
+  </div>
+</body>
+</html>

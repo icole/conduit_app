@@ -1,0 +1,15 @@
+Hi <%= @user.name.split.first %>,
+
+Just a friendly reminder that there's a community meal tomorrow!
+
+<%= @meal.title %>
+<%= @meal.full_display %>
+<% if @meal.head_cook %>Cook: <%= @meal.head_cook.name %><% end %>
+<% if @meal.menu.present? %>
+Menu: <%= @meal.menu.to_plain_text.truncate(200) %>
+<% end %>
+
+View details: <%= meal_url(@meal) %>
+
+--
+This email was sent from Conduit - your community management platform.
