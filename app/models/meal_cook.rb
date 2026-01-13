@@ -4,6 +4,7 @@ class MealCook < ApplicationRecord
 
   validates :role, presence: true, inclusion: { in: %w[head_cook helper] }
   validates :user_id, uniqueness: { scope: :meal_id, message: "is already signed up to cook" }
+  validates :guests_count, numericality: { greater_than_or_equal_to: 0 }
   validate :meal_accepts_cooks, on: :create
   validate :only_one_head_cook
 
@@ -28,6 +29,15 @@ class MealCook < ApplicationRecord
 
   def role_display
     head_cook? ? "Head Cook" : "Helper"
+  end
+
+  def total_count
+    1 + guests_count
+  end
+
+  def guests_display
+    return nil if guests_count.zero?
+    guests_count == 1 ? "+1 guest" : "+#{guests_count} guests"
   end
 
   private

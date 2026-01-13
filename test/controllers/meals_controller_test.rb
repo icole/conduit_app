@@ -188,6 +188,32 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "User is already signed up to cook", flash[:alert]
   end
 
+  # Update cook action tests
+  test "should update cook guests count" do
+    patch update_cook_meal_url(@meal), params: {
+      meal_cook: { guests_count: 3 }
+    }
+    assert_redirected_to meal_url(@meal)
+    assert_equal "Your cooking details have been updated.", flash[:notice]
+    assert_equal 3, @user.meal_cooks.find_by(meal: @meal).guests_count
+  end
+
+  test "should not update cook if not signed up" do
+    patch update_cook_meal_url(@needs_cook_meal), params: {
+      meal_cook: { guests_count: 2 }
+    }
+    assert_redirected_to meal_url(@needs_cook_meal)
+    assert_equal "You're not signed up to cook this meal.", flash[:alert]
+  end
+
+  test "should not update cook with invalid guests count" do
+    patch update_cook_meal_url(@meal), params: {
+      meal_cook: { guests_count: -1 }
+    }
+    assert_redirected_to meal_url(@meal)
+    assert_match /greater than or equal to 0/, flash[:alert]
+  end
+
   # Withdraw cook action tests
   test "should withdraw as cook" do
     assert_difference("MealCook.count", -1) do

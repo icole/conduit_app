@@ -225,6 +225,83 @@ class MealsTest < ApplicationSystemTestCase
     end
   end
 
+  test "cook can add guests to their cooking signup" do
+    sign_in_as_user(:one)
+
+    visit meal_path(@meal)
+
+    # User one is a cook, should see the guests form
+    assert_selector "#cook_signup"
+    assert_text "You're signed up as head cook!"
+    assert_text "Bringing guests?"
+
+    # Update guest count
+    fill_in "cook_guests_count", with: "2"
+    click_on "Update Guests"
+
+    assert_text "Your cooking details have been updated."
+
+    # Verify it persisted
+    cook = @meal.cook_for(@user)
+    assert_equal 2, cook.guests_count
+  end
+
+  test "meal card shows guest count when guests are present" do
+    # Create a meal with RSVPs that have guests
+    meal = Meal.create!(
+      title: "Test Meal with Guests",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    meal.meal_cooks.create!(user: @other_user, role: "head_cook", guests_count: 1)
+    meal.meal_rsvps.create!(user: users(:three), status: "attending", guests_count: 2)
+
+    sign_in_as_user(:one)
+    visit meals_path
+
+    within "#meal_#{meal.id}" do
+      # Should show total attendees and guest count breakdown
+      # 1 cook + 1 cook guest + 1 attendee + 2 attendee guests = 5 total
+      # 3 guests total (1 + 2)
+      assert_text "(+3"
+    end
+  end
+
+  test "meal card shows late plate count when late plates are present" do
+    # Create a meal with late plates
+    meal = Meal.create!(
+      title: "Test Meal with Late Plates",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    meal.meal_cooks.create!(user: @other_user, role: "head_cook")
+    meal.meal_rsvps.create!(user: users(:three), status: "late_plate", guests_count: 0)
+    meal.meal_rsvps.create!(user: users(:four), status: "late_plate", guests_count: 1)
+
+    sign_in_as_user(:one)
+    visit meals_path
+
+    within "#meal_#{meal.id}" do
+      # Should show late plate count (2 people + 1 guest = 3 late plates)
+      assert_text "3 late"
+    end
+  end
+
+  test "cook guests form not shown when RSVPs are closed" do
+    # Close RSVPs on meal
+    @meal.close_rsvps!
+
+    sign_in_as_user(:one)
+    visit meal_path(@meal)
+
+    # User is a cook but shouldn't see the guest form since RSVPs are closed
+    assert_selector "#cook_signup"
+    assert_text "You're signed up as head cook!"
+    assert_no_selector "#cook_guests_count"
+  end
+
   private
 
   def sign_in_as_user(user_fixture)

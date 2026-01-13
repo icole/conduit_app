@@ -84,4 +84,42 @@ class MealCookTest < ActiveSupport::TestCase
     assert cook.valid?
     assert_equal 3, MealCook.where(user: @user).count
   end
+
+  # Guest count tests
+  test "guests_count defaults to 0" do
+    cook = MealCook.new(meal: meals(:needs_cook), user: users(:six), role: "helper")
+    assert_equal 0, cook.guests_count
+  end
+
+  test "guests_count must be non-negative" do
+    @meal_cook.guests_count = -1
+    assert_not @meal_cook.valid?
+    assert_includes @meal_cook.errors[:guests_count], "must be greater than or equal to 0"
+  end
+
+  test "guests_count can be set" do
+    cook = MealCook.create!(meal: meals(:needs_cook), user: users(:six), role: "helper", guests_count: 3)
+    assert_equal 3, cook.guests_count
+  end
+
+  test "total_count returns 1 plus guests" do
+    @meal_cook.guests_count = 0
+    assert_equal 1, @meal_cook.total_count
+
+    @meal_cook.guests_count = 2
+    assert_equal 3, @meal_cook.total_count
+  end
+
+  test "guests_display returns nil when no guests" do
+    @meal_cook.guests_count = 0
+    assert_nil @meal_cook.guests_display
+  end
+
+  test "guests_display returns formatted string when has guests" do
+    @meal_cook.guests_count = 1
+    assert_equal "+1 guest", @meal_cook.guests_display
+
+    @meal_cook.guests_count = 3
+    assert_equal "+3 guests", @meal_cook.guests_display
+  end
 end

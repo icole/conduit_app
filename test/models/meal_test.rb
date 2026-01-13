@@ -126,6 +126,35 @@ class MealTest < ActiveSupport::TestCase
     assert_equal 6, @meal.total_attendees
   end
 
+  test "total_attendees includes cook guests" do
+    # Add guests to a cook
+    cook = @meal.meal_cooks.first
+    cook.update!(guests_count: 3)
+
+    # Should now be: 2 cooks + 3 cook_guests + 2 attending + 2 rsvp_guests = 9
+    assert_equal 9, @meal.total_attendees
+  end
+
+  test "total_plates includes cook guests" do
+    # Add guests to a cook
+    cook = @meal.meal_cooks.first
+    cook.update!(guests_count: 2)
+
+    # Check total plates includes cook guests
+    # 2 cooks + 2 cook_guests + 2 attending + 2 rsvp_guests + late_plates = 8 + late_plates
+    expected = 8 + @meal.late_plate_count
+    assert_equal expected, @meal.total_plates
+  end
+
+  test "guests_count includes cook guests" do
+    # Add guests to a cook
+    cook = @meal.meal_cooks.first
+    cook.update!(guests_count: 2)
+
+    # Should include 2 from cook + 2 from attending_one RSVP = 4
+    assert_equal 4, @meal.guests_count
+  end
+
   test "meal_rsvps.attending returns only attending RSVPs" do
     attending = @meal.meal_rsvps.attending
     assert_equal 2, attending.count

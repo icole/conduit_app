@@ -129,21 +129,21 @@ class Meal < ApplicationRecord
   end
 
   def total_attendees
-    cooks_count = meal_cooks.count
+    cooks_with_guests = meal_cooks.sum { |c| c.total_count }
     rsvps_attending = meal_rsvps.attending.sum { |r| 1 + r.guests_count }
-    cooks_count + rsvps_attending
+    cooks_with_guests + rsvps_attending
   end
 
   def total_plates
-    # Total plates needed: cooks + attending (with guests) + late plates
-    cooks_count = meal_cooks.count
+    # Total plates needed: cooks (with guests) + attending (with guests) + late plates
+    cooks_with_guests = meal_cooks.sum { |c| c.total_count }
     attending_plates = meal_rsvps.attending.sum { |r| 1 + r.guests_count }
-    late_plates = meal_rsvps.late_plate.count
-    cooks_count + attending_plates + late_plates
+    late_plates = meal_rsvps.late_plate.sum { |r| 1 + r.guests_count }
+    cooks_with_guests + attending_plates + late_plates
   end
 
   def late_plate_count
-    meal_rsvps.late_plate.count
+    meal_rsvps.late_plate.sum { |r| 1 + r.guests_count }
   end
 
   def attending_count
@@ -151,7 +151,9 @@ class Meal < ApplicationRecord
   end
 
   def guests_count
-    meal_rsvps.attending.sum(:guests_count)
+    cook_guests = meal_cooks.sum(:guests_count)
+    rsvp_guests = meal_rsvps.attending.sum(:guests_count)
+    cook_guests + rsvp_guests
   end
 
   # Status transitions

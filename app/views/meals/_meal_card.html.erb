@@ -56,7 +56,12 @@
         <% elsif user_maybe %>
           <span class="badge badge-warning badge-xs">Maybe</span>
         <% end %>
-        <span class="text-xs text-base-content/50"><%= meal.total_attendees %> going</span>
+        <span class="text-xs text-base-content/50">
+          <%= meal.total_attendees %><% if meal.guests_count > 0 %><span class="text-base-content/40"> (+<%= meal.guests_count %>)</span><% end %>
+        </span>
+        <% if meal.late_plate_count > 0 %>
+          <span class="text-xs text-secondary/70"><%= meal.late_plate_count %> late</span>
+        <% end %>
       </div>
     </div>
   <% end %>
@@ -126,7 +131,7 @@
     <!-- Footer: Attendees count and actions -->
     <div class="flex items-center justify-between mt-3 pt-3 border-t border-base-200">
       <div class="text-sm text-base-content/60">
-        <span class="font-medium text-base-content"><%= meal.total_attendees %></span> attending
+        <span class="font-medium text-base-content"><%= meal.total_attendees %></span> attending<% if meal.guests_count > 0 %><span class="text-base-content/50"> (+<%= meal.guests_count %> guests)</span><% end %><% if meal.late_plate_count > 0 %><span class="text-secondary ml-2"><%= meal.late_plate_count %> late</span><% end %>
       </div>
       <% if !meal.cancelled? && rsvps_open && !user_is_cook && !user_attending && !user_maybe %>
         <span class="text-primary text-sm font-medium">RSVP →</span>

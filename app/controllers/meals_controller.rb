@@ -1,7 +1,7 @@
 class MealsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_meal, only: [ :show, :edit, :update, :destroy,
-                                   :volunteer_cook, :withdraw_cook,
+                                   :volunteer_cook, :update_cook, :withdraw_cook,
                                    :rsvp, :cancel_rsvp, :close_rsvps, :reopen_rsvps,
                                    :complete, :cancel, :cook, :show_rsvp,
                                    :update_menu ]
@@ -117,6 +117,21 @@ class MealsController < ApplicationController
     end
   end
 
+  # PATCH /meals/:id/update_cook
+  def update_cook
+    @meal_cook = @meal.meal_cooks.find_by(user: current_user)
+    if @meal_cook.nil?
+      redirect_to @meal, alert: "You're not signed up to cook this meal."
+      return
+    end
+
+    if @meal_cook.update(cook_params)
+      redirect_to @meal, notice: "Your cooking details have been updated."
+    else
+      redirect_to @meal, alert: @meal_cook.errors.full_messages.join(", ")
+    end
+  end
+
   # DELETE /meals/:id/withdraw_cook
   def withdraw_cook
     @meal_cook = @meal.meal_cooks.find_by(user: current_user)
@@ -212,6 +227,10 @@ class MealsController < ApplicationController
 
   def rsvp_params
     params.require(:meal_rsvp).permit(:status, :guests_count, :notes)
+  end
+
+  def cook_params
+    params.require(:meal_cook).permit(:guests_count, :notes)
   end
 
   def meals_back_path

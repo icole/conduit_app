@@ -38,6 +38,7 @@ Rails.application.routes.draw do
   resources :meals do
     member do
       post :volunteer_cook
+      patch :update_cook
       delete :withdraw_cook
       get :cook
       post :rsvp

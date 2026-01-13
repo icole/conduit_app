@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_11_224556) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_13_022008) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,6 +21,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_11_224556) do
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["message_id", "message_checksum"], name: "index_action_mailbox_inbound_emails_uniqueness", unique: true
+  end
+
+  create_table "action_push_native_devices", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.bigint "owner_id"
+    t.string "owner_type"
+    t.string "platform", null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.index ["owner_type", "owner_id"], name: "index_action_push_native_devices_on_owner"
   end
 
   create_table "action_text_rich_texts", force: :cascade do |t|
@@ -332,6 +343,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_11_224556) do
 
   create_table "meal_cooks", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "guests_count", default: 0, null: false
     t.bigint "meal_id", null: false
     t.text "notes"
     t.string "role", default: "helper", null: false

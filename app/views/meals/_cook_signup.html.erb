@@ -81,6 +81,41 @@
         </svg>
         <span>You're signed up as <%= my_cook_signup.role_display.downcase %>!</span>
       </div>
+
+      <!-- Guest count form for cooks -->
+      <% if meal.rsvps_open? && !meal.cancelled? %>
+        <%= form_with url: update_cook_meal_path(meal), method: :patch, class: "mt-4 p-4 bg-base-200 rounded-lg space-y-4" do |f| %>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-medium">Bringing guests?</span>
+            </label>
+            <div class="flex items-center gap-3">
+              <button type="button" class="btn btn-circle btn-outline btn-sm" onclick="const i=document.getElementById('cook_guests_count'); i.value=Math.max(0,parseInt(i.value||0)-1)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                </svg>
+              </button>
+              <input type="text" inputmode="numeric" pattern="[0-9]*" name="meal_cook[guests_count]" id="cook_guests_count"
+                     value="<%= my_cook_signup.guests_count %>"
+                     class="input input-bordered w-16 text-lg font-semibold text-center">
+              <button type="button" class="btn btn-circle btn-outline btn-sm" onclick="const i=document.getElementById('cook_guests_count'); i.value=Math.min(10,parseInt(i.value||0)+1)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+              </button>
+              <span class="text-sm text-base-content/70">extra guests</span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-sm">
+            Update Guests
+          </button>
+        <% end %>
+      <% elsif my_cook_signup.guests_count > 0 %>
+        <div class="mt-4 text-sm text-base-content/70">
+          + <%= my_cook_signup.guests_count %> guest<%= my_cook_signup.guests_count == 1 ? '' : 's' %>
+        </div>
+      <% end %>
     <% end %>
   </div>
 </div>
