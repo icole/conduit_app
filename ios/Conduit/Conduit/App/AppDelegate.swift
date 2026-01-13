@@ -259,8 +259,24 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         // Handle Stream Chat notification tap
         if let streamPayload = userInfo["stream"] as? [String: Any] {
             print("  → Stream payload found: \(streamPayload)")
-            // Navigate to chat tab when notification is tapped
-            NotificationCenter.default.post(name: Notification.Name("OpenChatTab"), object: nil)
+
+            // Extract channel CID from notification
+            if let channelId = streamPayload["channel_id"] as? String,
+               let channelType = streamPayload["channel_type"] as? String {
+                let cid = "\(channelType):\(channelId)"
+                print("  → Navigating to channel: \(cid)")
+
+                // Navigate to chat tab with specific channel
+                NotificationCenter.default.post(
+                    name: Notification.Name("OpenChatTab"),
+                    object: nil,
+                    userInfo: ["channelCid": cid]
+                )
+            } else {
+                // No channel info, just open chat tab
+                print("  → No channel info, opening chat tab")
+                NotificationCenter.default.post(name: Notification.Name("OpenChatTab"), object: nil)
+            }
         } else {
             print("  → No Stream payload found")
         }

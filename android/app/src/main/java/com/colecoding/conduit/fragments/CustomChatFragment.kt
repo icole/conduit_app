@@ -504,4 +504,29 @@ class CustomChatFragment : Fragment() {
         }
     }
 
+    /**
+     * Open a specific channel by CID (called from notification tap)
+     */
+    fun openChannel(channelCid: String) {
+        Log.d(TAG, "Opening channel from notification: $channelCid")
+
+        // Check if the chat client is connected
+        val client = ChatClient.instance()
+        if (client.getCurrentUser() == null) {
+            Log.w(TAG, "Chat client not connected yet, waiting...")
+            // If not connected, retry after a delay
+            view?.postDelayed({
+                openChannel(channelCid)
+            }, 500)
+            return
+        }
+
+        // Open the channel in TrackingMessageListActivity
+        val intent = TrackingMessageListActivity.createIntent(
+            context = requireContext(),
+            cid = channelCid
+        )
+        startActivity(intent)
+    }
+
 }

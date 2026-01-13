@@ -659,6 +659,61 @@ class StreamChatViewController: UIViewController {
 
         present(alert, animated: true)
     }
+
+    /// Navigate to a specific channel by CID
+    func navigateToChannel(cid: String) {
+        print("StreamChatViewController: Navigating to channel \(cid)")
+
+        guard let client = ChatManager.shared.chatClient else {
+            print("StreamChatViewController: No chat client available")
+            return
+        }
+
+        // Parse CID (format: "channelType:channelId")
+        let components = cid.split(separator: ":")
+        guard components.count == 2 else {
+            print("StreamChatViewController: Invalid CID format: \(cid)")
+            return
+        }
+
+        let typeString = String(components[0])
+        let channelId = String(components[1])
+
+        // Convert string to ChannelType
+        let channelType: ChannelType
+        switch typeString {
+        case "team":
+            channelType = .team
+        case "messaging":
+            channelType = .messaging
+        case "livestream":
+            channelType = .livestream
+        case "commerce":
+            channelType = .commerce
+        case "gaming":
+            channelType = .gaming
+        default:
+            // For custom types, use the custom initializer
+            channelType = ChannelType(rawValue: typeString)
+        }
+
+        // Create ChannelId
+        let channelIdObj = ChannelId(type: channelType, id: channelId)
+
+        // Create channel controller on background queue
+        DispatchQueue.global(qos: .userInitiated).async {
+            let channelController = client.channelController(for: channelIdObj)
+
+            DispatchQueue.main.async { [weak self] in
+                // Create and configure channel view controller
+                let channelVC = TrackingChannelVC()
+                channelVC.channelController = channelController
+
+                // Push to navigation controller
+                self?.navigationController?.pushViewController(channelVC, animated: true)
+            }
+        }
+    }
 }
 
 // MARK: - Supporting Types
