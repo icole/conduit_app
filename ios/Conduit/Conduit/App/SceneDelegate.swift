@@ -126,7 +126,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Setup notification observer for push notification taps
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(openChatTab),
+            selector: #selector(openChatTab(_:)),
             name: Notification.Name("OpenChatTab"),
             object: nil
         )
@@ -141,9 +141,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
     }
 
-    @objc private func openChatTab() {
+    @objc private func openChatTab(_ notification: Notification) {
         // Switch to chat tab (index 1)
         tabBarController?.selectedIndex = 1
+
+        // Extract channel CID from notification if present
+        if let channelCid = notification.userInfo?["channelCid"] as? String {
+            print("SceneDelegate: Opening chat with channel: \(channelCid)")
+            // Pass the channel CID to the tab bar controller for navigation
+            tabBarController?.openChannel(cid: channelCid)
+        } else {
+            print("SceneDelegate: Opening chat tab without specific channel")
+        }
     }
 
     // MARK: - URL Handling for Google Sign-In

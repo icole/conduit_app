@@ -13,6 +13,9 @@ class TabBarController: UITabBarController {
     // Shared website data store to maintain authentication state across tabs
     private let sharedWebsiteDataStore = WKWebsiteDataStore.default()
 
+    // Store pending channel to open when chat tab loads
+    private var pendingChannelCid: String?
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -134,6 +137,30 @@ class TabBarController: UITabBarController {
             tabBar.scrollEdgeAppearance = appearance
         }
     }
+
+    /// Navigate to a specific channel in the chat tab
+    func openChannel(cid: String) {
+        print("TabBarController: Opening channel \(cid)")
+
+        // Store the channel CID to open
+        pendingChannelCid = cid
+
+        // Find the chat tab (index 3)
+        guard let chatNavigationController = viewControllers?[3] as? UINavigationController else {
+            print("TabBarController: Could not find chat navigation controller")
+            return
+        }
+
+        // Try to find StreamChatViewController in the navigation stack
+        if let streamChatVC = chatNavigationController.viewControllers.first(where: { $0 is StreamChatViewController }) as? StreamChatViewController {
+            print("TabBarController: Found StreamChatViewController, navigating to channel")
+            streamChatVC.navigateToChannel(cid: cid)
+            pendingChannelCid = nil
+        } else {
+            print("TabBarController: StreamChatViewController not found yet, will navigate when chat tab loads")
+            // The channel will be opened when the chat tab is selected and StreamChatViewController appears
+        }
+    }
 }
 
 // MARK: - UITabBarControllerDelegate
@@ -159,6 +186,23 @@ extension TabBarController: UITabBarControllerDelegate {
                 print("  → Meals tab selected")
             case 3:
                 print("  → Chat tab selected")
+
+                // If there's a pending channel to open, try to navigate to it
+                if let channelCid = pendingChannelCid,
+                   let navController = viewController as? UINavigationController {
+                    print("  → Checking for pending channel: \(channelCid)")
+
+                    // Wait a bit for the chat view to fully load
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                        if let streamChatVC = navController.viewControllers.first(where: { $0 is StreamChatViewController }) as? StreamChatViewController {
+                            print("  → Found StreamChatViewController, navigating to channel")
+                            streamChatVC.navigateToChannel(cid: channelCid)
+                            self?.pendingChannelCid = nil
+                        } else {
+                            print("  → StreamChatViewController not found yet")
+                        }
+                    }
+                }
             default:
                 break
             }

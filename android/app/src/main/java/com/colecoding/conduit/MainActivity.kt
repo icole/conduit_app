@@ -193,6 +193,9 @@ class MainActivity : HotwireActivity() {
         // Set up bottom navigation
         setupBottomNavigation()
 
+        // Check if opened from notification with channel CID
+        handleNotificationIntent(intent)
+
         // Sync bottom navigation with restored tab
         bottomNavigation.selectedItemId = when (activeTab) {
             Tab.HOME -> R.id.navigation_home
@@ -204,6 +207,39 @@ class MainActivity : HotwireActivity() {
 
         // Request notification permission for Android 13+
         requestNotificationPermission()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: Intent?) {
+        intent?.getStringExtra("channel_cid")?.let { channelCid ->
+            Log.d(TAG, "Notification tapped with channel CID: $channelCid")
+            // Switch to chat tab
+            switchToTab(Tab.CHAT)
+            bottomNavigation.selectedItemId = R.id.navigation_chat
+
+            // Wait for chat fragment to be attached, then navigate to the channel
+            // Use post to ensure the chat fragment is fully initialized
+            chatContainer.post {
+                navigateToChannel(channelCid)
+            }
+        }
+    }
+
+    private fun navigateToChannel(channelCid: String) {
+        Log.d(TAG, "Navigating to channel: $channelCid")
+
+        // Make sure chat fragment is attached
+        ensureChatFragmentAttached()
+
+        // Give the fragment a moment to fully initialize
+        chatContainer.postDelayed({
+            chatFragment?.openChannel(channelCid)
+        }, 300)
     }
 
     private fun setupBottomNavigation() {
