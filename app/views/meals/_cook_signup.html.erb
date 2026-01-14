@@ -20,11 +20,11 @@
               </div>
               <div>
                 <div class="font-medium"><%= mc.user.name %></div>
-                <div class="text-sm text-base-content/70">
+                <div class="text-sm">
                   <% if mc.head_cook? %>
-                    <span class="text-primary font-medium">Head Cook</span>
+                    <span class="badge badge-primary badge-sm">Head Cook</span>
                   <% else %>
-                    Helper
+                    <span class="badge badge-ghost badge-sm">Helper</span>
                   <% end %>
                 </div>
               </div>
