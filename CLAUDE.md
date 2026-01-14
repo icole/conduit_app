@@ -1,47 +1,28 @@
-## ClaudeOnRails Configuration
+# STOP - Read Before Any Code Change
 
-You are working on ConduitApp, a Rails application. Review the ClaudeOnRails context file at
-@.claude-on-rails/context.md
+1. **Write a failing test FIRST** — No exceptions. Test file before implementation file.
+2. **Run the test, confirm it fails** — For the right reason, not syntax errors.
+3. **Write minimum code to pass** — Then refactor if needed.
+4. **Before committing:** `bin/rubocop && bin/rails test && bin/brakeman --no-pager`
+5. **Don't push** — Batch commits locally. Ask before pushing to main.
 
-## Test-Driven Development (REQUIRED)
+---
 
-**IMPORTANT: Always write tests BEFORE implementation code.**
+## Project Context
 
-1. **Write a failing test first** - Before ANY implementation, create a test that describes expected behavior
-2. **Run the test to confirm it fails** - Verify it fails for the right reason
-3. **Implement minimum code to pass** - Write just enough to make the test green
-4. **Refactor if needed** - Clean up while keeping tests passing
+ConduitApp is a Rails application for cohousing community management. See @.claude-on-rails/context.md for full domain context and architecture details.
 
-This applies to ALL changes: new features, bug fixes, view changes, and refactors. No exceptions.
+## Test Commands
 
 ```bash
-# Run specific test file
-bin/rails test test/system/meals_test.rb
-
-# Run specific test by line
-bin/rails test test/system/meals_test.rb:42
+bin/rails test                              # Run all tests
+bin/rails test test/system/meals_test.rb   # Run specific file
+bin/rails test test/system/meals_test.rb:42 # Run specific test
 ```
-
-## Pre-Commit Requirements
-
-Before committing any code changes, ALWAYS run these checks and fix any issues:
-
-1. **RuboCop** (linting): `bin/rubocop`
-2. **Tests**: `bin/rails test`
-3. **Brakeman** (security): `bin/brakeman --no-pager`
-
-All three must pass before creating a commit. Fix any errors or warnings before proceeding.
 
 ## Git Workflow
 
-**Important: Batch commits before pushing to save CI/CD build minutes.**
-
-Every push to `main` triggers Codemagic builds for iOS and Android, which uses build minutes. To minimize unnecessary builds:
-
-1. **Commit locally** as you complete changes
-2. **Don't push immediately** after each commit
-3. **Batch related changes** into logical chunks before pushing
-4. **Ask before pushing** or wait for explicit confirmation to push
-5. **Push once** when a complete feature or fix is ready
-
-This ensures we only trigger builds when there's meaningful work to test.
+Every push to `main` triggers Codemagic builds (iOS/Android). To save build minutes:
+- Commit locally as you work
+- Batch related changes
+- Push once when feature is complete
