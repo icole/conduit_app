@@ -2,6 +2,8 @@ class RsvpDeadlineReminderJob < ApplicationJob
   queue_as :default
 
   def perform
+    email_delay = 0
+
     Community.find_each do |community|
       ActsAsTenant.with_tenant(community) do
         # Find meals with RSVPs closing in the next 2-2.5 hours
@@ -15,7 +17,8 @@ class RsvpDeadlineReminderJob < ApplicationJob
                                .where.not(id: meal.cooks.pluck(:id))
 
           users_to_remind.find_each do |user|
-            MealNotificationService.rsvp_deadline_reminder(meal, user)
+            MealNotificationService.rsvp_deadline_reminder(meal, user, email_delay: email_delay)
+            email_delay += MealNotificationService::EMAIL_DELAY_SECONDS
           end
 
           Rails.logger.info("RsvpDeadlineReminderJob: Sent #{users_to_remind.count} deadline reminders for meal #{meal.id} in #{community.name}")
