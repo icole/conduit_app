@@ -31,6 +31,7 @@ class Meal < ApplicationRecord
   scope :for_month, ->(date) { where(scheduled_at: date.beginning_of_month..date.end_of_month).order(:scheduled_at) }
   scope :rsvp_open, -> { where(rsvps_closed: false).where("rsvp_deadline > ?", Time.current) }
   scope :recent, -> { order(created_at: :desc) }
+  scope :with_card_associations, -> { includes(:meal_cooks, :cooks, :meal_rsvps, :rich_text_menu) }
 
   # Status helpers
   def upcoming?
@@ -77,82 +78,82 @@ class Meal < ApplicationRecord
 
   # Cook helpers
   def head_cook
-    meal_cooks.find_by(role: "head_cook")&.user
+    meal_cooks.find { |c| c.head_cook? }&.user
   end
 
   def helpers
-    meal_cooks.where(role: "helper").includes(:user).map(&:user)
+    meal_cooks.select { |c| c.helper? }.map(&:user)
   end
 
   def needs_head_cook?
-    meal_cooks.where(role: "head_cook").empty?
+    meal_cooks.none? { |c| c.head_cook? }
   end
 
   def cook_slots_available?
     return true unless meal_schedule
-    meal_cooks.count < meal_schedule.max_cooks
+    meal_cooks.size < meal_schedule.max_cooks
   end
 
   def user_is_cook?(user)
     return false unless user
-    meal_cooks.exists?(user: user)
+    meal_cooks.any? { |c| c.user_id == user.id }
   end
 
   def cook_for(user)
-    meal_cooks.find_by(user: user)
+    meal_cooks.find { |c| c.user_id == user.id }
   end
 
   # RSVP helpers
   def rsvp_for(user)
     return nil unless user
-    meal_rsvps.find_by(user: user)
+    meal_rsvps.find { |r| r.user_id == user.id }
   end
 
   def user_rsvped?(user)
     return false unless user
-    meal_rsvps.exists?(user: user)
+    meal_rsvps.any? { |r| r.user_id == user.id }
   end
 
   def user_attending?(user)
     return false unless user
-    meal_rsvps.attending.exists?(user: user)
+    meal_rsvps.any? { |r| r.user_id == user.id && r.attending? }
   end
 
   def user_maybe?(user)
     return false unless user
-    meal_rsvps.maybe.exists?(user: user)
+    meal_rsvps.any? { |r| r.user_id == user.id && r.maybe? }
   end
 
   def user_declined?(user)
     return false unless user
-    meal_rsvps.declined.exists?(user: user)
+    meal_rsvps.any? { |r| r.user_id == user.id && r.declined? }
   end
 
   def total_attendees
-    cooks_with_guests = meal_cooks.sum { |c| c.total_count }
-    rsvps_attending = meal_rsvps.attending.sum { |r| 1 + r.guests_count }
+    cooks_with_guests = meal_cooks.sum(&:total_count)
+    rsvps_attending = meal_rsvps.select(&:attending?).sum { |r| 1 + r.guests_count }
     cooks_with_guests + rsvps_attending
   end
 
   def total_plates
     # Total plates needed: cooks (with guests) + attending (with guests) + late plates
-    cooks_with_guests = meal_cooks.sum { |c| c.total_count }
-    attending_plates = meal_rsvps.attending.sum { |r| 1 + r.guests_count }
-    late_plates = meal_rsvps.late_plate.sum { |r| 1 + r.guests_count }
+    cooks_with_guests = meal_cooks.sum(&:total_count)
+    attending_plates = meal_rsvps.select(&:attending?).sum { |r| 1 + r.guests_count }
+    late_plates = meal_rsvps.select(&:late_plate?).sum { |r| 1 + r.guests_count }
     cooks_with_guests + attending_plates + late_plates
   end
 
   def late_plate_count
-    meal_rsvps.late_plate.sum { |r| 1 + r.guests_count }
+    meal_rsvps.select(&:late_plate?).sum { |r| 1 + r.guests_count }
   end
 
   def attending_count
-    meal_rsvps.attending.count
+    meal_rsvps.count(&:attending?)
   end
 
   def guests_count
-    cook_guests = meal_cooks.sum(:guests_count)
-    rsvp_guests = meal_rsvps.attending.sum(:guests_count)
+    cook_guests = meal_cooks.sum(&:guests_count)
+    rsvp_guests = meal_rsvps.select(&:attending?).sum(&:guests_count)
     cook_guests + rsvp_guests
   end
 

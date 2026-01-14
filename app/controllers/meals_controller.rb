@@ -16,13 +16,13 @@ class MealsController < ApplicationController
 
     case @current_view
     when "upcoming"
-      @meals = Meal.upcoming.includes(:meal_cooks, :cooks, :meal_rsvps)
+      @meals = Meal.upcoming.with_card_associations
     when "past"
-      @meals = Meal.past.includes(:meal_cooks, :cooks).limit(20)
+      @meals = Meal.past.with_card_associations.limit(20)
     when "needs_cooks"
-      @meals = Meal.needs_cooks.includes(:meal_schedule)
+      @meals = Meal.needs_cooks.with_card_associations
     else
-      @meals = Meal.upcoming.includes(:meal_cooks, :cooks, :meal_rsvps)
+      @meals = Meal.upcoming.with_card_associations
     end
   end
 
