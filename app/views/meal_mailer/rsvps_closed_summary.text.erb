@@ -18,14 +18,14 @@ COOKING TEAM (<%= @cooks.sum { |c| c.total_count } %>)
 <% if @attendees.any? %>
 ATTENDING (<%= @attendees.sum { |r| 1 + r.guests_count } %>)
 <% @attendees.each do |rsvp| %>
-- <%= rsvp.user.name %><% if rsvp.guests_count > 0 %> +<%= rsvp.guests_count %> guest<%= rsvp.guests_count > 1 ? 's' : '' %><% end %>
+- <%= rsvp.user.name %><% if rsvp.guests_count > 0 %> +<%= rsvp.guests_count %> guest<%= rsvp.guests_count > 1 ? 's' : '' %><% end %><% if rsvp.notes.present? %> [<%= rsvp.notes %>]<% end %>
 <% end %>
 <% end %>
 
 <% if @late_plates.any? %>
 LATE PLATES (<%= @late_plates.sum { |r| 1 + r.guests_count } %>)
 <% @late_plates.each do |rsvp| %>
-- <%= rsvp.user.name %><% if rsvp.guests_count > 0 %> +<%= rsvp.guests_count %> guest<%= rsvp.guests_count > 1 ? 's' : '' %><% end %>
+- <%= rsvp.user.name %><% if rsvp.guests_count > 0 %> +<%= rsvp.guests_count %> guest<%= rsvp.guests_count > 1 ? 's' : '' %><% end %><% if rsvp.notes.present? %> [<%= rsvp.notes %>]<% end %>
 <% end %>
 <% end %>
 
