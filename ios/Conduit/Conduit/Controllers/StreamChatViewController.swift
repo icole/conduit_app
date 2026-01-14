@@ -520,7 +520,7 @@ class StreamChatViewController: UIViewController {
             for (index, device) in devices.enumerated() {
                 print("  Device \(index + 1):")
                 print("    → ID: \(device.id)")
-                print("    → Created: \(device.createdAt)")
+                print("    → Created: \(device.createdAt.map { "\($0)" } ?? "unknown")")
                 // Note: Push provider details are not exposed in the Device model
             }
 
@@ -693,8 +693,8 @@ class StreamChatViewController: UIViewController {
         case "gaming":
             channelType = .gaming
         default:
-            // For custom types, use the custom initializer
-            channelType = ChannelType(rawValue: typeString)
+            // For custom types, use the custom case
+            channelType = .custom(typeString)
         }
 
         // Create ChannelId
@@ -762,11 +762,7 @@ enum StreamChatError: LocalizedError {
 class ConduitChannelListRouter: ChatChannelListRouter {
     override func showChannel(for cid: ChannelId) {
         // Get the chat client from the root view controller's channel list
-        guard let channelListVC = rootViewController as? ChatChannelListVC else {
-            return
-        }
-
-        guard let client = channelListVC.controller?.client else {
+        guard let client = rootViewController.controller?.client else {
             return
         }
 
