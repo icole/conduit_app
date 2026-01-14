@@ -233,6 +233,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_13_022008) do
     t.index ["user_id"], name: "index_discussion_topics_on_user_id"
   end
 
+  create_table "document_folders", force: :cascade do |t|
+    t.bigint "community_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.string "name", null: false
+    t.bigint "parent_id"
+    t.datetime "updated_at", null: false
+    t.index ["community_id"], name: "index_document_folders_on_community_id"
+    t.index ["created_by_id"], name: "index_document_folders_on_created_by_id"
+    t.index ["parent_id"], name: "index_document_folders_on_parent_id"
+  end
+
   create_table "documents", force: :cascade do |t|
     t.bigint "community_id", null: false
     t.text "content"
@@ -241,6 +253,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_13_022008) do
     t.bigint "deleted_by_id"
     t.text "description"
     t.datetime "discarded_at"
+    t.bigint "document_folder_id"
     t.string "document_type"
     t.string "google_drive_url"
     t.integer "storage_type", default: 0, null: false
@@ -250,6 +263,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_13_022008) do
     t.index ["created_by_id"], name: "index_documents_on_created_by_id"
     t.index ["deleted_by_id"], name: "index_documents_on_deleted_by_id"
     t.index ["discarded_at"], name: "index_documents_on_discarded_at"
+    t.index ["document_folder_id"], name: "index_documents_on_document_folder_id"
   end
 
   create_table "drive_shares", force: :cascade do |t|
@@ -536,7 +550,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_13_022008) do
   add_foreign_key "discussion_topics", "users"
   add_foreign_key "discussion_topics", "users", column: "created_by_id"
   add_foreign_key "discussion_topics", "users", column: "deleted_by_id"
+  add_foreign_key "document_folders", "communities"
+  add_foreign_key "document_folders", "document_folders", column: "parent_id"
+  add_foreign_key "document_folders", "users", column: "created_by_id"
   add_foreign_key "documents", "communities"
+  add_foreign_key "documents", "document_folders"
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "documents", "users", column: "deleted_by_id"
   add_foreign_key "drive_shares", "users"

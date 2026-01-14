@@ -117,6 +117,7 @@ Rails.application.routes.draw do
     end
     resources :likes, only: [ :create, :destroy ]
   end
+  resources :document_folders, only: [ :create, :update, :destroy ]
   resources :documents do
     member do
       patch :update_content
