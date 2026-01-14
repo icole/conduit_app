@@ -302,6 +302,43 @@ class MealsTest < ApplicationSystemTestCase
     assert_no_selector "#cook_guests_count"
   end
 
+  test "dietary notes shown for attending RSVPs on meal details page" do
+    meal = Meal.create!(
+      title: "Test Meal with Dietary Notes",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    meal.meal_cooks.create!(user: @other_user, role: "head_cook")
+    meal.meal_rsvps.create!(user: users(:three), status: "attending", guests_count: 0, notes: "Vegetarian, no nuts")
+
+    sign_in_as_user(:one)
+    visit meal_path(meal)
+
+    within ".card", text: "Who's Coming" do
+      assert_text "Vegetarian, no nuts"
+    end
+  end
+
+  test "dietary notes shown for late plate RSVPs on meal details page" do
+    meal = Meal.create!(
+      title: "Test Meal with Late Plate Notes",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    meal.meal_cooks.create!(user: @other_user, role: "head_cook")
+    meal.meal_rsvps.create!(user: users(:three), status: "late_plate", guests_count: 1, notes: "Gluten-free please")
+
+    sign_in_as_user(:one)
+    visit meal_path(meal)
+
+    within ".card", text: "Who's Coming" do
+      assert_text "Gluten-free please"
+      assert_text "+1 guest"  # Both notes and guests should show
+    end
+  end
+
   private
 
   def sign_in_as_user(user_fixture)
