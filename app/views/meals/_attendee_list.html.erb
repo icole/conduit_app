@@ -59,6 +59,9 @@
                 <% if rsvp.guests_count > 0 %>
                   <div class="text-xs text-base-content/50"><%= rsvp.guests_display %></div>
                 <% end %>
+                <% if rsvp.notes.present? %>
+                  <div class="text-xs text-warning/80 truncate"><%= rsvp.notes %></div>
+                <% end %>
               </div>
             </div>
           <% end %>
@@ -107,8 +110,9 @@
                 <div class="text-sm truncate"><%= rsvp.user.name %></div>
                 <% if rsvp.guests_count > 0 %>
                   <div class="text-xs text-base-content/50"><%= rsvp.guests_display %></div>
-                <% elsif rsvp.notes.present? %>
-                  <div class="text-xs text-base-content/50 truncate"><%= rsvp.notes %></div>
+                <% end %>
+                <% if rsvp.notes.present? %>
+                  <div class="text-xs text-warning/80 truncate"><%= rsvp.notes %></div>
                 <% end %>
               </div>
             </div>
