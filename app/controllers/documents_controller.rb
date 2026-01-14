@@ -5,6 +5,12 @@ class DocumentsController < ApplicationController
 
   # GET /documents or /documents.json
   def index
+    # Current folder (nil means root)
+    @current_folder = params[:folder_id].present? ? DocumentFolder.find(params[:folder_id]) : nil
+
+    # Subfolders in current folder
+    @folders = DocumentFolder.where(parent_id: @current_folder&.id).order(:name)
+
     # Sortable columns
     sort_column = params[:sort] || "updated_at"
     sort_direction = params[:direction] || "desc"
@@ -16,7 +22,8 @@ class DocumentsController < ApplicationController
     # Validate sort direction
     sort_direction = "desc" unless %w[asc desc].include?(sort_direction)
 
-    @documents = Document.all.order("#{sort_column} #{sort_direction}")
+    # Documents in current folder
+    @documents = Document.where(document_folder_id: @current_folder&.id).order("#{sort_column} #{sort_direction}")
   end
 
   # Refresh documents from Google Drive
@@ -89,6 +96,7 @@ class DocumentsController < ApplicationController
   # GET /documents/new
   def new
     @document = Document.new
+    @document.document_folder_id = params[:folder_id] if params[:folder_id].present?
   end
 
   # GET /documents/1/edit
@@ -101,7 +109,12 @@ class DocumentsController < ApplicationController
 
     respond_to do |format|
       if @document.save
-        format.html { redirect_to @document, notice: "Document was successfully created." }
+        # Native documents go to edit, Google Drive docs go to show
+        if @document.native?
+          format.html { redirect_to edit_document_path(@document), notice: "Document was successfully created." }
+        else
+          format.html { redirect_to @document, notice: "Document was successfully created." }
+        end
         format.json { render :show, status: :created, location: @document }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -151,6 +164,6 @@ class DocumentsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def document_params
-      params.require(:document).permit(:title, :description, :google_drive_url, :document_type, :content, :storage_type)
+      params.require(:document).permit(:title, :description, :google_drive_url, :document_type, :content, :storage_type, :document_folder_id)
     end
 end

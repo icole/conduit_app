@@ -11,6 +11,12 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "should get index with folder_id" do
+    folder = DocumentFolder.create!(name: "Test Folder", community: communities(:crow_woods))
+    get documents_url(folder_id: folder.id)
+    assert_response :success
+  end
+
   test "should get new" do
     get new_document_url
     assert_response :success
@@ -18,10 +24,29 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
 
   test "should create document" do
     assert_difference("Document.count") do
-      post documents_url, params: { document: { description: @document.description, document_type: @document.document_type, google_drive_url: @document.google_drive_url, title: @document.title } }
+      post documents_url, params: { document: { description: @document.description, document_type: @document.document_type, google_drive_url: @document.google_drive_url, title: @document.title, storage_type: @document.storage_type } }
     end
 
     assert_redirected_to document_url(Document.last)
+  end
+
+  test "should create native document and redirect to edit" do
+    assert_difference("Document.count") do
+      post documents_url, params: { document: { title: "New Native Doc", description: "Test", storage_type: "native" } }
+    end
+
+    assert_redirected_to edit_document_url(Document.last)
+  end
+
+  test "should create document in folder" do
+    folder = DocumentFolder.create!(name: "Test Folder", community: communities(:crow_woods))
+
+    assert_difference("Document.count") do
+      post documents_url, params: { document: { title: "Folder Doc", description: "In folder", document_folder_id: folder.id } }
+    end
+
+    document = Document.last
+    assert_equal folder, document.document_folder
   end
 
   test "should show document" do

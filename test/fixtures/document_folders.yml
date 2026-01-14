@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+# Note: Self-referential parent_id fixtures are created in tests to avoid FK ordering issues
+
+root_folder:
+  name: Meeting Notes
+  community_id: <%= ActiveRecord::FixtureSet.identify(:crow_woods) %>
+  created_by_id: <%= ActiveRecord::FixtureSet.identify(:one) %>
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
