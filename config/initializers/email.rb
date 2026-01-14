@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 # Email configuration using Resend
+# Only send real emails in production to avoid accidental sends during development
 if Rails.env.production?
   resend_api_key = ENV["RESEND_API_KEY"]
 
@@ -14,19 +15,12 @@ if Rails.env.production?
     config.action_mailer.delivery_method = :resend
     config.action_mailer.raise_delivery_errors = true
   end
-elsif Rails.env.development?
-  # Check if Resend API key is available for dev testing
-  if ENV["RESEND_API_KEY"].present?
-    Resend.api_key = ENV["RESEND_API_KEY"]
-    Rails.application.configure do
-      config.action_mailer.delivery_method = :resend
-      config.action_mailer.raise_delivery_errors = true
-    end
-  else
-    Rails.application.configure do
-      # Use test delivery method in development without API key
-      config.action_mailer.delivery_method = :test
-      config.action_mailer.raise_delivery_errors = true
-    end
+else
+  # Development and test environments: don't send real emails
+  Rails.application.configure do
+    config.action_mailer.delivery_method = :test
+    config.action_mailer.raise_delivery_errors = true
   end
+
+  Rails.logger.info "[EMAIL CONFIG] Using test delivery method (emails will not be sent)"
 end

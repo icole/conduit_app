@@ -28,6 +28,14 @@ class BatchEmailService
   def deliver_all
     return [] if @emails.empty?
 
+    # Only send real emails in production
+    unless Rails.env.production?
+      count = @emails.size
+      @emails = []
+      Rails.logger.info("BatchEmailService: Skipped sending #{count} emails (not in production)")
+      return [ { skipped: true, count: count } ]
+    end
+
     responses = []
     @emails.each_slice(MAX_BATCH_SIZE) do |batch|
       response = send_batch(batch)
