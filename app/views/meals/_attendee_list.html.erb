@@ -23,8 +23,11 @@
                   <span class="text-xs"><%= mc.user.name.first(2).upcase %></span>
                 </div>
               </div>
-              <div class="flex-1">
+              <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium truncate"><%= mc.user.name %></div>
+                <% if mc.guests_count > 0 %>
+                  <div class="text-xs text-base-content/50"><%= mc.guests_display %></div>
+                <% end %>
               </div>
               <% if mc.head_cook? %>
                 <svg class="w-4 h-4 text-warning" fill="currentColor" viewBox="0 0 20 20">
@@ -102,7 +105,9 @@
               </div>
               <div class="flex-1 min-w-0">
                 <div class="text-sm truncate"><%= rsvp.user.name %></div>
-                <% if rsvp.notes.present? %>
+                <% if rsvp.guests_count > 0 %>
+                  <div class="text-xs text-base-content/50"><%= rsvp.guests_display %></div>
+                <% elsif rsvp.notes.present? %>
                   <div class="text-xs text-base-content/50 truncate"><%= rsvp.notes %></div>
                 <% end %>
               </div>
