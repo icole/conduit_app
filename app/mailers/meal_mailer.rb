@@ -41,9 +41,12 @@ class MealMailer < ApplicationMailer
   def rsvps_closed_summary(meal, cook)
     @meal = meal
     @cook = cook
+    @cooks = meal.meal_cooks.includes(:user)
     @attendees = meal.meal_rsvps.attending.includes(:user)
-    @total = meal.total_attendees
+    @late_plates = meal.meal_rsvps.late_plate.includes(:user)
+    @total_attending = meal.total_attendees
+    @total_plates = meal.total_plates
 
-    mail(to: @cook.email, subject: "Final headcount for #{@meal.title}: #{@total} attending")
+    mail(to: @cook.email, subject: "Final headcount for #{@meal.title}: #{@total_attending} attending")
   end
 end

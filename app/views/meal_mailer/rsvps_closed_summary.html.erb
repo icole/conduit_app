@@ -11,9 +11,16 @@
     .footer { padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
     .details { background: white; padding: 16px; border-radius: 6px; margin: 16px 0; }
     .count { font-size: 48px; font-weight: bold; color: #059669; }
-    .attendee-list { margin: 16px 0; }
+    .count-secondary { font-size: 14px; color: #6b7280; margin-top: 4px; }
+    .section-title { font-weight: bold; margin-bottom: 8px; color: #374151; }
+    .attendee-list { margin: 8px 0; }
     .attendee { padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
     .attendee:last-child { border-bottom: none; }
+    .role-badge { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
+    .role-cook { background: #dbeafe; color: #1e40af; }
+    .role-helper { background: #e5e7eb; color: #374151; }
+    .guests { color: #6b7280; font-size: 14px; }
+    .late-plate-section { background: #fef3c7; border: 1px solid #fcd34d; }
   </style>
 </head>
 <body>
@@ -26,8 +33,11 @@
       <p>RSVPs are now closed for your meal. Here's the final count:</p>
 
       <div class="details" style="text-align: center;">
-        <div class="count"><%= @total %></div>
+        <div class="count"><%= @total_attending %></div>
         <div>people attending</div>
+        <% if @late_plates.any? %>
+          <div class="count-secondary">+ <%= @meal.late_plate_count %> late plate<%= @meal.late_plate_count > 1 ? 's' : '' %> = <%= @total_plates %> plates total</div>
+        <% end %>
       </div>
 
       <div class="details">
@@ -35,15 +45,53 @@
         <span><%= @meal.full_display %></span>
       </div>
 
+      <%# Cooking Team %>
+      <% if @cooks.any? %>
+        <div class="details">
+          <div class="section-title">Cooking Team (<%= @cooks.sum { |c| c.total_count } %>)</div>
+          <div class="attendee-list">
+            <% @cooks.each do |cook| %>
+              <div class="attendee">
+                <%= cook.user.name %>
+                <span class="role-badge <%= cook.head_cook? ? 'role-cook' : 'role-helper' %>">
+                  <%= cook.head_cook? ? 'Head Cook' : 'Helper' %>
+                </span>
+                <% if cook.guests_count > 0 %>
+                  <span class="guests">(+<%= cook.guests_count %> guest<%= cook.guests_count > 1 ? 's' : '' %>)</span>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Attending RSVPs %>
       <% if @attendees.any? %>
         <div class="details">
-          <strong>Who's Coming:</strong>
+          <div class="section-title">Attending (<%= @attendees.sum { |r| 1 + r.guests_count } %>)</div>
           <div class="attendee-list">
             <% @attendees.each do |rsvp| %>
               <div class="attendee">
                 <%= rsvp.user.name %>
                 <% if rsvp.guests_count > 0 %>
-                  <span style="color: #6b7280;">(+<%= rsvp.guests_count %> guest<%= rsvp.guests_count > 1 ? 's' : '' %>)</span>
+                  <span class="guests">(+<%= rsvp.guests_count %> guest<%= rsvp.guests_count > 1 ? 's' : '' %>)</span>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Late Plates %>
+      <% if @late_plates.any? %>
+        <div class="details late-plate-section">
+          <div class="section-title">Late Plates (<%= @late_plates.sum { |r| 1 + r.guests_count } %>)</div>
+          <div class="attendee-list">
+            <% @late_plates.each do |rsvp| %>
+              <div class="attendee">
+                <%= rsvp.user.name %>
+                <% if rsvp.guests_count > 0 %>
+                  <span class="guests">(+<%= rsvp.guests_count %> guest<%= rsvp.guests_count > 1 ? 's' : '' %>)</span>
                 <% end %>
               </div>
             <% end %>

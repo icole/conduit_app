@@ -2,15 +2,30 @@ Hi <%= @cook.name.split.first %>,
 
 RSVPs are now closed for your meal. Here's the final count:
 
-<%= @total %> people attending
+<%= @total_attending %> people attending<% if @late_plates.any? %>
++ <%= @meal.late_plate_count %> late plate<%= @meal.late_plate_count > 1 ? 's' : '' %> = <%= @total_plates %> plates total<% end %>
 
 <%= @meal.title %>
 <%= @meal.full_display %>
 
+<% if @cooks.any? %>
+COOKING TEAM (<%= @cooks.sum { |c| c.total_count } %>)
+<% @cooks.each do |cook| %>
+- <%= cook.user.name %> (<%= cook.head_cook? ? 'Head Cook' : 'Helper' %>)<% if cook.guests_count > 0 %> +<%= cook.guests_count %> guest<%= cook.guests_count > 1 ? 's' : '' %><% end %>
+<% end %>
+<% end %>
+
 <% if @attendees.any? %>
-Who's Coming:
+ATTENDING (<%= @attendees.sum { |r| 1 + r.guests_count } %>)
 <% @attendees.each do |rsvp| %>
-- <%= rsvp.user.name %><% if rsvp.guests_count > 0 %> (+<%= rsvp.guests_count %> guest<%= rsvp.guests_count > 1 ? 's' : '' %>)<% end %>
+- <%= rsvp.user.name %><% if rsvp.guests_count > 0 %> +<%= rsvp.guests_count %> guest<%= rsvp.guests_count > 1 ? 's' : '' %><% end %>
+<% end %>
+<% end %>
+
+<% if @late_plates.any? %>
+LATE PLATES (<%= @late_plates.sum { |r| 1 + r.guests_count } %>)
+<% @late_plates.each do |rsvp| %>
+- <%= rsvp.user.name %><% if rsvp.guests_count > 0 %> +<%= rsvp.guests_count %> guest<%= rsvp.guests_count > 1 ? 's' : '' %><% end %>
 <% end %>
 <% end %>
 
