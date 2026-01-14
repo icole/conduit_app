@@ -1,10 +1,10 @@
 class MealNotificationService
   class << self
     # Resend API rate limit: 2 requests/second on free tier
-    # We use 1 request/second to be safe and allow headroom
+    # We use 1 request/second to be safe and allow headroom (used as fallback)
     EMAIL_DELAY_SECONDS = 1
 
-    def meal_reminder(meal, user, email_delay: 0)
+    def meal_reminder(meal, user, email_delay: 0, batch_service: nil)
       title = "Meal Tomorrow: #{meal.title}"
       body = "#{meal.title} is tomorrow at #{meal.time_display}. RSVP if you're coming!"
       url = meal_url(meal)
@@ -17,11 +17,12 @@ class MealNotificationService
         notification_type: InAppNotification::TYPES[:meal_reminder],
         notifiable: meal,
         mailer: -> { MealMailer.meal_reminder(meal, user) },
-        email_delay: email_delay
+        email_delay: email_delay,
+        batch_service: batch_service
       )
     end
 
-    def rsvp_deadline_reminder(meal, user, email_delay: 0)
+    def rsvp_deadline_reminder(meal, user, email_delay: 0, batch_service: nil)
       title = "RSVPs Closing Soon!"
       body = "RSVPs for #{meal.title} close in about 2 hours. Don't forget to respond!"
       url = meal_url(meal)
@@ -34,7 +35,8 @@ class MealNotificationService
         notification_type: InAppNotification::TYPES[:rsvp_deadline],
         notifiable: meal,
         mailer: -> { MealMailer.rsvp_deadline_warning(meal, user) },
-        email_delay: email_delay
+        email_delay: email_delay,
+        batch_service: batch_service
       )
     end
 
@@ -61,12 +63,13 @@ class MealNotificationService
       notify_other_cooks(meal, user, role_name)
     end
 
-    def rsvps_closed(meal, email_delay_start: 0)
+    def rsvps_closed(meal)
       title = "RSVPs Closed: #{meal.title}"
       body = "RSVPs are now closed. #{meal.total_attendees} people attending."
       url = meal_url(meal)
 
-      meal.cooks.each_with_index do |cook, index|
+      # Low volume (1-2 cooks per meal), no batching needed
+      meal.cooks.each do |cook|
         send_all_channels(
           user: cook,
           title: title,
@@ -74,18 +77,14 @@ class MealNotificationService
           url: url,
           notification_type: InAppNotification::TYPES[:rsvps_closed],
           notifiable: meal,
-          mailer: -> { MealMailer.rsvps_closed_summary(meal, cook) },
-          email_delay: email_delay_start + (index * EMAIL_DELAY_SECONDS)
+          mailer: -> { MealMailer.rsvps_closed_summary(meal, cook) }
         )
       end
-
-      # Return the next delay offset for the caller to use
-      email_delay_start + (meal.cooks.count * EMAIL_DELAY_SECONDS)
     end
 
     private
 
-    def send_all_channels(user:, title:, body:, url:, notification_type:, notifiable:, mailer: nil, skip_email: false, email_delay: 0)
+    def send_all_channels(user:, title:, body:, url:, notification_type:, notifiable:, mailer: nil, skip_email: false, email_delay: 0, batch_service: nil)
       # 1. Create in-app notification
       user.in_app_notifications.create!(
         title: title,
@@ -105,10 +104,14 @@ class MealNotificationService
       )
 
       # 3. Send email notification (use custom mailer if provided, otherwise generic)
-      # Delay email delivery to respect Resend API rate limits (2 req/sec)
       unless skip_email
         email = mailer&.call || MealMailer.notification_email(user, title, body, url)
-        if email_delay > 0
+
+        if batch_service
+          # Add to batch for bulk sending (avoids rate limits)
+          batch_service.add(email)
+        elsif email_delay > 0
+          # Fallback: stagger individual emails to respect rate limits
           email.deliver_later(wait: email_delay.seconds)
         else
           email.deliver_later

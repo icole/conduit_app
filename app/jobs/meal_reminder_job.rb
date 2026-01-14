@@ -2,7 +2,7 @@ class MealReminderJob < ApplicationJob
   queue_as :default
 
   def perform
-    email_delay = 0
+    batch_service = BatchEmailService.new
 
     Community.find_each do |community|
       ActsAsTenant.with_tenant(community) do
@@ -17,13 +17,17 @@ class MealReminderJob < ApplicationJob
                                .where.not(id: meal.cooks.pluck(:id))
 
           users_to_remind.find_each do |user|
-            MealNotificationService.meal_reminder(meal, user, email_delay: email_delay)
-            email_delay += MealNotificationService::EMAIL_DELAY_SECONDS
+            MealNotificationService.meal_reminder(meal, user, batch_service: batch_service)
           end
 
-          Rails.logger.info("MealReminderJob: Sent #{users_to_remind.count} reminders for meal #{meal.id} in #{community.name}")
+          Rails.logger.info("MealReminderJob: Queued #{users_to_remind.count} reminders for meal #{meal.id} in #{community.name}")
         end
       end
     end
+
+    # Send all emails in batches of 100
+    total_emails = batch_service.size
+    responses = batch_service.deliver_all
+    Rails.logger.info("MealReminderJob: Sent #{total_emails} emails in #{responses.size} batch(es)")
   end
 end
