@@ -83,8 +83,9 @@ class PushNotificationService : FirebaseMessagingService() {
         val sender = message.data["sender"]
         val messageType = message.data["type"]
 
-        if (sender == "stream.chat" || messageType == "message.new") {
-            Log.d(TAG, "Stream Chat notification received")
+        // Handle all Stream Chat notification types (message.new, reaction.new, etc.)
+        if (sender == "stream.chat" || messageType?.startsWith("message.") == true || messageType?.startsWith("reaction.") == true) {
+            Log.d(TAG, "Stream Chat notification received (type: $messageType)")
             showStreamNotification(message.data)
             return
         }
@@ -97,11 +98,15 @@ class PushNotificationService : FirebaseMessagingService() {
     private fun showStreamNotification(data: Map<String, String>) {
         val title = data["title"] ?: "New Message"
         val body = data["body"] ?: ""
-        val channelId = data["channel_id"] ?: ""
-        val channelType = data["channel_type"] ?: "messaging"
-        val cid = "$channelType:$channelId"
 
-        Log.d(TAG, "Stream notification - channel: $cid, title: $title, body: $body")
+        // Use cid directly if available, otherwise construct from channel_type:channel_id
+        val cid = data["cid"] ?: run {
+            val channelId = data["channel_id"] ?: ""
+            val channelType = data["channel_type"] ?: "messaging"
+            "$channelType:$channelId"
+        }
+
+        Log.d(TAG, "Stream notification - channel: $cid, title: $title, body: $body, data: $data")
 
         // Check if user is currently viewing this channel
         if (com.colecoding.conduit.chat.ChatViewTracker.isCurrentlyViewingChannel(cid)) {
@@ -117,7 +122,7 @@ class PushNotificationService : FirebaseMessagingService() {
         // Create intent to open app when notification is tapped
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("channel_cid", "$channelType:$channelId")
+            putExtra("channel_cid", cid)
         }
 
         val pendingIntent = PendingIntent.getActivity(

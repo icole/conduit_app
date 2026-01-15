@@ -230,18 +230,28 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         print("  → UserInfo: \(userInfo)")
 
         // Check if this is a Stream Chat notification
-        if let streamPayload = userInfo["stream"] as? [String: Any],
-           let channelId = streamPayload["channel_id"] as? String,
-           let channelType = streamPayload["channel_type"] as? String {
-            let cid = "\(channelType):\(channelId)"
-            print("  → Stream channel: \(cid)")
+        // Prefer cid field, fall back to constructing from channel_type:channel_id
+        if let streamPayload = userInfo["stream"] as? [String: Any] {
+            let cid: String?
+            if let directCid = streamPayload["cid"] as? String {
+                cid = directCid
+            } else if let channelId = streamPayload["channel_id"] as? String,
+                      let channelType = streamPayload["channel_type"] as? String {
+                cid = "\(channelType):\(channelId)"
+            } else {
+                cid = nil
+            }
 
-            // Check if user is currently viewing this channel
-            // If they are, suppress the notification
-            if ChatManager.shared.isCurrentlyViewingChannel(cid: cid) {
-                print("  ✅ User is viewing this channel - suppressing notification")
-                completionHandler([]) // Don't show notification
-                return
+            if let cid = cid {
+                print("  → Stream channel: \(cid)")
+
+                // Check if user is currently viewing this channel
+                // If they are, suppress the notification
+                if ChatManager.shared.isCurrentlyViewingChannel(cid: cid) {
+                    print("  ✅ User is viewing this channel - suppressing notification")
+                    completionHandler([]) // Don't show notification
+                    return
+                }
             }
         }
 
@@ -260,10 +270,18 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         if let streamPayload = userInfo["stream"] as? [String: Any] {
             print("  → Stream payload found: \(streamPayload)")
 
-            // Extract channel CID from notification
-            if let channelId = streamPayload["channel_id"] as? String,
-               let channelType = streamPayload["channel_type"] as? String {
-                let cid = "\(channelType):\(channelId)"
+            // Extract channel CID from notification - prefer cid field, fall back to constructing it
+            let cid: String?
+            if let directCid = streamPayload["cid"] as? String {
+                cid = directCid
+            } else if let channelId = streamPayload["channel_id"] as? String,
+                      let channelType = streamPayload["channel_type"] as? String {
+                cid = "\(channelType):\(channelId)"
+            } else {
+                cid = nil
+            }
+
+            if let cid = cid {
                 print("  → Navigating to channel: \(cid)")
 
                 // Navigate to chat tab with specific channel
