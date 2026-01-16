@@ -142,8 +142,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     @objc private func openChatTab(_ notification: Notification) {
-        // Switch to chat tab (index 1)
-        tabBarController?.selectedIndex = 1
+        // Switch to chat tab (index 3)
+        tabBarController?.selectedIndex = 3
 
         // Extract channel CID from notification if present
         if let channelCid = notification.userInfo?["channelCid"] as? String {
