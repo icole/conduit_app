@@ -455,7 +455,7 @@ GEM
       declarative (< 0.1.0)
       trailblazer-option (>= 0.1.1, < 0.2.0)
       uber (< 0.2.0)
-    resend (0.27.0)
+    resend (1.0.0)
       httparty (>= 0.21.0)
     retriable (3.1.2)
     rexml (3.4.4)
@@ -646,7 +646,7 @@ DEPENDENCIES
   puma (>= 5.0)
   rails (~> 8.1.2)
   rails-controller-testing
-  resend (~> 0.17)
+  resend (~> 1.0)
   rubocop-rails-omakase
   selenium-webdriver
   sentry-rails
