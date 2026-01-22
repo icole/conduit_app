@@ -33,14 +33,14 @@
   <%= Sentry.get_trace_propagation_meta.html_safe %>
   </head>
 
-<body>
-<main class="w-full bg-base-100 min-h-screen flex flex-col">
+<body class="<%= content_for?(:full_bleed) ? 'h-screen overflow-hidden' : '' %>">
+<main class="w-full bg-base-100 flex flex-col <%= content_for?(:full_bleed) ? 'h-full' : 'min-h-screen' %>">
   <% unless hotwire_native_app? %>
     <%= render "layouts/navbar" %>
   <% end %>
   <div id="flash"><%= render "layouts/flash_messages" %></div>
   <% if content_for?(:full_bleed) %>
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="flex-1 flex flex-col min-h-0">
       <%= yield %>
     </div>
   <% else %>

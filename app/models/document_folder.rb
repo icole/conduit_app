@@ -11,6 +11,14 @@ class DocumentFolder < ApplicationRecord
   validates :name, presence: true
   validates :name, uniqueness: { scope: [ :parent_id, :community_id ] }
 
+  scope :synced_from_drive, -> { where.not(google_drive_id: nil) }
+  scope :by_google_drive_id, ->(drive_id) { find_by(google_drive_id: drive_id) }
+
+  # Returns true if this folder was synced from Google Drive
+  def synced_from_drive?
+    google_drive_id.present?
+  end
+
   # Returns true if this is a root-level folder (no parent)
   def root?
     parent_id.nil?

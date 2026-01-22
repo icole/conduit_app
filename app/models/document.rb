@@ -43,6 +43,19 @@ class Document < ApplicationRecord
     storage_type == "google_drive" || google_drive_url.present?
   end
 
+  # Extract the Google Drive file ID from the URL
+  # Supports formats like:
+  # - https://docs.google.com/document/d/FILE_ID/edit
+  # - https://drive.google.com/file/d/FILE_ID/view
+  # - https://docs.google.com/spreadsheets/d/FILE_ID/edit
+  def google_drive_file_id
+    return nil if google_drive_url.blank?
+
+    # Match the file ID from various Google Drive URL formats
+    match = google_drive_url.match(%r{/d/([a-zA-Z0-9_-]+)})
+    match&.[](1)
+  end
+
   private
 
   def has_content_or_link

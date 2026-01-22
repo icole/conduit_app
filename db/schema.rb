@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_13_022008) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_22_051804) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -237,9 +237,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_13_022008) do
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
+    t.string "google_drive_id"
     t.string "name", null: false
     t.bigint "parent_id"
     t.datetime "updated_at", null: false
+    t.index ["community_id", "google_drive_id"], name: "index_document_folders_on_community_id_and_google_drive_id", unique: true, where: "(google_drive_id IS NOT NULL)"
     t.index ["community_id"], name: "index_document_folders_on_community_id"
     t.index ["created_by_id"], name: "index_document_folders_on_created_by_id"
     t.index ["parent_id"], name: "index_document_folders_on_parent_id"

@@ -23,6 +23,7 @@ import {
   useRoom,
   useOthers,
   useSelf,
+  useStatus,
 } from '@liveblocks/react';
 import {
   ClientSideSuspense,
@@ -408,9 +409,14 @@ const Threads = ({ editor }) => {
 };
 
 // The main collaborative editor
-const CollaborativeEditor = ({ documentId, initialContent, onSave, readOnly }) => {
+const CollaborativeEditor = ({ documentId, initialContent, saveUrl, readOnly }) => {
   const room = useRoom();
+  const status = useStatus();
   const liveblocks = useLiveblocksExtension();
+  const [saveStatus, setSaveStatus] = useState('saved');
+  const [isLoading, setIsLoading] = useState(true);
+  const saveTimeoutRef = useRef(null);
+  const lastSavedContentRef = useRef(initialContent);
 
   const editor = useEditor({
     extensions: [
@@ -462,15 +468,73 @@ const CollaborativeEditor = ({ documentId, initialContent, onSave, readOnly }) =
         class: 'prose prose-sm sm:prose lg:prose-lg max-w-none focus:outline-none',
       },
     },
+    onUpdate: ({ editor }) => {
+      // Debounced auto-save on content change
+      if (!readOnly && saveUrl) {
+        setSaveStatus('saving');
+
+        // Clear existing timeout
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+
+        // Set new timeout for debounced save
+        saveTimeoutRef.current = setTimeout(() => {
+          saveToServer(editor.getHTML());
+        }, 1000); // Save 1 second after user stops typing
+      }
+    },
   });
 
-  // Save content when it changes (debounced via form submission)
-  const handleSave = useCallback(() => {
-    if (editor && onSave) {
-      const html = editor.getHTML();
-      onSave(html);
+  // Save content to Rails server
+  const saveToServer = useCallback(async (content) => {
+    if (!saveUrl || content === lastSavedContentRef.current) {
+      setSaveStatus('saved');
+      return;
     }
-  }, [editor, onSave]);
+
+    try {
+      const response = await fetch(saveUrl, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ content }),
+      });
+
+      if (response.ok) {
+        lastSavedContentRef.current = content;
+        setSaveStatus('saved');
+      } else {
+        console.error('Failed to save document:', response.status);
+        setSaveStatus('error');
+      }
+    } catch (error) {
+      console.error('Error saving document:', error);
+      setSaveStatus('error');
+    }
+  }, [saveUrl]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Wait for Liveblocks to sync before showing editor content
+  useEffect(() => {
+    if (status === 'connected' && editor) {
+      // Give Liveblocks a moment to sync the document content
+      const syncTimeout = setTimeout(() => {
+        setIsLoading(false);
+      }, 300);
+      return () => clearTimeout(syncTimeout);
+    }
+  }, [status, editor]);
 
   // Expose save function to parent
   useEffect(() => {
@@ -478,11 +542,11 @@ const CollaborativeEditor = ({ documentId, initialContent, onSave, readOnly }) =
       // Store save function on the container for Rails form integration
       const container = document.getElementById('document-editor-react');
       if (container) {
-        container.saveContent = handleSave;
+        container.saveContent = () => saveToServer(editor.getHTML());
         container.getContent = () => editor.getHTML();
       }
     }
-  }, [editor, handleSave]);
+  }, [editor, saveToServer]);
 
   if (!room || !editor) {
     return (
@@ -496,11 +560,34 @@ const CollaborativeEditor = ({ documentId, initialContent, onSave, readOnly }) =
   const presencePortal = document.getElementById('presence-indicator-portal');
 
   return (
-    <div className="collaborative-editor h-full flex flex-col">
+    <div className="collaborative-editor h-full flex flex-col relative">
       <style>{editorStyles}</style>
 
-      {/* Presence indicator - rendered into header via portal */}
-      {presencePortal && createPortal(<PresenceIndicator />, presencePortal)}
+      {/* Loading overlay while Liveblocks syncs */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-white z-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      )}
+
+      {/* Presence indicator and save status - rendered into header via portal */}
+      {presencePortal && createPortal(
+        <div className="flex items-center gap-3">
+          <PresenceIndicator />
+          {!readOnly && (
+            <span className={`text-xs ${
+              saveStatus === 'saving' ? 'text-yellow-600' :
+              saveStatus === 'error' ? 'text-red-600' :
+              'text-green-600'
+            }`}>
+              {saveStatus === 'saving' ? 'Saving...' :
+               saveStatus === 'error' ? 'Save failed' :
+               'Saved'}
+            </span>
+          )}
+        </div>,
+        presencePortal
+      )}
 
       {/* Main content area with editor and optional sidebar */}
       <div className="flex-1 flex overflow-hidden">
@@ -523,7 +610,7 @@ const CollaborativeEditor = ({ documentId, initialContent, onSave, readOnly }) =
 
           {/* Editor Content - scrollable */}
           <div className="flex-1 overflow-auto bg-white">
-            <div className="max-w-4xl mx-auto px-8 py-6">
+            <div className="px-4 py-4">
               <EditorContent editor={editor} />
             </div>
           </div>
@@ -563,7 +650,7 @@ async function resolveUsers({ userIds }) {
 }
 
 // Wrapper component with Liveblocks providers
-const DocumentEditorApp = ({ documentId, initialContent, readOnly }) => {
+const DocumentEditorApp = ({ documentId, initialContent, saveUrl, readOnly }) => {
   const roomId = `document:${documentId}`;
 
   return (
@@ -578,6 +665,7 @@ const DocumentEditorApp = ({ documentId, initialContent, readOnly }) => {
         <CollaborativeEditor
           documentId={documentId}
           initialContent={initialContent}
+          saveUrl={saveUrl}
           readOnly={readOnly}
         />
       </RoomProvider>
@@ -585,23 +673,57 @@ const DocumentEditorApp = ({ documentId, initialContent, readOnly }) => {
   );
 };
 
+// Store the root reference to prevent duplicate mounts
+let documentEditorRoot = null;
+
 // Mount the React app
 const mountDocumentEditor = () => {
   const container = document.getElementById('document-editor-react');
   if (!container) return;
 
+  // Skip if already mounted on this container
+  if (container.dataset.mounted === 'true') return;
+
   const documentId = container.dataset.documentId;
   const initialContent = container.dataset.initialContent || '';
+  const saveUrl = container.dataset.saveUrl;
   const readOnly = container.dataset.readOnly === 'true';
 
-  const root = createRoot(container);
-  root.render(
+  // Unmount previous root if exists
+  if (documentEditorRoot) {
+    documentEditorRoot.unmount();
+    documentEditorRoot = null;
+  }
+
+  container.dataset.mounted = 'true';
+  documentEditorRoot = createRoot(container);
+  documentEditorRoot.render(
     <DocumentEditorApp
       documentId={documentId}
       initialContent={initialContent}
+      saveUrl={saveUrl}
       readOnly={readOnly}
     />
   );
+};
+
+// Unmount on Turbo navigation away
+const unmountDocumentEditor = () => {
+  const container = document.getElementById('document-editor-react');
+  if (container) {
+    container.dataset.mounted = 'false';
+  }
+
+  // Clear the presence portal to prevent cached content from showing
+  const presencePortal = document.getElementById('presence-indicator-portal');
+  if (presencePortal) {
+    presencePortal.innerHTML = '';
+  }
+
+  if (documentEditorRoot) {
+    documentEditorRoot.unmount();
+    documentEditorRoot = null;
+  }
 };
 
 // Initialize when DOM is ready
@@ -611,7 +733,8 @@ if (document.readyState === 'loading') {
   mountDocumentEditor();
 }
 
-// Also re-mount on Turbo navigation
+// Handle Turbo navigation
 document.addEventListener('turbo:load', mountDocumentEditor);
+document.addEventListener('turbo:before-render', unmountDocumentEditor);
 
 export default DocumentEditorApp;

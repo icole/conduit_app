@@ -1,5 +1,5 @@
 class DocumentsController < ApplicationController
-  before_action :set_document, only: %i[ show edit update destroy update_content ]
+  before_action :set_document, only: %i[ show edit update destroy update_content view_content ]
   before_action :authenticate_user!
   skip_before_action :verify_authenticity_token, only: [ :update_content ]
 
@@ -26,62 +26,31 @@ class DocumentsController < ApplicationController
     @documents = Document.where(document_folder_id: @current_folder&.id).order("#{sort_column} #{sort_direction}")
   end
 
-  # Refresh documents from Google Drive
+  # Sync documents and folders from Google Drive (admin only)
   def refresh_from_google_drive
-    folder_id = ENV["GOOGLE_DRIVE_FOLDER_ID"]
+    unless current_user.admin?
+      redirect_to documents_path, alert: "Only administrators can sync from Google Drive."
+      return
+    end
+
+    folder_id = current_community.settings&.dig("google_drive_folder_id") || ENV["GOOGLE_DRIVE_FOLDER_ID"]
 
     unless folder_id.present?
-      redirect_to documents_path, alert: "Google Drive folder not configured. Set GOOGLE_DRIVE_FOLDER_ID environment variable."
+      redirect_to documents_path, alert: "Google Drive folder not configured."
       return
     end
 
     begin
-      # Use the service account to access Google Drive (same as Community Documents)
-      service = GoogleDriveApiService.from_service_account
-      result = service.list_recent_files(folder_id, max_results: 100)
+      result = GoogleDriveSyncService.new(current_community, folder_id).sync!
 
-      if result[:status] == :success
-        documents_created = 0
-        result[:files].each do |file|
-          # Skip if not a Google Doc/Sheet/Slides
-          next unless file[:mime_type]&.start_with?("application/vnd.google-apps.")
-
-          # Skip if already exists
-          next if Document.exists?(google_drive_url: file[:web_link])
-
-          # Determine document type
-          document_type = case file[:mime_type]
-          when "application/vnd.google-apps.document"
-            "Google Doc"
-          when "application/vnd.google-apps.spreadsheet"
-            "Google Sheet"
-          when "application/vnd.google-apps.presentation"
-            "Google Slides"
-          else
-            next # Skip other types
-          end
-
-          # Create document record
-          Document.create!(
-            title: file[:name],
-            description: "Imported from Community Documents",
-            google_drive_url: file[:web_link],
-            document_type: document_type
-          )
-          documents_created += 1
-        end
-
-        if documents_created > 0
-          redirect_to documents_path, notice: "Successfully imported #{documents_created} document(s) from Google Drive!"
-        else
-          redirect_to documents_path, notice: "No new documents found to import."
-        end
+      if result[:success]
+        redirect_to documents_path, notice: result[:message]
       else
-        redirect_to documents_path, alert: "Failed to fetch documents from Google Drive: #{result[:error]}"
+        redirect_to documents_path, alert: result[:message]
       end
     rescue StandardError => e
-      Rails.logger.error("Error importing documents from Google Drive: #{e.message}")
-      redirect_to documents_path, alert: "Error importing documents: #{e.message}"
+      Rails.logger.error("Error syncing from Google Drive: #{e.message}")
+      redirect_to documents_path, alert: "Error syncing from Google Drive: #{e.message}"
     end
   end
 
@@ -90,36 +59,32 @@ class DocumentsController < ApplicationController
     # Native documents go straight to edit mode (like Google Docs)
     if @document.native?
       redirect_to edit_document_path(@document)
+    elsif @document.google_drive?
+      # Google Drive documents use the view_content action to display via service account
+      redirect_to view_content_document_path(@document)
     end
-  end
-
-  # GET /documents/new
-  def new
-    @document = Document.new
-    @document.document_folder_id = params[:folder_id] if params[:folder_id].present?
   end
 
   # GET /documents/1/edit
   def edit
+    # Google Drive documents can't be edited here - redirect to view
+    if @document.google_drive?
+      redirect_to view_content_document_path(@document)
+    end
   end
 
   # POST /documents or /documents.json
   def create
-    @document = Document.new(document_params)
+    @document = Document.new(
+      title: "Untitled Document",
+      storage_type: :native,
+      document_folder_id: params.dig(:document, :document_folder_id)
+    )
 
-    respond_to do |format|
-      if @document.save
-        # Native documents go to edit, Google Drive docs go to show
-        if @document.native?
-          format.html { redirect_to edit_document_path(@document), notice: "Document was successfully created." }
-        else
-          format.html { redirect_to @document, notice: "Document was successfully created." }
-        end
-        format.json { render :show, status: :created, location: @document }
-      else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @document.errors, status: :unprocessable_entity }
-      end
+    if @document.save
+      redirect_to edit_document_path(@document)
+    else
+      redirect_to documents_path(folder_id: @document.document_folder_id), alert: "Could not create document."
     end
   end
 
@@ -138,6 +103,14 @@ class DocumentsController < ApplicationController
 
   # DELETE /documents/1 or /documents/1.json
   def destroy
+    if @document.google_drive?
+      respond_to do |format|
+        format.html { redirect_to documents_path, alert: "Cannot delete documents synced from Google Drive." }
+        format.json { render json: { error: "Cannot delete synced documents" }, status: :forbidden }
+      end
+      return
+    end
+
     @document.discard
 
     respond_to do |format|
@@ -153,6 +126,38 @@ class DocumentsController < ApplicationController
       render json: { status: "ok", updated_at: @document.updated_at }
     else
       render json: { status: "error", errors: @document.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  # GET /documents/1/view_content
+  # View Google Drive document content using service account
+  # Allows users without personal Google Drive access to view documents
+  def view_content
+    unless @document.google_drive?
+      redirect_to edit_document_path(@document)
+      return
+    end
+
+    file_id = @document.google_drive_file_id
+    unless file_id
+      flash.now[:alert] = "Could not extract file ID from Google Drive URL"
+      render :show
+      return
+    end
+
+    begin
+      api = GoogleDriveApiService.from_service_account
+      result = api.export_as_html(file_id)
+
+      if result[:status] == :success
+        @document_html_content = result[:content]
+        @document_name = result[:name]
+      else
+        flash.now[:alert] = "Could not load document: #{result[:error]}"
+      end
+    rescue StandardError => e
+      Rails.logger.error("Error fetching Google Drive document content: #{e.message}")
+      flash.now[:alert] = "Error loading document content"
     end
   end
 

@@ -22,6 +22,11 @@ class DocumentFoldersController < ApplicationController
   end
 
   def destroy
+    if @document_folder.synced_from_drive?
+      redirect_to documents_path(folder_id: @document_folder.parent_id), alert: "Cannot delete folders synced from Google Drive."
+      return
+    end
+
     parent_id = @document_folder.parent_id
     @document_folder.destroy
 

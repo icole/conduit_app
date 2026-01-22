@@ -81,6 +81,10 @@ module Api
 
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      # Use system CA certificates
+      http.ca_file = ENV["SSL_CERT_FILE"] if ENV["SSL_CERT_FILE"]
+      http.cert_store = OpenSSL::X509::Store.new.tap(&:set_default_paths)
 
       request = Net::HTTP::Post.new(uri)
       request["Authorization"] = "Bearer #{secret_key}"

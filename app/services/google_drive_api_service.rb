@@ -25,11 +25,11 @@ class GoogleDriveApiService
     new(credentials)
   end
 
-  # Create from service account key file (read-only access)
+  # Create from service account key file (read-only access including file content)
   def self.from_service_account
     credentials = Google::Auth::ServiceAccountCredentials.make_creds(
       json_key_io: CalendarCredentials.credentials_io,
-      scope: Google::Apis::DriveV3::AUTH_DRIVE_METADATA_READONLY
+      scope: Google::Apis::DriveV3::AUTH_DRIVE_READONLY
     )
     new(credentials)
   end
@@ -143,6 +143,127 @@ class GoogleDriveApiService
     end
   end
 
+  # Get full folder tree starting from a root folder
+  # Returns all folders with their parent IDs for hierarchy reconstruction
+  def list_folder_tree(root_folder_id)
+    begin
+      all_folders = []
+      folders_to_process = [ root_folder_id ]
+      processed_folders = Set.new
+
+      until folders_to_process.empty?
+        current_folder = folders_to_process.shift
+        next if processed_folders.include?(current_folder)
+        processed_folders.add(current_folder)
+
+        begin
+          # Get direct subfolders of the current folder
+          query = "mimeType = 'application/vnd.google-apps.folder' and trashed = false and '#{current_folder}' in parents"
+          response = drive_service.list_files(
+            q: query,
+            fields: "files(id, name, parents)"
+          )
+
+          if response.files&.any?
+            response.files.each do |subfolder|
+              all_folders << {
+                id: subfolder.id,
+                name: subfolder.name,
+                parents: subfolder.parents
+              }
+              folders_to_process << subfolder.id
+            end
+          end
+        rescue StandardError => e
+          Rails.logger.warn("Error getting subfolders for folder #{current_folder}: #{e.message}")
+        end
+      end
+
+      { folders: all_folders, status: :success }
+    rescue Google::Apis::ClientError => e
+      Rails.logger.error("Google Drive API Client Error: #{e.message}")
+      { error: e.message, status: :client_error, folders: [] }
+    rescue Google::Apis::ServerError => e
+      Rails.logger.error("Google Drive API Server Error: #{e.message}")
+      { error: e.message, status: :server_error, folders: [] }
+    rescue Google::Apis::AuthorizationError => e
+      Rails.logger.error("Google Drive API Authorization Error: #{e.message}")
+      { error: e.message, status: :auth_error, folders: [] }
+    end
+  end
+
+  # List all files in specified folders (not subfolders)
+  def list_files_in_folders(folder_ids)
+    begin
+      all_files = []
+      fields = "files(id, name, mimeType, createdTime, modifiedTime, webViewLink, iconLink, fileExtension, size, parents)"
+
+      folder_ids.each do |folder_id|
+        begin
+          query = "mimeType != 'application/vnd.google-apps.folder' and trashed = false and '#{folder_id}' in parents"
+          response = drive_service.list_files(
+            q: query,
+            fields: fields
+          )
+          all_files.concat(response.files) if response.files
+        rescue StandardError => e
+          Rails.logger.warn("Error getting files from folder #{folder_id}: #{e.message}")
+        end
+      end
+
+      format_files(all_files)
+    rescue Google::Apis::ClientError => e
+      Rails.logger.error("Google Drive API Client Error: #{e.message}")
+      { error: e.message, status: :client_error, files: [] }
+    rescue Google::Apis::ServerError => e
+      Rails.logger.error("Google Drive API Server Error: #{e.message}")
+      { error: e.message, status: :server_error, files: [] }
+    rescue Google::Apis::AuthorizationError => e
+      Rails.logger.error("Google Drive API Authorization Error: #{e.message}")
+      { error: e.message, status: :auth_error, files: [] }
+    end
+  end
+
+  # Export a Google Doc/Sheet/Slides as HTML
+  # Returns the HTML content that can be displayed in the app
+  def export_as_html(file_id)
+    begin
+      # First, get file metadata to determine mime type
+      file = drive_service.get_file(file_id, fields: "id, name, mimeType")
+
+      export_mime_type = case file.mime_type
+      when "application/vnd.google-apps.document"
+        "text/html"
+      when "application/vnd.google-apps.spreadsheet"
+        "text/html" # Sheets can export as HTML
+      when "application/vnd.google-apps.presentation"
+        "text/html" # Slides can export as HTML (though limited)
+      else
+        # For other file types, we can't export as HTML
+        return { error: "File type #{file.mime_type} cannot be exported as HTML", status: :unsupported }
+      end
+
+      # Export the file
+      content = drive_service.export_file(file_id, export_mime_type)
+
+      {
+        status: :success,
+        content: content,
+        name: file.name,
+        mime_type: file.mime_type
+      }
+    rescue Google::Apis::ClientError => e
+      Rails.logger.error("Google Drive API Export Client Error: #{e.message}")
+      { error: e.message, status: :client_error }
+    rescue Google::Apis::ServerError => e
+      Rails.logger.error("Google Drive API Export Server Error: #{e.message}")
+      { error: e.message, status: :server_error }
+    rescue Google::Apis::AuthorizationError => e
+      Rails.logger.error("Google Drive API Export Authorization Error: #{e.message}")
+      { error: e.message, status: :auth_error }
+    end
+  end
+
   # Share a folder with a specific user by email
   def share_folder_with_user(folder_id:, email:, role: "reader")
     begin
@@ -228,7 +349,8 @@ class GoogleDriveApiService
       web_link: file.web_view_link,
       icon_link: file.icon_link,
       file_extension: file.file_extension,
-      size: file.size
+      size: file.size,
+      parents: file.parents
     }
   end
 
