@@ -414,4 +414,175 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
     # We can check that the mobile header or sidebar is logically present in the main flow
     assert_select ".card", minimum: 1
   end
+
+  # Admin cook management tests
+  test "admin can add cook for another user" do
+    delete logout_url
+    admin = users(:admin_user)
+    sign_in_user({ uid: admin.uid, name: admin.name, email: admin.email })
+    other_user = users(:four)
+
+    assert_difference("MealCook.count") do
+      post admin_add_cook_meal_url(@needs_cook_meal), params: {
+        meal_cook: { user_id: other_user.id, role: "head_cook", guests_count: 2 }
+      }
+    end
+    assert_redirected_to meal_url(@needs_cook_meal)
+    assert_equal "#{other_user.name} has been added as a cook.", flash[:notice]
+
+    cook = @needs_cook_meal.meal_cooks.find_by(user: other_user)
+    assert_equal "head_cook", cook.role
+    assert_equal 2, cook.guests_count
+  end
+
+  test "admin can add helper cook for another user" do
+    delete logout_url
+    admin = users(:admin_user)
+    sign_in_user({ uid: admin.uid, name: admin.name, email: admin.email })
+    other_user = users(:four)
+
+    assert_difference("MealCook.count") do
+      post admin_add_cook_meal_url(@needs_cook_meal), params: {
+        meal_cook: { user_id: other_user.id, role: "helper", guests_count: 0 }
+      }
+    end
+    assert_redirected_to meal_url(@needs_cook_meal)
+
+    cook = @needs_cook_meal.meal_cooks.find_by(user: other_user)
+    assert_equal "helper", cook.role
+  end
+
+  test "non-admin cannot add cook for another user" do
+    other_user = users(:four)
+
+    assert_no_difference("MealCook.count") do
+      post admin_add_cook_meal_url(@needs_cook_meal), params: {
+        meal_cook: { user_id: other_user.id, role: "helper" }
+      }
+    end
+    assert_redirected_to meal_url(@needs_cook_meal)
+    assert_equal "Only administrators can manage RSVPs for other users.", flash[:alert]
+  end
+
+  test "admin can remove cook" do
+    delete logout_url
+    admin = users(:admin_user)
+    sign_in_user({ uid: admin.uid, name: admin.name, email: admin.email })
+
+    # User one is a cook for @meal
+    cook = @meal.meal_cooks.find_by(user: @user)
+    assert cook, "User one should be a cook for this meal"
+
+    assert_difference("MealCook.count", -1) do
+      delete admin_remove_cook_meal_url(@meal), params: { user_id: @user.id }
+    end
+    assert_redirected_to meal_url(@meal)
+    assert_equal "#{@user.name} has been removed from the cooking team.", flash[:notice]
+  end
+
+  test "non-admin cannot remove cook" do
+    # User one tries to remove another cook (not themselves)
+    # User two is already a cook for @meal (see fixtures)
+    other_user = users(:two)
+
+    assert_no_difference("MealCook.count") do
+      delete admin_remove_cook_meal_url(@meal), params: { user_id: other_user.id }
+    end
+    assert_redirected_to meal_url(@meal)
+    assert_equal "Only administrators can manage RSVPs for other users.", flash[:alert]
+  end
+
+  # Admin RSVP management tests
+  test "admin can add RSVP for another user" do
+    delete logout_url
+    admin = users(:admin_user)
+    sign_in_user({ uid: admin.uid, name: admin.name, email: admin.email })
+    other_user = users(:four)
+
+    assert_difference("MealRsvp.count") do
+      post admin_rsvp_meal_url(@needs_cook_meal), params: {
+        meal_rsvp: { user_id: other_user.id, status: "attending", guests_count: 3, notes: "Allergies: nuts" }
+      }
+    end
+    assert_redirected_to meal_url(@needs_cook_meal)
+    assert_equal "RSVP recorded for #{other_user.name}.", flash[:notice]
+
+    rsvp = @needs_cook_meal.meal_rsvps.find_by(user: other_user)
+    assert_equal "attending", rsvp.status
+    assert_equal 3, rsvp.guests_count
+    assert_equal "Allergies: nuts", rsvp.notes
+  end
+
+  test "admin can update existing RSVP for another user" do
+    delete logout_url
+    admin = users(:admin_user)
+    sign_in_user({ uid: admin.uid, name: admin.name, email: admin.email })
+
+    # User three has an existing RSVP for @meal
+    other_user = users(:three)
+
+    assert_no_difference("MealRsvp.count") do
+      post admin_rsvp_meal_url(@meal), params: {
+        meal_rsvp: { user_id: other_user.id, status: "late_plate", guests_count: 1 }
+      }
+    end
+    assert_redirected_to meal_url(@meal)
+
+    rsvp = @meal.meal_rsvps.find_by(user: other_user)
+    assert_equal "late_plate", rsvp.status
+    assert_equal 1, rsvp.guests_count
+  end
+
+  test "non-admin cannot add RSVP for another user" do
+    other_user = users(:four)
+
+    assert_no_difference("MealRsvp.count") do
+      post admin_rsvp_meal_url(@needs_cook_meal), params: {
+        meal_rsvp: { user_id: other_user.id, status: "attending" }
+      }
+    end
+    assert_redirected_to meal_url(@needs_cook_meal)
+    assert_equal "Only administrators can manage RSVPs for other users.", flash[:alert]
+  end
+
+  test "admin can remove RSVP for another user" do
+    delete logout_url
+    admin = users(:admin_user)
+    sign_in_user({ uid: admin.uid, name: admin.name, email: admin.email })
+
+    # User three has an RSVP for @meal
+    other_user = users(:three)
+
+    assert_difference("MealRsvp.count", -1) do
+      delete admin_remove_rsvp_meal_url(@meal), params: { user_id: other_user.id }
+    end
+    assert_redirected_to meal_url(@meal)
+    assert_equal "RSVP removed for #{other_user.name}.", flash[:notice]
+  end
+
+  test "non-admin cannot remove RSVP for another user" do
+    # User three has an RSVP for @meal
+    other_user = users(:three)
+
+    assert_no_difference("MealRsvp.count") do
+      delete admin_remove_rsvp_meal_url(@meal), params: { user_id: other_user.id }
+    end
+    assert_redirected_to meal_url(@meal)
+    assert_equal "Only administrators can manage RSVPs for other users.", flash[:alert]
+  end
+
+  test "admin add cook handles user already being a cook" do
+    delete logout_url
+    admin = users(:admin_user)
+    sign_in_user({ uid: admin.uid, name: admin.name, email: admin.email })
+
+    # User one is already a cook for @meal
+    assert_no_difference("MealCook.count") do
+      post admin_add_cook_meal_url(@meal), params: {
+        meal_cook: { user_id: @user.id, role: "helper" }
+      }
+    end
+    assert_redirected_to meal_url(@meal)
+    assert_match /already signed up/, flash[:alert]
+  end
 end

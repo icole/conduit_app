@@ -4,8 +4,11 @@ class MealsController < ApplicationController
                                    :volunteer_cook, :update_cook, :withdraw_cook,
                                    :rsvp, :cancel_rsvp, :close_rsvps, :reopen_rsvps,
                                    :complete, :cancel, :cook, :show_rsvp,
-                                   :update_menu ]
+                                   :update_menu,
+                                   :admin_add_cook, :admin_remove_cook,
+                                   :admin_rsvp, :admin_remove_rsvp ]
   before_action :authorize_rsvp_management!, only: [ :close_rsvps, :reopen_rsvps ]
+  before_action :authorize_admin!, only: [ :admin_add_cook, :admin_remove_cook, :admin_rsvp, :admin_remove_rsvp ]
 
   helper_method :meals_back_path
 
@@ -206,6 +209,63 @@ class MealsController < ApplicationController
     end
   end
 
+  # POST /meals/:id/admin_add_cook
+  # Admin action to add a cook for another user
+  def admin_add_cook
+    user = User.find(params[:meal_cook][:user_id])
+    @meal_cook = @meal.meal_cooks.build(
+      user: user,
+      role: params[:meal_cook][:role].presence || "helper",
+      guests_count: params[:meal_cook][:guests_count] || 0
+    )
+
+    if @meal_cook.save
+      redirect_to @meal, notice: "#{user.name} has been added as a cook."
+    else
+      redirect_to @meal, alert: @meal_cook.errors.full_messages.join(", ")
+    end
+  end
+
+  # DELETE /meals/:id/admin_remove_cook
+  # Admin action to remove a cook
+  def admin_remove_cook
+    user = User.find(params[:user_id])
+    @meal_cook = @meal.meal_cooks.find_by(user: user)
+
+    if @meal_cook&.destroy
+      redirect_to @meal, notice: "#{user.name} has been removed from the cooking team."
+    else
+      redirect_to @meal, alert: "Could not find cook to remove."
+    end
+  end
+
+  # POST /meals/:id/admin_rsvp
+  # Admin action to add or update an RSVP for another user
+  def admin_rsvp
+    user = User.find(params[:meal_rsvp][:user_id])
+    @rsvp = @meal.meal_rsvps.find_or_initialize_by(user: user)
+    @rsvp.assign_attributes(admin_rsvp_params)
+
+    if @rsvp.save
+      redirect_to @meal, notice: "RSVP recorded for #{user.name}."
+    else
+      redirect_to @meal, alert: @rsvp.errors.full_messages.join(", ")
+    end
+  end
+
+  # DELETE /meals/:id/admin_remove_rsvp
+  # Admin action to remove an RSVP for another user
+  def admin_remove_rsvp
+    user = User.find(params[:user_id])
+    @rsvp = @meal.meal_rsvps.find_by(user: user)
+
+    if @rsvp&.destroy
+      redirect_to @meal, notice: "RSVP removed for #{user.name}."
+    else
+      redirect_to @meal, alert: "Could not find RSVP to remove."
+    end
+  end
+
   private
 
   def set_meal
@@ -215,6 +275,12 @@ class MealsController < ApplicationController
   def authorize_rsvp_management!
     unless @meal.user_is_cook?(current_user) || current_user.admin?
       redirect_to @meal, alert: "Only cooks or admins can manage RSVPs."
+    end
+  end
+
+  def authorize_admin!
+    unless current_user.admin?
+      redirect_to @meal, alert: "Only administrators can manage RSVPs for other users."
     end
   end
 
@@ -231,6 +297,10 @@ class MealsController < ApplicationController
 
   def cook_params
     params.require(:meal_cook).permit(:guests_count, :notes)
+  end
+
+  def admin_rsvp_params
+    params.require(:meal_rsvp).permit(:status, :guests_count, :notes)
   end
 
   def meals_back_path

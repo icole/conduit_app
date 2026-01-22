@@ -53,6 +53,11 @@ Rails.application.routes.draw do
       post :complete
       post :cancel
       patch :update_menu
+      # Admin actions for managing other users' cook signups and RSVPs
+      post :admin_add_cook
+      delete :admin_remove_cook
+      post :admin_rsvp
+      delete :admin_remove_rsvp
     end
     collection do
       get :calendar

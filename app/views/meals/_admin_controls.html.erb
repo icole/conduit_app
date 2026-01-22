@@ -1,0 +1,93 @@
+<% if current_user.admin? %>
+  <div class="card bg-base-100 shadow-xl border-2 border-warning/30">
+    <div class="card-body">
+      <h3 class="card-title text-lg text-warning gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        Admin Controls
+      </h3>
+
+      <div class="grid md:grid-cols-2 gap-6 mt-4">
+        <!-- Add Cook Form -->
+        <div class="space-y-3">
+          <h4 class="font-medium text-base-content/80">Add Cook</h4>
+          <%= form_with url: admin_add_cook_meal_path(meal), method: :post, class: "space-y-3" do |f| %>
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">User</span>
+              </label>
+              <select name="meal_cook[user_id]" class="select select-bordered select-sm w-full" required>
+                <option value="">Select a user...</option>
+                <% available_users_for_cook(meal).each do |user| %>
+                  <option value="<%= user.id %>"><%= user.name %></option>
+                <% end %>
+              </select>
+            </div>
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">Role</span>
+              </label>
+              <select name="meal_cook[role]" class="select select-bordered select-sm w-full">
+                <% if meal.needs_head_cook? %>
+                  <option value="head_cook">Head Cook</option>
+                <% end %>
+                <option value="helper">Helper</option>
+              </select>
+            </div>
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">Guests</span>
+              </label>
+              <input type="number" name="meal_cook[guests_count]" value="0" min="0" max="10" class="input input-bordered input-sm w-24">
+            </div>
+            <button type="submit" class="btn btn-warning btn-sm">Add Cook</button>
+          <% end %>
+        </div>
+
+        <!-- Add RSVP Form -->
+        <div class="space-y-3">
+          <h4 class="font-medium text-base-content/80">Add RSVP</h4>
+          <%= form_with url: admin_rsvp_meal_path(meal), method: :post, class: "space-y-3" do |f| %>
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">User</span>
+              </label>
+              <select name="meal_rsvp[user_id]" class="select select-bordered select-sm w-full" required>
+                <option value="">Select a user...</option>
+                <% available_users_for_rsvp(meal).each do |user| %>
+                  <option value="<%= user.id %>"><%= user.name %></option>
+                <% end %>
+              </select>
+            </div>
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">Status</span>
+              </label>
+              <select name="meal_rsvp[status]" class="select select-bordered select-sm w-full">
+                <option value="attending">Attending</option>
+                <option value="late_plate">Late Plate</option>
+                <option value="maybe">Maybe</option>
+                <option value="declined">Not Attending</option>
+              </select>
+            </div>
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">Guests</span>
+              </label>
+              <input type="number" name="meal_rsvp[guests_count]" value="0" min="0" max="10" class="input input-bordered input-sm w-24">
+            </div>
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-sm">Notes (optional)</span>
+              </label>
+              <input type="text" name="meal_rsvp[notes]" placeholder="e.g., dietary restrictions" class="input input-bordered input-sm w-full">
+            </div>
+            <button type="submit" class="btn btn-warning btn-sm">Add RSVP</button>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

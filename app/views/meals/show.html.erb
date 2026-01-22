@@ -98,6 +98,9 @@
     <!-- Menu / What's for Dinner -->
     <%= render "menu", meal: @meal %>
 
+    <!-- Admin Controls (only visible to admins) -->
+    <%= render "admin_controls", meal: @meal %>
+
     <!-- Attendee List (Unified) -->
     <%= render "attendee_list", meal: @meal, attending_rsvps: @attending_rsvps, maybe_rsvps: @maybe_rsvps, declined_rsvps: @declined_rsvps, late_plate_rsvps: @late_plate_rsvps %>
 
