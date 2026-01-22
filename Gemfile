@@ -30,6 +30,9 @@ gem "acts_as_tenant", "~> 1.0"
 # Soft delete for content models [https://github.com/jhawthorn/discard]
 gem "discard", "~> 1.3"
 
+# Audit trail for model changes [https://github.com/paper-trail-gem/paper_trail]
+gem "paper_trail", "~> 16.0"
+
 # JWT for secure token generation
 gem "jwt", "~> 2.7"
 

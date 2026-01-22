@@ -6,6 +6,9 @@ class ApplicationController < ActionController::Base
   include ActsAsTenant::ControllerExtensions
   include TurboNative
 
+  # Track who makes changes for PaperTrail audit log
+  before_action :set_paper_trail_whodunnit
+
   # Set tenant from domain - must run before authenticate_user!
   set_current_tenant_through_filter
   before_action :set_tenant_from_domain
@@ -161,5 +164,10 @@ class ApplicationController < ActionController::Base
   def set_current_attributes
     Current.user = current_user
     Current.community = current_community
+  end
+
+  # PaperTrail uses this method to set whodunnit
+  def user_for_paper_trail
+    current_user&.id&.to_s
   end
 end

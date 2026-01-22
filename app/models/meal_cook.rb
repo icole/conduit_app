@@ -1,4 +1,6 @@
 class MealCook < ApplicationRecord
+  has_paper_trail
+
   belongs_to :meal
   belongs_to :user
 

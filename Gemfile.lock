@@ -369,6 +369,9 @@ GEM
       omniauth (~> 2.0)
     os (1.1.4)
     ostruct (0.6.3)
+    paper_trail (16.0.0)
+      activerecord (>= 6.1)
+      request_store (~> 1.4)
     parallel (1.27.0)
     parser (3.3.10.0)
       ast (~> 2.4.1)
@@ -455,6 +458,8 @@ GEM
       declarative (< 0.1.0)
       trailblazer-option (>= 0.1.1, < 0.2.0)
       uber (< 0.2.0)
+    request_store (1.7.0)
+      rack (>= 1.4)
     resend (0.27.0)
       httparty (>= 0.21.0)
     retriable (3.1.2)
@@ -640,6 +645,7 @@ DEPENDENCIES
   omniauth (~> 2.1)
   omniauth-google-oauth2 (~> 1.1)
   omniauth-rails_csrf_protection (~> 2.0)
+  paper_trail (~> 16.0)
   pg (~> 1.6)
   propshaft
   pstore

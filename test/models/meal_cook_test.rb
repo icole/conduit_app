@@ -122,4 +122,48 @@ class MealCookTest < ActiveSupport::TestCase
     @meal_cook.guests_count = 3
     assert_equal "+3 guests", @meal_cook.guests_display
   end
+
+  # PaperTrail audit tests
+  test "tracks version history on create" do
+    meal = meals(:needs_cook)
+    user = users(:six)
+
+    cook = MealCook.create!(meal: meal, user: user, role: "helper")
+    assert_equal 1, cook.versions.count
+    assert_equal "create", cook.versions.last.event
+  end
+
+  test "tracks version history on destroy" do
+    cook = MealCook.create!(meal: meals(:needs_cook), user: users(:six), role: "helper")
+    cook_id = cook.id
+
+    cook.destroy
+
+    versions = PaperTrail::Version.where(item_type: "MealCook", item_id: cook_id)
+    assert_equal 2, versions.count
+    assert_equal "destroy", versions.last.event
+  end
+
+  test "can retrieve deleted cook data from version" do
+    meal = meals(:needs_cook)
+    user = users(:six)
+    cook = MealCook.create!(meal: meal, user: user, role: "head_cook", guests_count: 2)
+    cook.destroy
+
+    last_version = PaperTrail::Version.where(item_type: "MealCook").last
+    restored = last_version.reify
+
+    assert_equal meal.id, restored.meal_id
+    assert_equal user.id, restored.user_id
+    assert_equal "head_cook", restored.role
+    assert_equal 2, restored.guests_count
+  end
+
+  test "tracks whodunnit when set" do
+    PaperTrail.request.whodunnit = "user_123"
+    cook = MealCook.create!(meal: meals(:needs_cook), user: users(:six), role: "helper")
+
+    assert_equal "user_123", cook.versions.last.whodunnit
+    PaperTrail.request.whodunnit = nil
+  end
 end
