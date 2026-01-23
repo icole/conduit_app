@@ -12,6 +12,13 @@ class CalendarController < ApplicationController
     # Create filtered params for simple_calendar
     @calendar_params = params.except(:start_date, :date).to_unsafe_h
 
+    # Set up calendar sharing variables for subscribe button
+    setup_calendar_sharing_variables
+
+    # Calculate month boundaries to include past events
+    start_of_month = @date.beginning_of_month.beginning_of_day
+    end_of_month = @date.end_of_month.end_of_day
+
     # Get Google Calendar events and convert them to objects compatible with simple_calendar
     begin
       if !Rails.env.test?
@@ -19,7 +26,10 @@ class CalendarController < ApplicationController
           json_key_io: CalendarCredentials.credentials_io,
           scope: Google::Apis::CalendarV3::AUTH_CALENDAR)
         service = GoogleCalendarApiService.new(auth)
-        @google_events_result = service.get_events
+        @google_events_result = service.get_events(
+          time_min: start_of_month,
+          time_max: end_of_month
+        )
 
         # Convert Google Calendar events to objects that work with simple_calendar
         if @google_events_result[:status] == :success && @google_events_result[:events].any?
@@ -77,6 +87,17 @@ class CalendarController < ApplicationController
   end
 
   private
+
+  def setup_calendar_sharing_variables
+    calendar_id = current_community.google_calendar_id
+    @calendar_already_shared = calendar_id.present? && CalendarShare.calendar_shared_with_user?(calendar_id, current_user)
+
+    @google_calendar_configured = begin
+      defined?(CalendarCredentials) && CalendarCredentials.configured? && current_community.google_calendar_id.present?
+    rescue
+      false
+    end
+  end
 
   def format_google_event_time_range(event)
     start_time = event[:start_time]
