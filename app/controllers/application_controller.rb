@@ -5,6 +5,7 @@ class ApplicationController < ActionController::Base
   include RestrictedAccess
   include ActsAsTenant::ControllerExtensions
   include TurboNative
+  include PaperTrail::Rails::Controller
 
   # Track who makes changes for PaperTrail audit log
   before_action :set_paper_trail_whodunnit
