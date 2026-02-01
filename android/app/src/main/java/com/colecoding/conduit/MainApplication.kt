@@ -7,10 +7,14 @@ import com.colecoding.conduit.fragments.WebFragment
 import com.colecoding.conduit.fragments.WebModalFragment
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
+import dev.hotwire.core.bridge.BridgeComponentFactory
+import dev.hotwire.core.bridge.KotlinXJsonConverter
 import dev.hotwire.core.config.Hotwire
 import dev.hotwire.core.turbo.config.PathConfiguration
 import dev.hotwire.navigation.config.defaultFragmentDestination
+import dev.hotwire.navigation.config.registerBridgeComponents
 import dev.hotwire.navigation.config.registerFragmentDestinations
+import com.colecoding.conduit.bridge.MenuComponent
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.logger.ChatLogLevel
 import io.getstream.chat.android.offline.plugin.factory.StreamOfflinePluginFactory
@@ -76,6 +80,14 @@ class MainApplication : Application() {
 
         // Set default fragment
         Hotwire.defaultFragmentDestination = WebFragment::class
+
+        // Register bridge components
+        Hotwire.registerBridgeComponents(
+            BridgeComponentFactory("menu", ::MenuComponent)
+        )
+
+        // Configure JSON converter for bridge message serialization
+        Hotwire.config.jsonConverter = KotlinXJsonConverter()
 
         Log.d(TAG, "Hotwire configured")
     }

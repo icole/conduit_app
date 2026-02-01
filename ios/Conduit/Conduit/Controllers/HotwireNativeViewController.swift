@@ -2,7 +2,13 @@ import UIKit
 import HotwireNative
 internal import WebKit
 
-class HotwireNativeViewController: VisitableViewController {
+class HotwireNativeViewController: VisitableViewController, BridgeDestination {
+
+    private lazy var bridgeDelegate = BridgeDelegate(
+        location: currentVisitableURL.absoluteString,
+        destination: self,
+        componentTypes: Hotwire.bridgeComponentTypes
+    )
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -15,6 +21,8 @@ class HotwireNativeViewController: VisitableViewController {
 
         // Fix content bleeding behind bars by respecting safe areas
         configureWebViewLayout()
+
+        bridgeDelegate.onViewDidLoad()
     }
 
     private func configureWebViewLayout() {
@@ -41,6 +49,18 @@ class HotwireNativeViewController: VisitableViewController {
 
         // Re-apply layout configuration when view appears
         configureWebViewLayout()
+
+        bridgeDelegate.onViewWillAppear()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        bridgeDelegate.onViewDidAppear()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        bridgeDelegate.onViewWillDisappear()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -48,6 +68,21 @@ class HotwireNativeViewController: VisitableViewController {
 
         // Reset navigation bar when leaving this view
         navigationController?.setNavigationBarHidden(false, animated: false)
+
+        bridgeDelegate.onViewDidDisappear()
+    }
+
+    // MARK: - Visitable
+
+    override func visitableDidActivateWebView(_ webView: WKWebView) {
+        super.visitableDidActivateWebView(webView)
+        Bridge.initialize(webView)
+        bridgeDelegate.webViewDidBecomeActive(webView)
+    }
+
+    override func visitableDidDeactivateWebView() {
+        super.visitableDidDeactivateWebView()
+        bridgeDelegate.webViewDidBecomeDeactivated()
     }
 
     // Note: Error handling is done at the SessionDelegate level in Navigator

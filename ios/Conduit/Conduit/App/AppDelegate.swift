@@ -50,6 +50,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     private func configureHotwireNative() {
+        // Register bridge components
+        Hotwire.registerBridgeComponents([
+            MenuComponent.self
+        ])
+
         // Configure custom web view with user agent
         Hotwire.config.makeCustomWebView = { (configuration: WKWebViewConfiguration) -> WKWebView in
             // Use different user agents for different purposes
