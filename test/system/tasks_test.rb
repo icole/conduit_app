@@ -75,7 +75,10 @@ class TasksTest < ApplicationSystemTestCase
     # Fill in the form fields
     within "#new_task" do
       fill_in "task[title]", with: "Test assigned task"
-      select @user_two.name, from: "task[assigned_to_user_id]"
+
+      # Use custom user-select dropdown
+      find("[data-controller='user-select'] button[data-action*='user-select#toggle']").click
+      find("[data-controller='user-select'] a[data-name='#{@user_two.name}']").click
 
       # Submit the form
       click_on "Create Task"
@@ -99,8 +102,9 @@ class TasksTest < ApplicationSystemTestCase
     # Check that we are on the edit page
     assert_text "Edit Task"
 
-    # Change the assignment - make sure we're targeting the correct form field
-    select @user_two.name, from: "task[assigned_to_user_id]"
+    # Use custom user-select dropdown to change assignment
+    find("[data-controller='user-select'] button[data-action*='user-select#toggle']").click
+    find("[data-controller='user-select'] a[data-name='#{@user_two.name}']").click
 
     # Submit the form - use the button text instead of input value
     click_button "Update Task"

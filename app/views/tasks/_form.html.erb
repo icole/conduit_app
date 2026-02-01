@@ -26,13 +26,7 @@
 
   <%# Only show user assignment on tasks page, not on dashboard %>
   <% if controller_name == 'tasks' %>
-  <div class="form-control w-full mb-4">
-    <%= form.label :assigned_to_user_id, "Assign to", class: "label" %>
-    <%= form.select :assigned_to_user_id, 
-                   User.all.map { |u| [u.name, u.id] }.push(["Unassigned", nil]), 
-                   {}, 
-                   class: "select select-bordered w-full" %>
-  </div>
+    <%= render "tasks/user_select", form: form, task: task, users: @users %>
   <% end %>
 
   <% if task.persisted? %>

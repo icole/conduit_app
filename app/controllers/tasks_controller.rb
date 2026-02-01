@@ -2,6 +2,7 @@ class TasksController < ApplicationController
   before_action :authenticate_user!
   before_action :set_task, only: [ :edit, :update, :destroy, :prioritize, :move_to_backlog, :reorder ]
   before_action :set_discarded_task, only: [ :restore ]
+  before_action :set_users, only: [ :index, :new, :edit, :create, :update ]
 
   def index
     @current_view = params[:view] || "active"
@@ -34,7 +35,6 @@ class TasksController < ApplicationController
     end
 
     @task = Task.new
-    @users = User.all
 
     # Separate tasks by status for the view (also apply assignment filter)
     @backlog_tasks = base_query.backlog.limit(10)
@@ -163,6 +163,10 @@ class TasksController < ApplicationController
 
   def set_discarded_task
     @task = Task.with_discarded.find(params[:id])
+  end
+
+  def set_users
+    @users = User.all
   end
 
   def task_params

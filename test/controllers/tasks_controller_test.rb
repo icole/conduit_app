@@ -49,6 +49,31 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "edit page should show users in assignment dropdown" do
+    other_user = users(:two)
+    get edit_task_url(@task)
+    assert_response :success
+    # Custom dropdown uses hidden input + menu items
+    assert_select "input[name='task[assigned_to_user_id]'][type='hidden']"
+    assert_select "[data-controller='user-select']" do
+      assert_select "a[data-name='#{@user.name}']"
+      assert_select "a[data-name='#{other_user.name}']"
+      assert_select "a[data-name='Unassigned']"
+    end
+  end
+
+  test "index page should show users in assignment dropdown for new task form" do
+    other_user = users(:two)
+    get tasks_url
+    assert_response :success
+    assert_select "input[name='task[assigned_to_user_id]'][type='hidden']"
+    assert_select "[data-controller='user-select']" do
+      assert_select "a[data-name='#{@user.name}']"
+      assert_select "a[data-name='#{other_user.name}']"
+      assert_select "a[data-name='Unassigned']"
+    end
+  end
+
   test "should update task and redirect to tasks" do
     patch task_url(@task),
           params: { task: { title: "Updated Task", description: "Updated description", status: "completed" } }
