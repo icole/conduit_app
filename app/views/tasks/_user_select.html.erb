@@ -1,10 +1,40 @@
-<div class="form-control w-full mb-4">
+<div data-controller="user-select" class="form-control w-full mb-4">
   <%= form.label :assigned_to_user_id, "Assign to", class: "label" %>
-  <%= form.select :assigned_to_user_id,
-        options_for_select(
-          [["Unassigned", ""]] + users.order(:name).map { |u| [u.name, u.id] },
-          task.assigned_to_user_id
-        ),
-        {},
-        class: "select select-bordered w-full" %>
+  <%= form.hidden_field :assigned_to_user_id, data: { user_select_target: "input" } %>
+  <div class="relative">
+    <button type="button"
+            class="select select-bordered w-full text-left flex items-center justify-between"
+            data-user-select-target="display"
+            data-action="click->user-select#toggle">
+      <span><%= task.assigned_to_user&.name || "Unassigned" %></span>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-50" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+      </svg>
+    </button>
+    <ul class="hidden absolute z-50 mt-1 w-full bg-base-100 border border-base-300 rounded-box shadow-lg max-h-60 overflow-y-auto"
+        data-user-select-target="menu">
+      <li>
+        <button type="button"
+                data-action="click->user-select#select"
+                data-user-select-target="option"
+                data-value=""
+                data-name="Unassigned"
+                class="w-full text-left px-4 py-3 text-sm hover:bg-base-200 <%= task.assigned_to_user_id.blank? ? 'bg-base-200 font-semibold' : '' %>">
+          Unassigned
+        </button>
+      </li>
+      <% users.order(:name).each do |user| %>
+        <li>
+          <button type="button"
+                  data-action="click->user-select#select"
+                  data-user-select-target="option"
+                  data-value="<%= user.id %>"
+                  data-name="<%= user.name %>"
+                  class="w-full text-left px-4 py-3 text-sm hover:bg-base-200 border-t border-base-200 <%= task.assigned_to_user_id == user.id ? 'bg-base-200 font-semibold' : '' %>">
+            <%= user.name %>
+          </button>
+        </li>
+      <% end %>
+    </ul>
+  </div>
 </div>
