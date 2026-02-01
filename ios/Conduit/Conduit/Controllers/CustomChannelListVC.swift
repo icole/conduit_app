@@ -409,8 +409,11 @@ extension CustomChannelListVC {
         }
         actions.append(leaveAction)
 
-        // Delete Channel (only for admins/owners)
-        if channel.membership?.memberRole == .admin || channel.membership?.memberRole == .owner {
+        // Delete Channel (admins/owners or channel creator)
+        let currentUserId = controller?.client.currentUserId
+        let isCreator = channel.createdBy?.id == currentUserId
+        let isAdminOrOwner = channel.membership?.memberRole == .admin || channel.membership?.memberRole == .owner
+        if isCreator || isAdminOrOwner {
             let deleteAction = UIAction(title: "Delete Channel", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
                 self?.confirmDeleteChannel(channel)
             }
@@ -450,8 +453,11 @@ extension CustomChannelListVC {
             self?.confirmLeaveChannel(channel)
         })
 
-        // Delete Channel (only for admins/owners)
-        if channel.membership?.memberRole == .admin || channel.membership?.memberRole == .owner {
+        // Delete Channel (admins/owners or channel creator)
+        let currentUserId = controller?.client.currentUserId
+        let isCreator = channel.createdBy?.id == currentUserId
+        let isAdminOrOwner = channel.membership?.memberRole == .admin || channel.membership?.memberRole == .owner
+        if isCreator || isAdminOrOwner {
             alert.addAction(UIAlertAction(title: "Delete Channel", style: .destructive) { [weak self] _ in
                 self?.confirmDeleteChannel(channel)
             })

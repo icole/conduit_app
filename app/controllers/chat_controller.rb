@@ -184,15 +184,10 @@ class ChatController < ApplicationController
   end
 
   # DELETE /chat/channels/:channel_id
-  # Delete a channel (admin only)
+  # Delete a channel (admins and channel creators)
   def destroy_channel
     channel_id = params[:channel_id]
     user = api_current_user
-
-    unless user.admin?
-      render json: { error: "Only admins can delete channels" }, status: :forbidden
-      return
-    end
 
     unless channel_id.present?
       render json: { error: "Channel ID is required" }, status: :bad_request
@@ -210,8 +205,14 @@ class ChatController < ApplicationController
         return
       end
 
-      # Query to verify channel exists
-      channel.query(user_id: user.id.to_s)
+      # Query channel to check creator
+      channel_data = channel.query(user_id: user.id.to_s)
+      creator_id = channel_data.dig("channel", "created_by", "id")
+
+      unless user.admin? || user.id.to_s == creator_id
+        render json: { error: "Only admins and channel creators can delete channels" }, status: :forbidden
+        return
+      end
 
       # Delete the channel
       channel.delete
