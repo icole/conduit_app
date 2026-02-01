@@ -481,7 +481,7 @@ class StreamChatViewController: UIViewController {
 
     private func registerPendingDeviceToken() {
         // Check current Stream client status
-        guard let client = ChatManager.shared.chatClient else {
+        guard ChatManager.shared.chatClient != nil else {
             print("No Stream client available for device token registration")
             return
         }
@@ -718,7 +718,7 @@ class StreamChatViewController: UIViewController {
 
 // MARK: - Supporting Types
 
-struct TokenData: Decodable {
+nonisolated struct TokenData: Decodable {
     let token: String
     let user: UserData
     let apiKey: String
@@ -732,7 +732,7 @@ struct TokenData: Decodable {
     }
 }
 
-struct UserData: Decodable {
+nonisolated struct UserData: Decodable {
     let id: String
     let name: String
     let avatar: String?

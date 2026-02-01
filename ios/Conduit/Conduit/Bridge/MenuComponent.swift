@@ -2,7 +2,7 @@ import HotwireNative
 import UIKit
 
 final class MenuComponent: BridgeComponent {
-    override class var name: String { "menu" }
+    override nonisolated class var name: String { "menu" }
 
     override func onReceive(message: Message) {
         guard message.event == "display" else { return }
