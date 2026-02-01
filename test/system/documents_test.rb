@@ -3,6 +3,7 @@ require "application_system_test_case"
 class DocumentsTest < ApplicationSystemTestCase
   setup do
     @document = documents(:one)
+    @native_document = documents(:native_doc)
 
     sign_in_user
   end
@@ -14,39 +15,30 @@ class DocumentsTest < ApplicationSystemTestCase
 
   test "should create document" do
     visit documents_url
-    click_on "Add Document"
 
-    fill_in "Description", with: @document.description
-    fill_in "Document type", with: @document.document_type
-    fill_in "Google drive url", with: @document.google_drive_url
-    fill_in "Title", with: @document.title
-    click_on "Create Document"
+    count_before = Document.count
+    click_on "New Document"
 
-    assert_text "Document was successfully created"
-    click_on "Back"
+    # Should redirect to edit page for the new native document
+    assert_text "Untitled Document", wait: 5
+    assert_equal count_before + 1, Document.count
   end
 
-  test "should update Document" do
-    visit document_url(@document)
-    click_on "Edit this document", match: :first
+  test "should show native document edit page" do
+    visit edit_document_url(@native_document)
 
-    fill_in "Description", with: @document.description
-    fill_in "Document type", with: @document.document_type
-    fill_in "Google drive url", with: @document.google_drive_url
-    fill_in "Title", with: @document.title
-    click_on "Update Document"
-
-    assert_text "Document was successfully updated"
-    click_on "Back"
+    assert_selector "[data-title]", text: @native_document.title, wait: 5
+    assert_selector "button[title='Rename']"
   end
 
-  test "should destroy Document" do
-    visit document_url(@document)
+  test "should destroy native document from index" do
+    visit documents_url
+
     accept_confirm do
-      find("[data-testid='delete-document-button-#{@document.id}']").click
+      find("form[action='#{document_path(@native_document)}'] button.btn-error").click
     end
-    # Assert that you are redirected to the index page
-    assert_current_path documents_path, wait: 30
+
+    assert_current_path documents_path, wait: 5
     assert_text "Document was successfully deleted"
   end
 end
