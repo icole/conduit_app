@@ -107,10 +107,8 @@ class Navigator: UINavigationController {
             configuration.allowsPictureInPictureMediaPlayback = true
         }
 
-        // Set up user content controller for JavaScript messaging if needed
-        let userContentController = configuration.userContentController
-
-        // You can add custom JavaScript here if needed for general app functionality
+        // User content controller is available via configuration.userContentController
+        // if custom JavaScript messaging is needed for general app functionality
     }
 }
 
@@ -172,7 +170,7 @@ extension Navigator: SessionDelegate {
         print("Session failed request: \(error)")
 
         // Handle authentication errors
-        if let response = (error as NSError).userInfo["NSURLErrorFailingURLPeerTrustErrorKey"] {
+        if (error as NSError).userInfo["NSURLErrorFailingURLPeerTrustErrorKey"] != nil {
             print("SSL/TLS error - this is expected in development with self-signed certificates")
         }
 

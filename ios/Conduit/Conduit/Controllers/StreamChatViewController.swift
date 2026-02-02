@@ -718,7 +718,7 @@ class StreamChatViewController: UIViewController {
 
 // MARK: - Supporting Types
 
-nonisolated struct TokenData: Decodable {
+struct TokenData: @preconcurrency Decodable, Sendable {
     let token: String
     let user: UserData
     let apiKey: String
@@ -732,7 +732,7 @@ nonisolated struct TokenData: Decodable {
     }
 }
 
-nonisolated struct UserData: Decodable {
+struct UserData: @preconcurrency Decodable, Sendable {
     let id: String
     let name: String
     let avatar: String?
