@@ -70,7 +70,7 @@ gem "pstore"
 gem "simple_calendar"
 
 # Stream Chat for HOA community messaging
-gem "stream-chat-ruby", "~> 3.22"
+gem "stream-chat-ruby", "~> 3.23"
 
 # Web Push notifications
 gem "webpush", "~> 1.1"
