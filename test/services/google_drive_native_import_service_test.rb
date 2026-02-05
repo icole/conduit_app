@@ -52,6 +52,21 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
     ].include?(mime_type)
   end
 
+  def non_exportable_mime?(mime_type)
+    %w[
+      application/vnd.google-apps.form
+      application/vnd.google-apps.map
+      application/vnd.google-apps.site
+      application/vnd.google-apps.fusiontable
+      application/vnd.google-apps.jam
+      application/vnd.google-apps.shortcut
+    ].include?(mime_type)
+  end
+
+  def default_web_link_for_form(id)
+    "https://docs.google.com/forms/d/#{id}/edit"
+  end
+
   test "converts existing google_drive document to native with HTML content" do
     existing_doc = Document.create!(
       title: "Board Minutes",
@@ -133,6 +148,165 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
 
       assert_equal initial_count, Document.count
       assert_equal 1, result[:docs_skipped]
+    end
+
+    @mock_api.verify
+  end
+
+  test "re-exports native doc when Drive updated_at is newer" do
+    old_updated_at = Time.utc(2024, 1, 1, 0, 0, 0)
+    drive_modified = Time.utc(2025, 6, 15, 12, 0, 0)
+
+    doc = Document.create!(
+      title: "Already Imported",
+      google_drive_url: "https://docs.google.com/document/d/sync_ts/edit",
+      storage_type: :native,
+      content: "<p>Old content</p>",
+      community: @community
+    )
+    doc.update_columns(updated_at: old_updated_at)
+
+    drive_files = [
+      mock_drive_file(id: "sync_ts", name: "Already Imported", parent_id: @root_folder_id,
+                      updated_at: drive_modified)
+    ]
+
+    @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
+    @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
+    @mock_api.expect(:export_as_html, { status: :success, content: "<p>Updated content</p>" }, [ "sync_ts" ])
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.import!
+
+      assert_equal 1, result[:docs_updated]
+      assert_equal 0, result[:docs_skipped]
+
+      doc.reload
+      assert_equal "<p>Updated content</p>", doc.content
+      assert_equal drive_modified, doc.updated_at
+    end
+
+    @mock_api.verify
+  end
+
+  test "skips native doc when Drive updated_at matches (no API calls)" do
+    matching_time = Time.utc(2024, 6, 1, 10, 0, 0)
+
+    doc = Document.create!(
+      title: "Already Imported",
+      google_drive_url: "https://docs.google.com/document/d/no_sync_ts/edit",
+      storage_type: :native,
+      content: "<p>Content</p>",
+      community: @community
+    )
+    doc.update_columns(updated_at: matching_time)
+
+    drive_files = [
+      mock_drive_file(id: "no_sync_ts", name: "Already Imported", parent_id: @root_folder_id,
+                      updated_at: matching_time)
+    ]
+
+    @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
+    @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
+    # No export_as_html expectation — should not be called
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.import!
+
+      assert_equal 1, result[:docs_skipped]
+      assert_equal 0, result[:docs_updated]
+
+      doc.reload
+      assert_equal "<p>Content</p>", doc.content
+      assert_equal matching_time, doc.updated_at
+    end
+
+    @mock_api.verify
+  end
+
+  test "re-downloads uploaded file when Drive updated_at is newer" do
+    old_updated_at = Time.utc(2024, 1, 1, 0, 0, 0)
+    drive_modified = Time.utc(2025, 6, 15, 12, 0, 0)
+
+    doc = Document.new(
+      title: "Budget.pdf",
+      google_drive_url: "https://drive.google.com/file/d/redownload_pdf/view",
+      storage_type: :uploaded,
+      document_type: "PDF",
+      community: @community
+    )
+    doc.file.attach(io: StringIO.new("old pdf content"), filename: "Budget.pdf", content_type: "application/pdf")
+    doc.save!
+    doc.update_columns(updated_at: old_updated_at)
+
+    drive_files = [
+      mock_drive_file(id: "redownload_pdf", name: "Budget.pdf", parent_id: @root_folder_id,
+                      mime_type: "application/pdf", updated_at: drive_modified)
+    ]
+
+    new_pdf_content = StringIO.new("new pdf content")
+
+    @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
+    @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
+    @mock_api.expect(:download_file, {
+      status: :success, content: new_pdf_content, name: "Budget.pdf", mime_type: "application/pdf"
+    }, [ "redownload_pdf" ])
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.import!
+
+      assert_equal 1, result[:docs_updated]
+      assert_equal 0, result[:docs_skipped]
+
+      doc.reload
+      assert_equal drive_modified, doc.updated_at
+      assert doc.file.attached?
+    end
+
+    @mock_api.verify
+  end
+
+  test "re-exports uploaded spreadsheet (XLSX fallback) when Drive updated_at is newer" do
+    old_updated_at = Time.utc(2024, 1, 1, 0, 0, 0)
+    drive_modified = Time.utc(2025, 6, 15, 12, 0, 0)
+    xlsx_mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+    doc = Document.new(
+      title: "Budget Sheet",
+      google_drive_url: "https://docs.google.com/spreadsheets/d/reexport_sheet/edit",
+      storage_type: :uploaded,
+      document_type: "Excel Spreadsheet",
+      community: @community
+    )
+    doc.file.attach(io: StringIO.new("old xlsx"), filename: "Budget Sheet.xlsx", content_type: xlsx_mime)
+    doc.save!
+    doc.update_columns(updated_at: old_updated_at)
+
+    drive_files = [
+      mock_drive_file(id: "reexport_sheet", name: "Budget Sheet", parent_id: @root_folder_id,
+                      mime_type: "application/vnd.google-apps.spreadsheet",
+                      web_link: "https://docs.google.com/spreadsheets/d/reexport_sheet/edit",
+                      updated_at: drive_modified)
+    ]
+
+    @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
+    @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
+    @mock_api.expect(:export_as_html, { status: :success, content: "<table>Updated</table>" }, [ "reexport_sheet" ])
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.import!
+
+      assert_equal 1, result[:docs_updated]
+      assert_equal 0, result[:docs_skipped]
+
+      doc.reload
+      assert_equal "<table>Updated</table>", doc.content
+      assert_equal "native", doc.storage_type
+      assert_equal drive_modified, doc.updated_at
     end
 
     @mock_api.verify
@@ -386,7 +560,7 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
     @mock_api.verify
   end
 
-  test "returns accurate summary counts including uploaded files" do
+  test "returns accurate summary counts including uploaded files and updated docs" do
     # Existing google_drive doc to convert
     Document.create!(
       title: "To Convert",
@@ -396,14 +570,27 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
       community: @community
     )
 
-    # Existing native doc to skip
-    Document.create!(
+    # Existing native doc with matching timestamp — skip
+    matching_time = Time.utc(2024, 6, 1, 10, 0, 0)
+    skip_doc = Document.create!(
       title: "Already Native",
       google_drive_url: "https://docs.google.com/document/d/already_native/edit",
       storage_type: :native,
       content: "<p>Done</p>",
       community: @community
     )
+    skip_doc.update_columns(updated_at: matching_time)
+
+    # Existing native doc with older timestamp — should be updated
+    old_time = Time.utc(2023, 1, 1, 0, 0, 0)
+    update_doc = Document.create!(
+      title: "Stale Native",
+      google_drive_url: "https://docs.google.com/document/d/stale_native/edit",
+      storage_type: :native,
+      content: "<p>Old</p>",
+      community: @community
+    )
+    update_doc.update_columns(updated_at: old_time)
 
     drive_folders = [
       mock_drive_folder(id: "folder_a", name: "Folder A", parent_id: @root_folder_id)
@@ -411,7 +598,8 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
 
     drive_files = [
       mock_drive_file(id: "convert_me", name: "To Convert", parent_id: @root_folder_id),
-      mock_drive_file(id: "already_native", name: "Already Native", parent_id: @root_folder_id),
+      mock_drive_file(id: "already_native", name: "Already Native", parent_id: @root_folder_id, updated_at: matching_time),
+      mock_drive_file(id: "stale_native", name: "Stale Native", parent_id: @root_folder_id, updated_at: Time.utc(2025, 6, 1)),
       mock_drive_file(id: "brand_new", name: "Brand New", parent_id: "folder_a"),
       mock_drive_file(id: "a_pdf", name: "A PDF", parent_id: @root_folder_id, mime_type: "application/pdf")
     ]
@@ -421,6 +609,7 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
     @mock_api.expect(:list_folder_tree, { folders: drive_folders, status: :success }, [ @root_folder_id ])
     @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
     @mock_api.expect(:export_as_html, { status: :success, content: "<p>Converted</p>" }, [ "convert_me" ])
+    @mock_api.expect(:export_as_html, { status: :success, content: "<p>Refreshed</p>" }, [ "stale_native" ])
     @mock_api.expect(:export_as_html, { status: :success, content: "<p>New doc</p>" }, [ "brand_new" ])
     @mock_api.expect(:download_file, {
       status: :success, content: pdf_content, name: "A PDF", mime_type: "application/pdf"
@@ -437,7 +626,9 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
       assert_equal 1, result[:docs_created]
       assert_equal 1, result[:docs_skipped]
       assert_equal 1, result[:docs_uploaded]
+      assert_equal 1, result[:docs_updated]
       assert_empty result[:errors]
+      assert_includes result[:message], "1 document(s) updated"
     end
 
     @mock_api.verify
@@ -552,6 +743,174 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
       assert_not_nil doc
       assert_equal drive_created, doc.created_at
       assert_equal drive_modified, doc.updated_at
+    end
+
+    @mock_api.verify
+  end
+
+  # --- Non-importable Google-native type tests ---
+
+  test "skips Google Forms and counts them in docs_skipped" do
+    drive_files = [
+      mock_drive_file(id: "form_1", name: "Community Survey", parent_id: @root_folder_id,
+                      mime_type: "application/vnd.google-apps.form",
+                      web_link: "https://docs.google.com/forms/d/form_1/edit"),
+      mock_drive_file(id: "doc_1", name: "Regular Doc", parent_id: @root_folder_id)
+    ]
+
+    @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
+    @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
+    @mock_api.expect(:export_as_html, { status: :success, content: "<p>Doc content</p>" }, [ "doc_1" ])
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      initial_count = Document.count
+
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.import!
+
+      assert result[:success]
+      assert_equal 1, result[:docs_skipped]
+      assert_equal 1, result[:docs_created]
+      assert_equal initial_count + 1, Document.count
+      assert_nil Document.find_by(google_drive_url: "https://docs.google.com/forms/d/form_1/edit")
+    end
+
+    @mock_api.verify
+  end
+
+  test "skips all non-importable Google-native types" do
+    non_importable_types = %w[
+      application/vnd.google-apps.form
+      application/vnd.google-apps.map
+      application/vnd.google-apps.site
+      application/vnd.google-apps.fusiontable
+      application/vnd.google-apps.jam
+      application/vnd.google-apps.shortcut
+    ]
+
+    drive_files = non_importable_types.each_with_index.map do |mime_type, i|
+      mock_drive_file(id: "skip_#{i}", name: "Skip #{i}", parent_id: @root_folder_id,
+                      mime_type: mime_type,
+                      web_link: "https://drive.google.com/file/d/skip_#{i}/view")
+    end
+
+    @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
+    @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      initial_count = Document.count
+
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.import!
+
+      assert result[:success]
+      assert_equal non_importable_types.length, result[:docs_skipped]
+      assert_equal 0, result[:docs_created]
+      assert_equal 0, result[:docs_uploaded]
+      assert_equal initial_count, Document.count
+    end
+
+    @mock_api.verify
+  end
+
+  # --- Spreadsheet XLSX fallback tests ---
+
+  test "falls back to XLSX when spreadsheet HTML export fails for new document" do
+    drive_files = [
+      mock_drive_file(id: "sheet_1", name: "Budget Spreadsheet", parent_id: @root_folder_id,
+                      mime_type: "application/vnd.google-apps.spreadsheet",
+                      web_link: "https://docs.google.com/spreadsheets/d/sheet_1/edit")
+    ]
+
+    xlsx_content = StringIO.new("fake xlsx content")
+
+    @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
+    @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
+    @mock_api.expect(:export_as_html, { status: :client_error, error: "conversion not supported" }, [ "sheet_1" ])
+    @mock_api.expect(:export_as_xlsx, {
+      status: :success, content: xlsx_content, name: "Budget Spreadsheet.xlsx",
+      mime_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }, [ "sheet_1" ])
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.import!
+
+      assert result[:success]
+      assert_equal 1, result[:docs_uploaded]
+      assert_equal 0, result[:docs_created]
+
+      doc = Document.find_by(google_drive_url: "https://docs.google.com/spreadsheets/d/sheet_1/edit")
+      assert_not_nil doc
+      assert_equal "uploaded", doc.storage_type
+      assert_equal "Excel Spreadsheet", doc.document_type
+      assert doc.file.attached?
+    end
+
+    @mock_api.verify
+  end
+
+  test "falls back to XLSX when spreadsheet HTML export fails for existing google_drive document" do
+    existing_doc = Document.create!(
+      title: "Old Sheet",
+      google_drive_url: "https://docs.google.com/spreadsheets/d/sheet_convert/edit",
+      storage_type: :google_drive,
+      document_type: "Spreadsheet",
+      community: @community
+    )
+
+    drive_files = [
+      mock_drive_file(id: "sheet_convert", name: "Old Sheet", parent_id: @root_folder_id,
+                      mime_type: "application/vnd.google-apps.spreadsheet",
+                      web_link: "https://docs.google.com/spreadsheets/d/sheet_convert/edit")
+    ]
+
+    xlsx_content = StringIO.new("fake xlsx content")
+
+    @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
+    @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
+    @mock_api.expect(:export_as_html, { status: :client_error, error: "conversion not supported" }, [ "sheet_convert" ])
+    @mock_api.expect(:export_as_xlsx, {
+      status: :success, content: xlsx_content, name: "Old Sheet.xlsx",
+      mime_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }, [ "sheet_convert" ])
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.import!
+
+      assert result[:success]
+      assert_equal 1, result[:docs_uploaded]
+      assert_equal 0, result[:docs_converted]
+
+      existing_doc.reload
+      assert_equal "uploaded", existing_doc.storage_type
+      assert_equal "Excel Spreadsheet", existing_doc.document_type
+      assert existing_doc.file.attached?
+    end
+
+    @mock_api.verify
+  end
+
+  test "reports error when spreadsheet XLSX fallback also fails" do
+    drive_files = [
+      mock_drive_file(id: "sheet_fail", name: "Failing Sheet", parent_id: @root_folder_id,
+                      mime_type: "application/vnd.google-apps.spreadsheet",
+                      web_link: "https://docs.google.com/spreadsheets/d/sheet_fail/edit")
+    ]
+
+    @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
+    @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
+    @mock_api.expect(:export_as_html, { status: :client_error, error: "conversion not supported" }, [ "sheet_fail" ])
+    @mock_api.expect(:export_as_xlsx, { status: :client_error, error: "XLSX export also failed" }, [ "sheet_fail" ])
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.import!
+
+      assert result[:success]
+      assert_equal 1, result[:errors].length
+      assert_includes result[:errors].first, "Failing Sheet"
     end
 
     @mock_api.verify

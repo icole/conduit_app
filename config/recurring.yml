@@ -1,7 +1,7 @@
 production:
   scheduled_drive_sync:
     class: ScheduledDriveSyncJob
-    schedule: every hour at minute 0
+    schedule: every 15 minutes
     queue: default
 
   generate_weekly_meals:
@@ -27,7 +27,7 @@ production:
 development:
   scheduled_drive_sync:
     class: ScheduledDriveSyncJob
-    schedule: every hour at minute 0
+    schedule: every 15 minutes
     queue: default
 
   generate_weekly_meals:

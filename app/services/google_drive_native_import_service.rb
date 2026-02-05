@@ -30,17 +30,18 @@ class GoogleDriveNativeImportService
       return { success: false, message: "Failed to fetch files: #{files_result[:error]}" } unless files_result[:status] == :success
 
       # Import files as native or uploaded documents
-      docs_converted, docs_created, docs_uploaded, docs_skipped, errors = import_files(files_result[:files], drive_folders)
+      docs_converted, docs_created, docs_uploaded, docs_skipped, docs_updated, errors = import_files(files_result[:files], drive_folders)
 
       {
         success: true,
-        message: build_message(folders_created, folders_updated, docs_converted, docs_created, docs_uploaded, docs_skipped, errors),
+        message: build_message(folders_created, folders_updated, docs_converted, docs_created, docs_uploaded, docs_skipped, docs_updated, errors),
         folders_created: folders_created,
         folders_updated: folders_updated,
         docs_converted: docs_converted,
         docs_created: docs_created,
         docs_uploaded: docs_uploaded,
         docs_skipped: docs_skipped,
+        docs_updated: docs_updated,
         errors: errors
       }
     end
@@ -90,6 +91,7 @@ class GoogleDriveNativeImportService
     docs_created = 0
     docs_uploaded = 0
     docs_skipped = 0
+    docs_updated = 0
     errors = []
 
     folder_id_map = drive_folders.each_with_object({}) do |folder, map|
@@ -114,24 +116,41 @@ class GoogleDriveNativeImportService
       drive_timestamps = { created_at: drive_file[:created_at], updated_at: drive_file[:updated_at] }
 
       if existing&.native? || existing&.uploaded?
-        # Already imported — skip
-        Rails.logger.info("[DriveImport] Skipping already-imported: #{drive_file[:name]}")
+        # Already imported — re-import if Drive updated_at differs, otherwise skip
+        if drive_timestamps[:updated_at] && existing.updated_at != drive_timestamps[:updated_at]
+          result = if google_doc_type?(drive_file[:mime_type])
+            export_and_update(existing, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id, drive_timestamps)
+          else
+            download_and_update(existing, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id, drive_timestamps)
+          end
+          if result == :success || result == :xlsx_fallback
+            docs_updated += 1
+          else
+            errors << result
+          end
+        else
+          Rails.logger.info("[DriveImport] Skipping already-imported: #{drive_file[:name]}")
+          docs_skipped += 1
+        end
+      elsif google_native_skip_type?(drive_file[:mime_type])
+        # Non-importable Google-native type (Forms, Maps, Sites, etc.) — skip
+        Rails.logger.info("[DriveImport] Skipping non-importable type: #{drive_file[:name]} (#{drive_file[:mime_type]})")
         docs_skipped += 1
       elsif google_doc_type?(drive_file[:mime_type])
         # Google-native file — export as HTML
         if existing&.google_drive?
           result = export_and_update(existing, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id, drive_timestamps)
-          if result == :success
-            docs_converted += 1
-          else
-            errors << result
+          case result
+          when :success then docs_converted += 1
+          when :xlsx_fallback then docs_uploaded += 1
+          else errors << result
           end
         else
           result = export_and_create(web_link, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id, drive_timestamps)
-          if result == :success
-            docs_created += 1
-          else
-            errors << result
+          case result
+          when :success then docs_created += 1
+          when :xlsx_fallback then docs_uploaded += 1
+          else errors << result
           end
         end
       else
@@ -145,7 +164,7 @@ class GoogleDriveNativeImportService
       end
     end
 
-    [ docs_converted, docs_created, docs_uploaded, docs_skipped, errors ]
+    [ docs_converted, docs_created, docs_uploaded, docs_skipped, docs_updated, errors ]
   end
 
   def export_and_update(document, file_id, name, mime_type, local_folder_id, drive_timestamps)
@@ -153,6 +172,11 @@ class GoogleDriveNativeImportService
     export_result = @api.export_as_html(file_id)
 
     unless export_result[:status] == :success
+      # For spreadsheets, fall back to XLSX export as an uploaded document
+      if mime_type == "application/vnd.google-apps.spreadsheet"
+        return xlsx_fallback_update(document, file_id, name, local_folder_id, drive_timestamps)
+      end
+
       msg = "Failed to export '#{name}': #{export_result[:error]}"
       Rails.logger.error("[DriveImport] #{msg}")
       return msg
@@ -173,6 +197,11 @@ class GoogleDriveNativeImportService
     export_result = @api.export_as_html(file_id)
 
     unless export_result[:status] == :success
+      # For spreadsheets, fall back to XLSX export as an uploaded document
+      if mime_type == "application/vnd.google-apps.spreadsheet"
+        return xlsx_fallback_create(web_link, file_id, name, local_folder_id, drive_timestamps)
+      end
+
       msg = "Failed to export '#{name}': #{export_result[:error]}"
       Rails.logger.error("[DriveImport] #{msg}")
       return msg
@@ -219,6 +248,29 @@ class GoogleDriveNativeImportService
     :success
   end
 
+  def download_and_update(document, file_id, name, mime_type, local_folder_id, drive_timestamps)
+    Rails.logger.info("[DriveImport] Re-downloading uploaded file: #{name}")
+    download_result = @api.download_file(file_id)
+
+    unless download_result[:status] == :success
+      msg = "Failed to download '#{name}': #{download_result[:error]}"
+      Rails.logger.error("[DriveImport] #{msg}")
+      return msg
+    end
+
+    document.file.attach(
+      io: download_result[:content],
+      filename: name,
+      content_type: download_result[:mime_type]
+    )
+    document.update!(
+      document_type: document_type_from_mime(mime_type),
+      document_folder_id: local_folder_id
+    )
+    apply_drive_timestamps(document, drive_timestamps)
+    :success
+  end
+
   def apply_drive_timestamps(document, timestamps)
     columns = {}
     columns[:created_at] = timestamps[:created_at] if timestamps[:created_at]
@@ -243,6 +295,72 @@ class GoogleDriveNativeImportService
       application/vnd.google-apps.spreadsheet
       application/vnd.google-apps.presentation
     ].include?(mime_type)
+  end
+
+  def google_native_skip_type?(mime_type)
+    %w[
+      application/vnd.google-apps.form
+      application/vnd.google-apps.map
+      application/vnd.google-apps.site
+      application/vnd.google-apps.fusiontable
+      application/vnd.google-apps.jam
+      application/vnd.google-apps.shortcut
+    ].include?(mime_type)
+  end
+
+  def xlsx_fallback_create(web_link, file_id, name, local_folder_id, drive_timestamps)
+    Rails.logger.info("[DriveImport] HTML export failed for spreadsheet, falling back to XLSX: #{name}")
+    xlsx_result = @api.export_as_xlsx(file_id)
+
+    unless xlsx_result[:status] == :success
+      msg = "Failed to export '#{name}' as XLSX: #{xlsx_result[:error]}"
+      Rails.logger.error("[DriveImport] #{msg}")
+      return msg
+    end
+
+    xlsx_mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    doc = Document.new(
+      title: name,
+      google_drive_url: web_link,
+      storage_type: :uploaded,
+      document_type: document_type_from_mime(xlsx_mime),
+      document_folder_id: local_folder_id,
+      community: @community
+    )
+    doc.file.attach(
+      io: xlsx_result[:content],
+      filename: xlsx_result[:name],
+      content_type: xlsx_mime
+    )
+    doc.save!
+    apply_drive_timestamps(doc, drive_timestamps)
+    :xlsx_fallback
+  end
+
+  def xlsx_fallback_update(document, file_id, name, local_folder_id, drive_timestamps)
+    Rails.logger.info("[DriveImport] HTML export failed for spreadsheet, falling back to XLSX: #{name}")
+    xlsx_result = @api.export_as_xlsx(file_id)
+
+    unless xlsx_result[:status] == :success
+      msg = "Failed to export '#{name}' as XLSX: #{xlsx_result[:error]}"
+      Rails.logger.error("[DriveImport] #{msg}")
+      return msg
+    end
+
+    xlsx_mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    document.file.attach(
+      io: xlsx_result[:content],
+      filename: xlsx_result[:name],
+      content_type: xlsx_mime
+    )
+    document.update!(
+      storage_type: :uploaded,
+      content: nil,
+      document_type: document_type_from_mime(xlsx_mime),
+      document_folder_id: local_folder_id
+    )
+    apply_drive_timestamps(document, drive_timestamps)
+    :xlsx_fallback
   end
 
   def topological_sort(folders, parent_map)
@@ -272,13 +390,14 @@ class GoogleDriveNativeImportService
     sorted
   end
 
-  def build_message(folders_created, folders_updated, docs_converted, docs_created, docs_uploaded, docs_skipped, errors)
+  def build_message(folders_created, folders_updated, docs_converted, docs_created, docs_uploaded, docs_skipped, docs_updated, errors)
     parts = []
     parts << "#{folders_created} folder(s) created" if folders_created > 0
     parts << "#{folders_updated} folder(s) updated" if folders_updated > 0
     parts << "#{docs_converted} document(s) converted to native" if docs_converted > 0
     parts << "#{docs_created} document(s) created as native" if docs_created > 0
     parts << "#{docs_uploaded} file(s) uploaded" if docs_uploaded > 0
+    parts << "#{docs_updated} document(s) updated" if docs_updated > 0
     parts << "#{docs_skipped} document(s) skipped (already imported)" if docs_skipped > 0
     parts << "#{errors.length} error(s)" if errors.any?
 
