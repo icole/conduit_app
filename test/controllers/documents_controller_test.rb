@@ -183,6 +183,31 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to documents_url
   end
 
+  test "should move document to a folder" do
+    native_doc = documents(:native_doc)
+    folder = document_folders(:root_folder)
+
+    assert_nil native_doc.document_folder_id
+
+    patch document_url(native_doc), params: { document: { document_folder_id: folder.id } }
+    assert_redirected_to document_url(native_doc)
+
+    native_doc.reload
+    assert_equal folder, native_doc.document_folder
+  end
+
+  test "should move document to root" do
+    folder = document_folders(:root_folder)
+    native_doc = documents(:native_doc)
+    native_doc.update!(document_folder_id: folder.id)
+
+    patch document_url(native_doc), params: { document: { document_folder_id: "" } }
+    assert_redirected_to document_url(native_doc)
+
+    native_doc.reload
+    assert_nil native_doc.document_folder_id
+  end
+
   test "show redirects uploaded document to blob url" do
     uploaded_doc = documents(:uploaded_doc)
     uploaded_doc.file.attach(

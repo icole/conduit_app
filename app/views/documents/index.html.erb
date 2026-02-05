@@ -192,6 +192,11 @@
                   <td>
                     <div class="flex justify-end gap-2" onclick="event.stopPropagation()">
                       <% if document.native? || document.uploaded? %>
+                        <label for="move-doc-modal-<%= document.id %>" class="btn btn-xs btn-outline btn-info" title="Move to folder">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                          </svg>
+                        </label>
                         <%= button_to document_path(document), method: :delete,
                             data: { turbo_confirm: "Are you sure you want to delete '#{document.title}'?" },
                             class: "btn btn-xs btn-outline btn-error" do %>
@@ -209,6 +214,35 @@
                     </div>
                   </td>
                 </tr>
+
+                <%# Move to Folder modal %>
+                <% if document.native? || document.uploaded? %>
+                  <input type="checkbox" id="move-doc-modal-<%= document.id %>" class="modal-toggle" />
+                  <div class="modal modal-bottom sm:modal-middle">
+                    <div class="modal-box">
+                      <h3 class="font-bold text-lg mb-4">Move "<%= document.title %>"</h3>
+                      <%= form_with model: document, url: document_path(document), method: :patch, class: "space-y-4" do |f| %>
+                        <div class="form-control">
+                          <label class="label cursor-pointer justify-start gap-3">
+                            <%= f.radio_button :document_folder_id, "", checked: document.document_folder_id.nil?, class: "radio radio-primary" %>
+                            <span class="label-text font-medium">Root (no folder)</span>
+                          </label>
+                          <% @all_folders.each do |folder| %>
+                            <label class="label cursor-pointer justify-start gap-3">
+                              <%= f.radio_button :document_folder_id, folder.id, checked: document.document_folder_id == folder.id, class: "radio radio-primary" %>
+                              <span class="label-text"><%= folder.name %></span>
+                            </label>
+                          <% end %>
+                        </div>
+                        <div class="modal-action">
+                          <label for="move-doc-modal-<%= document.id %>" class="btn">Cancel</label>
+                          <%= f.submit "Move", class: "btn btn-primary" %>
+                        </div>
+                      <% end %>
+                    </div>
+                    <label class="modal-backdrop" for="move-doc-modal-<%= document.id %>">Close</label>
+                  </div>
+                <% end %>
               <% end %>
             </tbody>
           </table>

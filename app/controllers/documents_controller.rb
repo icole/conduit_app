@@ -24,6 +24,9 @@ class DocumentsController < ApplicationController
 
     # Documents in current folder
     @documents = Document.where(document_folder_id: @current_folder&.id).order("#{sort_column} #{sort_direction}")
+
+    # All folders for "Move to Folder" modal
+    @all_folders = DocumentFolder.order(:name)
   end
 
   # Sync documents and folders from Google Drive (admin only)
