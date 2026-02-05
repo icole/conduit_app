@@ -21,23 +21,7 @@ class DashboardController < ApplicationController
     calendar_id = current_community.google_calendar_id
     @calendar_already_shared = calendar_id.present? && CalendarShare.calendar_shared_with_user?(calendar_id, current_user)
 
-    # Check if the user already has a drive folder share
-    folder_id = current_community.google_drive_folder_id
-    @drive_folder_already_shared = folder_id.present? ? DriveShare.folder_shared_with_user?(folder_id, current_user) : false
-
-    # Get recent drive files from cache or trigger background job
-    @drive_sync_loading = false
-    if !Rails.env.test? && @drive_folder_already_shared && folder_id.present?
-      cache_key = "drive_files_#{current_user.id}"
-      @recent_files = Rails.cache.read(cache_key)
-
-      # If cache is empty or expired, trigger background job
-      if @recent_files.nil?
-        GoogleDriveSyncJob.perform_later(current_user.id)
-        @recent_files = { status: :loading, files: [] }
-        @drive_sync_loading = true
-      end
-    end
+    @recent_documents = Document.order(updated_at: :desc).limit(5)
 
     @google_calendar_configured = begin
       defined?(CalendarCredentials) && CalendarCredentials.configured? && current_community.google_calendar_id.present?

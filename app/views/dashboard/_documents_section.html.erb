@@ -1,5 +1,5 @@
-<!-- Documents/Files Section -->
-<div class="card bg-base-100 shadow-xl" data-controller="drive-sync">
+<!-- Documents Section -->
+<div class="card bg-base-100 shadow-xl">
   <div class="card-body">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 mb-2">
       <h2 class="card-title text-xl lg:text-lg font-semibold flex items-center gap-2">
@@ -7,66 +7,42 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
         Community Documents
-      </h3>
-      <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-        <% if @drive_folder_already_shared %>
-          <button data-drive-sync-target="refreshButton"
-                  data-action="click->drive-sync#refresh"
-                  class="btn btn-sm btn-ghost min-h-[44px] px-3">
-            <span class="loading loading-spinner loading-xs hidden"></span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span class="button-text hidden sm:inline">Refresh</span>
-          </button>
-        <% end %>
-        <%= render partial: 'shared/drive_folder_access_button', locals: {
-          folder_id: ENV["GOOGLE_DRIVE_FOLDER_ID"],
-          folder_name: "Community Files",
-          button_text: @drive_folder_already_shared ? "Open Files" : "Get Access",
-          button_class: "badge badge-primary hover:badge-secondary cursor-pointer min-h-[44px] px-3"
-        } %>
-      </div>
+      </h2>
+      <%= link_to documents_path, class: "link link-hover text-sm flex items-center gap-1" do %>
+        <span>View all</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      <% end %>
     </div>
-    <p class="text-xs text-base-content/70 mb-4">Access shared community files and resources</p>
 
-    <% if @drive_folder_already_shared %>
-      <div class="space-y-2">
-        <h4 class="font-medium text-sm">Recent Files</h4>
-
-        <!-- Loading State -->
-        <div data-drive-sync-target="loadingState" class="<%= @drive_sync_loading ? '' : 'hidden' %>">
-          <div class="flex items-center justify-center py-8">
-            <span class="loading loading-spinner loading-md"></span>
-            <span class="ml-2 text-sm text-base-content/60">Refreshing files...</span>
-          </div>
-        </div>
-
-        <!-- Error State -->
-        <div data-drive-sync-target="errorState" class="hidden">
-          <!-- Error content will be populated by JavaScript -->
-        </div>
-
-        <!-- Files List (also handles empty state via the partial) -->
-        <div data-drive-sync-target="filesList" class="<%= @drive_sync_loading ? 'hidden' : '' %>">
-          <%= render 'files_list', files: @recent_files&.dig(:files) %>
-        </div>
+    <% if @recent_documents.any? %>
+      <div class="divide-y divide-base-200 rounded-lg border border-base-200 overflow-hidden">
+        <% @recent_documents.each do |document| %>
+          <%= link_to document_path(document), class: "flex items-center gap-3 p-3 min-h-[52px] hover:bg-base-200 active:bg-base-300 transition-colors cursor-pointer touch-manipulation" do %>
+            <div class="flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div class="flex-grow min-w-0">
+              <p class="font-medium text-sm line-clamp-1"><%= document.title %></p>
+              <p class="text-xs text-base-content/60">
+                Updated <%= time_ago_in_words(document.updated_at) %> ago
+              </p>
+            </div>
+          <% end %>
+        <% end %>
       </div>
     <% else %>
-      <div class="bg-base-200 p-4 rounded-lg flex items-center gap-3">
-        <div class="bg-primary/10 p-3 rounded-full">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2-2z" />
-          </svg>
-        </div>
-        <div>
-          <h4 class="font-medium">Shared Documents</h4>
-          <% if google_account? %>
-            <p class="text-xs text-base-content/70">Click "Get Access" to view shared community files</p>
-          <% else %>
-            <p class="text-xs text-base-content/70">Sign in with Google to access shared community files</p>
-          <% end %>
-        </div>
+      <div class="text-center py-8 text-base-content/60">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-sm">No documents yet</p>
+        <p class="text-xs text-base-content/40 mt-1">
+          <%= link_to "Create your first document", new_document_path, class: "link link-primary" %>
+        </p>
       </div>
     <% end %>
   </div>

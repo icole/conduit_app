@@ -47,43 +47,26 @@
           </svg>
           Documents
         </h2>
-        <% if @drive_folder_already_shared %>
-          <%= render partial: 'shared/drive_folder_access_button', locals: {
-            folder_id: ENV["GOOGLE_DRIVE_FOLDER_ID"],
-            folder_name: "Community Files",
-            button_text: "Open",
-            button_class: "text-sm text-primary font-medium"
-          } %>
+        <%= link_to documents_path, class: "text-sm text-primary font-medium" do %>
+          View all →
         <% end %>
       </div>
       <div class="bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200">
-        <% if @drive_folder_already_shared && @drive_sync_loading %>
-          <div class="px-3 py-4 text-center text-sm text-base-content/50">
-            <span class="loading loading-spinner loading-xs mr-1"></span>
-            Loading files...
-          </div>
-        <% elsif @drive_folder_already_shared && @recent_files&.dig(:files)&.any? %>
-          <% @recent_files[:files].first(4).each do |file| %>
-            <a href="<%= file[:web_link] %>" target="_blank" class="flex items-center gap-3 px-3 py-2.5 hover:bg-base-200/50">
+        <% if @recent_documents.any? %>
+          <% @recent_documents.each do |document| %>
+            <%= link_to document_path(document), class: "flex items-center gap-3 px-3 py-2.5 hover:bg-base-200/50" do %>
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/40 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <span class="text-sm truncate"><%= file[:name] %></span>
-            </a>
+              <div class="min-w-0">
+                <span class="text-sm truncate block"><%= document.title %></span>
+                <span class="text-xs text-base-content/60"><%= time_ago_in_words(document.updated_at) %> ago</span>
+              </div>
+            <% end %>
           <% end %>
-        <% elsif !@drive_folder_already_shared %>
-          <div class="px-3 py-4 text-center">
-            <p class="text-sm text-base-content/50 mb-2">Access shared community files</p>
-            <%= render partial: 'shared/drive_folder_access_button', locals: {
-              folder_id: ENV["GOOGLE_DRIVE_FOLDER_ID"],
-              folder_name: "Community Files",
-              button_text: "Get Access",
-              button_class: "btn btn-primary btn-sm"
-            } %>
-          </div>
         <% else %>
           <div class="px-3 py-4 text-center text-sm text-base-content/50">
-            No recent documents
+            No documents yet
           </div>
         <% end %>
       </div>

@@ -9,6 +9,14 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil assigns(:post)
   end
 
+  test "should assign recent documents" do
+    sign_in_user
+    get dashboard_index_url
+    assert_response :success
+    assert_not_nil assigns(:recent_documents)
+    assert_select "a[href='#{documents_path}']"
+  end
+
   test "should get index for restricted user and not show posts" do
     # Sign in as a restricted user
     sign_in_user(uid: "restricted123", email: "restricted@example.com")
