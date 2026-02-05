@@ -76,9 +76,8 @@ class TasksTest < ApplicationSystemTestCase
     within "#new_task" do
       fill_in "task[title]", with: "Test assigned task"
 
-      # Use custom user-select dropdown
-      find("[data-controller='user-select'] [data-user-select-target='display']").click
-      find("[data-controller='user-select'] [data-user-select-target='option'][data-name='#{@user_two.name}']").click
+      # Use native select for user assignment
+      select @user_two.name, from: "task[assigned_to_user_id]"
 
       # Submit the form
       click_on "Create Task"
@@ -102,9 +101,8 @@ class TasksTest < ApplicationSystemTestCase
     # Check that we are on the edit page
     assert_text "Edit Task"
 
-    # Use custom user-select dropdown
-    find("[data-controller='user-select'] [data-user-select-target='display']").click
-    find("[data-controller='user-select'] [data-user-select-target='option'][data-name='#{@user_two.name}']").click
+    # Use native select for user assignment
+    select @user_two.name, from: "task[assigned_to_user_id]"
 
     # Submit the form - use the button text instead of input value
     click_button "Update Task"
