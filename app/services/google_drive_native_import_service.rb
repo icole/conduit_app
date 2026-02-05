@@ -29,16 +29,17 @@ class GoogleDriveNativeImportService
       files_result = @api.list_files_in_folders(all_folder_ids)
       return { success: false, message: "Failed to fetch files: #{files_result[:error]}" } unless files_result[:status] == :success
 
-      # Import files as native documents
-      docs_converted, docs_created, docs_skipped, errors = import_files(files_result[:files], drive_folders)
+      # Import files as native or uploaded documents
+      docs_converted, docs_created, docs_uploaded, docs_skipped, errors = import_files(files_result[:files], drive_folders)
 
       {
         success: true,
-        message: build_message(folders_created, folders_updated, docs_converted, docs_created, docs_skipped, errors),
+        message: build_message(folders_created, folders_updated, docs_converted, docs_created, docs_uploaded, docs_skipped, errors),
         folders_created: folders_created,
         folders_updated: folders_updated,
         docs_converted: docs_converted,
         docs_created: docs_created,
+        docs_uploaded: docs_uploaded,
         docs_skipped: docs_skipped,
         errors: errors
       }
@@ -87,6 +88,7 @@ class GoogleDriveNativeImportService
   def import_files(drive_files, drive_folders)
     docs_converted = 0
     docs_created = 0
+    docs_uploaded = 0
     docs_skipped = 0
     errors = []
 
@@ -96,8 +98,6 @@ class GoogleDriveNativeImportService
     end
 
     drive_files.each do |drive_file|
-      next unless google_doc_type?(drive_file[:mime_type])
-
       web_link = drive_file[:web_link]
       file_id = extract_file_id(web_link)
 
@@ -111,33 +111,42 @@ class GoogleDriveNativeImportService
 
       existing = Document.find_by(google_drive_url: web_link)
 
-      if existing&.native?
-        # Already imported as native — skip
-        Rails.logger.info("[DriveImport] Skipping already-native: #{drive_file[:name]}")
+      if existing&.native? || existing&.uploaded?
+        # Already imported — skip
+        Rails.logger.info("[DriveImport] Skipping already-imported: #{drive_file[:name]}")
         docs_skipped += 1
-      elsif existing&.google_drive?
-        # Convert existing google_drive doc to native
-        result = export_and_update(existing, file_id, drive_file[:name], local_folder_id)
-        if result == :success
-          docs_converted += 1
+      elsif google_doc_type?(drive_file[:mime_type])
+        # Google-native file — export as HTML
+        if existing&.google_drive?
+          result = export_and_update(existing, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id)
+          if result == :success
+            docs_converted += 1
+          else
+            errors << result
+          end
         else
-          errors << result
+          result = export_and_create(web_link, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id)
+          if result == :success
+            docs_created += 1
+          else
+            errors << result
+          end
         end
       else
-        # New file — create native document
-        result = export_and_create(web_link, file_id, drive_file[:name], local_folder_id)
+        # Non-Google-native file — download and attach
+        result = download_and_create(web_link, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id)
         if result == :success
-          docs_created += 1
+          docs_uploaded += 1
         else
           errors << result
         end
       end
     end
 
-    [ docs_converted, docs_created, docs_skipped, errors ]
+    [ docs_converted, docs_created, docs_uploaded, docs_skipped, errors ]
   end
 
-  def export_and_update(document, file_id, name, local_folder_id)
+  def export_and_update(document, file_id, name, mime_type, local_folder_id)
     Rails.logger.info("[DriveImport] Converting to native: #{name}")
     export_result = @api.export_as_html(file_id)
 
@@ -150,13 +159,13 @@ class GoogleDriveNativeImportService
     document.update!(
       storage_type: :native,
       content: export_result[:content],
-      document_type: nil,
+      document_type: document_type_from_mime(mime_type),
       document_folder_id: local_folder_id
     )
     :success
   end
 
-  def export_and_create(web_link, file_id, name, local_folder_id)
+  def export_and_create(web_link, file_id, name, mime_type, local_folder_id)
     Rails.logger.info("[DriveImport] Creating native doc: #{name}")
     export_result = @api.export_as_html(file_id)
 
@@ -171,9 +180,37 @@ class GoogleDriveNativeImportService
       google_drive_url: web_link,
       storage_type: :native,
       content: export_result[:content],
+      document_type: document_type_from_mime(mime_type),
       document_folder_id: local_folder_id,
       community: @community
     )
+    :success
+  end
+
+  def download_and_create(web_link, file_id, name, mime_type, local_folder_id)
+    Rails.logger.info("[DriveImport] Downloading uploaded file: #{name}")
+    download_result = @api.download_file(file_id)
+
+    unless download_result[:status] == :success
+      msg = "Failed to download '#{name}': #{download_result[:error]}"
+      Rails.logger.error("[DriveImport] #{msg}")
+      return msg
+    end
+
+    doc = Document.new(
+      title: name,
+      google_drive_url: web_link,
+      storage_type: :uploaded,
+      document_type: document_type_from_mime(mime_type),
+      document_folder_id: local_folder_id,
+      community: @community
+    )
+    doc.file.attach(
+      io: download_result[:content],
+      filename: name,
+      content_type: download_result[:mime_type]
+    )
+    doc.save!
     :success
   end
 
@@ -182,6 +219,32 @@ class GoogleDriveNativeImportService
 
     match = url.match(%r{/d/([a-zA-Z0-9_-]+)})
     match&.[](1)
+  end
+
+  def document_type_from_mime(mime_type)
+    case mime_type
+    when "application/vnd.google-apps.document"
+      "Document"
+    when "application/vnd.google-apps.spreadsheet"
+      "Spreadsheet"
+    when "application/vnd.google-apps.presentation"
+      "Presentation"
+    when "application/pdf"
+      "PDF"
+    when "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+         "application/msword"
+      "Word Document"
+    when "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+         "application/vnd.ms-excel"
+      "Excel Spreadsheet"
+    when "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+         "application/vnd.ms-powerpoint"
+      "PowerPoint"
+    when /\Aimage\//
+      "Image"
+    else
+      "File"
+    end
   end
 
   def google_doc_type?(mime_type)
@@ -219,13 +282,14 @@ class GoogleDriveNativeImportService
     sorted
   end
 
-  def build_message(folders_created, folders_updated, docs_converted, docs_created, docs_skipped, errors)
+  def build_message(folders_created, folders_updated, docs_converted, docs_created, docs_uploaded, docs_skipped, errors)
     parts = []
     parts << "#{folders_created} folder(s) created" if folders_created > 0
     parts << "#{folders_updated} folder(s) updated" if folders_updated > 0
     parts << "#{docs_converted} document(s) converted to native" if docs_converted > 0
     parts << "#{docs_created} document(s) created as native" if docs_created > 0
-    parts << "#{docs_skipped} document(s) skipped (already native)" if docs_skipped > 0
+    parts << "#{docs_uploaded} file(s) uploaded" if docs_uploaded > 0
+    parts << "#{docs_skipped} document(s) skipped (already imported)" if docs_skipped > 0
     parts << "#{errors.length} error(s)" if errors.any?
 
     if parts.empty?

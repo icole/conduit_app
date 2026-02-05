@@ -264,6 +264,30 @@ class GoogleDriveApiService
     end
   end
 
+  # Download a non-Google-native file (PDF, DOCX, images, etc.) as binary
+  def download_file(file_id)
+    file = drive_service.get_file(file_id, fields: "id, name, mimeType")
+    content = StringIO.new
+    drive_service.get_file(file_id, download_dest: content)
+    content.rewind
+
+    {
+      status: :success,
+      content: content,
+      name: file.name,
+      mime_type: file.mime_type
+    }
+  rescue Google::Apis::ClientError => e
+    Rails.logger.error("Google Drive API Download Client Error: #{e.message}")
+    { error: e.message, status: :client_error }
+  rescue Google::Apis::ServerError => e
+    Rails.logger.error("Google Drive API Download Server Error: #{e.message}")
+    { error: e.message, status: :server_error }
+  rescue Google::Apis::AuthorizationError => e
+    Rails.logger.error("Google Drive API Download Authorization Error: #{e.message}")
+    { error: e.message, status: :auth_error }
+  end
+
   # Share a folder with a specific user by email
   def share_folder_with_user(folder_id:, email:, role: "reader")
     begin
