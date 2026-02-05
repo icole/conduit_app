@@ -1239,6 +1239,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-character-count@npm:^2.0.0":
+  version: 2.27.2
+  resolution: "@tiptap/extension-character-count@npm:2.27.2"
+  peerDependencies:
+    "@tiptap/core": ^2.7.0
+    "@tiptap/pm": ^2.7.0
+  checksum: 10c0/ed66be681966b17407621a6ef52b06adb4d77214b9faa1bdb8a210628c245086e16b23ef667ab14c9d835f08fd0b331d45c9cc6a0ecba9fc050141df9e35b740
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-code-block@npm:^2.27.1":
   version: 2.27.1
   resolution: "@tiptap/extension-code-block@npm:2.27.1"
@@ -1317,6 +1327,26 @@ __metadata:
     "@tiptap/core": ^2.7.0
     "@tiptap/pm": ^2.7.0
   checksum: 10c0/85c1b99fafa2ec16842806c1d05801a747a75b0bb67a216b309ee83e026319c1d9d56bace3d81d5e699757913d4257fa87ffe3c34987f31e040ece22d1dfc36a
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-focus@npm:^2.0.0":
+  version: 2.27.2
+  resolution: "@tiptap/extension-focus@npm:2.27.2"
+  peerDependencies:
+    "@tiptap/core": ^2.7.0
+    "@tiptap/pm": ^2.7.0
+  checksum: 10c0/1a41d43f25f95098698fc84b32fc9839df72694658db1de35876f9296499070bd5ad3072b6a429c51fdc377fe9fbfca691e803651870f9c8a427f6e815c9daab
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-font-family@npm:^2.0.0":
+  version: 2.27.2
+  resolution: "@tiptap/extension-font-family@npm:2.27.2"
+  peerDependencies:
+    "@tiptap/core": ^2.7.0
+    "@tiptap/extension-text-style": ^2.7.0
+  checksum: 10c0/50a1bb04ccb50f46f2690a15c712544a44e175bf2c7c4114370454bfef6793e2f15ad5f01be2ac0ad52c0e0e8ae46e081878ffde003e6f6a30980200b521b14e
   languageName: node
   linkType: hard
 
@@ -1416,6 +1446,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-mention@npm:^2.0.0":
+  version: 2.27.2
+  resolution: "@tiptap/extension-mention@npm:2.27.2"
+  peerDependencies:
+    "@tiptap/core": ^2.7.0
+    "@tiptap/pm": ^2.7.0
+    "@tiptap/suggestion": ^2.7.0
+  checksum: 10c0/eb8ed89fca0855582834a6f5d28fd3d01cad7d2fc4012a8753b21aef87ad56e574d49e13e2eda901049c7b56364c6f5b6d0e7f594bddbec219bc91bc0f937683
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-ordered-list@npm:^2.27.1":
   version: 2.27.1
   resolution: "@tiptap/extension-ordered-list@npm:2.27.1"
@@ -1450,6 +1491,24 @@ __metadata:
   peerDependencies:
     "@tiptap/core": ^2.7.0
   checksum: 10c0/31c2cc1bea3e929fd96dacc1e42c651a1c09fc8a066abfe60db2542ba5b4796c82905d9eb25633bdbb2787edbde50ab033870bb104992c18c82c245bb7a05d7e
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-subscript@npm:^2.0.0":
+  version: 2.27.2
+  resolution: "@tiptap/extension-subscript@npm:2.27.2"
+  peerDependencies:
+    "@tiptap/core": ^2.7.0
+  checksum: 10c0/b47d7f7438c5eeeb2321dac26fc237274c43dc86326f84bd32584d63b702abde051d4e6726e765937feb366ec059600489ebea34891542b47c549c1c72f86378
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-superscript@npm:^2.0.0":
+  version: 2.27.2
+  resolution: "@tiptap/extension-superscript@npm:2.27.2"
+  peerDependencies:
+    "@tiptap/core": ^2.7.0
+  checksum: 10c0/c4d03dcc3a378111e7b424c576efd5ecfc00ed2d833b73cae11ff757fbafc1d9161b1da4f97a2d8e493fc31834022e26e5c909e404f097ec78f85c21ee28ed5d
   languageName: node
   linkType: hard
 
@@ -1536,12 +1595,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-typography@npm:^3.19.0":
+  version: 3.19.0
+  resolution: "@tiptap/extension-typography@npm:3.19.0"
+  peerDependencies:
+    "@tiptap/core": ^3.19.0
+  checksum: 10c0/416203f5bf7029848a4e9881ca09fe419ba2d2fc9d5eaaba2ddcb609cb9968188c233f884f11b4ee6ae425b3e60b4b96d9df84183b1e9be5a96d91c5cb4e85f4
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-underline@npm:^2.0.0":
   version: 2.27.1
   resolution: "@tiptap/extension-underline@npm:2.27.1"
   peerDependencies:
     "@tiptap/core": ^2.7.0
   checksum: 10c0/75dae08586a3548317ca3cbdc9ea5174c701aca39ee0a2a42fa03a19fbdba51bbba3a8f9b97d4ffae8480439ef6a4cf369b7b7d4b1fd0abf3d85d5e2c87d7c65
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-youtube@npm:^2.0.0":
+  version: 2.27.2
+  resolution: "@tiptap/extension-youtube@npm:2.27.2"
+  peerDependencies:
+    "@tiptap/core": ^2.7.0
+  checksum: 10c0/460a1197761901f708b526bf38417ae0bf29c303fc754bd523d085a7bba67c7abc51654b7069ba435b579279ef705817998a66bf53c489ffa89754fe9ef84eeb
   languageName: node
   linkType: hard
 
@@ -1615,6 +1692,16 @@ __metadata:
     "@tiptap/extension-text-style": "npm:^2.27.1"
     "@tiptap/pm": "npm:^2.27.1"
   checksum: 10c0/1c1868b6738ef601c416ade2e42d6679cd1e1224e72c202d91ff3c9248b1fba5797d101f43609eb4a47a7aed0a52f035100ae94e8846fe1871ab2bfb78a39748
+  languageName: node
+  linkType: hard
+
+"@tiptap/suggestion@npm:^2.0.0":
+  version: 2.27.2
+  resolution: "@tiptap/suggestion@npm:2.27.2"
+  peerDependencies:
+    "@tiptap/core": ^2.7.0
+    "@tiptap/pm": ^2.7.0
+  checksum: 10c0/fda4d5f4177e5190d713d0cef670a79b28e8ae4ccfb5ce8c0789f7d1ade5565d44728d2dfcd0e9e5e72a29511f86dcac25c14fa8f6d01e8eb1343b84b7b82279
   languageName: node
   linkType: hard
 
@@ -3837,13 +3924,19 @@ __metadata:
     "@liveblocks/yjs": "npm:^2.0.0"
     "@rails/actiontext": "npm:^8.0.200"
     "@tiptap/core": "npm:^2.0.0"
+    "@tiptap/extension-character-count": "npm:^2.0.0"
     "@tiptap/extension-collaboration": "npm:^2.0.0"
     "@tiptap/extension-collaboration-cursor": "npm:^2.0.0"
     "@tiptap/extension-color": "npm:^2.0.0"
+    "@tiptap/extension-focus": "npm:^2.0.0"
+    "@tiptap/extension-font-family": "npm:^2.0.0"
     "@tiptap/extension-highlight": "npm:^2.0.0"
     "@tiptap/extension-image": "npm:^2.0.0"
     "@tiptap/extension-link": "npm:^2.0.0"
+    "@tiptap/extension-mention": "npm:^2.0.0"
     "@tiptap/extension-placeholder": "npm:^2.0.0"
+    "@tiptap/extension-subscript": "npm:^2.0.0"
+    "@tiptap/extension-superscript": "npm:^2.0.0"
     "@tiptap/extension-table": "npm:^2.0.0"
     "@tiptap/extension-table-cell": "npm:^2.0.0"
     "@tiptap/extension-table-header": "npm:^2.0.0"
@@ -3852,10 +3945,13 @@ __metadata:
     "@tiptap/extension-task-list": "npm:^2.0.0"
     "@tiptap/extension-text-align": "npm:^2.0.0"
     "@tiptap/extension-text-style": "npm:^2.0.0"
+    "@tiptap/extension-typography": "npm:^3.19.0"
     "@tiptap/extension-underline": "npm:^2.0.0"
+    "@tiptap/extension-youtube": "npm:^2.0.0"
     "@tiptap/pm": "npm:^2.0.0"
     "@tiptap/react": "npm:^2.0.0"
     "@tiptap/starter-kit": "npm:^2.0.0"
+    "@tiptap/suggestion": "npm:^2.0.0"
     "@types/react": "npm:^18.0.0"
     daisyui: "npm:^5.0.0"
     esbuild: "npm:^0.27.0"
@@ -3863,6 +3959,7 @@ __metadata:
     react-dom: "npm:^18.3.1"
     stream-chat: "npm:^9.26.0"
     stream-chat-react: "npm:^13.13.0"
+    tippy.js: "npm:^6.3.7"
     trix: "npm:^2.1.15"
     y-prosemirror: "npm:^1.2.0"
     y-protocols: "npm:^1.0.0"

@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
     namespace :v1 do
       resources :communities, only: [ :index ]
+      get "users/search", to: "users#search"
       post "login", to: "auth#login"
       post "google_auth", to: "auth#google_auth"
       post "establish_session", to: "auth#establish_session"
