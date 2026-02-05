@@ -8,11 +8,13 @@ class Document < ApplicationRecord
   has_and_belongs_to_many :calendar_events
   has_many :decisions, dependent: :nullify
 
+  has_one_attached :file
+
   # Native content stored as HTML (synced via Liveblocks)
   # Using a text column instead of ActionText for Liveblocks compatibility
 
   # Document storage types
-  enum :storage_type, { native: 0, google_drive: 1 }, default: :native
+  enum :storage_type, { native: 0, google_drive: 1, uploaded: 2 }, default: :native
 
   # Google Drive URL validation (only when using Google Drive)
   validates :google_drive_url, format: {
@@ -36,11 +38,15 @@ class Document < ApplicationRecord
   end
 
   def native?
-    storage_type == "native" || (google_drive_url.blank? && !google_drive?)
+    storage_type == "native" || (google_drive_url.blank? && !google_drive? && !uploaded?)
   end
 
   def google_drive?
     storage_type == "google_drive" || google_drive_url.present?
+  end
+
+  def uploaded?
+    storage_type == "uploaded"
   end
 
   # Extract the Google Drive file ID from the URL
@@ -59,7 +65,9 @@ class Document < ApplicationRecord
   private
 
   def has_content_or_link
-    if native? && content.blank? && !new_record?
+    if uploaded? && !file.attached?
+      errors.add(:file, "must be attached for uploaded documents")
+    elsif native? && content.blank? && !new_record?
       # Allow empty content for new native documents (will be filled via editor)
     elsif google_drive? && google_drive_url.blank?
       errors.add(:google_drive_url, "is required for Google Drive documents")

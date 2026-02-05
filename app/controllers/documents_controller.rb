@@ -56,11 +56,11 @@ class DocumentsController < ApplicationController
 
   # GET /documents/1 or /documents/1.json
   def show
-    # Native documents go straight to edit mode (like Google Docs)
-    if @document.native?
+    if @document.uploaded? && @document.file.attached?
+      redirect_to rails_blob_path(@document.file, disposition: :inline), allow_other_host: true
+    elsif @document.native?
       redirect_to edit_document_path(@document)
     elsif @document.google_drive?
-      # Google Drive documents use the view_content action to display via service account
       redirect_to view_content_document_path(@document)
     end
   end
@@ -88,6 +88,28 @@ class DocumentsController < ApplicationController
     end
   end
 
+  # POST /documents/upload
+  def upload
+    unless params[:file].present?
+      redirect_to documents_path(folder_id: params[:folder_id]), alert: "Please select a file to upload."
+      return
+    end
+
+    file = params[:file]
+    @document = Document.new(
+      title: file.original_filename,
+      storage_type: :uploaded,
+      document_folder_id: params[:folder_id]
+    )
+    @document.file.attach(file)
+
+    if @document.save
+      redirect_to documents_path(folder_id: @document.document_folder_id), notice: "File uploaded successfully."
+    else
+      redirect_to documents_path(folder_id: params[:folder_id]), alert: "Could not upload file."
+    end
+  end
+
   # PATCH/PUT /documents/1 or /documents/1.json
   def update
     respond_to do |format|
@@ -111,6 +133,7 @@ class DocumentsController < ApplicationController
       return
     end
 
+    @document.file.purge if @document.uploaded? && @document.file.attached?
     @document.discard
 
     respond_to do |format|

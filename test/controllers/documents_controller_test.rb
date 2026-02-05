@@ -127,4 +127,72 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
 
     mock_api.verify
   end
+
+  # Upload document tests
+
+  test "should upload document with file" do
+    assert_difference("Document.count") do
+      post upload_documents_url, params: {
+        file: fixture_file_upload("test.txt", "text/plain")
+      }
+    end
+
+    document = Document.last
+    assert_equal "test.txt", document.title
+    assert_equal "uploaded", document.storage_type
+    assert document.file.attached?
+    assert_redirected_to documents_url
+  end
+
+  test "should upload document to folder" do
+    folder = DocumentFolder.create!(name: "Upload Folder", community: communities(:crow_woods))
+
+    assert_difference("Document.count") do
+      post upload_documents_url, params: {
+        file: fixture_file_upload("test.txt", "text/plain"),
+        folder_id: folder.id
+      }
+    end
+
+    document = Document.last
+    assert_equal folder, document.document_folder
+    assert_redirected_to documents_url(folder_id: folder.id)
+  end
+
+  test "should not upload document without file" do
+    assert_no_difference("Document.count") do
+      post upload_documents_url
+    end
+
+    assert_redirected_to documents_url
+    assert_equal "Please select a file to upload.", flash[:alert]
+  end
+
+  test "should destroy uploaded document" do
+    uploaded_doc = documents(:uploaded_doc)
+    uploaded_doc.file.attach(
+      io: StringIO.new("test content"),
+      filename: "test.txt",
+      content_type: "text/plain"
+    )
+
+    assert_difference("Document.count", -1) do
+      delete document_url(uploaded_doc)
+    end
+
+    assert_redirected_to documents_url
+  end
+
+  test "show redirects uploaded document to blob url" do
+    uploaded_doc = documents(:uploaded_doc)
+    uploaded_doc.file.attach(
+      io: StringIO.new("test content"),
+      filename: "test.txt",
+      content_type: "text/plain"
+    )
+
+    get document_url(uploaded_doc)
+    assert_response :redirect
+    assert_match(/rails\/active_storage/, response.location)
+  end
 end

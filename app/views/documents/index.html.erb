@@ -36,20 +36,18 @@
       <% end %>
     </div>
     <div class="flex gap-2 flex-wrap">
-      <% if current_user.admin? && (current_community.settings&.dig("google_drive_folder_id").present? || ENV["GOOGLE_DRIVE_FOLDER_ID"].present?) %>
-        <%= link_to refresh_from_google_drive_documents_path, class: "btn btn-success btn-sm sm:btn-md" do %>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span class="hidden sm:inline">Sync from Google Drive</span>
-        <% end %>
-      <% end %>
       <%# New Folder Modal Trigger %>
       <label for="new-folder-modal" class="btn btn-outline btn-sm sm:btn-md">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
         </svg>
         New Folder
+      </label>
+      <label for="upload-file-modal" class="btn btn-outline btn-sm sm:btn-md">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        Upload File
       </label>
       <%= button_to documents_path(document: { document_folder_id: @current_folder&.id }), method: :post, class: "btn btn-primary btn-sm sm:btn-md" do %>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -160,10 +158,18 @@
 
               <%# Then documents %>
               <% @documents.each do |document| %>
-                <tr class="hover:bg-base-200 cursor-pointer" onclick="window.location='<%= document.native? ? edit_document_path(document) : view_content_document_path(document) %>'">
+                <% if document.uploaded? %>
+                  <tr class="hover:bg-base-200 cursor-pointer" onclick="<%= document.file.attached? ? "window.open('#{rails_blob_path(document.file, disposition: :inline)}', '_blank')" : '' %>">
+                <% else %>
+                  <tr class="hover:bg-base-200 cursor-pointer" onclick="window.location='<%= document.native? ? edit_document_path(document) : view_content_document_path(document) %>'">
+                <% end %>
                   <td>
                     <div class="flex items-center gap-2">
-                      <% if document.native? %>
+                      <% if document.uploaded? %>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                      <% elsif document.native? %>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
@@ -176,7 +182,9 @@
                     </div>
                   </td>
                   <td>
-                    <% if document.native? %>
+                    <% if document.uploaded? %>
+                      <span class="badge badge-secondary badge-sm">Uploaded</span>
+                    <% elsif document.native? %>
                       <span class="badge badge-primary badge-sm">Native</span>
                     <% else %>
                       <% badge_color = case document.document_type
@@ -195,7 +203,7 @@
                   </td>
                   <td>
                     <div class="flex justify-end gap-2" onclick="event.stopPropagation()">
-                      <% if document.native? %>
+                      <% if document.native? || document.uploaded? %>
                         <%= button_to document_path(document), method: :delete,
                             data: { turbo_confirm: "Are you sure you want to delete '#{document.title}'?" },
                             class: "btn btn-xs btn-outline btn-error" do %>
@@ -228,6 +236,7 @@
           <p class="text-base-content/70 mb-4">Add documents or create subfolders to organize your content.</p>
           <div class="flex gap-2 justify-center">
             <label for="new-folder-modal" class="btn btn-outline">New Folder</label>
+            <label for="upload-file-modal" class="btn btn-outline">Upload File</label>
             <%= button_to "New Document", documents_path(document: { document_folder_id: @current_folder.id }), method: :post, class: "btn btn-primary" %>
           </div>
         <% else %>
@@ -236,6 +245,7 @@
           <p class="text-base-content/70 mb-4">Create your first document to start collaborating with your community.</p>
           <div class="flex gap-2 justify-center">
             <label for="new-folder-modal" class="btn btn-outline">New Folder</label>
+            <label for="upload-file-modal" class="btn btn-outline">Upload File</label>
             <%= button_to "Create Your First Document", documents_path, method: :post, class: "btn btn-primary" %>
           </div>
         <% end %>
@@ -262,4 +272,24 @@
     <% end %>
   </div>
   <label class="modal-backdrop" for="new-folder-modal">Close</label>
+</div>
+
+<%# Upload File Modal %>
+<input type="checkbox" id="upload-file-modal" class="modal-toggle" />
+<div class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-4">Upload File</h3>
+    <%= form_with url: upload_documents_path, method: :post, multipart: true, class: "space-y-4" do |f| %>
+      <div class="form-control">
+        <%= f.label :file, "Choose File", class: "label" %>
+        <%= f.file_field :file, class: "file-input file-input-bordered w-full", required: true %>
+      </div>
+      <%= f.hidden_field :folder_id, value: @current_folder&.id %>
+      <div class="modal-action">
+        <label for="upload-file-modal" class="btn">Cancel</label>
+        <%= f.submit "Upload", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+  <label class="modal-backdrop" for="upload-file-modal">Close</label>
 </div>

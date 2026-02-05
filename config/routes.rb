@@ -130,6 +130,7 @@ Rails.application.routes.draw do
     end
     collection do
       get :refresh_from_google_drive
+      post :upload
     end
   end
   resources :dashboard, only: [ "index" ] do

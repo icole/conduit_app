@@ -22,3 +22,9 @@ native_doc:
   description: A document with native content
   storage_type: native
   content: "<p>This is native content stored in the database.</p>"
+
+uploaded_doc:
+  community: crow_woods
+  title: Uploaded File
+  description: An uploaded file
+  storage_type: uploaded

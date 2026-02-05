@@ -49,4 +49,30 @@ class DocumentTest < ActiveSupport::TestCase
     )
     assert_nil document.google_drive_file_id
   end
+
+  test "uploaded? returns true for uploaded storage type" do
+    document = Document.new(title: "Test", storage_type: :uploaded)
+    assert document.uploaded?
+  end
+
+  test "uploaded? returns false for native storage type" do
+    document = Document.new(title: "Test", storage_type: :native)
+    assert_not document.uploaded?
+  end
+
+  test "uploaded document requires file attachment" do
+    document = Document.new(title: "Test", storage_type: :uploaded)
+    assert_not document.valid?
+    assert_includes document.errors[:file], "must be attached for uploaded documents"
+  end
+
+  test "uploaded document is valid with file attached" do
+    document = Document.new(title: "Test", storage_type: :uploaded)
+    document.file.attach(
+      io: StringIO.new("test content"),
+      filename: "test.txt",
+      content_type: "text/plain"
+    )
+    assert document.valid?
+  end
 end
