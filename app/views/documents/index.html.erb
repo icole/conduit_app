@@ -1,8 +1,8 @@
 <% content_for :title, "Documents" %>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-7xl mx-auto sm:px-4 py-3 sm:py-6">
   <% if notice.present? %>
-    <div class="alert alert-success mb-6">
+    <div class="alert alert-success mb-4 sm:mb-6">
       <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
@@ -11,7 +11,7 @@
   <% end %>
 
   <% if alert.present? %>
-    <div class="alert alert-error mb-6">
+    <div class="alert alert-error mb-4 sm:mb-6">
       <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
@@ -19,12 +19,12 @@
     </div>
   <% end %>
 
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-    <div>
-      <h1 class="font-bold text-4xl">Documents</h1>
+  <div class="flex items-center justify-between gap-2 mb-4 sm:mb-6 px-1 sm:px-0">
+    <div class="min-w-0">
+      <h1 class="font-bold text-lg sm:text-2xl">Documents</h1>
       <%# Breadcrumb navigation %>
       <% if @current_folder %>
-        <nav class="text-sm breadcrumbs mt-2">
+        <nav class="text-xs sm:text-sm breadcrumbs mt-1">
           <ul>
             <li><%= link_to "Documents", documents_path, class: "link link-hover" %></li>
             <% @current_folder.ancestors.reverse.each do |ancestor| %>
@@ -35,256 +35,247 @@
         </nav>
       <% end %>
     </div>
-    <div class="flex gap-2 flex-wrap">
-      <%# New Folder Modal Trigger %>
-      <label for="new-folder-modal" class="btn btn-outline btn-sm sm:btn-md">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div class="flex gap-1 sm:gap-2 shrink-0">
+      <label for="new-folder-modal" class="btn btn-outline btn-sm btn-square sm:btn-md sm:w-auto sm:px-4" title="New Folder">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
         </svg>
-        New Folder
+        <span class="hidden sm:inline">New Folder</span>
       </label>
-      <label for="upload-file-modal" class="btn btn-outline btn-sm sm:btn-md">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <label for="upload-file-modal" class="btn btn-outline btn-sm btn-square sm:btn-md sm:w-auto sm:px-4" title="Upload File">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
         </svg>
-        Upload File
+        <span class="hidden sm:inline">Upload File</span>
       </label>
-      <%= button_to documents_path(document: { document_folder_id: @current_folder&.id }), method: :post, class: "btn btn-primary btn-sm sm:btn-md" do %>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <%= button_to documents_path(document: { document_folder_id: @current_folder&.id }), method: :post, class: "btn btn-primary btn-sm btn-square sm:btn-md sm:w-auto sm:px-4", title: "New Document" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        New Document
+        <span class="hidden sm:inline">New Document</span>
       <% end %>
     </div>
   </div>
 
   <% if @folders.any? || @documents.any? %>
-    <div class="card bg-base-100 shadow-xl mt-6">
-      <div class="card-body p-0">
-        <div class="overflow-x-auto">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>
-                  <%= link_to documents_path(folder_id: @current_folder&.id, sort: 'title', direction: (params[:sort] == 'title' && params[:direction] == 'asc') ? 'desc' : 'asc') do %>
-                    Name
-                    <% if params[:sort] == 'title' %>
-                      <%= params[:direction] == 'asc' ? '↑' : '↓' %>
-                    <% end %>
+    <div class="bg-base-100 sm:rounded-lg border-y sm:border border-base-200 sm:shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="table table-sm sm:table-md">
+          <thead class="hidden sm:table-header-group">
+            <tr>
+              <th>
+                <%= link_to documents_path(folder_id: @current_folder&.id, sort: 'title', direction: (params[:sort] == 'title' && params[:direction] == 'asc') ? 'desc' : 'asc') do %>
+                  Name
+                  <% if params[:sort] == 'title' %>
+                    <%= params[:direction] == 'asc' ? '↑' : '↓' %>
                   <% end %>
-                </th>
-                <th>
-                  <%= link_to documents_path(folder_id: @current_folder&.id, sort: 'document_type', direction: (params[:sort] == 'document_type' && params[:direction] == 'asc') ? 'desc' : 'asc') do %>
-                    Type
-                    <% if params[:sort] == 'document_type' %>
-                      <%= params[:direction] == 'asc' ? '↑' : '↓' %>
-                    <% end %>
+                <% end %>
+              </th>
+              <th>
+                <%= link_to documents_path(folder_id: @current_folder&.id, sort: 'document_type', direction: (params[:sort] == 'document_type' && params[:direction] == 'asc') ? 'desc' : 'asc') do %>
+                  Type
+                  <% if params[:sort] == 'document_type' %>
+                    <%= params[:direction] == 'asc' ? '↑' : '↓' %>
                   <% end %>
-                </th>
-                <th>
-                  <%= link_to documents_path(folder_id: @current_folder&.id, sort: 'updated_at', direction: (params[:sort] == 'updated_at' && params[:direction] == 'asc') ? 'desc' : 'asc') do %>
-                    Last Modified
-                    <% if params[:sort] == 'updated_at' || params[:sort].nil? %>
-                      <%= (params[:direction] == 'asc') ? '↑' : '↓' %>
-                    <% end %>
+                <% end %>
+              </th>
+              <th>
+                <%= link_to documents_path(folder_id: @current_folder&.id, sort: 'updated_at', direction: (params[:sort] == 'updated_at' && params[:direction] == 'asc') ? 'desc' : 'asc') do %>
+                  Last Modified
+                  <% if params[:sort] == 'updated_at' || params[:sort].nil? %>
+                    <%= (params[:direction] == 'asc') ? '↑' : '↓' %>
                   <% end %>
-                </th>
-                <th class="text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <%# Folders first %>
-              <% @folders.each do |folder| %>
-                <tr class="hover:bg-base-200 cursor-pointer" onclick="window.location='<%= documents_path(folder_id: folder.id) %>'">
-                  <td>
-                    <div class="flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-warning" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z" />
-                      </svg>
-                      <span class="font-medium"><%= folder.name %></span>
-                    </div>
-                  </td>
-                  <td>
-                    <span class="badge badge-ghost badge-sm">Folder</span>
-                  </td>
-                  <td class="text-sm text-base-content/70">
-                    <%= time_ago_in_words(folder.updated_at) %> ago
-                  </td>
-                  <td>
-                    <div class="flex justify-end gap-2" onclick="event.stopPropagation()">
-                      <% unless folder.synced_from_drive? %>
-                        <label for="rename-folder-modal-<%= folder.id %>" class="btn btn-xs btn-outline btn-info">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </label>
-                        <%= button_to document_folder_path(folder), method: :delete,
-                            data: { turbo_confirm: "Are you sure you want to delete '#{folder.name}'? All documents inside will be moved to the parent folder." },
-                            class: "btn btn-xs btn-outline btn-error" do %>
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        <% end %>
-                      <% else %>
-                        <span class="badge badge-ghost badge-xs" title="Synced from Google Drive">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                          </svg>
-                        </span>
+                <% end %>
+              </th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%# Folders first %>
+            <% @folders.each do |folder| %>
+              <tr class="hover:bg-base-200">
+                <td colspan="1" class="sm:!border-b-0">
+                  <%= link_to documents_path(folder_id: folder.id), class: "flex items-center gap-2 min-w-0" do %>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-warning shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z" />
+                    </svg>
+                    <span class="font-medium truncate"><%= folder.name %></span>
+                    <span class="text-xs text-base-content/50 sm:hidden shrink-0"><%= time_ago_in_words(folder.updated_at) %> ago</span>
+                  <% end %>
+                </td>
+                <td class="hidden sm:table-cell">
+                  <span class="badge badge-ghost badge-sm">Folder</span>
+                </td>
+                <td class="hidden sm:table-cell text-sm text-base-content/70">
+                  <%= time_ago_in_words(folder.updated_at) %> ago
+                </td>
+                <td class="hidden sm:table-cell">
+                  <div class="flex justify-end gap-2">
+                    <% unless folder.synced_from_drive? %>
+                      <label for="rename-folder-modal-<%= folder.id %>" class="btn btn-xs btn-outline btn-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </label>
+                      <%= button_to document_folder_path(folder), method: :delete,
+                          data: { turbo_confirm: "Are you sure you want to delete '#{folder.name}'? All documents inside will be moved to the parent folder." },
+                          class: "btn btn-xs btn-outline btn-error" do %>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
                       <% end %>
-                    </div>
-                  </td>
-                </tr>
-
-                <%# Rename folder modal %>
-                <input type="checkbox" id="rename-folder-modal-<%= folder.id %>" class="modal-toggle" />
-                <div class="modal modal-bottom sm:modal-middle">
-                  <div class="modal-box">
-                    <h3 class="font-bold text-lg mb-4">Rename Folder</h3>
-                    <%= form_with model: folder, url: document_folder_path(folder), method: :patch, class: "space-y-4" do |f| %>
-                      <div class="form-control">
-                        <%= f.label :name, "Folder Name", class: "label" %>
-                        <%= f.text_field :name, class: "input input-bordered w-full", required: true %>
-                      </div>
-                      <div class="modal-action">
-                        <label for="rename-folder-modal-<%= folder.id %>" class="btn">Cancel</label>
-                        <%= f.submit "Rename", class: "btn btn-primary" %>
-                      </div>
+                    <% else %>
+                      <span class="badge badge-ghost badge-xs" title="Synced from Google Drive">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                      </span>
                     <% end %>
                   </div>
-                  <label class="modal-backdrop" for="rename-folder-modal-<%= folder.id %>">Close</label>
+                </td>
+              </tr>
+
+              <%# Rename folder modal %>
+              <input type="checkbox" id="rename-folder-modal-<%= folder.id %>" class="modal-toggle" />
+              <div class="modal modal-bottom sm:modal-middle">
+                <div class="modal-box">
+                  <h3 class="font-bold text-lg mb-4">Rename Folder</h3>
+                  <%= form_with model: folder, url: document_folder_path(folder), method: :patch, class: "space-y-4" do |f| %>
+                    <div class="form-control">
+                      <%= f.label :name, "Folder Name", class: "label" %>
+                      <%= f.text_field :name, class: "input input-bordered w-full", required: true %>
+                    </div>
+                    <div class="modal-action">
+                      <label for="rename-folder-modal-<%= folder.id %>" class="btn">Cancel</label>
+                      <%= f.submit "Rename", class: "btn btn-primary" %>
+                    </div>
+                  <% end %>
                 </div>
-              <% end %>
+                <label class="modal-backdrop" for="rename-folder-modal-<%= folder.id %>">Close</label>
+              </div>
+            <% end %>
 
-              <%# Then documents %>
-              <% @documents.each do |document| %>
-                <% if document.uploaded? %>
-                  <tr class="hover:bg-base-200 cursor-pointer" onclick="<%= document.file.attached? ? "window.open('#{rails_blob_path(document.file, disposition: :inline)}', '_blank')" : '' %>">
-                <% else %>
-                  <tr class="hover:bg-base-200 cursor-pointer" onclick="window.location='<%= document.native? ? edit_document_path(document) : view_content_document_path(document) %>'">
-                <% end %>
-                  <td>
-                    <div class="flex items-center gap-2">
-                      <% if document.uploaded? %>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                        </svg>
-                      <% elsif document.native? %>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      <% else %>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                        </svg>
-                      <% end %>
-                      <span class="font-medium"><%= document.title %></span>
-                    </div>
-                  </td>
-                  <td>
-                    <% if document.document_type.present? %>
-                      <span class="badge badge-ghost badge-sm"><%= document.document_type %></span>
+            <%# Then documents %>
+            <% @documents.each do |document| %>
+              <tr class="hover:bg-base-200">
+                <td colspan="1" class="sm:!border-b-0">
+                  <% doc_url = document.uploaded? && document.file.attached? ? rails_blob_path(document.file, disposition: :inline) : document_path(document) %>
+                  <% doc_target = document.uploaded? ? "_blank" : nil %>
+                  <%= link_to doc_url, target: doc_target, class: "flex items-center gap-2 min-w-0" do %>
+                    <% if document.uploaded? %>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-secondary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                      </svg>
+                    <% elsif document.native? %>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    <% else %>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                      </svg>
                     <% end %>
-                  </td>
-                  <td class="text-sm text-base-content/70">
-                    <%= time_ago_in_words(document.updated_at) %> ago
-                  </td>
-                  <td>
-                    <div class="flex justify-end gap-2" onclick="event.stopPropagation()">
-                      <% if document.native? || document.uploaded? %>
-                        <label for="move-doc-modal-<%= document.id %>" class="btn btn-xs btn-outline btn-info" title="Move to folder">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                          </svg>
-                        </label>
-                        <%= button_to document_path(document), method: :delete,
-                            data: { turbo_confirm: "Are you sure you want to delete '#{document.title}'?" },
-                            class: "btn btn-xs btn-outline btn-error" do %>
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        <% end %>
-                      <% else %>
-                        <span class="badge badge-ghost badge-xs" title="Synced from Google Drive">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                          </svg>
-                        </span>
+                    <span class="font-medium truncate"><%= document.title %></span>
+                    <span class="text-xs text-base-content/50 sm:hidden shrink-0"><%= time_ago_in_words(document.updated_at) %> ago</span>
+                  <% end %>
+                </td>
+                <td class="hidden sm:table-cell">
+                  <% if document.document_type.present? %>
+                    <span class="badge badge-ghost badge-sm"><%= document.document_type %></span>
+                  <% end %>
+                </td>
+                <td class="hidden sm:table-cell text-sm text-base-content/70">
+                  <%= time_ago_in_words(document.updated_at) %> ago
+                </td>
+                <td class="hidden sm:table-cell">
+                  <div class="flex justify-end gap-2">
+                    <% if document.native? || document.uploaded? %>
+                      <label for="move-doc-modal-<%= document.id %>" class="btn btn-xs btn-outline btn-info" title="Move to folder">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                        </svg>
+                      </label>
+                      <%= button_to document_path(document), method: :delete,
+                          data: { turbo_confirm: "Are you sure you want to delete '#{document.title}'?" },
+                          class: "btn btn-xs btn-outline btn-error" do %>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
                       <% end %>
-                    </div>
-                  </td>
-                </tr>
+                    <% else %>
+                      <span class="badge badge-ghost badge-xs" title="Synced from Google Drive">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                      </span>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
 
-                <%# Move to Folder modal %>
-                <% if document.native? || document.uploaded? %>
-                  <input type="checkbox" id="move-doc-modal-<%= document.id %>" class="modal-toggle" />
-                  <div class="modal modal-bottom sm:modal-middle">
-                    <div class="modal-box" data-controller="folder-filter">
-                      <h3 class="font-bold text-lg mb-1">Move "<%= document.title %>"</h3>
-                      <p class="text-sm text-base-content/60 mb-4">Currently in: <%= document.document_folder&.name || "Root" %></p>
-                      <%= form_with model: document, url: move_document_path(document), method: :patch, class: "space-y-4" do |f| %>
-                        <input type="text"
-                               placeholder="Filter folders..."
-                               class="input input-bordered input-sm w-full mb-2"
-                               data-folder-filter-target="search"
-                               data-action="input->folder-filter#filter" />
-                        <div class="flex flex-col max-h-64 overflow-y-auto">
-                          <label class="flex items-center gap-3 py-3 px-1 cursor-pointer border-b border-base-200" data-folder-filter-target="option" data-root="true">
-                            <%= f.radio_button :document_folder_id, "", checked: document.document_folder_id.nil?, class: "radio radio-primary shrink-0" %>
-                            <span class="font-medium">Root (no folder)</span>
-                            <% if document.document_folder_id.nil? %>
+              <%# Move to Folder modal %>
+              <% if document.native? || document.uploaded? %>
+                <input type="checkbox" id="move-doc-modal-<%= document.id %>" class="modal-toggle" />
+                <div class="modal modal-bottom sm:modal-middle">
+                  <div class="modal-box" data-controller="folder-filter">
+                    <h3 class="font-bold text-lg mb-1">Move "<%= document.title %>"</h3>
+                    <p class="text-sm text-base-content/60 mb-4">Currently in: <%= document.document_folder&.name || "Root" %></p>
+                    <%= form_with model: document, url: move_document_path(document), method: :patch, class: "space-y-4" do |f| %>
+                      <input type="text"
+                             placeholder="Filter folders..."
+                             class="input input-bordered input-sm w-full mb-2"
+                             data-folder-filter-target="search"
+                             data-action="input->folder-filter#filter" />
+                      <div class="flex flex-col max-h-64 overflow-y-auto">
+                        <label class="flex items-center gap-3 py-3 px-1 cursor-pointer border-b border-base-200" data-folder-filter-target="option" data-root="true">
+                          <%= f.radio_button :document_folder_id, "", checked: document.document_folder_id.nil?, class: "radio radio-primary shrink-0" %>
+                          <span class="font-medium">Root (no folder)</span>
+                          <% if document.document_folder_id.nil? %>
+                            <span class="badge badge-sm badge-primary ml-auto shrink-0">current</span>
+                          <% end %>
+                        </label>
+                        <% @all_folders.each do |folder| %>
+                          <label class="flex items-center gap-3 py-3 cursor-pointer border-b border-base-200" style="padding-left: calc(0.25rem + <%= folder.depth * 1.5 %>rem)" data-folder-filter-target="option">
+                            <%= f.radio_button :document_folder_id, folder.id, checked: document.document_folder_id == folder.id, class: "radio radio-primary shrink-0" %>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-warning shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z" /></svg>
+                            <span><%= folder.name %></span>
+                            <% if document.document_folder_id == folder.id %>
                               <span class="badge badge-sm badge-primary ml-auto shrink-0">current</span>
                             <% end %>
                           </label>
-                          <% @all_folders.each do |folder| %>
-                            <label class="flex items-center gap-3 py-3 cursor-pointer border-b border-base-200" style="padding-left: calc(0.25rem + <%= folder.depth * 1.5 %>rem)" data-folder-filter-target="option">
-                              <%= f.radio_button :document_folder_id, folder.id, checked: document.document_folder_id == folder.id, class: "radio radio-primary shrink-0" %>
-                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-warning shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z" /></svg>
-                              <span><%= folder.name %></span>
-                              <% if document.document_folder_id == folder.id %>
-                                <span class="badge badge-sm badge-primary ml-auto shrink-0">current</span>
-                              <% end %>
-                            </label>
-                          <% end %>
-                        </div>
-                        <div class="modal-action">
-                          <label for="move-doc-modal-<%= document.id %>" class="btn">Cancel</label>
-                          <%= f.submit "Move", class: "btn btn-primary" %>
-                        </div>
-                      <% end %>
-                    </div>
-                    <label class="modal-backdrop" for="move-doc-modal-<%= document.id %>">Close</label>
+                        <% end %>
+                      </div>
+                      <div class="modal-action">
+                        <label for="move-doc-modal-<%= document.id %>" class="btn">Cancel</label>
+                        <%= f.submit "Move", class: "btn btn-primary" %>
+                      </div>
+                    <% end %>
                   </div>
-                <% end %>
+                  <label class="modal-backdrop" for="move-doc-modal-<%= document.id %>">Close</label>
+                </div>
               <% end %>
-            </tbody>
-          </table>
-        </div>
+            <% end %>
+          </tbody>
+        </table>
       </div>
     </div>
   <% else %>
-    <div class="card bg-base-100 shadow-md">
-      <div class="card-body text-center">
-        <% if @current_folder %>
-          <div class="text-4xl mb-4">📁</div>
-          <h3 class="font-bold text-xl mb-2">This folder is empty</h3>
-          <p class="text-base-content/70 mb-4">Add documents or create subfolders to organize your content.</p>
-          <div class="flex gap-2 justify-center">
-            <label for="new-folder-modal" class="btn btn-outline">New Folder</label>
-            <label for="upload-file-modal" class="btn btn-outline">Upload File</label>
-            <%= button_to "New Document", documents_path(document: { document_folder_id: @current_folder.id }), method: :post, class: "btn btn-primary" %>
-          </div>
-        <% else %>
-          <div class="text-4xl mb-4">📄</div>
-          <h3 class="font-bold text-xl mb-2">No documents yet</h3>
-          <p class="text-base-content/70 mb-4">Create your first document to start collaborating with your community.</p>
-          <div class="flex gap-2 justify-center">
-            <label for="new-folder-modal" class="btn btn-outline">New Folder</label>
-            <label for="upload-file-modal" class="btn btn-outline">Upload File</label>
-            <%= button_to "Create Your First Document", documents_path, method: :post, class: "btn btn-primary" %>
-          </div>
-        <% end %>
-      </div>
+    <div class="text-center py-12 px-4 text-base-content/50">
+      <% if @current_folder %>
+        <p class="text-sm mb-1">This folder is empty.</p>
+        <div class="flex gap-2 justify-center mt-4">
+          <label for="new-folder-modal" class="btn btn-outline btn-sm">New Folder</label>
+          <label for="upload-file-modal" class="btn btn-outline btn-sm">Upload File</label>
+          <%= button_to "New Document", documents_path(document: { document_folder_id: @current_folder.id }), method: :post, class: "btn btn-primary btn-sm" %>
+        </div>
+      <% else %>
+        <p class="text-sm mb-1">No documents yet.</p>
+        <div class="flex gap-2 justify-center mt-4">
+          <label for="new-folder-modal" class="btn btn-outline btn-sm">New Folder</label>
+          <label for="upload-file-modal" class="btn btn-outline btn-sm">Upload File</label>
+          <%= button_to "New Document", documents_path, method: :post, class: "btn btn-primary btn-sm" %>
+        </div>
+      <% end %>
     </div>
   <% end %>
 </div>

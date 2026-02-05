@@ -1,19 +1,45 @@
-<% content_for :title, "Showing document" %>
+<% content_for :title, @document.title %>
 
-<% if @document.native? %>
-  <%= javascript_include_tag "document_editor", type: "module", "data-turbo-track": "reload" %>
-<% end %>
+<div class="max-w-5xl mx-auto sm:px-4 py-3 sm:py-6">
+  <%# Header with back button, title, and edit button %>
+  <div class="flex items-center justify-between gap-2 mb-4 sm:mb-6">
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+      <%= link_to documents_path(folder_id: @document.document_folder_id), class: "btn btn-ghost btn-sm btn-square shrink-0" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+      <% end %>
+      <div class="min-w-0">
+        <h1 class="text-lg sm:text-2xl font-bold truncate"><%= @document.title %></h1>
+        <% if @document.description.present? %>
+          <p class="text-xs sm:text-sm text-base-content/60 truncate"><%= @document.description %></p>
+        <% end %>
+      </div>
+    </div>
 
-<div class="md:w-2/3 w-full">
-  <% if notice.present? %>
-    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-md inline-block" id="notice"><%= notice %></p>
+    <div class="shrink-0">
+      <%= link_to edit_document_path(@document), class: "btn btn-sm btn-primary gap-1 sm:gap-2" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+        </svg>
+        Edit
+      <% end %>
+    </div>
+  </div>
+
+  <%# Document content %>
+  <% if @document.content.present? %>
+    <div class="bg-white rounded-lg border border-base-200 shadow-sm overflow-hidden">
+      <div class="p-3 sm:p-6 prose prose-sm max-w-none overflow-x-auto">
+        <%= sanitize(@document.content, tags: %w[p br div span a h1 h2 h3 h4 h5 h6 ul ol li table thead tbody tr th td strong em b i u s strike sub sup blockquote pre code img hr], attributes: %w[href src alt title target rel style]) %>
+      </div>
+    </div>
+  <% else %>
+    <div class="text-center py-12 text-base-content/50">
+      <p class="text-sm">This document is empty.</p>
+      <p class="text-xs mt-1">
+        <%= link_to "Start editing", edit_document_path(@document), class: "link link-primary" %>
+      </p>
+    </div>
   <% end %>
-
-  <h1 class="font-bold text-4xl">Showing document</h1>
-
-  <%= render @document %>
-
-  <%= link_to "Edit this document", edit_document_path(@document), class: "w-full sm:w-auto text-center rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
-  <%= link_to "Back to documents", documents_path, class: "w-full sm:w-auto text-center mt-2 sm:mt-0 sm:ml-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
-  <%= button_to "Destroy this document", @document, method: :delete, form_class: "sm:inline-block mt-2 sm:mt-0 sm:ml-2", class: "w-full rounded-md px-3.5 py-2.5 text-white bg-red-600 hover:bg-red-500 font-medium cursor-pointer", data: { turbo_confirm: "Are you sure?", testid: "delete-document-button-#{@document.id}" } %>
 </div>

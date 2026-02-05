@@ -61,11 +61,10 @@ class DocumentsController < ApplicationController
   def show
     if @document.uploaded? && @document.file.attached?
       redirect_to rails_blob_path(@document.file, disposition: :inline), allow_other_host: true
-    elsif @document.native?
-      redirect_to edit_document_path(@document)
     elsif @document.google_drive?
       redirect_to view_content_document_path(@document)
     end
+    # Native documents render show.html.erb
   end
 
   # GET /documents/1/edit

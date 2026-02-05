@@ -81,10 +81,10 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Cannot delete documents synced from Google Drive.", flash[:alert]
   end
 
-  test "show redirects native document to edit" do
+  test "show renders native document read-only view" do
     native_doc = documents(:native_doc)
     get document_url(native_doc)
-    assert_redirected_to edit_document_url(native_doc)
+    assert_response :success
   end
 
   test "view_content redirects native document to edit" do
