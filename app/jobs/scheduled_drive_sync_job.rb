@@ -3,20 +3,11 @@ class ScheduledDriveSyncJob < ApplicationJob
 
   def perform
     Community.find_each do |community|
-      ActsAsTenant.with_tenant(community) do
-        folder_id = community.google_drive_folder_id
-        next unless folder_id.present?
+      next unless community.google_drive_folder_id.present?
 
-        # Find all users who have access to the drive folder
-        users_with_access = User.joins(:drive_shares)
-                               .where(drive_shares: { folder_id: folder_id })
-                               .distinct
-
-        # Refresh cache for each user
-        users_with_access.find_each do |user|
-          GoogleDriveSyncJob.perform_later(user.id)
-        end
-      end
+      Rails.logger.info("[ScheduledDriveSync] Importing documents for #{community.name}")
+      result = GoogleDriveNativeImportService.new(community).import!
+      Rails.logger.info("[ScheduledDriveSync] #{community.name}: #{result[:message]}")
     end
   end
 end

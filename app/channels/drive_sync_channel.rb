@@ -9,6 +9,6 @@ class DriveSyncChannel < ApplicationCable::Channel
 
   def refresh_files
     # Trigger a background job to refresh files
-    GoogleDriveSyncJob.perform_later(current_user.id)
+    ScheduledDriveSyncJob.perform_later
   end
 end

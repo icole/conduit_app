@@ -24,13 +24,15 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
     }
   end
 
-  def mock_drive_file(id:, name:, parent_id:, mime_type: "application/vnd.google-apps.document", web_link: nil)
+  def mock_drive_file(id:, name:, parent_id:, mime_type: "application/vnd.google-apps.document", web_link: nil, created_at: nil, updated_at: nil)
     {
       id: id,
       name: name,
       mime_type: mime_type,
       web_link: web_link || default_web_link(id, mime_type),
-      parents: [ parent_id ]
+      parents: [ parent_id ],
+      created_at: created_at,
+      updated_at: updated_at
     }
   end
 
@@ -455,5 +457,103 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
     assert_includes result[:message], "No Google Drive folder configured"
   ensure
     ENV["GOOGLE_DRIVE_FOLDER_ID"] = original_env
+  end
+
+  # --- Timestamp preservation tests ---
+
+  test "new native document preserves Drive created_at and updated_at timestamps" do
+    drive_created = Time.utc(2024, 1, 15, 10, 30, 0)
+    drive_modified = Time.utc(2024, 6, 20, 14, 0, 0)
+
+    drive_files = [
+      mock_drive_file(id: "ts_file_1", name: "Timestamped Doc", parent_id: @root_folder_id,
+                      created_at: drive_created, updated_at: drive_modified)
+    ]
+
+    @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
+    @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
+    @mock_api.expect(:export_as_html, { status: :success, content: "<p>Content</p>" }, [ "ts_file_1" ])
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.import!
+
+      assert_equal 1, result[:docs_created]
+
+      doc = Document.find_by(google_drive_url: "https://docs.google.com/document/d/ts_file_1/edit")
+      assert_not_nil doc
+      assert_equal drive_created, doc.created_at
+      assert_equal drive_modified, doc.updated_at
+    end
+
+    @mock_api.verify
+  end
+
+  test "converted document preserves Drive created_at and updated_at timestamps" do
+    drive_created = Time.utc(2023, 3, 10, 8, 0, 0)
+    drive_modified = Time.utc(2025, 1, 5, 16, 45, 0)
+
+    existing_doc = Document.create!(
+      title: "To Convert TS",
+      google_drive_url: "https://docs.google.com/document/d/ts_convert/edit",
+      storage_type: :google_drive,
+      document_type: "Document",
+      community: @community
+    )
+
+    drive_files = [
+      mock_drive_file(id: "ts_convert", name: "To Convert TS", parent_id: @root_folder_id,
+                      created_at: drive_created, updated_at: drive_modified)
+    ]
+
+    @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
+    @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
+    @mock_api.expect(:export_as_html, { status: :success, content: "<p>Converted</p>" }, [ "ts_convert" ])
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.import!
+
+      assert_equal 1, result[:docs_converted]
+
+      existing_doc.reload
+      assert_equal drive_created, existing_doc.created_at
+      assert_equal drive_modified, existing_doc.updated_at
+    end
+
+    @mock_api.verify
+  end
+
+  test "uploaded document preserves Drive created_at and updated_at timestamps" do
+    drive_created = Time.utc(2024, 5, 1, 12, 0, 0)
+    drive_modified = Time.utc(2024, 8, 15, 9, 30, 0)
+
+    drive_files = [
+      mock_drive_file(id: "ts_pdf", name: "Timestamped.pdf", parent_id: @root_folder_id,
+                      mime_type: "application/pdf",
+                      created_at: drive_created, updated_at: drive_modified)
+    ]
+
+    pdf_content = StringIO.new("%PDF-1.4 fake")
+
+    @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
+    @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
+    @mock_api.expect(:download_file, {
+      status: :success, content: pdf_content, name: "Timestamped.pdf", mime_type: "application/pdf"
+    }, [ "ts_pdf" ])
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.import!
+
+      assert_equal 1, result[:docs_uploaded]
+
+      doc = Document.find_by(google_drive_url: "https://drive.google.com/file/d/ts_pdf/view")
+      assert_not_nil doc
+      assert_equal drive_created, doc.created_at
+      assert_equal drive_modified, doc.updated_at
+    end
+
+    @mock_api.verify
   end
 end

@@ -111,6 +111,8 @@ class GoogleDriveNativeImportService
 
       existing = Document.find_by(google_drive_url: web_link)
 
+      drive_timestamps = { created_at: drive_file[:created_at], updated_at: drive_file[:updated_at] }
+
       if existing&.native? || existing&.uploaded?
         # Already imported — skip
         Rails.logger.info("[DriveImport] Skipping already-imported: #{drive_file[:name]}")
@@ -118,14 +120,14 @@ class GoogleDriveNativeImportService
       elsif google_doc_type?(drive_file[:mime_type])
         # Google-native file — export as HTML
         if existing&.google_drive?
-          result = export_and_update(existing, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id)
+          result = export_and_update(existing, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id, drive_timestamps)
           if result == :success
             docs_converted += 1
           else
             errors << result
           end
         else
-          result = export_and_create(web_link, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id)
+          result = export_and_create(web_link, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id, drive_timestamps)
           if result == :success
             docs_created += 1
           else
@@ -134,7 +136,7 @@ class GoogleDriveNativeImportService
         end
       else
         # Non-Google-native file — download and attach
-        result = download_and_create(web_link, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id)
+        result = download_and_create(web_link, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id, drive_timestamps)
         if result == :success
           docs_uploaded += 1
         else
@@ -146,7 +148,7 @@ class GoogleDriveNativeImportService
     [ docs_converted, docs_created, docs_uploaded, docs_skipped, errors ]
   end
 
-  def export_and_update(document, file_id, name, mime_type, local_folder_id)
+  def export_and_update(document, file_id, name, mime_type, local_folder_id, drive_timestamps)
     Rails.logger.info("[DriveImport] Converting to native: #{name}")
     export_result = @api.export_as_html(file_id)
 
@@ -162,10 +164,11 @@ class GoogleDriveNativeImportService
       document_type: document_type_from_mime(mime_type),
       document_folder_id: local_folder_id
     )
+    apply_drive_timestamps(document, drive_timestamps)
     :success
   end
 
-  def export_and_create(web_link, file_id, name, mime_type, local_folder_id)
+  def export_and_create(web_link, file_id, name, mime_type, local_folder_id, drive_timestamps)
     Rails.logger.info("[DriveImport] Creating native doc: #{name}")
     export_result = @api.export_as_html(file_id)
 
@@ -175,7 +178,7 @@ class GoogleDriveNativeImportService
       return msg
     end
 
-    Document.create!(
+    doc = Document.create!(
       title: name,
       google_drive_url: web_link,
       storage_type: :native,
@@ -184,10 +187,11 @@ class GoogleDriveNativeImportService
       document_folder_id: local_folder_id,
       community: @community
     )
+    apply_drive_timestamps(doc, drive_timestamps)
     :success
   end
 
-  def download_and_create(web_link, file_id, name, mime_type, local_folder_id)
+  def download_and_create(web_link, file_id, name, mime_type, local_folder_id, drive_timestamps)
     Rails.logger.info("[DriveImport] Downloading uploaded file: #{name}")
     download_result = @api.download_file(file_id)
 
@@ -211,7 +215,15 @@ class GoogleDriveNativeImportService
       content_type: download_result[:mime_type]
     )
     doc.save!
+    apply_drive_timestamps(doc, drive_timestamps)
     :success
+  end
+
+  def apply_drive_timestamps(document, timestamps)
+    columns = {}
+    columns[:created_at] = timestamps[:created_at] if timestamps[:created_at]
+    columns[:updated_at] = timestamps[:updated_at] if timestamps[:updated_at]
+    document.update_columns(columns) if columns.any?
   end
 
   def extract_file_id(url)

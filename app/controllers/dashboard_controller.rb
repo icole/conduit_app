@@ -49,7 +49,7 @@ class DashboardController < ApplicationController
     folder_id = current_community.google_drive_folder_id
 
     if folder_id.present? && DriveShare.folder_shared_with_user?(folder_id, current_user)
-      GoogleDriveSyncJob.perform_later(current_user.id)
+      ScheduledDriveSyncJob.perform_later
       render json: { status: "success", message: "Refresh started" }
     else
       render json: { status: "error", message: "Access denied" }, status: :forbidden
