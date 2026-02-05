@@ -115,7 +115,10 @@ class GoogleDriveNativeImportService
 
       drive_timestamps = { created_at: drive_file[:created_at], updated_at: drive_file[:updated_at] }
 
-      if existing&.native? || existing&.uploaded?
+      if skip_mime_type?(drive_file[:mime_type])
+        Rails.logger.info("[DriveImport] Skipping image file: #{drive_file[:name]}")
+        docs_skipped += 1
+      elsif existing&.native? || existing&.uploaded?
         # Already imported — re-import if Drive updated_at differs, otherwise skip
         if drive_timestamps[:updated_at] && existing.updated_at != drive_timestamps[:updated_at]
           result = if google_doc_type?(drive_file[:mime_type])
@@ -295,6 +298,10 @@ class GoogleDriveNativeImportService
       application/vnd.google-apps.spreadsheet
       application/vnd.google-apps.presentation
     ].include?(mime_type)
+  end
+
+  def skip_mime_type?(mime_type)
+    mime_type&.start_with?("image/")
   end
 
   def google_native_skip_type?(mime_type)

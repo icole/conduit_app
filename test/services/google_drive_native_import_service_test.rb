@@ -522,15 +522,13 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
       mock_drive_file(id: "excel_file", name: "Budget.xlsx", parent_id: @root_folder_id,
                       mime_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
       mock_drive_file(id: "ppt_file", name: "Slides.pptx", parent_id: @root_folder_id,
-                      mime_type: "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
-      mock_drive_file(id: "image_file", name: "Photo.jpg", parent_id: @root_folder_id,
-                      mime_type: "image/jpeg")
+                      mime_type: "application/vnd.openxmlformats-officedocument.presentationml.presentation")
     ]
 
     @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
     @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
 
-    %w[word_file excel_file ppt_file image_file].each do |file_id|
+    %w[word_file excel_file ppt_file].each do |file_id|
       content = StringIO.new("fake content for #{file_id}")
       @mock_api.expect(:download_file, {
         status: :success, content: content, name: "#{file_id}.bin", mime_type: "application/octet-stream"
@@ -542,7 +540,7 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
       result = service.import!
 
       assert result[:success]
-      assert_equal 4, result[:docs_uploaded]
+      assert_equal 3, result[:docs_uploaded]
 
       word_doc = Document.find_by(google_drive_url: "https://drive.google.com/file/d/word_file/view")
       assert_equal "Word Document", word_doc.document_type
@@ -552,9 +550,6 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
 
       ppt_doc = Document.find_by(google_drive_url: "https://drive.google.com/file/d/ppt_file/view")
       assert_equal "PowerPoint", ppt_doc.document_type
-
-      image_doc = Document.find_by(google_drive_url: "https://drive.google.com/file/d/image_file/view")
-      assert_equal "Image", image_doc.document_type
     end
 
     @mock_api.verify
