@@ -7,7 +7,7 @@ class HotwireNativeViewController: VisitableViewController, BridgeDestination {
     private lazy var bridgeDelegate = BridgeDelegate(
         location: currentVisitableURL.absoluteString,
         destination: self,
-        componentTypes: Hotwire.bridgeComponentTypes
+        componentTypes: AppDelegate.bridgeComponentTypes
     )
 
     override func viewDidLoad() {

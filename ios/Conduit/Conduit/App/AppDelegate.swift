@@ -49,11 +49,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
     }
 
+    static let bridgeComponentTypes: [BridgeComponent.Type] = [
+        MenuComponent.self
+    ]
+
     private func configureHotwireNative() {
         // Register bridge components
-        Hotwire.registerBridgeComponents([
-            MenuComponent.self
-        ])
+        Hotwire.registerBridgeComponents(AppDelegate.bridgeComponentTypes)
 
         // Configure custom web view with user agent
         Hotwire.config.makeCustomWebView = { (configuration: WKWebViewConfiguration) -> WKWebView in
