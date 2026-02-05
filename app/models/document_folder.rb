@@ -19,6 +19,21 @@ class DocumentFolder < ApplicationRecord
     google_drive_id.present?
   end
 
+  # Returns all folders in depth-first tree order (roots alphabetically, then children)
+  def self.tree_ordered
+    folders = all.order(:name).to_a
+    by_parent = folders.group_by(&:parent_id)
+    result = []
+    build = ->(parent_id) do
+      (by_parent[parent_id] || []).each do |folder|
+        result << folder
+        build.call(folder.id)
+      end
+    end
+    build.call(nil)
+    result
+  end
+
   # Returns true if this is a root-level folder (no parent)
   def root?
     parent_id.nil?

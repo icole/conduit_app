@@ -115,6 +115,24 @@ class DocumentFolderTest < ActiveSupport::TestCase
     assert_includes duplicate.errors[:name], "has already been taken"
   end
 
+  test "tree_ordered returns folders in depth-first order" do
+    # Create a second root-level folder that sorts alphabetically before "Meeting Notes"
+    another_root = DocumentFolder.create!(
+      name: "Budgets",
+      community: communities(:crow_woods)
+    )
+    child_of_another = DocumentFolder.create!(
+      name: "2025",
+      parent: another_root,
+      community: communities(:crow_woods)
+    )
+
+    ordered = DocumentFolder.tree_ordered
+
+    # Should be: Budgets, 2025, Meeting Notes, 2024, January
+    assert_equal [ another_root, child_of_another, @root_folder, @nested_folder, @deeply_nested ], ordered
+  end
+
   test "allows same name in different parent folders" do
     folder1 = DocumentFolder.create!(
       name: "Reports",

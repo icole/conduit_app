@@ -128,6 +128,7 @@ Rails.application.routes.draw do
     member do
       patch :update_content
       get :view_content
+      patch :move
     end
     collection do
       get :refresh_from_google_drive

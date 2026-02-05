@@ -219,18 +219,31 @@
                 <% if document.native? || document.uploaded? %>
                   <input type="checkbox" id="move-doc-modal-<%= document.id %>" class="modal-toggle" />
                   <div class="modal modal-bottom sm:modal-middle">
-                    <div class="modal-box">
-                      <h3 class="font-bold text-lg mb-4">Move "<%= document.title %>"</h3>
-                      <%= form_with model: document, url: document_path(document), method: :patch, class: "space-y-4" do |f| %>
-                        <div class="form-control">
-                          <label class="label cursor-pointer justify-start gap-3">
-                            <%= f.radio_button :document_folder_id, "", checked: document.document_folder_id.nil?, class: "radio radio-primary" %>
-                            <span class="label-text font-medium">Root (no folder)</span>
+                    <div class="modal-box" data-controller="folder-filter">
+                      <h3 class="font-bold text-lg mb-1">Move "<%= document.title %>"</h3>
+                      <p class="text-sm text-base-content/60 mb-4">Currently in: <%= document.document_folder&.name || "Root" %></p>
+                      <%= form_with model: document, url: move_document_path(document), method: :patch, class: "space-y-4" do |f| %>
+                        <input type="text"
+                               placeholder="Filter folders..."
+                               class="input input-bordered input-sm w-full mb-2"
+                               data-folder-filter-target="search"
+                               data-action="input->folder-filter#filter" />
+                        <div class="flex flex-col max-h-64 overflow-y-auto">
+                          <label class="flex items-center gap-3 py-3 px-1 cursor-pointer border-b border-base-200" data-folder-filter-target="option" data-root="true">
+                            <%= f.radio_button :document_folder_id, "", checked: document.document_folder_id.nil?, class: "radio radio-primary shrink-0" %>
+                            <span class="font-medium">Root (no folder)</span>
+                            <% if document.document_folder_id.nil? %>
+                              <span class="badge badge-sm badge-primary ml-auto shrink-0">current</span>
+                            <% end %>
                           </label>
                           <% @all_folders.each do |folder| %>
-                            <label class="label cursor-pointer justify-start gap-3">
-                              <%= f.radio_button :document_folder_id, folder.id, checked: document.document_folder_id == folder.id, class: "radio radio-primary" %>
-                              <span class="label-text"><%= folder.name %></span>
+                            <label class="flex items-center gap-3 py-3 cursor-pointer border-b border-base-200" style="padding-left: calc(0.25rem + <%= folder.depth * 1.5 %>rem)" data-folder-filter-target="option">
+                              <%= f.radio_button :document_folder_id, folder.id, checked: document.document_folder_id == folder.id, class: "radio radio-primary shrink-0" %>
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-warning shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z" /></svg>
+                              <span><%= folder.name %></span>
+                              <% if document.document_folder_id == folder.id %>
+                                <span class="badge badge-sm badge-primary ml-auto shrink-0">current</span>
+                              <% end %>
                             </label>
                           <% end %>
                         </div>

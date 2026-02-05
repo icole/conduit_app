@@ -189,8 +189,8 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
 
     assert_nil native_doc.document_folder_id
 
-    patch document_url(native_doc), params: { document: { document_folder_id: folder.id } }
-    assert_redirected_to document_url(native_doc)
+    patch move_document_url(native_doc), params: { document: { document_folder_id: folder.id } }
+    assert_redirected_to documents_url(folder_id: folder.id)
 
     native_doc.reload
     assert_equal folder, native_doc.document_folder
@@ -201,11 +201,18 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     native_doc = documents(:native_doc)
     native_doc.update!(document_folder_id: folder.id)
 
-    patch document_url(native_doc), params: { document: { document_folder_id: "" } }
-    assert_redirected_to document_url(native_doc)
+    patch move_document_url(native_doc), params: { document: { document_folder_id: "" } }
+    assert_redirected_to documents_url
 
     native_doc.reload
     assert_nil native_doc.document_folder_id
+  end
+
+  test "move modal includes folder filter search input" do
+    native_doc = documents(:native_doc)
+    get documents_url
+    assert_response :success
+    assert_select "input[data-folder-filter-target='search']"
   end
 
   test "show redirects uploaded document to blob url" do

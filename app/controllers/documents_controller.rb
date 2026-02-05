@@ -1,5 +1,5 @@
 class DocumentsController < ApplicationController
-  before_action :set_document, only: %i[ show edit update destroy update_content view_content ]
+  before_action :set_document, only: %i[ show edit update destroy update_content view_content move ]
   before_action :authenticate_user!
   skip_before_action :verify_authenticity_token, only: [ :update_content ]
 
@@ -25,8 +25,8 @@ class DocumentsController < ApplicationController
     # Documents in current folder
     @documents = Document.where(document_folder_id: @current_folder&.id).order("#{sort_column} #{sort_direction}")
 
-    # All folders for "Move to Folder" modal
-    @all_folders = DocumentFolder.order(:name)
+    # All folders for "Move to Folder" modal (tree-ordered for indentation)
+    @all_folders = DocumentFolder.tree_ordered
   end
 
   # Sync documents and folders from Google Drive (admin only)
@@ -111,6 +111,12 @@ class DocumentsController < ApplicationController
     else
       redirect_to documents_path(folder_id: params[:folder_id]), alert: "Could not upload file."
     end
+  end
+
+  # PATCH /documents/1/move
+  def move
+    @document.update(document_folder_id: params.dig(:document, :document_folder_id).presence)
+    redirect_to documents_path(folder_id: @document.document_folder_id)
   end
 
   # PATCH/PUT /documents/1 or /documents/1.json
