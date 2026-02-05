@@ -182,20 +182,8 @@
                     </div>
                   </td>
                   <td>
-                    <% if document.uploaded? %>
-                      <span class="badge badge-secondary badge-sm">Uploaded</span>
-                    <% elsif document.native? %>
-                      <span class="badge badge-primary badge-sm">Native</span>
-                    <% else %>
-                      <% badge_color = case document.document_type
-                                       when 'Google Doc' then 'badge-info'
-                                       when 'Google Sheet' then 'badge-success'
-                                       when 'Google Slides' then 'badge-warning'
-                                       else 'badge-ghost'
-                                       end %>
-                      <span class="badge <%= badge_color %> badge-sm">
-                        <%= document.document_type %>
-                      </span>
+                    <% if document.document_type.present? %>
+                      <span class="badge badge-ghost badge-sm"><%= document.document_type %></span>
                     <% end %>
                   </td>
                   <td class="text-sm text-base-content/70">
