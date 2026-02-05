@@ -5,7 +5,7 @@ one:
   title: Sample Document
   description: A sample Google Document for testing
   google_drive_url: https://docs.google.com/document/d/1FakeDocumentId123456789abcdefghijklmnopqrstuvwxyz/edit
-  document_type: Google Doc
+  document_type: Document
   storage_type: google_drive
 
 two:
@@ -13,7 +13,7 @@ two:
   title: Sample Spreadsheet
   description: A sample Google Spreadsheet for testing
   google_drive_url: https://docs.google.com/spreadsheets/d/1FakeSpreadsheetId987654321zyxwvutsrqponmlkjihgfedcba/edit
-  document_type: Google Sheet
+  document_type: Spreadsheet
   storage_type: google_drive
 
 native_doc:
@@ -21,6 +21,7 @@ native_doc:
   title: Native Document
   description: A document with native content
   storage_type: native
+  document_type: Document
   content: "<p>This is native content stored in the database.</p>"
 
 uploaded_doc:
@@ -28,3 +29,4 @@ uploaded_doc:
   title: Uploaded File
   description: An uploaded file
   storage_type: uploaded
+  document_type: File

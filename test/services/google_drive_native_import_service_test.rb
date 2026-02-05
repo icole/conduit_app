@@ -55,7 +55,7 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
       title: "Board Minutes",
       google_drive_url: "https://docs.google.com/document/d/file_1/edit",
       storage_type: :google_drive,
-      document_type: "Google Doc",
+      document_type: "Document",
       community: @community
     )
 
@@ -197,7 +197,7 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
       title: "To Convert",
       google_drive_url: "https://docs.google.com/document/d/convert_me/edit",
       storage_type: :google_drive,
-      document_type: "Google Doc",
+      document_type: "Document",
       community: @community
     )
 
@@ -390,7 +390,7 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
       title: "To Convert",
       google_drive_url: "https://docs.google.com/document/d/convert_me/edit",
       storage_type: :google_drive,
-      document_type: "Google Doc",
+      document_type: "Document",
       community: @community
     )
 

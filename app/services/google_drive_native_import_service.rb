@@ -222,29 +222,7 @@ class GoogleDriveNativeImportService
   end
 
   def document_type_from_mime(mime_type)
-    case mime_type
-    when "application/vnd.google-apps.document"
-      "Document"
-    when "application/vnd.google-apps.spreadsheet"
-      "Spreadsheet"
-    when "application/vnd.google-apps.presentation"
-      "Presentation"
-    when "application/pdf"
-      "PDF"
-    when "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-         "application/msword"
-      "Word Document"
-    when "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-         "application/vnd.ms-excel"
-      "Excel Spreadsheet"
-    when "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-         "application/vnd.ms-powerpoint"
-      "PowerPoint"
-    when /\Aimage\//
-      "Image"
-    else
-      "File"
-    end
+    Document.document_type_from_mime(mime_type)
   end
 
   def google_doc_type?(mime_type)

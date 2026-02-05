@@ -22,8 +22,37 @@ class Document < ApplicationRecord
     message: "must be a valid Google Drive URL"
   }, allow_blank: true
 
+  before_validation :set_document_type_from_file, if: -> { uploaded? && document_type.blank? && file.attached? }
+  before_validation :set_default_document_type, if: -> { native? && document_type.blank? }
+
   # Ensure document has content source
   validate :has_content_or_link
+
+  def self.document_type_from_mime(mime_type)
+    case mime_type
+    when "application/vnd.google-apps.document"
+      "Document"
+    when "application/vnd.google-apps.spreadsheet"
+      "Spreadsheet"
+    when "application/vnd.google-apps.presentation"
+      "Presentation"
+    when "application/pdf"
+      "PDF"
+    when "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+         "application/msword"
+      "Word Document"
+    when "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+         "application/vnd.ms-excel"
+      "Excel Spreadsheet"
+    when "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+         "application/vnd.ms-powerpoint"
+      "PowerPoint"
+    when /\Aimage\//
+      "Image"
+    else
+      "File"
+    end
+  end
 
   # Returns a safe Google Drive URL for use in links
   def safe_google_drive_url
@@ -63,6 +92,14 @@ class Document < ApplicationRecord
   end
 
   private
+
+  def set_document_type_from_file
+    self.document_type = self.class.document_type_from_mime(file.content_type)
+  end
+
+  def set_default_document_type
+    self.document_type = "Document"
+  end
 
   def has_content_or_link
     if uploaded? && !file.attached?

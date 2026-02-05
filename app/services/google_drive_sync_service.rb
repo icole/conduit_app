@@ -194,16 +194,7 @@ class GoogleDriveSyncService
   end
 
   def document_type_from_mime(mime_type)
-    case mime_type
-    when "application/vnd.google-apps.document"
-      "Google Doc"
-    when "application/vnd.google-apps.spreadsheet"
-      "Google Sheet"
-    when "application/vnd.google-apps.presentation"
-      "Google Slides"
-    else
-      "Google Drive"
-    end
+    Document.document_type_from_mime(mime_type)
   end
 
   def build_sync_message(folders_created, folders_updated, folders_removed, files_created, files_updated)
