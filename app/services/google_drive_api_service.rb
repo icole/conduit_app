@@ -264,6 +264,32 @@ class GoogleDriveApiService
     end
   end
 
+  # Export a Google Spreadsheet as XLSX
+  # Fallback for spreadsheets that can't be exported as HTML (e.g., form response sheets)
+  def export_as_xlsx(file_id)
+    file = drive_service.get_file(file_id, fields: "id, name, mimeType")
+    xlsx_mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    content = StringIO.new
+    drive_service.export_file(file_id, xlsx_mime, download_dest: content)
+    content.rewind
+
+    {
+      status: :success,
+      content: content,
+      name: "#{file.name}.xlsx",
+      mime_type: xlsx_mime
+    }
+  rescue Google::Apis::ClientError => e
+    Rails.logger.error("Google Drive API XLSX Export Client Error: #{e.message}")
+    { error: e.message, status: :client_error }
+  rescue Google::Apis::ServerError => e
+    Rails.logger.error("Google Drive API XLSX Export Server Error: #{e.message}")
+    { error: e.message, status: :server_error }
+  rescue Google::Apis::AuthorizationError => e
+    Rails.logger.error("Google Drive API XLSX Export Authorization Error: #{e.message}")
+    { error: e.message, status: :auth_error }
+  end
+
   # Download a non-Google-native file (PDF, DOCX, images, etc.) as binary
   def download_file(file_id)
     file = drive_service.get_file(file_id, fields: "id, name, mimeType")
