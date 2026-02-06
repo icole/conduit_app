@@ -6,7 +6,6 @@ class GoogleDriveNativeImportService
   def initialize(community)
     @community = community
     @root_folder_id = community.google_drive_folder_id || ENV["GOOGLE_DRIVE_FOLDER_ID"]
-    @api = GoogleDriveApiService.from_service_account
   end
 
   def import!
@@ -14,7 +13,7 @@ class GoogleDriveNativeImportService
 
     ActsAsTenant.with_tenant(@community) do
       # Fetch folder structure from Drive
-      folder_result = @api.list_folder_tree(@root_folder_id)
+      folder_result = api.list_folder_tree(@root_folder_id)
       return { success: false, message: "Failed to fetch folders: #{folder_result[:error]}" } unless folder_result[:status] == :success
 
       drive_folders = folder_result[:folders]
@@ -26,7 +25,7 @@ class GoogleDriveNativeImportService
       all_folder_ids = [ @root_folder_id ] + drive_folders.map { |f| f[:id] }
 
       # Fetch files
-      files_result = @api.list_files_in_folders(all_folder_ids)
+      files_result = api.list_files_in_folders(all_folder_ids)
       return { success: false, message: "Failed to fetch files: #{files_result[:error]}" } unless files_result[:status] == :success
 
       # Import files as native or uploaded documents
@@ -48,6 +47,10 @@ class GoogleDriveNativeImportService
   end
 
   private
+
+  def api
+    @api ||= GoogleDriveApiService.from_service_account
+  end
 
   def sync_folders(drive_folders)
     folders_created = 0
@@ -172,7 +175,7 @@ class GoogleDriveNativeImportService
 
   def export_and_update(document, file_id, name, mime_type, local_folder_id, drive_timestamps)
     Rails.logger.info("[DriveImport] Converting to native: #{name}")
-    export_result = @api.export_as_html(file_id)
+    export_result = api.export_as_html(file_id)
 
     unless export_result[:status] == :success
       # For spreadsheets, fall back to XLSX export as an uploaded document
@@ -197,7 +200,7 @@ class GoogleDriveNativeImportService
 
   def export_and_create(web_link, file_id, name, mime_type, local_folder_id, drive_timestamps)
     Rails.logger.info("[DriveImport] Creating native doc: #{name}")
-    export_result = @api.export_as_html(file_id)
+    export_result = api.export_as_html(file_id)
 
     unless export_result[:status] == :success
       # For spreadsheets, fall back to XLSX export as an uploaded document
@@ -225,7 +228,7 @@ class GoogleDriveNativeImportService
 
   def download_and_create(web_link, file_id, name, mime_type, local_folder_id, drive_timestamps)
     Rails.logger.info("[DriveImport] Downloading uploaded file: #{name}")
-    download_result = @api.download_file(file_id)
+    download_result = api.download_file(file_id)
 
     unless download_result[:status] == :success
       msg = "Failed to download '#{name}': #{download_result[:error]}"
@@ -253,7 +256,7 @@ class GoogleDriveNativeImportService
 
   def download_and_update(document, file_id, name, mime_type, local_folder_id, drive_timestamps)
     Rails.logger.info("[DriveImport] Re-downloading uploaded file: #{name}")
-    download_result = @api.download_file(file_id)
+    download_result = api.download_file(file_id)
 
     unless download_result[:status] == :success
       msg = "Failed to download '#{name}': #{download_result[:error]}"
@@ -342,7 +345,7 @@ class GoogleDriveNativeImportService
 
   def xlsx_fallback_create(web_link, file_id, name, local_folder_id, drive_timestamps)
     Rails.logger.info("[DriveImport] HTML export failed for spreadsheet, falling back to XLSX: #{name}")
-    xlsx_result = @api.export_as_xlsx(file_id)
+    xlsx_result = api.export_as_xlsx(file_id)
 
     unless xlsx_result[:status] == :success
       msg = "Failed to export '#{name}' as XLSX: #{xlsx_result[:error]}"
@@ -371,7 +374,7 @@ class GoogleDriveNativeImportService
 
   def xlsx_fallback_update(document, file_id, name, local_folder_id, drive_timestamps)
     Rails.logger.info("[DriveImport] HTML export failed for spreadsheet, falling back to XLSX: #{name}")
-    xlsx_result = @api.export_as_xlsx(file_id)
+    xlsx_result = api.export_as_xlsx(file_id)
 
     unless xlsx_result[:status] == :success
       msg = "Failed to export '#{name}' as XLSX: #{xlsx_result[:error]}"
