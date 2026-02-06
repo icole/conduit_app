@@ -1,0 +1,14 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "0377acb47150e94f82df7cd0fec18ee83b835de9e48b0510c23342af9f452694",
+      "note": "safe_google_drive_url validates URLs against strict Google domain pattern (https://docs.google.com or https://drive.google.com only)"
+    },
+    {
+      "fingerprint": "d6cc0fb488cd21c4b41c412b212d3e719cad3a2b37fd5eccbeadca746ea2f993",
+      "note": "safe_google_drive_url validates URLs against strict Google domain pattern (https://docs.google.com or https://drive.google.com only)"
+    }
+  ],
+  "updated": "2026-02-06",
+  "brakeman_version": "8.0.2"
+}
