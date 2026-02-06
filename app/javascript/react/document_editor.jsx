@@ -867,10 +867,11 @@ const PresenceIndicator = () => {
 };
 
 // Threads component - must be wrapped in ClientSideSuspense
-const Threads = ({ editor }) => {
+const Threads = ({ editor, readOnly }) => {
   const { threads } = useThreads({ query: { resolved: false } });
 
   if (threads.length === 0) {
+    if (readOnly) return null;
     return (
       <p className="text-sm text-gray-500 italic">
         No comments yet. Select text and click the comment button to add one.
@@ -883,6 +884,25 @@ const Threads = ({ editor }) => {
       <AnchoredThreads editor={editor} threads={threads} />
       <FloatingThreads editor={editor} threads={threads} className="xl:hidden" />
     </>
+  );
+};
+
+// Comments sidebar - conditionally renders based on thread count
+const CommentsSidebar = ({ editor, readOnly }) => {
+  const { threads } = useThreads({ query: { resolved: false } });
+
+  // In read-only mode, hide sidebar if no comments
+  if (readOnly && threads.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="hidden xl:block w-80 border-l border-gray-200 bg-gray-50 overflow-auto">
+      <div className="p-4">
+        <h3 className="text-sm font-medium text-gray-700 mb-3">Comments</h3>
+        <Threads editor={editor} readOnly={readOnly} />
+      </div>
+    </div>
   );
 };
 
@@ -1123,14 +1143,9 @@ CharacterCount,
           {!readOnly && <FloatingToolbar editor={editor} />}
         </div>
 
-        {/* Comments sidebar - visible on large screens */}
+        {/* Comments sidebar - visible on large screens, hidden in read-only if no comments */}
         <ClientSideSuspense fallback={null}>
-          <div className="hidden xl:block w-80 border-l border-gray-200 bg-gray-50 overflow-auto">
-            <div className="p-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Comments</h3>
-              <Threads editor={editor} />
-            </div>
-          </div>
+          <CommentsSidebar editor={editor} readOnly={readOnly} />
         </ClientSideSuspense>
       </div>
 

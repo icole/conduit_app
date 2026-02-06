@@ -1,4 +1,5 @@
 <% content_for :title, @document.title %>
+<%= javascript_include_tag "document_editor", type: "module", "data-turbo-track": "reload" %>
 
 <div class="max-w-5xl mx-auto sm:px-4 py-3 sm:py-6">
   <%# Header with back button, title, and edit button %>
@@ -27,11 +28,17 @@
     </div>
   </div>
 
-  <%# Document content %>
+  <%# Document content via Tiptap in read-only mode %>
   <% if @document.content.present? %>
     <div class="bg-white rounded-lg border border-base-200 shadow-sm overflow-hidden">
-      <div class="p-3 sm:p-6 prose prose-sm max-w-none overflow-x-auto">
-        <%= sanitize(@document.content, tags: %w[p br div span a h1 h2 h3 h4 h5 h6 ul ol li table thead tbody tr th td strong em b i u s strike sub sup blockquote pre code img hr], attributes: %w[href src alt title target rel style]) %>
+      <div class="p-3 sm:p-6">
+        <div
+          id="document-editor-react"
+          data-document-id="<%= @document.id %>"
+          data-initial-content="<%= @document.content %>"
+          data-read-only="true"
+          class="min-h-[200px]"
+        ></div>
       </div>
     </div>
   <% else %>
