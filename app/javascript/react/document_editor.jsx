@@ -910,7 +910,10 @@ const CommentsSidebar = ({ editor, readOnly }) => {
 const CollaborativeEditor = ({ documentId, initialContent, saveUrl, readOnly }) => {
   const room = useRoom();
   const status = useStatus();
-  const liveblocks = useLiveblocksExtension();
+  // Pass initialContent to useLiveblocksExtension - it only sets content when room is empty
+  const liveblocks = useLiveblocksExtension({
+    initialContent: initialContent || undefined,
+  });
   const [saveStatus, setSaveStatus] = useState('saved');
   const [isLoading, setIsLoading] = useState(true);
   const saveTimeoutRef = useRef(null);
@@ -979,7 +982,6 @@ CharacterCount,
         suggestion: mentionSuggestion,
       }),
     ],
-    content: initialContent,
     editable: !readOnly,
     editorProps: {
       attributes: {
@@ -1079,12 +1081,12 @@ CharacterCount,
   const presencePortal = document.getElementById('presence-indicator-portal');
 
   return (
-    <div className="collaborative-editor h-full flex flex-col relative">
+    <div className="collaborative-editor relative">
       <style>{editorStyles}</style>
 
       {/* Loading overlay while Liveblocks syncs */}
       {isLoading && (
-        <div className="absolute inset-0 bg-white z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-white z-50 flex items-center justify-center min-h-[200px]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       )}
@@ -1111,43 +1113,32 @@ CharacterCount,
         presencePortal
       )}
 
-      {/* Main content area with editor and optional sidebar */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Editor panel */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Toolbar */}
-          {!readOnly && (
-            <div className="border-b border-gray-200 bg-white">
-              <Toolbar
-                editor={editor}
-                after={
-                  <>
-                    <ColorPicker editor={editor} />
-                    <HighlightPicker editor={editor} />
-                    <FontFamilyPicker editor={editor} />
-                    <YouTubeButton editor={editor} />
-                  </>
-                }
-              />
-            </div>
-          )}
-
-          {/* Editor Content - scrollable */}
-          <div className="flex-1 overflow-auto bg-white">
-            <div className="px-4 py-4">
-              <EditorContent editor={editor} />
-            </div>
-          </div>
-
-          {/* Floating toolbar for text selection */}
-          {!readOnly && <FloatingToolbar editor={editor} />}
+      {/* Toolbar */}
+      {!readOnly && (
+        <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
+          <Toolbar
+            editor={editor}
+            after={
+              <>
+                <ColorPicker editor={editor} />
+                <HighlightPicker editor={editor} />
+                <FontFamilyPicker editor={editor} />
+                <YouTubeButton editor={editor} />
+              </>
+            }
+          />
         </div>
+      )}
 
-        {/* Comments sidebar - visible on large screens, hidden in read-only if no comments */}
-        <ClientSideSuspense fallback={null}>
-          <CommentsSidebar editor={editor} readOnly={readOnly} />
-        </ClientSideSuspense>
+      {/* Editor Content */}
+      <div className="bg-white">
+        <div className="p-3 sm:p-6">
+          <EditorContent editor={editor} />
+        </div>
       </div>
+
+      {/* Floating toolbar for text selection */}
+      {!readOnly && <FloatingToolbar editor={editor} />}
 
       {/* Liveblocks floating UI */}
       <FloatingComposer editor={editor} style={{ width: '350px' }} />
@@ -1171,8 +1162,269 @@ async function resolveUsers({ userIds }) {
   return response.json();
 }
 
+// Standalone editor extensions (shared between standalone and read-only)
+const standaloneExtensions = [
+  StarterKit.configure({
+    heading: { levels: [1, 2, 3] },
+  }),
+  Link.configure({
+    openOnClick: false,
+    HTMLAttributes: {
+      class: 'text-blue-600 underline hover:text-blue-800',
+    },
+  }),
+  Underline,
+  TextStyle,
+  Color,
+  Highlight.configure({ multicolor: true }),
+  TaskList,
+  TaskItem.configure({ nested: true }),
+  TextAlign.configure({ types: ['heading', 'paragraph'] }),
+  Image.configure({ HTMLAttributes: { class: 'rounded-lg' } }),
+  Table.configure({ resizable: true }),
+  TableRow,
+  TableHeader,
+  TableCell,
+  Typography,
+  Subscript,
+  Superscript,
+  CharacterCount,
+  FontFamily,
+  Youtube.configure({ HTMLAttributes: { class: 'rounded-lg' } }),
+  Mention.configure({
+    HTMLAttributes: { class: 'mention' },
+    suggestion: mentionSuggestion,
+  }),
+];
+
+// Simple read-only viewer without Liveblocks
+const ReadOnlyViewer = ({ initialContent }) => {
+  const editor = useEditor({
+    extensions: [
+      ...standaloneExtensions,
+      Placeholder.configure({
+        placeholder: '',
+      }),
+    ],
+    content: initialContent,
+    editable: false,
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm sm:prose lg:prose-lg max-w-none focus:outline-none',
+      },
+    },
+  });
+
+  if (!editor) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="collaborative-editor">
+      <style>{editorStyles}</style>
+      <EditorContent editor={editor} />
+    </div>
+  );
+};
+
+// Standalone editor for imported docs (no Liveblocks, saves to DB)
+const StandaloneEditor = ({ initialContent, saveUrl }) => {
+  const [saveStatus, setSaveStatus] = useState('saved');
+  const saveTimeoutRef = useRef(null);
+  const lastSavedContentRef = useRef(initialContent);
+
+  const saveToServer = useCallback(async (content) => {
+    if (!saveUrl || content === lastSavedContentRef.current) {
+      setSaveStatus('saved');
+      return;
+    }
+
+    try {
+      const response = await fetch(saveUrl, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ content }),
+      });
+
+      if (response.ok) {
+        lastSavedContentRef.current = content;
+        setSaveStatus('saved');
+      } else {
+        console.error('Failed to save document:', response.status);
+        setSaveStatus('error');
+      }
+    } catch (error) {
+      console.error('Error saving document:', error);
+      setSaveStatus('error');
+    }
+  }, [saveUrl]);
+
+  const editor = useEditor({
+    extensions: [
+      ...standaloneExtensions,
+      Placeholder.configure({
+        placeholder: 'Start writing...',
+      }),
+    ],
+    content: initialContent,
+    editable: true,
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm sm:prose lg:prose-lg max-w-none focus:outline-none',
+        spellcheck: 'true',
+      },
+    },
+    onUpdate: ({ editor }) => {
+      setSaveStatus('saving');
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      saveTimeoutRef.current = setTimeout(() => {
+        saveToServer(editor.getHTML());
+      }, 1000);
+    },
+  });
+
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  if (!editor) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Render save status into the presence portal if it exists
+  const presencePortal = document.getElementById('presence-indicator-portal');
+
+  return (
+    <div className="collaborative-editor">
+      <style>{editorStyles}</style>
+
+      {presencePortal && createPortal(
+        <div className="flex items-center gap-3">
+          <span className={`text-xs ${
+            saveStatus === 'saving' ? 'text-yellow-600' :
+            saveStatus === 'error' ? 'text-red-600' :
+            'text-green-600'
+          }`}>
+            {saveStatus === 'saving' ? 'Saving...' :
+             saveStatus === 'error' ? 'Save failed' :
+             'Saved'}
+          </span>
+          <span className="text-xs text-gray-400">
+            {editor.storage.characterCount.words()} words
+          </span>
+        </div>,
+        presencePortal
+      )}
+
+      {/* Toolbar */}
+      <div className="border-b border-gray-200 bg-white px-2 py-1 flex flex-wrap gap-1 sticky top-0 z-10">
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
+          title="Bold"
+        >
+          <span className="font-bold text-sm">B</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('italic') ? 'bg-gray-200' : ''}`}
+          title="Italic"
+        >
+          <span className="italic text-sm">I</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('underline') ? 'bg-gray-200' : ''}`}
+          title="Underline"
+        >
+          <span className="underline text-sm">U</span>
+        </button>
+        <div className="w-px bg-gray-300 mx-1" />
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('heading', { level: 1 }) ? 'bg-gray-200' : ''}`}
+          title="Heading 1"
+        >
+          <span className="text-sm font-bold">H1</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}`}
+          title="Heading 2"
+        >
+          <span className="text-sm font-bold">H2</span>
+        </button>
+        <div className="w-px bg-gray-300 mx-1" />
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('bulletList') ? 'bg-gray-200' : ''}`}
+          title="Bullet List"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('orderedList') ? 'bg-gray-200' : ''}`}
+          title="Numbered List"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Editor Content */}
+      <div className="bg-white">
+        <div className="p-3 sm:p-6">
+          <EditorContent editor={editor} />
+        </div>
+      </div>
+
+      {/* Link bubble menu */}
+      <LinkBubbleMenu editor={editor} />
+    </div>
+  );
+};
+
 // Wrapper component with Liveblocks providers
-const DocumentEditorApp = ({ documentId, initialContent, saveUrl, readOnly }) => {
+const DocumentEditorApp = ({ documentId, initialContent, saveUrl, readOnly, imported }) => {
+  // For read-only mode, use simple viewer without Liveblocks
+  if (readOnly) {
+    return <ReadOnlyViewer initialContent={initialContent} />;
+  }
+
+  // For imported docs (from Google Drive), use standalone editor without Liveblocks
+  if (imported) {
+    return <StandaloneEditor initialContent={initialContent} saveUrl={saveUrl} />;
+  }
+
+  // For native docs, use full collaborative editor with Liveblocks
   const roomId = `document:${documentId}`;
 
   return (
@@ -1207,9 +1459,14 @@ const mountDocumentEditor = () => {
   if (container.dataset.mounted === 'true') return;
 
   const documentId = container.dataset.documentId;
-  const initialContent = container.dataset.initialContent || '';
+  const encodedContent = container.dataset.initialContent || '';
+  // Decode Base64 with proper UTF-8 handling
+  const initialContent = encodedContent
+    ? decodeURIComponent(atob(encodedContent).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))
+    : '';
   const saveUrl = container.dataset.saveUrl;
   const readOnly = container.dataset.readOnly === 'true';
+  const imported = container.dataset.imported === 'true';
 
   // Unmount previous root if exists
   if (documentEditorRoot) {
@@ -1225,6 +1482,7 @@ const mountDocumentEditor = () => {
       initialContent={initialContent}
       saveUrl={saveUrl}
       readOnly={readOnly}
+      imported={imported}
     />
   );
 };

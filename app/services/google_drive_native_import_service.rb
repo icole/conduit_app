@@ -187,7 +187,7 @@ class GoogleDriveNativeImportService
 
     document.update!(
       storage_type: :native,
-      content: export_result[:content],
+      content: clean_html(export_result[:content]),
       document_type: document_type_from_mime(mime_type),
       document_folder_id: local_folder_id
     )
@@ -214,7 +214,7 @@ class GoogleDriveNativeImportService
       title: name,
       google_drive_url: web_link,
       storage_type: :native,
-      content: export_result[:content],
+      content: clean_html(export_result[:content]),
       document_type: document_type_from_mime(mime_type),
       document_folder_id: local_folder_id,
       community: @community
@@ -313,6 +313,31 @@ class GoogleDriveNativeImportService
       application/vnd.google-apps.jam
       application/vnd.google-apps.shortcut
     ].include?(mime_type)
+  end
+
+  # Clean Google Drive exported HTML for Tiptap compatibility
+  def clean_html(html)
+    return "" if html.blank?
+
+    doc = Nokogiri::HTML(html)
+    body = doc.at_css("body")
+    return "" unless body
+
+    # Remove style, script tags
+    body.css("style, script").remove
+
+    # Remove Google's tracking images
+    body.css("img[src*='google.com/a/']").remove
+
+    # Remove class/id attributes (they reference removed styles)
+    body.traverse do |node|
+      if node.element?
+        node.remove_attribute("class")
+        node.remove_attribute("id")
+      end
+    end
+
+    body.inner_html
   end
 
   def xlsx_fallback_create(web_link, file_id, name, local_folder_id, drive_timestamps)

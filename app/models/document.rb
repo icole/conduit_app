@@ -67,11 +67,11 @@ class Document < ApplicationRecord
   end
 
   def native?
-    storage_type == "native" || (google_drive_url.blank? && !google_drive? && !uploaded?)
+    storage_type == "native"
   end
 
   def google_drive?
-    storage_type == "google_drive" || google_drive_url.present?
+    storage_type == "google_drive"
   end
 
   def uploaded?
