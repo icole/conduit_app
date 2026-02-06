@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useCallback, useEffect, useState, useRef, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
 import { useEditor, EditorContent, BubbleMenu, ReactRenderer } from '@tiptap/react';
@@ -37,6 +37,7 @@ import {
 import {
   ClientSideSuspense,
   useThreads,
+  useMarkThreadAsResolved,
 } from '@liveblocks/react/suspense';
 import {
   useLiveblocksExtension,
@@ -46,6 +47,7 @@ import {
   Toolbar,
   FloatingToolbar,
 } from '@liveblocks/react-tiptap';
+import { Thread } from '@liveblocks/react-ui';
 import '@liveblocks/react-ui/styles.css';
 import '@liveblocks/react-tiptap/styles.css';
 
@@ -53,6 +55,17 @@ import '@liveblocks/react-tiptap/styles.css';
 const editorStyles = `
   .lb-root {
     --lb-accent: #2563eb;
+  }
+
+  /* Anchored threads sidebar styles */
+  .threads-sidebar .lb-anchored-threads {
+    padding-top: 1rem;
+  }
+
+  .threads-sidebar .lb-thread {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
   }
 
   .collaborative-editor .ProseMirror {
@@ -866,45 +879,99 @@ const PresenceIndicator = () => {
   );
 };
 
-// Threads component - must be wrapped in ClientSideSuspense
-const Threads = ({ editor, readOnly }) => {
-  const { threads } = useThreads({ query: { resolved: false } });
+// Threads wrapper - manages thread state and renders sidebar + floating threads
+const ThreadsWrapper = ({ editor, showSidebar, onThreadCountChange }) => {
+  const { threads } = useThreads();
+  const markThreadAsResolved = useMarkThreadAsResolved();
 
-  if (threads.length === 0) {
-    if (readOnly) return null;
-    return (
-      <p className="text-sm text-gray-500 italic">
-        No comments yet. Select text and click the comment button to add one.
-      </p>
-    );
-  }
+  // Determine which threads have valid anchors in the document
+  const { activeThreads, orphanedThreads } = useMemo(() => {
+    if (!editor) return { activeThreads: [], orphanedThreads: [] };
+
+    const active = [];
+    const orphaned = [];
+
+    threads.forEach(thread => {
+      if (thread.resolved) return; // Skip already resolved
+      if (thread.comments.length === 0) {
+        orphaned.push(thread);
+        return;
+      }
+
+      // Try to find the anchor mark in the document
+      let hasAnchor = false;
+      editor.state.doc.descendants((node) => {
+        if (node.marks) {
+          node.marks.forEach((mark) => {
+            if (mark.type.name === 'liveblocksCommentMark' && mark.attrs.threadId === thread.id) {
+              hasAnchor = true;
+            }
+          });
+        }
+      });
+
+      if (hasAnchor) {
+        active.push(thread);
+      } else {
+        orphaned.push(thread);
+      }
+    });
+
+    return { activeThreads: active, orphanedThreads: orphaned };
+  }, [threads, editor]);
+
+  // Auto-resolve orphaned threads
+  useEffect(() => {
+    orphanedThreads.forEach(thread => {
+      console.log('Resolving orphaned thread:', thread.id);
+      markThreadAsResolved(thread.id);
+    });
+  }, [orphanedThreads, markThreadAsResolved]);
+
+  // Notify parent of thread count changes
+  useEffect(() => {
+    onThreadCountChange(activeThreads.length);
+  }, [activeThreads.length, onThreadCountChange]);
 
   return (
     <>
-      <AnchoredThreads editor={editor} threads={threads} />
-      <FloatingThreads editor={editor} threads={threads} className="xl:hidden" />
+      {/* Desktop sidebar */}
+      {showSidebar && (
+        <div className="threads-sidebar hidden xl:block w-80 shrink-0 border-l border-gray-200 bg-gray-50 px-3 self-stretch">
+          <AnchoredThreads editor={editor} threads={activeThreads} />
+        </div>
+      )}
+
+      {/* Mobile floating threads */}
+      <div className="xl:hidden">
+        <FloatingThreads editor={editor} threads={activeThreads} />
+      </div>
     </>
   );
 };
 
-// Comments sidebar - conditionally renders based on thread count
-const CommentsSidebar = ({ editor, readOnly }) => {
-  const { threads } = useThreads({ query: { resolved: false } });
-
-  // In read-only mode, hide sidebar if no comments
-  if (readOnly && threads.length === 0) {
-    return null;
-  }
-
+// Comments toggle button with count badge - receives count from parent to stay in sync
+// Hidden on smaller screens where the sidebar isn't shown
+const CommentsToggleButton = ({ isActive, onClick, count }) => {
   return (
-    <div className="hidden xl:block w-80 border-l border-gray-200 bg-gray-50 overflow-auto">
-      <div className="p-4">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">Comments</h3>
-        <Threads editor={editor} readOnly={readOnly} />
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`hidden xl:flex items-center gap-1 px-2 py-1 text-sm rounded ${isActive ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}
+      title={isActive ? "Hide comments" : "Show comments"}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+      </svg>
+      {count > 0 && (
+        <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${isActive ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
+          {count}
+        </span>
+      )}
+    </button>
   );
 };
+
 
 // The main collaborative editor
 const CollaborativeEditor = ({ documentId, initialContent, saveUrl, readOnly }) => {
@@ -916,6 +983,8 @@ const CollaborativeEditor = ({ documentId, initialContent, saveUrl, readOnly }) 
   });
   const [saveStatus, setSaveStatus] = useState('saved');
   const [isLoading, setIsLoading] = useState(true);
+  const [showComments, setShowComments] = useState(true);
+  const [threadCount, setThreadCount] = useState(0);
   const saveTimeoutRef = useRef(null);
   const lastSavedContentRef = useRef(initialContent);
 
@@ -1081,7 +1150,7 @@ CharacterCount,
   const presencePortal = document.getElementById('presence-indicator-portal');
 
   return (
-    <div className="collaborative-editor relative">
+    <div className="collaborative-editor relative flex flex-col flex-1">
       <style>{editorStyles}</style>
 
       {/* Loading overlay while Liveblocks syncs */}
@@ -1106,9 +1175,7 @@ CharacterCount,
                'Saved'}
             </span>
           )}
-          <span className="text-xs text-gray-400">
-            {editor.storage.characterCount.words()} words
-          </span>
+          <CommentsToggleButton isActive={showComments} onClick={() => setShowComments(!showComments)} count={threadCount} />
         </div>,
         presencePortal
       )}
@@ -1130,11 +1197,20 @@ CharacterCount,
         </div>
       )}
 
-      {/* Editor Content */}
-      <div className="bg-white">
-        <div className="p-3 sm:p-6">
+      {/* Editor Content with optional comments sidebar */}
+      <div className="flex bg-white flex-1">
+        <div className="flex-1 p-3 sm:p-6 min-w-0">
           <EditorContent editor={editor} />
         </div>
+
+        {/* Threads sidebar + mobile floating threads */}
+        <ClientSideSuspense fallback={null}>
+          <ThreadsWrapper
+            editor={editor}
+            showSidebar={showComments}
+            onThreadCountChange={setThreadCount}
+          />
+        </ClientSideSuspense>
       </div>
 
       {/* Floating toolbar for text selection */}
@@ -1325,9 +1401,6 @@ const StandaloneEditor = ({ initialContent, saveUrl }) => {
             {saveStatus === 'saving' ? 'Saving...' :
              saveStatus === 'error' ? 'Save failed' :
              'Saved'}
-          </span>
-          <span className="text-xs text-gray-400">
-            {editor.storage.characterCount.words()} words
           </span>
         </div>,
         presencePortal

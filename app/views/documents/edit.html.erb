@@ -61,7 +61,7 @@
   </div>
 
   <%# Editor in document-style container %>
-  <div class="bg-white rounded-lg border border-base-200 shadow-sm overflow-hidden">
+  <div class="bg-white rounded-lg border border-base-200 shadow-sm overflow-hidden flex flex-col min-h-[60vh]">
     <div
       id="document-editor-react"
       data-document-id="<%= @document.id %>"
@@ -69,7 +69,7 @@
       data-read-only="false"
       data-imported="<%= @document.google_drive_url.present? %>"
       data-save-url="<%= update_content_document_path(@document) %>"
-      class="min-h-[60vh]"
+      class="flex-1 flex flex-col"
     ></div>
   </div>
 </div>

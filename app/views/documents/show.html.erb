@@ -27,11 +27,14 @@
           <span class="hidden sm:inline">Drive</span>
         <% end %>
       <% end %>
-      <%= link_to edit_document_path(@document), class: "btn btn-sm btn-primary gap-1 sm:gap-2" do %>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-        </svg>
-        Edit
+      <%# Hide edit button for Google Drive docs to prevent sync issues %>
+      <% unless @document.google_drive_url.present? %>
+        <%= link_to edit_document_path(@document), class: "btn btn-sm btn-primary gap-1 sm:gap-2" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+          Edit
+        <% end %>
       <% end %>
     </div>
   </div>
@@ -53,9 +56,11 @@
   <% else %>
     <div class="text-center py-12 text-base-content/50">
       <p class="text-sm">This document is empty.</p>
-      <p class="text-xs mt-1">
-        <%= link_to "Start editing", edit_document_path(@document), class: "link link-primary" %>
-      </p>
+      <% unless @document.google_drive_url.present? %>
+        <p class="text-xs mt-1">
+          <%= link_to "Start editing", edit_document_path(@document), class: "link link-primary" %>
+        </p>
+      <% end %>
     </div>
   <% end %>
 </div>
