@@ -107,4 +107,57 @@ class ProfileTest < ApplicationSystemTestCase
     # Should still be in edit mode due to validation error
     assert_selector "input[name='user[name]']"
   end
+
+  test "user can add dietary needs" do
+    sign_in_as(@oauth_user)
+    visit account_path
+
+    # Should see the dietary needs section
+    assert_text "Dietary Needs"
+
+    # Fill in dietary needs
+    fill_in "user[dietary_needs]", with: "Vegetarian, allergic to tree nuts"
+    click_button "Save Dietary Needs"
+
+    # Wait for the flash to appear
+    assert_text "Dietary needs updated.", wait: 5
+
+    # Verify the field has the saved value
+    assert_field "user[dietary_needs]", with: "Vegetarian, allergic to tree nuts"
+
+    # Verify it persisted
+    @oauth_user.reload
+    assert_equal "Vegetarian, allergic to tree nuts", @oauth_user.dietary_needs
+  end
+
+  test "user can update dietary needs" do
+    @oauth_user.update!(dietary_needs: "Gluten-free")
+    sign_in_as(@oauth_user)
+    visit account_path
+
+    # Should see existing value
+    assert_field "user[dietary_needs]", with: "Gluten-free"
+
+    # Update it
+    fill_in "user[dietary_needs]", with: "Gluten-free, no dairy"
+    click_button "Save Dietary Needs"
+
+    assert_text "Dietary needs updated."
+    @oauth_user.reload
+    assert_equal "Gluten-free, no dairy", @oauth_user.dietary_needs
+  end
+
+  test "user can clear dietary needs" do
+    @oauth_user.update!(dietary_needs: "Some allergies")
+    sign_in_as(@oauth_user)
+    visit account_path
+
+    # Clear the field
+    fill_in "user[dietary_needs]", with: ""
+    click_button "Save Dietary Needs"
+
+    assert_text "Dietary needs updated."
+    @oauth_user.reload
+    assert_equal "", @oauth_user.dietary_needs
+  end
 end

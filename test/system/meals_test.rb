@@ -339,6 +339,87 @@ class MealsTest < ApplicationSystemTestCase
     end
   end
 
+  test "cook can see dietary needs section with attendee dietary info" do
+    # Set up users with dietary needs
+    users(:three).update!(dietary_needs: "Vegetarian, nut allergy")
+    users(:four).update!(dietary_needs: "Gluten-free")
+
+    meal = Meal.create!(
+      title: "Meal with Dietary Needs",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    # User one is the cook
+    meal.meal_cooks.create!(user: @user, role: "head_cook")
+    # Other users are attending
+    meal.meal_rsvps.create!(user: users(:three), status: "attending", guests_count: 0)
+    meal.meal_rsvps.create!(user: users(:four), status: "late_plate", guests_count: 0)
+
+    sign_in_as_user(:one)
+    visit meal_path(meal)
+
+    # Cook should see dietary needs section
+    within ".card", text: "Who's Coming" do
+      assert_text "Dietary Needs"
+      assert_text "Alice Johnson"
+      assert_text "Vegetarian, nut allergy"
+      assert_text "Bob Wilson"
+      assert_text "Gluten-free"
+    end
+  end
+
+  test "non-cook cannot see dietary needs section" do
+    # Set up user with dietary needs
+    users(:three).update!(dietary_needs: "Vegetarian")
+
+    meal = Meal.create!(
+      title: "Meal Dietary Needs Hidden",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    # Other user is the cook, not user one
+    meal.meal_cooks.create!(user: @other_user, role: "head_cook")
+    # User three is attending with dietary needs
+    meal.meal_rsvps.create!(user: users(:three), status: "attending", guests_count: 0)
+
+    # Sign in as user one who is NOT a cook
+    sign_in_as_user(:one)
+    visit meal_path(meal)
+
+    # Non-cook should NOT see dietary needs section header
+    within ".card", text: "Who's Coming" do
+      assert_no_text "Dietary Needs"
+    end
+  end
+
+  test "dietary needs section only shows users who have dietary needs set" do
+    # Only one user has dietary needs
+    users(:three).update!(dietary_needs: "Vegan")
+    users(:four).update!(dietary_needs: nil)
+
+    meal = Meal.create!(
+      title: "Meal Partial Dietary",
+      scheduled_at: 5.days.from_now,
+      rsvp_deadline: 4.days.from_now,
+      location: "Common House"
+    )
+    meal.meal_cooks.create!(user: @user, role: "head_cook")
+    meal.meal_rsvps.create!(user: users(:three), status: "attending", guests_count: 0)
+    meal.meal_rsvps.create!(user: users(:four), status: "attending", guests_count: 0)
+
+    sign_in_as_user(:one)
+    visit meal_path(meal)
+
+    within ".card", text: "Who's Coming" do
+      assert_text "Dietary Needs"
+      assert_text "Alice Johnson"
+      assert_text "Vegan"
+      # Bob should be in attending list but NOT in dietary needs section
+    end
+  end
+
   private
 
   def sign_in_as_user(user_fixture)

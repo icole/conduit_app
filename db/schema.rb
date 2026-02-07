@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_22_064110) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_07_073933) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -505,6 +505,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_22_064110) do
     t.string "avatar_url"
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
+    t.text "dietary_needs"
     t.string "email", null: false
     t.bigint "household_id"
     t.bigint "invitation_id"
