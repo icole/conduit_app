@@ -63,3 +63,6 @@ android/app/google-services.json
 # Android local configuration (contains local IP addresses)
 android/app/src/main/assets/config.properties
 build/
+
+# Excel files
+*.xlsx
