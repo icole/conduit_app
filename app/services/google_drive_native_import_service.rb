@@ -190,7 +190,7 @@ class GoogleDriveNativeImportService
 
     document.update!(
       storage_type: :native,
-      content: clean_html(export_result[:content]),
+      content: clean_html(export_result[:content], document),
       document_type: document_type_from_mime(mime_type),
       document_folder_id: local_folder_id
     )
@@ -213,15 +213,20 @@ class GoogleDriveNativeImportService
       return msg
     end
 
+    # Create document first with placeholder content
     doc = Document.create!(
       title: name,
       google_drive_url: web_link,
       storage_type: :native,
-      content: clean_html(export_result[:content]),
+      content: "",
       document_type: document_type_from_mime(mime_type),
       document_folder_id: local_folder_id,
       community: @community
     )
+
+    # Now clean HTML with image support (images will be attached to doc)
+    doc.update!(content: clean_html(export_result[:content], doc))
+
     apply_drive_timestamps(doc, drive_timestamps)
     :success
   end
@@ -319,7 +324,8 @@ class GoogleDriveNativeImportService
   end
 
   # Clean Google Drive exported HTML for Tiptap compatibility
-  def clean_html(html)
+  # If a document is provided, Google-hosted images will be downloaded and attached
+  def clean_html(html, document = nil)
     return "" if html.blank?
 
     doc = Nokogiri::HTML(html)
@@ -332,6 +338,26 @@ class GoogleDriveNativeImportService
     # Remove Google's tracking images
     body.css("img[src*='google.com/a/']").remove
 
+    # Process images - download Google-hosted ones and re-host them
+    if document
+      body.css("img").each do |img|
+        src = img["src"]
+        next if src.blank?
+
+        if google_hosted_image?(src)
+          # Download and re-host the image
+          new_url = download_and_attach_image(src, document)
+          if new_url
+            img["src"] = new_url
+          else
+            # Failed to download - remove the broken image
+            img.remove
+          end
+        end
+        # Non-Google images (external URLs, data URIs) are preserved as-is
+      end
+    end
+
     # Remove class/id attributes (they reference removed styles)
     body.traverse do |node|
       if node.element?
@@ -341,6 +367,83 @@ class GoogleDriveNativeImportService
     end
 
     body.inner_html
+  end
+
+  # Check if an image URL is hosted on Google's servers
+  def google_hosted_image?(url)
+    return false if url.blank?
+    return false if url.start_with?("data:")
+
+    google_hosts = [
+      "googleusercontent.com",
+      "ggpht.com",
+      "docs.google.com"
+    ]
+
+    google_hosts.any? { |host| url.include?(host) }
+  end
+
+  # Download an image from Google and attach it to the document
+  def download_and_attach_image(url, document)
+    Rails.logger.info("[DriveImport] Downloading image: #{url}")
+
+    response = download_image(url)
+    return nil unless response
+
+    # Generate a unique filename
+    extension = content_type_to_extension(response[:content_type])
+    filename = "image_#{SecureRandom.hex(8)}#{extension}"
+
+    # Attach to document
+    document.images.attach(
+      io: response[:content],
+      filename: filename,
+      content_type: response[:content_type]
+    )
+
+    # Return the blob URL
+    Rails.application.routes.url_helpers.rails_blob_path(
+      document.images.last,
+      only_path: true
+    )
+  rescue StandardError => e
+    Rails.logger.error("[DriveImport] Failed to download image #{url}: #{e.message}")
+    nil
+  end
+
+  def download_image(url)
+    uri = URI.parse(url)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = (uri.scheme == "https")
+    http.open_timeout = 10
+    http.read_timeout = 30
+
+    request = Net::HTTP::Get.new(uri)
+    response = http.request(request)
+
+    if response.is_a?(Net::HTTPSuccess)
+      {
+        content: StringIO.new(response.body),
+        content_type: response["Content-Type"] || "image/png"
+      }
+    else
+      Rails.logger.warn("[DriveImport] Image download failed with status #{response.code}: #{url}")
+      nil
+    end
+  rescue StandardError => e
+    Rails.logger.error("[DriveImport] Image download error: #{e.message}")
+    nil
+  end
+
+  def content_type_to_extension(content_type)
+    case content_type
+    when /jpeg/i then ".jpg"
+    when /png/i then ".png"
+    when /gif/i then ".gif"
+    when /webp/i then ".webp"
+    when /svg/i then ".svg"
+    else ".png"
+    end
   end
 
   def xlsx_fallback_create(web_link, file_id, name, local_folder_id, drive_timestamps)

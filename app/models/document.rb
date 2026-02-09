@@ -9,6 +9,7 @@ class Document < ApplicationRecord
   has_many :decisions, dependent: :nullify
 
   has_one_attached :file
+  has_many_attached :images
 
   # Native content stored as HTML (synced via Liveblocks)
   # Using a text column instead of ActionText for Liveblocks compatibility
