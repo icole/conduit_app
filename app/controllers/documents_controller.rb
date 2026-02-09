@@ -1,5 +1,5 @@
 class DocumentsController < ApplicationController
-  before_action :set_document, only: %i[ show edit update destroy update_content view_content move upload_image ]
+  before_action :set_document, only: %i[ show edit update destroy update_content view_content move upload_image reimport ]
   before_action :authenticate_user!
   skip_before_action :verify_authenticity_token, only: [ :update_content ]
 
@@ -177,6 +177,19 @@ class DocumentsController < ApplicationController
     blob = @document.images.last
 
     render json: { url: rails_blob_path(blob, only_path: true) }
+  end
+
+  # POST /documents/1/reimport
+  # Re-import a document from Google Drive to pick up images
+  def reimport
+    service = GoogleDriveNativeImportService.new(current_community)
+    result = service.reimport_document!(@document)
+
+    if result[:success]
+      redirect_to edit_document_path(@document), notice: result[:message]
+    else
+      redirect_to edit_document_path(@document), alert: result[:error]
+    end
   end
 
   # GET /documents/1/view_content

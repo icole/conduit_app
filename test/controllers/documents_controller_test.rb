@@ -270,4 +270,39 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     json = JSON.parse(response.body)
     assert_equal "File must be an image", json["error"]
   end
+
+  # Re-import tests
+
+  test "should reimport document from Google Drive" do
+    native_doc = documents(:native_doc)
+    native_doc.update!(google_drive_url: "https://docs.google.com/document/d/reimport_test/edit")
+
+    mock_api = Minitest::Mock.new
+    mock_api.expect(:export_as_html, {
+      status: :success,
+      content: "<body><p>Re-imported content</p></body>"
+    }, [ "reimport_test" ])
+
+    GoogleDriveApiService.stub(:from_service_account, mock_api) do
+      post reimport_document_url(native_doc)
+    end
+
+    assert_redirected_to edit_document_url(native_doc)
+    assert_equal "Document re-imported successfully", flash[:notice]
+
+    native_doc.reload
+    assert_includes native_doc.content, "Re-imported content"
+
+    mock_api.verify
+  end
+
+  test "should not reimport document without google_drive_url" do
+    native_doc = documents(:native_doc)
+    native_doc.update!(google_drive_url: nil)
+
+    post reimport_document_url(native_doc)
+
+    assert_redirected_to edit_document_url(native_doc)
+    assert_equal "Document has no Google Drive URL", flash[:alert]
+  end
 end

@@ -8,6 +8,34 @@ class GoogleDriveNativeImportService
     @root_folder_id = community.google_drive_folder_id || ENV["GOOGLE_DRIVE_FOLDER_ID"]
   end
 
+  # Re-import a single document from Google Drive, bypassing timestamp checks.
+  # Useful for picking up images after the image download feature was added.
+  def reimport_document!(document)
+    return { success: false, error: "Document has no Google Drive URL" } if document.google_drive_url.blank?
+    return { success: false, error: "Only native documents can be re-imported" } unless document.native?
+
+    file_id = document.google_drive_file_id
+    return { success: false, error: "Could not extract file ID from Google Drive URL" } if file_id.blank?
+
+    ActsAsTenant.with_tenant(@community) do
+      export_result = api.export_as_html(file_id)
+
+      unless export_result[:status] == :success
+        return { success: false, error: "Failed to export document: #{export_result[:error]}" }
+      end
+
+      # Clear existing images before re-importing (to avoid duplicates)
+      document.images.purge if document.images.attached?
+
+      document.update!(content: clean_html(export_result[:content], document))
+
+      { success: true, message: "Document re-imported successfully" }
+    end
+  rescue StandardError => e
+    Rails.logger.error("[DriveImport] Error re-importing document #{document.id}: #{e.message}")
+    { success: false, error: e.message }
+  end
+
   def import!
     return { success: false, message: "No Google Drive folder configured" } unless @root_folder_id.present?
 

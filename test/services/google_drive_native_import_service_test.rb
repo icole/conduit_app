@@ -910,4 +910,63 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
 
     @mock_api.verify
   end
+
+  test "reimport_document! re-exports a native document from Google Drive" do
+    doc = Document.create!(
+      title: "Old Content",
+      google_drive_url: "https://docs.google.com/document/d/reimport_test/edit",
+      storage_type: :native,
+      content: "<p>Old content without images</p>",
+      community: @community
+    )
+
+    @mock_api.expect(:export_as_html, {
+      status: :success,
+      content: "<body><p>New content with images</p></body>"
+    }, [ "reimport_test" ])
+
+    GoogleDriveApiService.stub(:from_service_account, @mock_api) do
+      service = GoogleDriveNativeImportService.new(@community)
+      result = service.reimport_document!(doc)
+
+      assert result[:success]
+      doc.reload
+      assert_includes doc.content, "New content with images"
+    end
+
+    @mock_api.verify
+  end
+
+  test "reimport_document! fails for document without google_drive_url" do
+    doc = Document.create!(
+      title: "Native Only",
+      storage_type: :native,
+      content: "<p>Content</p>",
+      community: @community
+    )
+
+    service = GoogleDriveNativeImportService.new(@community)
+    result = service.reimport_document!(doc)
+
+    assert_not result[:success]
+    assert_equal "Document has no Google Drive URL", result[:error]
+  end
+
+  test "reimport_document! fails for non-Google document types" do
+    doc = Document.new(
+      title: "PDF File",
+      google_drive_url: "https://drive.google.com/file/d/pdf_file/view",
+      storage_type: :uploaded,
+      document_type: "PDF",
+      community: @community
+    )
+    doc.file.attach(io: StringIO.new("pdf content"), filename: "test.pdf", content_type: "application/pdf")
+    doc.save!
+
+    service = GoogleDriveNativeImportService.new(@community)
+    result = service.reimport_document!(doc)
+
+    assert_not result[:success]
+    assert_equal "Only native documents can be re-imported", result[:error]
+  end
 end
