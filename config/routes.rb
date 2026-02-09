@@ -71,6 +71,9 @@ Rails.application.routes.draw do
   end
 
   resources :meal_schedules, except: [ :show ] do
+    collection do
+      patch :update_settings
+    end
     member do
       post :toggle_active
       post :generate_meals

@@ -1,0 +1,32 @@
+tuesday_dinner:
+  community: crow_woods
+  name: Tuesday Dinner
+  day_of_week: 2
+  start_time: "18:00:00"
+  location: Common House
+  max_cooks: 2
+  rsvp_deadline_hours: 24
+  active: true
+  created_by: one
+
+sunday_brunch:
+  community: crow_woods
+  name: Sunday Brunch
+  day_of_week: 0
+  start_time: "11:00:00"
+  location: Common House
+  max_cooks: 2
+  rsvp_deadline_hours: 24
+  active: true
+  created_by: one
+
+inactive_schedule:
+  community: crow_woods
+  name: Thursday Lunch
+  day_of_week: 4
+  start_time: "12:00:00"
+  location: Common House
+  max_cooks: 2
+  rsvp_deadline_hours: 24
+  active: false
+  created_by: one

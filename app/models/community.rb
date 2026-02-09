@@ -38,4 +38,13 @@ class Community < ApplicationRecord
   def dues_tracking_enabled?
     monthly_dues_amount.present? && monthly_dues_amount > 0
   end
+
+  # Meal scheduling settings
+  def meal_buffer_weeks
+    settings&.dig("meal_buffer_weeks")&.to_i || 6
+  end
+
+  def meal_buffer_weeks=(value)
+    self.settings = (settings || {}).merge("meal_buffer_weeks" => value.to_i)
+  end
 end

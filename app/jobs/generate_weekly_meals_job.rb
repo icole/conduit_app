@@ -1,16 +1,18 @@
 class GenerateWeeklyMealsJob < ApplicationJob
   queue_as :default
 
-  def perform(schedule_id: nil, community_id: nil, weeks_ahead: 4)
+  def perform(schedule_id: nil, community_id: nil, weeks_ahead: nil)
     communities = community_id ? Community.where(id: community_id) : Community.all
     created_count = 0
 
     communities.find_each do |community|
       ActsAsTenant.with_tenant(community) do
+        # Use provided weeks_ahead, or fall back to community setting
+        buffer_weeks = weeks_ahead || community.meal_buffer_weeks
         schedules = schedule_id ? MealSchedule.where(id: schedule_id) : MealSchedule.active
 
         schedules.find_each do |schedule|
-          weeks_ahead.times do |week_offset|
+          buffer_weeks.times do |week_offset|
             meal_date = schedule.next_occurrence(Date.current + week_offset.weeks)
             meal_datetime = schedule.start_time_on(meal_date)
 

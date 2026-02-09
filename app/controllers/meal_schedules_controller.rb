@@ -6,6 +6,16 @@ class MealSchedulesController < ApplicationController
     @schedules = MealSchedule.includes(:created_by).ordered
     @active_schedules = @schedules.active
     @inactive_schedules = @schedules.inactive
+    @community = ActsAsTenant.current_tenant
+  end
+
+  def update_settings
+    community = ActsAsTenant.current_tenant
+    buffer_weeks = params[:meal_buffer_weeks].to_i.clamp(1, 12)
+    community.meal_buffer_weeks = buffer_weeks
+    community.save!
+
+    redirect_to meal_schedules_path, notice: "Meal buffer updated to #{buffer_weeks} weeks."
   end
 
   def new

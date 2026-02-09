@@ -6,7 +6,7 @@ production:
 
   generate_weekly_meals:
     class: GenerateWeeklyMealsJob
-    schedule: every Sunday at 6am
+    schedule: every day at 6am
     queue: default
 
   meal_reminder:
@@ -32,7 +32,7 @@ development:
 
   generate_weekly_meals:
     class: GenerateWeeklyMealsJob
-    schedule: every Sunday at 6am
+    schedule: every day at 6am
     queue: default
 
   meal_reminder:
