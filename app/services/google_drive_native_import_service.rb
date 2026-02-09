@@ -366,7 +366,7 @@ class GoogleDriveNativeImportService
     # Remove Google's tracking images
     body.css("img[src*='google.com/a/']").remove
 
-    # Process images - download Google-hosted ones and re-host them
+    # Process images - download Google-hosted ones and convert base64 data URIs to attachments
     if document
       images = body.css("img")
       Rails.logger.info("[DriveImport] Found #{images.length} images in document #{document.id}")
@@ -393,8 +393,17 @@ class GoogleDriveNativeImportService
             img.remove
             Rails.logger.warn("[DriveImport] Failed to download image, removed from content")
           end
+        elsif base64_data_uri?(src)
+          Rails.logger.info("[DriveImport] Image is base64 data URI, converting to attachment...")
+          new_url = convert_data_uri_to_attachment(src, document)
+          if new_url
+            img["src"] = new_url
+            Rails.logger.info("[DriveImport] Successfully converted data URI to attachment: #{new_url}")
+          else
+            Rails.logger.warn("[DriveImport] Failed to convert data URI, preserving as-is")
+          end
         else
-          Rails.logger.info("[DriveImport] Image is not Google-hosted, preserving as-is")
+          Rails.logger.info("[DriveImport] Image is external URL, preserving as-is")
         end
       end
     end
@@ -422,6 +431,45 @@ class GoogleDriveNativeImportService
     ]
 
     google_hosts.any? { |host| url.include?(host) }
+  end
+
+  # Check if an image src is a base64 data URI
+  def base64_data_uri?(src)
+    return false if src.blank?
+    src.start_with?("data:image/")
+  end
+
+  # Convert a base64 data URI to an ActiveStorage attachment
+  def convert_data_uri_to_attachment(data_uri, document)
+    # Parse the data URI: data:image/png;base64,iVBORw0KGgo...
+    match = data_uri.match(/\Adata:(image\/[^;]+);base64,(.+)\z/m)
+    return nil unless match
+
+    content_type = match[1]
+    base64_data = match[2]
+
+    # Decode the base64 data
+    binary_data = Base64.decode64(base64_data)
+
+    # Generate a unique filename
+    extension = content_type_to_extension(content_type)
+    filename = "image_#{SecureRandom.hex(8)}#{extension}"
+
+    # Attach to document
+    document.images.attach(
+      io: StringIO.new(binary_data),
+      filename: filename,
+      content_type: content_type
+    )
+
+    # Return the blob URL
+    Rails.application.routes.url_helpers.rails_blob_path(
+      document.images.last,
+      only_path: true
+    )
+  rescue StandardError => e
+    Rails.logger.error("[DriveImport] Failed to convert data URI: #{e.message}")
+    nil
   end
 
   # Download an image from Google and attach it to the document

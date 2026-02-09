@@ -6,15 +6,34 @@ class GoogleDriveNativeImportServiceImageTest < ActiveSupport::TestCase
     @service = GoogleDriveNativeImportService.new(@community)
   end
 
-  test "clean_html preserves images with data URIs" do
-    html = '<body><p>Text</p><img src="data:image/png;base64,iVBORw0KGgo=" alt="test"></body>'
+  test "clean_html converts base64 data URI images to attachments" do
+    # A minimal valid PNG in base64
+    png_base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    html = %(<body><p>Text</p><img src="data:image/png;base64,#{png_base64}" alt="test"></body>)
 
     ActsAsTenant.with_tenant(@community) do
       doc = Document.create!(title: "Test", storage_type: :native, content: "")
+
+      assert_equal 0, doc.images.count
+
       result = @service.send(:clean_html, html, doc)
 
-      assert_includes result, 'src="data:image/png;base64,iVBORw0KGgo="'
+      # The data URI should be replaced with an ActiveStorage URL
+      assert_not_includes result, "data:image/png;base64"
+      assert_includes result, "/rails/active_storage/blobs"
+      assert_equal 1, doc.images.count
     end
+  end
+
+  test "base64_data_uri? correctly identifies data URIs" do
+    assert @service.send(:base64_data_uri?, "data:image/png;base64,abc123")
+    assert @service.send(:base64_data_uri?, "data:image/jpeg;base64,/9j/4AAQ")
+    assert @service.send(:base64_data_uri?, "data:image/gif;base64,R0lGOD")
+
+    assert_not @service.send(:base64_data_uri?, "https://example.com/image.png")
+    assert_not @service.send(:base64_data_uri?, "data:text/plain;base64,abc")
+    assert_not @service.send(:base64_data_uri?, nil)
+    assert_not @service.send(:base64_data_uri?, "")
   end
 
   test "clean_html identifies google-hosted image URLs" do
