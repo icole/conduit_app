@@ -67,6 +67,7 @@
   </div>
 
   <%# Editor in document-style container %>
+  <!-- DEBUG: content_length=<%= @document.content.to_s.length %> img_count=<%= @document.content.to_s.scan(/<img[^>]*>/i).length %> data_uri_count=<%= @document.content.to_s.scan(/data:image/i).length %> -->
   <div class="bg-white rounded-lg border border-base-200 shadow-sm overflow-hidden flex flex-col min-h-[60vh]">
     <div
       id="document-editor-react"
