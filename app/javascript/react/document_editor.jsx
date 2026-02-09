@@ -1064,7 +1064,7 @@ const CollaborativeEditor = ({ documentId, initialContent, saveUrl, readOnly }) 
   });
   const [saveStatus, setSaveStatus] = useState('saved');
   const [isLoading, setIsLoading] = useState(true);
-  const [showComments, setShowComments] = useState(true);
+  const [showComments, setShowComments] = useState(false);
   const [threadCount, setThreadCount] = useState(0);
   const saveTimeoutRef = useRef(null);
   const lastSavedContentRef = useRef(initialContent);
