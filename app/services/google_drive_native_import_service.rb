@@ -368,21 +368,34 @@ class GoogleDriveNativeImportService
 
     # Process images - download Google-hosted ones and re-host them
     if document
-      body.css("img").each do |img|
+      images = body.css("img")
+      Rails.logger.info("[DriveImport] Found #{images.length} images in document #{document.id}")
+
+      images.each do |img|
         src = img["src"]
-        next if src.blank?
+        if src.blank?
+          Rails.logger.info("[DriveImport] Skipping image with blank src")
+          next
+        end
+
+        # Log first 100 chars of URL for debugging
+        Rails.logger.info("[DriveImport] Processing image: #{src[0, 100]}...")
 
         if google_hosted_image?(src)
+          Rails.logger.info("[DriveImport] Image is Google-hosted, downloading...")
           # Download and re-host the image
           new_url = download_and_attach_image(src, document)
           if new_url
             img["src"] = new_url
+            Rails.logger.info("[DriveImport] Successfully attached image: #{new_url}")
           else
             # Failed to download - remove the broken image
             img.remove
+            Rails.logger.warn("[DriveImport] Failed to download image, removed from content")
           end
+        else
+          Rails.logger.info("[DriveImport] Image is not Google-hosted, preserving as-is")
         end
-        # Non-Google images (external URLs, data URIs) are preserved as-is
       end
     end
 
