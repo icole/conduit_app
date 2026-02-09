@@ -1395,6 +1395,13 @@ const StandaloneEditor = ({ initialContent, saveUrl, documentId }) => {
   const saveTimeoutRef = useRef(null);
   const lastSavedContentRef = useRef(initialContent);
 
+  // Debug: log what content we received
+  useEffect(() => {
+    console.log('[StandaloneEditor] Received initialContent length:', initialContent?.length || 0);
+    const imgCount = (initialContent?.match(/<img[^>]*>/gi) || []).length;
+    console.log('[StandaloneEditor] Images in initialContent:', imgCount);
+  }, []);
+
   const saveToServer = useCallback(async (content) => {
     if (!saveUrl || content === lastSavedContentRef.current) {
       setSaveStatus('saved');
@@ -1438,6 +1445,17 @@ const StandaloneEditor = ({ initialContent, saveUrl, documentId }) => {
         class: 'prose prose-sm sm:prose lg:prose-lg max-w-none focus:outline-none',
         spellcheck: 'true',
       },
+    },
+    onCreate: ({ editor }) => {
+      // Debug: check what Tiptap rendered
+      const html = editor.getHTML();
+      const imgCount = (html.match(/<img[^>]*>/gi) || []).length;
+      console.log('[StandaloneEditor] After Tiptap parse - images in output:', imgCount);
+      console.log('[StandaloneEditor] Tiptap output preview:', html.substring(0, 500));
+
+      // Check if any images have data URIs
+      const dataUriCount = (html.match(/src="data:image/gi) || []).length;
+      console.log('[StandaloneEditor] Data URI images after parse:', dataUriCount);
     },
     onUpdate: ({ editor }) => {
       setSaveStatus('saving');
@@ -1617,10 +1635,34 @@ const mountDocumentEditor = () => {
 
   const documentId = container.dataset.documentId;
   const encodedContent = container.dataset.initialContent || '';
+
+  // Debug: log encoded content size
+  console.log('[DocumentEditor] Encoded content length:', encodedContent.length);
+
   // Decode Base64 with proper UTF-8 handling
-  const initialContent = encodedContent
-    ? decodeURIComponent(atob(encodedContent).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))
-    : '';
+  let initialContent = '';
+  try {
+    initialContent = encodedContent
+      ? decodeURIComponent(atob(encodedContent).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))
+      : '';
+
+    // Debug: log decoded content info
+    console.log('[DocumentEditor] Decoded content length:', initialContent.length);
+
+    // Count images in the content
+    const imgMatches = initialContent.match(/<img[^>]*>/gi);
+    console.log('[DocumentEditor] Images found in content:', imgMatches ? imgMatches.length : 0);
+
+    // Check for data URIs
+    const dataUriMatches = initialContent.match(/data:image\/[^;]+;base64,/gi);
+    console.log('[DocumentEditor] Data URI images:', dataUriMatches ? dataUriMatches.length : 0);
+
+    // Log first 500 chars of content for debugging
+    console.log('[DocumentEditor] Content preview:', initialContent.substring(0, 500));
+  } catch (e) {
+    console.error('[DocumentEditor] Error decoding content:', e);
+  }
+
   const saveUrl = container.dataset.saveUrl;
   const readOnly = container.dataset.readOnly === 'true';
   const imported = container.dataset.imported === 'true';
