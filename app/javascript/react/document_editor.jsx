@@ -1263,7 +1263,7 @@ CharacterCount,
 
       {/* Toolbar */}
       {!readOnly && (
-        <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
+        <div className="border-b border-gray-200 bg-white sticky top-0 z-40 rounded-t-lg">
           <Toolbar
             editor={editor}
             after={
@@ -1489,7 +1489,7 @@ const StandaloneEditor = ({ initialContent, saveUrl, documentId }) => {
       )}
 
       {/* Toolbar */}
-      <div className="border-b border-gray-200 bg-white px-2 py-1 flex flex-wrap gap-1 sticky top-0 z-10">
+      <div className="border-b border-gray-200 bg-white px-2 py-1 flex flex-wrap gap-1 sticky top-0 z-40 rounded-t-lg">
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
