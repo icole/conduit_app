@@ -1489,12 +1489,13 @@ const StandaloneEditor = ({ initialContent, saveUrl, documentId }) => {
       )}
 
       {/* Toolbar */}
-      <div className="border-b border-gray-200 bg-white px-2 py-1 flex flex-wrap gap-1 sticky top-0 z-40 rounded-t-lg">
+      <div className="border-b border-gray-200 bg-white px-2 py-1 flex flex-wrap items-center gap-1 sticky top-0 z-40 rounded-t-lg">
+        {/* Text formatting */}
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
           className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
-          title="Bold"
+          title="Bold (Ctrl+B)"
         >
           <span className="font-bold text-sm">B</span>
         </button>
@@ -1502,7 +1503,7 @@ const StandaloneEditor = ({ initialContent, saveUrl, documentId }) => {
           type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
           className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('italic') ? 'bg-gray-200' : ''}`}
-          title="Italic"
+          title="Italic (Ctrl+I)"
         >
           <span className="italic text-sm">I</span>
         </button>
@@ -1510,11 +1511,22 @@ const StandaloneEditor = ({ initialContent, saveUrl, documentId }) => {
           type="button"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('underline') ? 'bg-gray-200' : ''}`}
-          title="Underline"
+          title="Underline (Ctrl+U)"
         >
           <span className="underline text-sm">U</span>
         </button>
-        <div className="w-px bg-gray-300 mx-1" />
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('strike') ? 'bg-gray-200' : ''}`}
+          title="Strikethrough"
+        >
+          <span className="line-through text-sm">S</span>
+        </button>
+
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+
+        {/* Headings */}
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -1531,7 +1543,18 @@ const StandaloneEditor = ({ initialContent, saveUrl, documentId }) => {
         >
           <span className="text-sm font-bold">H2</span>
         </button>
-        <div className="w-px bg-gray-300 mx-1" />
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('heading', { level: 3 }) ? 'bg-gray-200' : ''}`}
+          title="Heading 3"
+        >
+          <span className="text-sm font-bold">H3</span>
+        </button>
+
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+
+        {/* Lists */}
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -1552,8 +1575,87 @@ const StandaloneEditor = ({ initialContent, saveUrl, documentId }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
           </svg>
         </button>
-        <div className="w-px bg-gray-300 mx-1" />
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleTaskList().run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('taskList') ? 'bg-gray-200' : ''}`}
+          title="Task List"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        </button>
+
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+
+        {/* Block formatting */}
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('blockquote') ? 'bg-gray-200' : ''}`}
+          title="Quote"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('codeBlock') ? 'bg-gray-200' : ''}`}
+          title="Code Block"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
+        </button>
+
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+
+        {/* Text alignment */}
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().setTextAlign('left').run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
+          title="Align Left"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h10M4 18h16" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().setTextAlign('center').run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}`}
+          title="Align Center"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M7 12h10M4 18h16" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().setTextAlign('right').run()}
+          className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}`}
+          title="Align Right"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M10 12h10M4 18h16" />
+          </svg>
+        </button>
+
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+
+        {/* Colors and fonts */}
+        <ColorPicker editor={editor} />
+        <HighlightPicker editor={editor} />
+        <FontFamilyPicker editor={editor} />
+
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+
+        {/* Media */}
         <ImageButton editor={editor} documentId={documentId} />
+        <YouTubeButton editor={editor} />
       </div>
 
       {/* Editor Content */}
