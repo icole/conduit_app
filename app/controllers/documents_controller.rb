@@ -1,5 +1,5 @@
 class DocumentsController < ApplicationController
-  before_action :set_document, only: %i[ show edit update destroy update_content view_content move ]
+  before_action :set_document, only: %i[ show edit update destroy update_content view_content move upload_image ]
   before_action :authenticate_user!
   skip_before_action :verify_authenticity_token, only: [ :update_content ]
 
@@ -158,6 +158,25 @@ class DocumentsController < ApplicationController
     else
       render json: { status: "error", errors: @document.errors.full_messages }, status: :unprocessable_entity
     end
+  end
+
+  # POST /documents/1/upload_image
+  # API endpoint for the React editor to upload images
+  def upload_image
+    unless params[:image].present?
+      render json: { error: "No image provided" }, status: :unprocessable_entity
+      return
+    end
+
+    unless params[:image].content_type.start_with?("image/")
+      render json: { error: "File must be an image" }, status: :unprocessable_entity
+      return
+    end
+
+    @document.images.attach(params[:image])
+    blob = @document.images.last
+
+    render json: { url: rails_blob_path(blob, only_path: true) }
   end
 
   # GET /documents/1/view_content

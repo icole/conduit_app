@@ -132,6 +132,7 @@ Rails.application.routes.draw do
       patch :update_content
       get :view_content
       patch :move
+      post :upload_image
     end
     collection do
       get :refresh_from_google_drive

@@ -227,4 +227,47 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :redirect
     assert_match(/rails\/active_storage/, response.location)
   end
+
+  # Image upload tests
+
+  test "should upload image to document" do
+    native_doc = documents(:native_doc)
+
+    assert_difference("native_doc.images.count") do
+      post upload_image_document_url(native_doc), params: {
+        image: fixture_file_upload("test_image.png", "image/png")
+      }
+    end
+
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert json["url"].present?
+    assert_match(/rails\/active_storage/, json["url"])
+  end
+
+  test "should not upload image without file" do
+    native_doc = documents(:native_doc)
+
+    assert_no_difference("native_doc.images.count") do
+      post upload_image_document_url(native_doc), params: {}
+    end
+
+    assert_response :unprocessable_entity
+    json = JSON.parse(response.body)
+    assert_equal "No image provided", json["error"]
+  end
+
+  test "should reject non-image file for image upload" do
+    native_doc = documents(:native_doc)
+
+    assert_no_difference("native_doc.images.count") do
+      post upload_image_document_url(native_doc), params: {
+        image: fixture_file_upload("test.txt", "text/plain")
+      }
+    end
+
+    assert_response :unprocessable_entity
+    json = JSON.parse(response.body)
+    assert_equal "File must be an image", json["error"]
+  end
 end
