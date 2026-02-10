@@ -120,14 +120,12 @@ class PasswordChangeTest < ApplicationSystemTestCase
     within "#password-change-section" do
       fill_in "Current Password", with: "testpassword123"
       fill_in "New Password", with: "newpassword456"
-      fill_in "Confirm New Password", with: "differentpassword"
 
-      # Re-enable the submit button (disabled by Stimulus controller on mismatch)
-      # and remove HTML5 required validation to test server-side validation
-      page.execute_script("document.querySelector('input[type=\"submit\"]').disabled = false")
-      page.execute_script("document.querySelector('input[name=\"new_password_confirmation\"]').removeAttribute('required')")
+      # Set mismatched confirmation via JavaScript to avoid triggering Stimulus validation
+      page.execute_script("document.querySelector('input[name=\"new_password_confirmation\"]').value = 'differentpassword'")
 
-      click_button "Update Password"
+      # Submit the form directly via JavaScript to bypass client-side validation
+      page.execute_script("document.querySelector('#password-change-section form').submit()")
     end
 
     # Should see error message
