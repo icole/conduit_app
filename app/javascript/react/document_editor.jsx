@@ -57,6 +57,24 @@ const editorStyles = `
     --lb-accent: #2563eb;
   }
 
+  /* Sticky toolbar styles - ensure proper sticking behavior */
+  .editor-toolbar-sticky {
+    position: -webkit-sticky; /* Safari */
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background-color: white;
+    border-bottom: 1px solid #e5e7eb;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+  }
+
+  /* Add shadow when toolbar is stuck */
+  .editor-toolbar-sticky.is-stuck {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+  }
+
   /* Anchored threads sidebar styles */
   .threads-sidebar .lb-anchored-threads {
     padding-top: 1rem;
@@ -570,6 +588,42 @@ const ImageButton = ({ editor, documentId }) => {
           </svg>
         )}
       </button>
+    </>
+  );
+};
+
+// Sticky toolbar wrapper with stuck detection
+const StickyToolbar = ({ children }) => {
+  const toolbarRef = useRef(null);
+  const sentinelRef = useRef(null);
+  const [isStuck, setIsStuck] = useState(false);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // When sentinel is not visible, toolbar is stuck
+        setIsStuck(!entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <>
+      {/* Sentinel element to detect when toolbar should be stuck */}
+      <div ref={sentinelRef} className="h-0 w-full" aria-hidden="true" />
+      <div
+        ref={toolbarRef}
+        className={`editor-toolbar-sticky ${isStuck ? 'is-stuck' : ''}`}
+      >
+        {children}
+      </div>
     </>
   );
 };
@@ -1263,7 +1317,7 @@ CharacterCount,
 
       {/* Toolbar */}
       {!readOnly && (
-        <div className="border-b border-gray-200 bg-white sticky top-0 z-40 rounded-t-lg">
+        <StickyToolbar>
           <Toolbar
             editor={editor}
             after={
@@ -1276,7 +1330,7 @@ CharacterCount,
               </>
             }
           />
-        </div>
+        </StickyToolbar>
       )}
 
       {/* Editor Content with optional comments sidebar */}
@@ -1489,7 +1543,8 @@ const StandaloneEditor = ({ initialContent, saveUrl, documentId }) => {
       )}
 
       {/* Toolbar */}
-      <div className="border-b border-gray-200 bg-white px-2 py-1 flex flex-wrap items-center gap-1 sticky top-0 z-40 rounded-t-lg">
+      <StickyToolbar>
+        <div className="px-2 py-1 flex flex-wrap items-center gap-1">
         {/* Text formatting */}
         <button
           type="button"
@@ -1656,7 +1711,8 @@ const StandaloneEditor = ({ initialContent, saveUrl, documentId }) => {
         {/* Media */}
         <ImageButton editor={editor} documentId={documentId} />
         <YouTubeButton editor={editor} />
-      </div>
+        </div>
+      </StickyToolbar>
 
       {/* Editor Content */}
       <div className="bg-white">
