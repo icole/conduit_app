@@ -105,7 +105,7 @@ class PasswordChangeTest < ApplicationSystemTestCase
     assert_selector ".alert-error", text: "Password is too short", wait: 5
   end
 
-  test "password change requires matching confirmation" do
+  test "password change shows client-side error for mismatched confirmation" do
     # Sign in as different email user (test isolation)
     visit login_path
     fill_in "Email", with: @email_user_four.email
@@ -116,20 +116,16 @@ class PasswordChangeTest < ApplicationSystemTestCase
     # Navigate to account settings
     visit account_path
 
-    # Try to change password with mismatched confirmation
+    # Enter mismatched passwords
     within "#password-change-section" do
       fill_in "Current Password", with: "testpassword123"
       fill_in "New Password", with: "newpassword456"
+      fill_in "Confirm New Password", with: "differentpassword"
 
-      # Set mismatched confirmation via JavaScript to avoid triggering Stimulus validation
-      page.execute_script("document.querySelector('input[name=\"new_password_confirmation\"]').value = 'differentpassword'")
-
-      # Submit the form directly via JavaScript to bypass client-side validation
-      page.execute_script("document.querySelector('#password-change-section form').submit()")
+      # Client-side validation should show error and disable button
+      assert_text "Passwords don't match"
+      assert_selector "input[type='submit'][disabled]"
     end
-
-    # Should see error message
-    assert_text "Password confirmation doesn't match"
   end
 
   test "OAuth user can set a password for first time" do
