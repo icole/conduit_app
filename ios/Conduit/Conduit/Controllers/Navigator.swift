@@ -72,6 +72,22 @@ class Navigator: UINavigationController {
             return
         }
 
+        // Check if this should be presented as a modal
+        if properties.context == .modal {
+            let navController = UINavigationController(rootViewController: viewController)
+            navController.modalPresentationStyle = .formSheet
+
+            // Add close button for modals
+            viewController.navigationItem.leftBarButtonItem = UIBarButtonItem(
+                barButtonSystemItem: .close,
+                target: self,
+                action: #selector(dismissModal)
+            )
+
+            present(navController, animated: true)
+            return
+        }
+
         switch action {
         case .advance:
             pushViewController(viewController, animated: true)
@@ -84,6 +100,10 @@ class Navigator: UINavigationController {
         default:
             pushViewController(viewController, animated: true)
         }
+    }
+
+    @objc private func dismissModal() {
+        dismiss(animated: true)
     }
 
     private func visit(_ viewController: UIViewController, with options: VisitOptions = VisitOptions()) {

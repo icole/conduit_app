@@ -6,21 +6,20 @@
     {
       "patterns": [".*"],
       "properties": {
-        "uri": "hotwire://fragment/web",
         "pull_to_refresh_enabled": true
       }
     },
     {
       "patterns": ["/new$", "/edit$"],
       "properties": {
-        "uri": "hotwire://fragment/web_modal",
-        "context": "modal"
+        "context": "modal",
+        "pull_to_refresh_enabled": false
       }
     },
     {
       "patterns": ["/documents/[^/]+/edit$"],
       "properties": {
-        "uri": "hotwire://fragment/web",
+        "context": "default",
         "pull_to_refresh_enabled": false
       }
     }

@@ -69,8 +69,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return webView
         }
 
-        // Configure path configuration if needed
-        // This can be extended to load remote configuration
+        // Configure path configuration for navigation behavior
+        // Document edit pages open full screen, other edit/new pages open as modals
+        if let configURL = Bundle.main.url(forResource: "path-configuration", withExtension: "json") {
+            Hotwire.config.pathConfiguration = PathConfiguration(sources: [.file(configURL)])
+        }
     }
 
     // MARK: - Push Notifications
