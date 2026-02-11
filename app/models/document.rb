@@ -67,6 +67,15 @@ class Document < ApplicationRecord
     end
   end
 
+  # Authorization check for ActiveStorage files
+  # Used by ActiveStorage::Authorization module to verify access
+  def accessible_to?(user)
+    return false unless user
+
+    # User must belong to the same community as the document
+    user.community_id == community_id
+  end
+
   def native?
     storage_type == "native"
   end

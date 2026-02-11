@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  # ActiveStorage authentication is handled via module injection in
+  # config/initializers/active_storage.rb (Hey/Basecamp approach)
+
   # API routes for mobile app
   namespace :api do
     # Liveblocks authentication for collaborative editing
