@@ -2,6 +2,8 @@
 
 A Rails application for community coordination, with native iOS and Android apps.
 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+
 ## Features
 
 * **Dashboard** - Community feed with posts, likes, and comments
@@ -203,3 +205,9 @@ GOOGLE_CLIENT_ID=your_web_client_id
 Note: The `GOOGLE_CLIENT_ID` should be your **Web** OAuth client ID (used for ID token verification).
 
 For Google Sign-In, you'll also need to create Android OAuth clients in Google Cloud Console with your app's SHA-1 fingerprints.
+
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). See the [LICENSE](LICENSE) file for details.
+
+This means you are free to use, modify, and distribute this software, but if you run a modified version on a server and let others interact with it, you must make the source code available to them.
