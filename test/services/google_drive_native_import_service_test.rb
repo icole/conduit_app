@@ -153,7 +153,7 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
     @mock_api.verify
   end
 
-  test "re-exports native doc when Drive updated_at is newer" do
+  test "skips native doc even when Drive updated_at is newer (use reimport for manual refresh)" do
     old_updated_at = Time.utc(2024, 1, 1, 0, 0, 0)
     drive_modified = Time.utc(2025, 6, 15, 12, 0, 0)
 
@@ -173,18 +173,18 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
 
     @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
     @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
-    @mock_api.expect(:export_as_html, { status: :success, content: "<p>Updated content</p>" }, [ "sync_ts" ])
+    # No export_as_html expectation — native docs are always skipped now
 
     GoogleDriveApiService.stub(:from_service_account, @mock_api) do
       service = GoogleDriveNativeImportService.new(@community)
       result = service.import!
 
-      assert_equal 1, result[:docs_updated]
-      assert_equal 0, result[:docs_skipped]
+      assert_equal 0, result[:docs_updated]
+      assert_equal 1, result[:docs_skipped]
 
       doc.reload
-      assert_equal "<p>Updated content</p>", doc.content
-      assert_equal drive_modified, doc.updated_at
+      assert_equal "<p>Old content</p>", doc.content  # Content unchanged
+      assert_equal old_updated_at, doc.updated_at     # Timestamp unchanged
     end
 
     @mock_api.verify
@@ -226,7 +226,7 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
     @mock_api.verify
   end
 
-  test "re-downloads uploaded file when Drive updated_at is newer" do
+  test "skips uploaded file even when Drive updated_at is newer (use reimport for manual refresh)" do
     old_updated_at = Time.utc(2024, 1, 1, 0, 0, 0)
     drive_modified = Time.utc(2025, 6, 15, 12, 0, 0)
 
@@ -246,30 +246,26 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
                       mime_type: "application/pdf", updated_at: drive_modified)
     ]
 
-    new_pdf_content = StringIO.new("new pdf content")
-
     @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
     @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
-    @mock_api.expect(:download_file, {
-      status: :success, content: new_pdf_content, name: "Budget.pdf", mime_type: "application/pdf"
-    }, [ "redownload_pdf" ])
+    # No download_file expectation — uploaded docs are always skipped now
 
     GoogleDriveApiService.stub(:from_service_account, @mock_api) do
       service = GoogleDriveNativeImportService.new(@community)
       result = service.import!
 
-      assert_equal 1, result[:docs_updated]
-      assert_equal 0, result[:docs_skipped]
+      assert_equal 0, result[:docs_updated]
+      assert_equal 1, result[:docs_skipped]
 
       doc.reload
-      assert_equal drive_modified, doc.updated_at
+      assert_equal old_updated_at, doc.updated_at  # Timestamp unchanged
       assert doc.file.attached?
     end
 
     @mock_api.verify
   end
 
-  test "re-exports uploaded spreadsheet (XLSX fallback) when Drive updated_at is newer" do
+  test "skips uploaded spreadsheet even when Drive updated_at is newer (use reimport for manual refresh)" do
     old_updated_at = Time.utc(2024, 1, 1, 0, 0, 0)
     drive_modified = Time.utc(2025, 6, 15, 12, 0, 0)
     xlsx_mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -294,19 +290,18 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
 
     @mock_api.expect(:list_folder_tree, { folders: [], status: :success }, [ @root_folder_id ])
     @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
-    @mock_api.expect(:export_as_html, { status: :success, content: "<table>Updated</table>" }, [ "reexport_sheet" ])
+    # No export_as_html expectation — uploaded docs are always skipped now
 
     GoogleDriveApiService.stub(:from_service_account, @mock_api) do
       service = GoogleDriveNativeImportService.new(@community)
       result = service.import!
 
-      assert_equal 1, result[:docs_updated]
-      assert_equal 0, result[:docs_skipped]
+      assert_equal 0, result[:docs_updated]
+      assert_equal 1, result[:docs_skipped]
 
       doc.reload
-      assert_equal "<table>Updated</table>", doc.content
-      assert_equal "native", doc.storage_type
-      assert_equal drive_modified, doc.updated_at
+      assert_equal "uploaded", doc.storage_type  # Storage type unchanged
+      assert_equal old_updated_at, doc.updated_at  # Timestamp unchanged
     end
 
     @mock_api.verify
@@ -555,7 +550,7 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
     @mock_api.verify
   end
 
-  test "returns accurate summary counts including uploaded files and updated docs" do
+  test "returns accurate summary counts including uploaded files and skipped docs" do
     # Existing google_drive doc to convert
     Document.create!(
       title: "To Convert",
@@ -565,7 +560,7 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
       community: @community
     )
 
-    # Existing native doc with matching timestamp — skip
+    # Existing native doc — always skipped (regardless of timestamp)
     matching_time = Time.utc(2024, 6, 1, 10, 0, 0)
     skip_doc = Document.create!(
       title: "Already Native",
@@ -576,16 +571,16 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
     )
     skip_doc.update_columns(updated_at: matching_time)
 
-    # Existing native doc with older timestamp — should be updated
+    # Another existing native doc — also skipped (timestamp comparison removed)
     old_time = Time.utc(2023, 1, 1, 0, 0, 0)
-    update_doc = Document.create!(
+    skip_doc2 = Document.create!(
       title: "Stale Native",
       google_drive_url: "https://docs.google.com/document/d/stale_native/edit",
       storage_type: :native,
       content: "<p>Old</p>",
       community: @community
     )
-    update_doc.update_columns(updated_at: old_time)
+    skip_doc2.update_columns(updated_at: old_time)
 
     drive_folders = [
       mock_drive_folder(id: "folder_a", name: "Folder A", parent_id: @root_folder_id)
@@ -604,7 +599,7 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
     @mock_api.expect(:list_folder_tree, { folders: drive_folders, status: :success }, [ @root_folder_id ])
     @mock_api.expect(:list_files_in_folders, { files: drive_files, status: :success }, [ Array ])
     @mock_api.expect(:export_as_html, { status: :success, content: "<p>Converted</p>" }, [ "convert_me" ])
-    @mock_api.expect(:export_as_html, { status: :success, content: "<p>Refreshed</p>" }, [ "stale_native" ])
+    # No export_as_html for stale_native — native docs are always skipped now
     @mock_api.expect(:export_as_html, { status: :success, content: "<p>New doc</p>" }, [ "brand_new" ])
     @mock_api.expect(:download_file, {
       status: :success, content: pdf_content, name: "A PDF", mime_type: "application/pdf"
@@ -619,11 +614,10 @@ class GoogleDriveNativeImportServiceTest < ActiveSupport::TestCase
       assert_equal 0, result[:folders_updated]
       assert_equal 1, result[:docs_converted]
       assert_equal 1, result[:docs_created]
-      assert_equal 1, result[:docs_skipped]
+      assert_equal 2, result[:docs_skipped]  # Both native docs skipped
       assert_equal 1, result[:docs_uploaded]
-      assert_equal 1, result[:docs_updated]
+      assert_equal 0, result[:docs_updated]  # No updates (timestamp comparison removed)
       assert_empty result[:errors]
-      assert_includes result[:message], "1 document(s) updated"
     end
 
     @mock_api.verify
