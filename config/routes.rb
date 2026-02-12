@@ -231,6 +231,7 @@ Rails.application.routes.draw do
 
   # Static pages
   get "privacy", to: "pages#privacy"
+  get "terms", to: "pages#terms"
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
