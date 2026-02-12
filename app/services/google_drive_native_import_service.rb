@@ -150,22 +150,10 @@ class GoogleDriveNativeImportService
         Rails.logger.info("[DriveImport] Skipping image file: #{drive_file[:name]}")
         docs_skipped += 1
       elsif existing&.native? || existing&.uploaded?
-        # Already imported — re-import if Drive updated_at differs, otherwise skip
-        if drive_timestamps[:updated_at] && existing.updated_at != drive_timestamps[:updated_at]
-          result = if google_doc_type?(drive_file[:mime_type])
-            export_and_update(existing, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id, drive_timestamps)
-          else
-            download_and_update(existing, file_id, drive_file[:name], drive_file[:mime_type], local_folder_id, drive_timestamps)
-          end
-          if result == :success || result == :xlsx_fallback
-            docs_updated += 1
-          else
-            errors << result
-          end
-        else
-          Rails.logger.info("[DriveImport] Skipping already-imported: #{drive_file[:name]}")
-          docs_skipped += 1
-        end
+        # Already imported — skip entirely (timestamp comparison was causing false positives)
+        # To re-sync a document, use the reimport_document! method directly
+        Rails.logger.info("[DriveImport] Skipping already-imported: #{drive_file[:name]}")
+        docs_skipped += 1
       elsif google_native_skip_type?(drive_file[:mime_type])
         # Non-importable Google-native type (Forms, Maps, Sites, etc.) — skip
         Rails.logger.info("[DriveImport] Skipping non-importable type: #{drive_file[:name]} (#{drive_file[:mime_type]})")
