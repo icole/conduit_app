@@ -63,6 +63,12 @@ class TasksTest < ApplicationSystemTestCase
     assert_no_text @task.title
   end
 
+  test "assignee filter clear control has an accessible label" do
+    visit tasks_path(view: "active", assigned_to: @user_one.id)
+
+    assert_selector "a[aria-label='Clear assignee filter']"
+  end
+
   test "creating a new task with assignment from tasks page" do
     visit tasks_url
 

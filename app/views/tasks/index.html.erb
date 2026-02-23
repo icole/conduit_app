@@ -60,7 +60,11 @@
           assigned to <%= User.find_by(id: params[:assigned_to])&.name %>
         <% end %>
       </span>
-      <%= link_to "×", tasks_path(view: @current_view), class: "btn btn-ghost btn-xs ml-auto", data: { turbo_frame: "tasks_content" } %>
+      <%= link_to "×", tasks_path(view: @current_view),
+          class: "btn btn-ghost btn-xs ml-auto",
+          data: { turbo_frame: "tasks_content" },
+          aria: { label: "Clear assignee filter" },
+          title: "Clear assignee filter" %>
     </div>
   <% end %>
 
