@@ -25,6 +25,16 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a", text: @document.title, count: 0
   end
 
+  test "index excludes drive-synced folders from DB results" do
+    DocumentFolder.create!(name: "Synced Drive Folder", google_drive_id: "drive123", community: communities(:crow_woods))
+    DocumentFolder.create!(name: "Native Folder", community: communities(:crow_woods))
+
+    get documents_url
+    assert_response :success
+    assert_select "span.font-medium", text: "Native Folder"
+    assert_select "span.font-medium", text: "Synced Drive Folder", count: 0
+  end
+
   test "index with drive: prefix folder_id queries Google Drive" do
     mock_service = Minitest::Mock.new
     mock_service.expect(:list_contents, {

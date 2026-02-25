@@ -29,7 +29,9 @@ class DocumentsController < ApplicationController
       # DB folder browsing (existing logic)
       @current_folder = params[:folder_id].present? ? DocumentFolder.find(params[:folder_id]) : nil
 
-      @folders = DocumentFolder.where(parent_id: @current_folder&.id).order(:name)
+      @folders = DocumentFolder.where(parent_id: @current_folder&.id)
+                              .where(google_drive_id: nil)
+                              .order(:name)
 
       sort_column = params[:sort] || "updated_at"
       sort_direction = params[:direction] || "desc"
