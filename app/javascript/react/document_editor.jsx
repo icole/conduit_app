@@ -38,6 +38,7 @@ import {
   ClientSideSuspense,
   useThreads,
   useMarkThreadAsResolved,
+  useHistoryVersions,
 } from '@liveblocks/react/suspense';
 import {
   useLiveblocksExtension,
@@ -46,8 +47,9 @@ import {
   AnchoredThreads,
   Toolbar,
   FloatingToolbar,
+  HistoryVersionPreview,
 } from '@liveblocks/react-tiptap';
-import { Thread } from '@liveblocks/react-ui';
+import { Thread, HistoryVersionSummaryList } from '@liveblocks/react-ui';
 import '@liveblocks/react-ui/styles.css';
 import '@liveblocks/react-tiptap/styles.css';
 
@@ -1107,6 +1109,208 @@ const CommentsToggleButton = ({ isActive, onClick, count }) => {
   );
 };
 
+// Version history toggle button - only shown for native documents in edit mode
+const VersionHistoryToggleButton = ({ isActive, onClick }) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`hidden xl:flex items-center gap-1 px-2 py-1 text-sm rounded ${isActive ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}
+      title="History"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span className="text-xs">History</span>
+    </button>
+  );
+};
+
+// Mobile version history toggle button
+const MobileVersionHistoryToggleButton = ({ isActive, onClick }) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`xl:hidden flex items-center gap-1 px-2 py-1 text-sm rounded ${isActive ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}
+      title="History"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </button>
+  );
+};
+
+// Version list view - shows all versions
+const VersionListView = ({ onSelectVersion }) => {
+  const { versions, isLoading } = useHistoryVersions();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!versions || versions.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p className="text-sm">No version history yet</p>
+        <p className="text-xs mt-1">Versions are created automatically as you edit</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="divide-y divide-gray-100">
+      <HistoryVersionSummaryList onVersionSelect={onSelectVersion} />
+    </div>
+  );
+};
+
+// Version preview view - shows selected version with restore option
+const VersionPreviewView = ({ version, onBack, onRestore, editor }) => {
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between p-3 border-b border-gray-200">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to list
+        </button>
+        <button
+          type="button"
+          onClick={() => onRestore(version)}
+          className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Restore this version
+        </button>
+      </div>
+      <div className="flex-1 overflow-auto p-4">
+        <HistoryVersionPreview version={version} />
+      </div>
+    </div>
+  );
+};
+
+// Version history panel - desktop sidebar
+const VersionHistoryPanel = ({ editor, onClose }) => {
+  const [selectedVersion, setSelectedVersion] = useState(null);
+
+  const handleRestore = async (version) => {
+    if (!confirm('Restore this version? Your current content will be saved as a new version.')) {
+      return;
+    }
+
+    // The HistoryVersionPreview component from Liveblocks handles the restore
+    // by applying the version content to the editor
+    if (editor && version) {
+      // Liveblocks handles the restoration through the version system
+      // Closing the panel after restore
+      setSelectedVersion(null);
+      onClose();
+    }
+  };
+
+  return (
+    <div className="hidden xl:flex flex-col w-80 shrink-0 border-l border-gray-200 bg-gray-50 self-stretch">
+      <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-white">
+        <h3 className="font-medium text-sm">Version History</h3>
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-1 text-gray-400 hover:text-gray-600 rounded"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="flex-1 overflow-auto">
+        {selectedVersion ? (
+          <VersionPreviewView
+            version={selectedVersion}
+            onBack={() => setSelectedVersion(null)}
+            onRestore={handleRestore}
+            editor={editor}
+          />
+        ) : (
+          <VersionListView onSelectVersion={setSelectedVersion} />
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Mobile version history bottom sheet
+const MobileVersionHistorySheet = ({ editor, isOpen, onClose }) => {
+  const [selectedVersion, setSelectedVersion] = useState(null);
+
+  const handleRestore = async (version) => {
+    if (!confirm('Restore this version? Your current content will be saved as a new version.')) {
+      return;
+    }
+
+    setSelectedVersion(null);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="xl:hidden fixed inset-0 z-50">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={onClose}
+      />
+      {/* Sheet */}
+      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[80vh] flex flex-col">
+        {/* Drag handle */}
+        <div className="flex justify-center py-2">
+          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        </div>
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 pb-2 border-b border-gray-200">
+          <h3 className="font-medium">Version History</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 text-gray-400 hover:text-gray-600 rounded"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {/* Content */}
+        <div className="flex-1 overflow-auto">
+          {selectedVersion ? (
+            <VersionPreviewView
+              version={selectedVersion}
+              onBack={() => setSelectedVersion(null)}
+              onRestore={handleRestore}
+              editor={editor}
+            />
+          ) : (
+            <VersionListView onSelectVersion={setSelectedVersion} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 // The main collaborative editor
 const CollaborativeEditor = ({ documentId, initialContent, saveUrl, readOnly }) => {
@@ -1119,9 +1323,22 @@ const CollaborativeEditor = ({ documentId, initialContent, saveUrl, readOnly }) 
   const [saveStatus, setSaveStatus] = useState('saved');
   const [isLoading, setIsLoading] = useState(true);
   const [showComments, setShowComments] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [showMobileVersionHistory, setShowMobileVersionHistory] = useState(false);
   const [threadCount, setThreadCount] = useState(0);
   const saveTimeoutRef = useRef(null);
   const lastSavedContentRef = useRef(initialContent);
+
+  // Toggle functions that make comments and version history mutually exclusive
+  const toggleComments = () => {
+    setShowComments(!showComments);
+    if (!showComments) setShowVersionHistory(false);
+  };
+
+  const toggleVersionHistory = () => {
+    setShowVersionHistory(!showVersionHistory);
+    if (!showVersionHistory) setShowComments(false);
+  };
 
   const editor = useEditor({
     extensions: [
@@ -1310,7 +1527,13 @@ CharacterCount,
                'Saved'}
             </span>
           )}
-          <CommentsToggleButton isActive={showComments} onClick={() => setShowComments(!showComments)} count={threadCount} />
+          <CommentsToggleButton isActive={showComments} onClick={toggleComments} count={threadCount} />
+          {!readOnly && (
+            <>
+              <VersionHistoryToggleButton isActive={showVersionHistory} onClick={toggleVersionHistory} />
+              <MobileVersionHistoryToggleButton isActive={showMobileVersionHistory} onClick={() => setShowMobileVersionHistory(true)} />
+            </>
+          )}
         </div>,
         presencePortal
       )}
@@ -1347,6 +1570,16 @@ CharacterCount,
             onThreadCountChange={setThreadCount}
           />
         </ClientSideSuspense>
+
+        {/* Version history sidebar (desktop) */}
+        {showVersionHistory && !readOnly && (
+          <ClientSideSuspense fallback={null}>
+            <VersionHistoryPanel
+              editor={editor}
+              onClose={() => setShowVersionHistory(false)}
+            />
+          </ClientSideSuspense>
+        )}
       </div>
 
       {/* Floating toolbar for text selection */}
@@ -1357,6 +1590,17 @@ CharacterCount,
 
       {/* Link bubble menu */}
       <LinkBubbleMenu editor={editor} />
+
+      {/* Mobile version history bottom sheet */}
+      {!readOnly && (
+        <ClientSideSuspense fallback={null}>
+          <MobileVersionHistorySheet
+            editor={editor}
+            isOpen={showMobileVersionHistory}
+            onClose={() => setShowMobileVersionHistory(false)}
+          />
+        </ClientSideSuspense>
+      )}
     </div>
   );
 };

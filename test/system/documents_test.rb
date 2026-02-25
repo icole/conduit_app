@@ -41,4 +41,26 @@ class DocumentsTest < ApplicationSystemTestCase
     assert_current_path documents_path, wait: 5
     assert_text "Document was successfully deleted"
   end
+
+  test "should show version history button for native documents in edit mode" do
+    visit edit_document_url(@native_document)
+
+    # Wait for editor to load
+    assert_selector "[data-title]", text: @native_document.title, wait: 5
+
+    # Version history button should be visible in the presence portal area
+    assert_selector "button[title='History']", wait: 5
+  end
+
+  test "should not show version history button for google drive documents" do
+    # Edit redirects to view_content for google_drive documents
+    visit view_content_document_url(@document)
+
+    # Wait for page to load
+    assert_selector "h1", text: @document.title, wait: 5
+
+    # Version history button should not be present for google_drive documents
+    # (they use the read-only view_content page, not the React editor)
+    assert_no_selector "button[title='History']"
+  end
 end
