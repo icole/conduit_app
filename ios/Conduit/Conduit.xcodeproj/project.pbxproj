@@ -765,7 +765,7 @@
 			repositoryURL = "https://github.com/GetStream/stream-chat-swift";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.93.0;
+				minimumVersion = 4.97.1;
 			};
 		};
 		B5D1A5992ED97A7500AD63E5 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {

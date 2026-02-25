@@ -374,6 +374,7 @@ const ChatApp = ({ apiKey, userToken, userData, isAdmin }) => {
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [channelListKey, setChannelListKey] = useState(0);
+  const [initError, setInitError] = useState(null);
 
   const client = useCreateChatClient({
     apiKey,
@@ -384,6 +385,12 @@ const ChatApp = ({ apiKey, userToken, userData, isAdmin }) => {
       image: userData.avatar,
     },
   });
+
+  useEffect(() => {
+    if (!apiKey || !userToken || !userData?.id) {
+      setInitError('Missing configuration: ' + JSON.stringify({ apiKey: !!apiKey, userToken: !!userToken, userId: userData?.id }));
+    }
+  }, [apiKey, userToken, userData]);
 
   const handleChannelCreated = useCallback((channel) => {
     setActiveChannel(channel);
@@ -401,6 +408,17 @@ const ChatApp = ({ apiKey, userToken, userData, isAdmin }) => {
     // Force channel list to refresh
     setChannelListKey((prev) => prev + 1);
   }, []);
+
+  if (initError) {
+    return (
+      <div className="flex items-center justify-center h-full bg-base-100">
+        <div className="text-center">
+          <p className="text-error font-semibold mb-2">Chat failed to initialize</p>
+          <p className="text-sm text-base-content/60">{initError}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!client) {
     return (
@@ -498,25 +516,53 @@ const ChatApp = ({ apiKey, userToken, userData, isAdmin }) => {
 };
 
 // Mount the React app
+let chatRoot = null;
+
 const mountChat = () => {
   const container = document.getElementById('stream-chat-react');
   if (!container) return;
 
-  const apiKey = container.dataset.apiKey;
-  const userToken = container.dataset.userToken;
-  const userData = JSON.parse(container.dataset.userData);
-  const isAdmin = container.dataset.isAdmin === 'true';
+  try {
+    const apiKey = container.dataset.apiKey;
+    const userToken = container.dataset.userToken;
+    const userData = JSON.parse(container.dataset.userData);
+    const isAdmin = container.dataset.isAdmin === 'true';
 
-  const root = createRoot(container);
-  root.render(
-    <ChatApp
-      apiKey={apiKey}
-      userToken={userToken}
-      userData={userData}
-      isAdmin={isAdmin}
-    />
-  );
+    // Reuse existing root or create new one
+    if (!chatRoot) {
+      chatRoot = createRoot(container);
+    }
+
+    chatRoot.render(
+      <ChatApp
+        apiKey={apiKey}
+        userToken={userToken}
+        userData={userData}
+        isAdmin={isAdmin}
+      />
+    );
+  } catch (error) {
+    console.error('Failed to mount chat:', error);
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100%">
+        <div style="text-align:center">
+          <p style="color:red;font-weight:600;margin-bottom:8px">Chat failed to load</p>
+          <p style="font-size:14px;opacity:0.6">${error.message}</p>
+        </div>
+      </div>
+    `;
+  }
 };
+
+// Clean up on Turbo navigation away from chat
+const unmountChat = () => {
+  if (chatRoot) {
+    chatRoot.unmount();
+    chatRoot = null;
+  }
+};
+
+document.addEventListener('turbo:before-render', unmountChat);
 
 // Initialize when DOM is ready or on Turbo navigation
 if (document.readyState === 'loading') {
