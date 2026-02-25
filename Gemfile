@@ -38,7 +38,7 @@ gem "jwt", "~> 2.7"
 
 # Authentication
 gem "omniauth", "~> 2.1"
-gem "omniauth-google-oauth2", "~> 1.1"
+gem "omniauth-google-oauth2", "~> 1.2"
 gem "omniauth-rails_csrf_protection", "~> 2.0"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
