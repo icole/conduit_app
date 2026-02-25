@@ -18,6 +18,58 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "index excludes google_drive documents from DB results" do
+    get documents_url
+    assert_response :success
+    # google_drive documents (fixtures :one and :two) should not appear
+    assert_select "a", text: @document.title, count: 0
+  end
+
+  test "index with drive: prefix folder_id queries Google Drive" do
+    mock_service = Minitest::Mock.new
+    mock_service.expect(:list_contents, {
+      folders: [ { id: "sub1", name: "Subfolder", updated_at: Time.current } ],
+      files: [ { id: "f1", name: "Notes.doc", web_link: "https://drive.google.com/f1", mime_type: "application/vnd.google-apps.document", updated_at: Time.current } ],
+      error: nil
+    }, [ "abc123" ])
+
+    GoogleDriveBrowseService.stub(:new, mock_service) do
+      get documents_url(folder_id: "drive:abc123", name: "My Folder")
+    end
+
+    assert_response :success
+    assert_select "li", text: "My Folder"
+    mock_service.verify
+  end
+
+  test "index at root queries Drive when configured" do
+    community = communities(:crow_woods)
+    community.update!(settings: (community.settings || {}).merge("google_drive_folder_id" => "root123"))
+
+    mock_service = Minitest::Mock.new
+    mock_service.expect(:configured?, true)
+    mock_service.expect(:list_contents, {
+      folders: [ { id: "df1", name: "Drive Folder", updated_at: Time.current } ],
+      files: [],
+      error: nil
+    })
+
+    GoogleDriveBrowseService.stub(:new, mock_service) do
+      get documents_url
+    end
+
+    assert_response :success
+    mock_service.verify
+  end
+
+  test "index at root without Drive configured shows only DB content" do
+    community = communities(:crow_woods)
+    community.update!(settings: {})
+
+    get documents_url
+    assert_response :success
+  end
+
   test "should create untitled document and redirect to edit" do
     assert_difference("Document.count") do
       post documents_url
@@ -94,7 +146,6 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "view_content renders for google drive document" do
-    # Mock the Google Drive API service
     mock_api = Minitest::Mock.new
     mock_api.expect(:export_as_html, {
       status: :success,
@@ -269,40 +320,5 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
     json = JSON.parse(response.body)
     assert_equal "File must be an image", json["error"]
-  end
-
-  # Re-import tests
-
-  test "should reimport document from Google Drive" do
-    native_doc = documents(:native_doc)
-    native_doc.update!(google_drive_url: "https://docs.google.com/document/d/reimport_test/edit")
-
-    mock_api = Minitest::Mock.new
-    mock_api.expect(:export_as_html, {
-      status: :success,
-      content: "<body><p>Re-imported content</p></body>"
-    }, [ "reimport_test" ])
-
-    GoogleDriveApiService.stub(:from_service_account, mock_api) do
-      post reimport_document_url(native_doc)
-    end
-
-    assert_redirected_to edit_document_url(native_doc)
-    assert_equal "Document re-imported successfully", flash[:notice]
-
-    native_doc.reload
-    assert_includes native_doc.content, "Re-imported content"
-
-    mock_api.verify
-  end
-
-  test "should not reimport document without google_drive_url" do
-    native_doc = documents(:native_doc)
-    native_doc.update!(google_drive_url: nil)
-
-    post reimport_document_url(native_doc)
-
-    assert_redirected_to edit_document_url(native_doc)
-    assert_equal "Document has no Google Drive URL", flash[:alert]
   end
 end

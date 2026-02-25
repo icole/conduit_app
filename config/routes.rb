@@ -136,18 +136,12 @@ Rails.application.routes.draw do
       get :view_content
       patch :move
       post :upload_image
-      post :reimport
     end
     collection do
-      get :refresh_from_google_drive
       post :upload
     end
   end
-  resources :dashboard, only: [ "index" ] do
-    collection do
-      post :refresh_drive_files
-    end
-  end
+  resources :dashboard, only: [ "index" ]
 
   resources :calendar, only: [ "index" ] do
     collection do

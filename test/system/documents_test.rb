@@ -2,7 +2,6 @@ require "application_system_test_case"
 
 class DocumentsTest < ApplicationSystemTestCase
   setup do
-    @document = documents(:one)
     @native_document = documents(:native_doc)
 
     sign_in_user
@@ -50,17 +49,5 @@ class DocumentsTest < ApplicationSystemTestCase
 
     # Version history button should be visible in the presence portal area
     assert_selector "button[title='History']", wait: 5
-  end
-
-  test "should not show version history button for google drive documents" do
-    # Edit redirects to view_content for google_drive documents
-    visit view_content_document_url(@document)
-
-    # Wait for page to load
-    assert_selector "h1", text: @document.title, wait: 5
-
-    # Version history button should not be present for google_drive documents
-    # (they use the read-only view_content page, not the React editor)
-    assert_no_selector "button[title='History']"
   end
 end

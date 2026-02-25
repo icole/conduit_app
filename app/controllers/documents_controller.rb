@@ -1,59 +1,58 @@
 class DocumentsController < ApplicationController
-  before_action :set_document, only: %i[ show edit update destroy update_content view_content move upload_image reimport ]
+  before_action :set_document, only: %i[ show edit update destroy update_content view_content move upload_image ]
   before_action :authenticate_user!
   skip_before_action :verify_authenticity_token, only: [ :update_content ]
 
   # GET /documents or /documents.json
   def index
-    # Current folder (nil means root)
-    @current_folder = params[:folder_id].present? ? DocumentFolder.find(params[:folder_id]) : nil
+    @drive_folders = []
+    @drive_files = []
+    @browsing_drive = false
 
-    # Subfolders in current folder
-    @folders = DocumentFolder.where(parent_id: @current_folder&.id).order(:name)
+    if params[:folder_id].to_s.start_with?("drive:")
+      # Browsing inside a Google Drive folder
+      @browsing_drive = true
+      @drive_folder_name = params[:name]
+      drive_id = params[:folder_id].delete_prefix("drive:")
 
-    # Sortable columns
-    sort_column = params[:sort] || "updated_at"
-    sort_direction = params[:direction] || "desc"
+      drive_service = GoogleDriveBrowseService.new(current_community)
+      result = drive_service.list_contents(drive_id)
+      @drive_error = result[:error]
+      @drive_folders = result[:folders]
+      @drive_files = result[:files]
 
-    # Validate sort column to prevent SQL injection
-    allowed_columns = %w[title document_type created_at updated_at]
-    sort_column = "updated_at" unless allowed_columns.include?(sort_column)
+      @current_folder = nil
+      @folders = DocumentFolder.none
+      @documents = Document.none
+      @all_folders = []
+    else
+      # DB folder browsing (existing logic)
+      @current_folder = params[:folder_id].present? ? DocumentFolder.find(params[:folder_id]) : nil
 
-    # Validate sort direction
-    sort_direction = "desc" unless %w[asc desc].include?(sort_direction)
+      @folders = DocumentFolder.where(parent_id: @current_folder&.id).order(:name)
 
-    # Documents in current folder
-    @documents = Document.where(document_folder_id: @current_folder&.id).order("#{sort_column} #{sort_direction}")
+      sort_column = params[:sort] || "updated_at"
+      sort_direction = params[:direction] || "desc"
+      allowed_columns = %w[title document_type created_at updated_at]
+      sort_column = "updated_at" unless allowed_columns.include?(sort_column)
+      sort_direction = "desc" unless %w[asc desc].include?(sort_direction)
 
-    # All folders for "Move to Folder" modal (tree-ordered for indentation)
-    @all_folders = DocumentFolder.tree_ordered
-  end
+      @documents = Document.where(document_folder_id: @current_folder&.id)
+                           .where.not(storage_type: :google_drive)
+                           .order("#{sort_column} #{sort_direction}")
 
-  # Sync documents and folders from Google Drive (admin only)
-  def refresh_from_google_drive
-    unless current_user.admin?
-      redirect_to documents_path, alert: "Only administrators can sync from Google Drive."
-      return
-    end
+      @all_folders = DocumentFolder.tree_ordered
 
-    folder_id = current_community.settings&.dig("google_drive_folder_id") || ENV["GOOGLE_DRIVE_FOLDER_ID"]
-
-    unless folder_id.present?
-      redirect_to documents_path, alert: "Google Drive folder not configured."
-      return
-    end
-
-    begin
-      result = GoogleDriveSyncService.new(current_community, folder_id).sync!
-
-      if result[:success]
-        redirect_to documents_path, notice: result[:message]
-      else
-        redirect_to documents_path, alert: result[:message]
+      # At root level, also show Drive contents
+      if @current_folder.nil?
+        drive_service = GoogleDriveBrowseService.new(current_community)
+        if drive_service.configured?
+          result = drive_service.list_contents
+          @drive_error = result[:error]
+          @drive_folders = result[:folders]
+          @drive_files = result[:files]
+        end
       end
-    rescue StandardError => e
-      Rails.logger.error("Error syncing from Google Drive: #{e.message}")
-      redirect_to documents_path, alert: "Error syncing from Google Drive: #{e.message}"
     end
   end
 
@@ -177,19 +176,6 @@ class DocumentsController < ApplicationController
     blob = @document.images.last
 
     render json: { url: rails_blob_path(blob, only_path: true) }
-  end
-
-  # POST /documents/1/reimport
-  # Re-import a document from Google Drive to pick up images
-  def reimport
-    service = GoogleDriveNativeImportService.new(current_community)
-    result = service.reimport_document!(@document)
-
-    if result[:success]
-      redirect_to edit_document_path(@document), notice: result[:message]
-    else
-      redirect_to edit_document_path(@document), alert: result[:error]
-    end
   end
 
   # GET /documents/1/view_content
