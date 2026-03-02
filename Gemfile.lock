@@ -77,7 +77,7 @@ GEM
       uri (>= 0.13.1)
     acts_as_tenant (1.0.1)
       rails (>= 6.0)
-    addressable (2.8.8)
+    addressable (2.8.9)
       public_suffix (>= 2.0.2, < 8.0)
     ast (2.4.3)
     async (2.34.0)
@@ -213,7 +213,7 @@ GEM
       raabro (~> 1.4)
     globalid (1.3.0)
       activesupport (>= 6.1)
-    google-apis-calendar_v3 (0.51.0)
+    google-apis-calendar_v3 (0.52.0)
       google-apis-core (>= 0.15.0, < 2.a)
     google-apis-core (0.18.0)
       addressable (~> 2.5, >= 2.5.1)
@@ -464,7 +464,7 @@ GEM
       rack (>= 1.4)
     resend (0.27.0)
       httparty (>= 0.21.0)
-    retriable (3.1.2)
+    retriable (3.2.1)
     rexml (3.4.4)
     rubocop (1.81.7)
       json (~> 2.3)
@@ -633,7 +633,7 @@ DEPENDENCIES
   debug
   discard (~> 1.3)
   dotenv-rails
-  google-apis-calendar_v3 (~> 0.51.0)
+  google-apis-calendar_v3 (~> 0.52.0)
   google-apis-drive_v3 (~> 0.77.0)
   googleauth (~> 1.16)
   heroicon
