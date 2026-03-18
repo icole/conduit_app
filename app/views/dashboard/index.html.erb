@@ -39,7 +39,7 @@
     </section>
 
     <!-- Documents Section (lazy-loaded from Drive) -->
-    <%= turbo_frame_tag "dashboard-documents", src: documents_section_dashboard_index_path, loading: :lazy do %>
+    <%= turbo_frame_tag "dashboard-documents", src: documents_section_dashboard_index_path, loading: :lazy, class: "block" do %>
       <section>
         <div class="flex items-center justify-between mb-2 px-1">
           <h2 class="text-lg font-semibold flex items-center gap-2">
@@ -143,7 +143,7 @@
     </div>
 
     <!-- Documents Section (lazy-loaded from Drive) -->
-    <%= turbo_frame_tag "dashboard-documents", src: documents_section_dashboard_index_path, loading: :lazy do %>
+    <%= turbo_frame_tag "dashboard-documents", src: documents_section_dashboard_index_path, loading: :lazy, class: "block" do %>
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
           <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 mb-2">
