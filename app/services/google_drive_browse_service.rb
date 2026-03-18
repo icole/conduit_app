@@ -11,13 +11,33 @@ class GoogleDriveBrowseService
     @community.google_drive_folder_id.present?
   end
 
-  # List recent files across all subfolders in the community's Drive.
+  # List recent files across all folders the service account can access.
+  # Uses a single API call with orderBy instead of recursive subfolder walking.
   # Returns { files: [...], error: nil }
   def recent_files(max_results: 5)
-    folder_id = @community.google_drive_folder_id
     api = GoogleDriveApiService.from_service_account
-    result = api.list_recent_files(folder_id, max_results: max_results)
-    { files: result[:files] || [], error: nil }
+    query = "mimeType != 'application/vnd.google-apps.folder' and trashed = false"
+    fields = "files(id, name, mimeType, modifiedTime, webViewLink, iconLink)"
+
+    response = api.drive_service.list_files(
+      q: query,
+      order_by: "modifiedTime desc",
+      page_size: max_results,
+      fields: fields
+    )
+
+    files = (response.files || []).map do |file|
+      {
+        id: file.id,
+        name: file.name,
+        mime_type: file.mime_type,
+        updated_at: file.modified_time,
+        web_link: file.web_view_link,
+        icon_link: file.icon_link
+      }
+    end
+
+    { files: files, error: nil }
   rescue StandardError => e
     Rails.logger.error("GoogleDriveBrowseService recent_files error: #{e.message}")
     { files: [], error: e.message }

@@ -79,17 +79,19 @@ class GoogleDriveBrowseServiceTest < ActiveSupport::TestCase
     end
   end
 
-  test "recent_files delegates to list_recent_files on the API" do
+  test "recent_files returns recently modified files via single API query" do
     @community.settings = { "google_drive_folder_id" => "root_folder" }
     service = GoogleDriveBrowseService.new(@community)
 
-    mock_api = Minitest::Mock.new
-    mock_api.expect(:list_recent_files, {
-      files: [
-        { id: "f1", name: "Recent Doc", web_link: "https://drive.google.com/f1", updated_at: 1.hour.ago }
-      ],
-      status: :success
-    }, [ "root_folder" ], max_results: 5)
+    mock_file = Struct.new(:id, :name, :mime_type, :modified_time, :web_view_link, :icon_link)
+    fake_response = Struct.new(:files).new([
+      mock_file.new("f1", "Recent Doc", "application/vnd.google-apps.document", 1.hour.ago, "https://drive.google.com/f1", nil)
+    ])
+
+    mock_drive = Minitest::Mock.new
+    mock_drive.expect(:list_files, fake_response, [], q: String, order_by: "modifiedTime desc", page_size: 5, fields: String)
+
+    mock_api = Struct.new(:drive_service).new(mock_drive)
 
     GoogleDriveApiService.stub(:from_service_account, mock_api) do
       result = service.recent_files
@@ -98,7 +100,7 @@ class GoogleDriveBrowseServiceTest < ActiveSupport::TestCase
       assert_equal "Recent Doc", result[:files].first[:name]
     end
 
-    mock_api.verify
+    mock_drive.verify
   end
 
   test "recent_files returns error on API failure" do
