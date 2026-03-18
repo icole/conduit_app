@@ -1,4 +1,5 @@
 require "test_helper"
+require "minitest/mock"
 
 class DashboardControllerTest < ActionDispatch::IntegrationTest
   test "should get index for regular user and show posts" do
@@ -9,12 +10,47 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil assigns(:post)
   end
 
-  test "should assign recent documents" do
+  test "should assign drive files when drive is configured" do
     sign_in_user
-    get dashboard_index_url
+    community = communities(:crow_woods)
+    community.update!(settings: (community.settings || {}).merge("google_drive_folder_id" => "root123"))
+
+    mock_service = Minitest::Mock.new
+    mock_service.expect(:configured?, true)
+    mock_service.expect(:list_contents, {
+      folders: [],
+      files: [
+        { id: "f1", name: "Meeting Notes", web_link: "https://drive.google.com/f1", mime_type: "application/vnd.google-apps.document", updated_at: 1.hour.ago },
+        { id: "f2", name: "Budget", web_link: "https://drive.google.com/f2", mime_type: "application/vnd.google-apps.spreadsheet", updated_at: 2.hours.ago }
+      ],
+      error: nil
+    })
+
+    GoogleDriveBrowseService.stub(:new, mock_service) do
+      get dashboard_index_url
+    end
+
     assert_response :success
-    assert_not_nil assigns(:recent_documents)
+    assert assigns(:drive_files).length == 2
     assert_select "a[href='#{documents_path}']"
+    mock_service.verify
+  end
+
+  test "should handle drive not configured gracefully" do
+    sign_in_user
+    community = communities(:crow_woods)
+    community.update!(settings: {})
+
+    mock_service = Minitest::Mock.new
+    mock_service.expect(:configured?, false)
+
+    GoogleDriveBrowseService.stub(:new, mock_service) do
+      get dashboard_index_url
+    end
+
+    assert_response :success
+    assert_equal [], assigns(:drive_files)
+    mock_service.verify
   end
 
   test "should get index for restricted user and not show posts" do

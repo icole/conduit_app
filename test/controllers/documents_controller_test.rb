@@ -80,6 +80,14 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "index does not show native document action buttons" do
+    get documents_url
+    assert_response :success
+    assert_select "span", text: "New Folder", count: 0
+    assert_select "span", text: "Upload File", count: 0
+    assert_select "span", text: "New Document", count: 0
+  end
+
   test "should create untitled document and redirect to edit" do
     assert_difference("Document.count") do
       post documents_url

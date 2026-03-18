@@ -16,20 +16,27 @@
       <% end %>
     </div>
 
-    <% if @recent_documents.any? %>
+    <% if @drive_files.any? %>
       <div class="divide-y divide-base-200 rounded-lg border border-base-200 overflow-hidden">
-        <% @recent_documents.each do |document| %>
-          <%= link_to document_path(document), class: "flex items-center gap-3 p-3 min-h-[52px] hover:bg-base-200 active:bg-base-300 transition-colors cursor-pointer touch-manipulation" do %>
+        <% @drive_files.each do |drive_file| %>
+          <%= link_to drive_file[:web_link], target: "_blank", rel: "noopener", class: "flex items-center gap-3 p-3 min-h-[52px] hover:bg-base-200 active:bg-base-300 transition-colors cursor-pointer touch-manipulation" do %>
             <div class="flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" viewBox="0 0 87.3 78" fill="currentColor">
+                <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5l5.4 9.35z" fill="#0066DA"/>
+                <path d="M43.65 25L29.9 1.2C28.55 2 27.4 3.1 26.6 4.5L1.2 48.5C.4 49.9 0 51.45 0 53h27.5L43.65 25z" fill="#00AC47"/>
+                <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75L84.7 58.3c.8-1.4 1.2-2.95 1.2-4.5H58.35L65.5 67.2l8.05 9.6z" fill="#EA4335"/>
+                <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2L43.65 25z" fill="#00832D"/>
+                <path d="M58.35 53h-30.7L13.9 76.8c1.35.8 2.9 1.2 4.5 1.2h35.5c1.6 0 3.15-.45 4.5-1.2L58.35 53z" fill="#2684FC"/>
+                <path d="M73.4 26.5l-12.7-22C59.35 3.1 58.2 2 56.85 1.2L43.65 25l14.7 28H85.8c0-1.55-.4-3.1-1.2-4.5L73.4 26.5z" fill="#FFBA00"/>
               </svg>
             </div>
             <div class="flex-grow min-w-0">
-              <p class="font-medium text-sm line-clamp-1"><%= document.title %></p>
-              <p class="text-xs text-base-content/60">
-                Updated <%= time_ago_in_words(document.updated_at) %> ago
-              </p>
+              <p class="font-medium text-sm line-clamp-1"><%= drive_file[:name] %></p>
+              <% if drive_file[:updated_at].present? %>
+                <p class="text-xs text-base-content/60">
+                  Updated <%= time_ago_in_words(drive_file[:updated_at]) %> ago
+                </p>
+              <% end %>
             </div>
           <% end %>
         <% end %>
@@ -40,9 +47,6 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
         <p class="text-sm">No documents yet</p>
-        <p class="text-xs text-base-content/40 mt-1">
-          <%= link_to "Create your first document", new_document_path, class: "link link-primary" %>
-        </p>
       </div>
     <% end %>
   </div>

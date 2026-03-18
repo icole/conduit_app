@@ -21,7 +21,13 @@ class DashboardController < ApplicationController
     calendar_id = current_community.google_calendar_id
     @calendar_already_shared = calendar_id.present? && CalendarShare.calendar_shared_with_user?(calendar_id, current_user)
 
-    @recent_documents = Document.where.not(storage_type: :google_drive).order(updated_at: :desc).limit(5)
+    # Load recent files from Google Drive for the documents widget
+    @drive_files = []
+    drive_service = GoogleDriveBrowseService.new(current_community)
+    if drive_service.configured?
+      result = drive_service.list_contents
+      @drive_files = (result[:files] || []).sort_by { |f| f[:updated_at] || Time.at(0) }.reverse.first(5)
+    end
 
     @google_calendar_configured = begin
       defined?(CalendarCredentials) && CalendarCredentials.configured? && current_community.google_calendar_id.present?
