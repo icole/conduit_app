@@ -141,7 +141,9 @@ Rails.application.routes.draw do
       post :upload
     end
   end
-  resources :dashboard, only: [ "index" ]
+  resources :dashboard, only: [ "index" ] do
+    get :documents_section, on: :collection
+  end
 
   resources :calendar, only: [ "index" ] do
     collection do

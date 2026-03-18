@@ -10,7 +10,15 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil assigns(:post)
   end
 
-  test "should assign drive files when drive is configured" do
+  test "dashboard index renders lazy turbo frame for documents" do
+    sign_in_user
+    get dashboard_index_url
+    assert_response :success
+    assert_select "turbo-frame#dashboard-documents[src]"
+    assert_select "a[href='#{documents_path}']"
+  end
+
+  test "documents_section returns drive files when configured" do
     sign_in_user
     community = communities(:crow_woods)
     community.update!(settings: (community.settings || {}).merge("google_drive_folder_id" => "root123"))
@@ -26,16 +34,16 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     })
 
     GoogleDriveBrowseService.stub(:new, mock_service) do
-      get dashboard_index_url
+      get documents_section_dashboard_index_url
     end
 
     assert_response :success
     assert assigns(:drive_files).length == 2
-    assert_select "a[href='#{documents_path}']"
+    assert_select "turbo-frame#dashboard-documents"
     mock_service.verify
   end
 
-  test "should handle drive not configured gracefully" do
+  test "documents_section handles drive not configured" do
     sign_in_user
     community = communities(:crow_woods)
     community.update!(settings: {})
@@ -44,7 +52,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     mock_service.expect(:configured?, false)
 
     GoogleDriveBrowseService.stub(:new, mock_service) do
-      get dashboard_index_url
+      get documents_section_dashboard_index_url
     end
 
     assert_response :success

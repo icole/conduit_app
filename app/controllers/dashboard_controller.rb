@@ -21,14 +21,6 @@ class DashboardController < ApplicationController
     calendar_id = current_community.google_calendar_id
     @calendar_already_shared = calendar_id.present? && CalendarShare.calendar_shared_with_user?(calendar_id, current_user)
 
-    # Load recent files from Google Drive for the documents widget
-    @drive_files = []
-    drive_service = GoogleDriveBrowseService.new(current_community)
-    if drive_service.configured?
-      result = drive_service.recent_files
-      @drive_files = result[:files] || []
-    end
-
     @google_calendar_configured = begin
       defined?(CalendarCredentials) && CalendarCredentials.configured? && current_community.google_calendar_id.present?
     rescue
@@ -49,5 +41,16 @@ class DashboardController < ApplicationController
     else
       @events = { events: [], status: :not_configured }
     end
+  end
+
+  def documents_section
+    @drive_files = []
+    drive_service = GoogleDriveBrowseService.new(current_community)
+    if drive_service.configured?
+      result = drive_service.recent_files
+      @drive_files = result[:files] || []
+    end
+
+    render partial: "dashboard/documents_section", layout: false
   end
 end
