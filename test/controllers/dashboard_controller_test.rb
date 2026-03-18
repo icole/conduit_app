@@ -17,8 +17,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
 
     mock_service = Minitest::Mock.new
     mock_service.expect(:configured?, true)
-    mock_service.expect(:list_contents, {
-      folders: [],
+    mock_service.expect(:recent_files, {
       files: [
         { id: "f1", name: "Meeting Notes", web_link: "https://drive.google.com/f1", mime_type: "application/vnd.google-apps.document", updated_at: 1.hour.ago },
         { id: "f2", name: "Budget", web_link: "https://drive.google.com/f2", mime_type: "application/vnd.google-apps.spreadsheet", updated_at: 2.hours.ago }

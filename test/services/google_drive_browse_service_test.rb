@@ -79,6 +79,39 @@ class GoogleDriveBrowseServiceTest < ActiveSupport::TestCase
     end
   end
 
+  test "recent_files delegates to list_recent_files on the API" do
+    @community.settings = { "google_drive_folder_id" => "root_folder" }
+    service = GoogleDriveBrowseService.new(@community)
+
+    mock_api = Minitest::Mock.new
+    mock_api.expect(:list_recent_files, {
+      files: [
+        { id: "f1", name: "Recent Doc", web_link: "https://drive.google.com/f1", updated_at: 1.hour.ago }
+      ],
+      status: :success
+    }, [ "root_folder" ], max_results: 5)
+
+    GoogleDriveApiService.stub(:from_service_account, mock_api) do
+      result = service.recent_files
+      assert_nil result[:error]
+      assert_equal 1, result[:files].length
+      assert_equal "Recent Doc", result[:files].first[:name]
+    end
+
+    mock_api.verify
+  end
+
+  test "recent_files returns error on API failure" do
+    @community.settings = { "google_drive_folder_id" => "root_folder" }
+    service = GoogleDriveBrowseService.new(@community)
+
+    GoogleDriveApiService.stub(:from_service_account, -> { raise StandardError, "API down" }) do
+      result = service.recent_files
+      assert_equal "API down", result[:error]
+      assert_equal [], result[:files]
+    end
+  end
+
   test "list_contents handles folder listing error gracefully" do
     @community.settings = { "google_drive_folder_id" => "root_folder" }
     service = GoogleDriveBrowseService.new(@community)

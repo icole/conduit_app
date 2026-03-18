@@ -11,6 +11,18 @@ class GoogleDriveBrowseService
     @community.google_drive_folder_id.present?
   end
 
+  # List recent files across all subfolders in the community's Drive.
+  # Returns { files: [...], error: nil }
+  def recent_files(max_results: 5)
+    folder_id = @community.google_drive_folder_id
+    api = GoogleDriveApiService.from_service_account
+    result = api.list_recent_files(folder_id, max_results: max_results)
+    { files: result[:files] || [], error: nil }
+  rescue StandardError => e
+    Rails.logger.error("GoogleDriveBrowseService recent_files error: #{e.message}")
+    { files: [], error: e.message }
+  end
+
   # List folders and files in a Drive folder.
   # Uses the community's root Drive folder when no parent_id given.
   # Returns { folders: [...], files: [...], error: nil }

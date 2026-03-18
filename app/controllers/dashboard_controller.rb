@@ -25,8 +25,8 @@ class DashboardController < ApplicationController
     @drive_files = []
     drive_service = GoogleDriveBrowseService.new(current_community)
     if drive_service.configured?
-      result = drive_service.list_contents
-      @drive_files = (result[:files] || []).sort_by { |f| f[:updated_at] || Time.at(0) }.reverse.first(5)
+      result = drive_service.recent_files
+      @drive_files = result[:files] || []
     end
 
     @google_calendar_configured = begin
