@@ -87,7 +87,7 @@ GEM
       metrics (~> 0.12)
       traces (~> 0.18)
     base64 (0.3.0)
-    bcrypt (3.1.21)
+    bcrypt (3.1.22)
     bcrypt_pbkdf (1.1.2)
     bigdecimal (4.0.1)
     bindex (0.8.1)
@@ -622,7 +622,7 @@ PLATFORMS
 
 DEPENDENCIES
   acts_as_tenant (~> 1.0)
-  bcrypt (~> 3.1.21)
+  bcrypt (~> 3.1.22)
   bootsnap
   brakeman
   capybara
