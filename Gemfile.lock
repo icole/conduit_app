@@ -242,7 +242,7 @@ GEM
     heroicon (1.0.0)
       rails (>= 5.2)
     hkdf (0.3.0)
-    httparty (0.24.0)
+    httparty (0.24.2)
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
@@ -459,7 +459,7 @@ GEM
       uber (< 0.2.0)
     request_store (1.7.0)
       rack (>= 1.4)
-    resend (0.27.0)
+    resend (1.0.1)
       httparty (>= 0.21.0)
     retriable (3.4.1)
     rexml (3.4.4)
@@ -651,7 +651,7 @@ DEPENDENCIES
   puma (>= 5.0)
   rails (~> 8.1.3)
   rails-controller-testing
-  resend (~> 0.17)
+  resend (~> 1.0)
   rubocop-rails-omakase
   selenium-webdriver
   sentry-rails
