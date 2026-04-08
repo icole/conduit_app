@@ -5,7 +5,7 @@ class DuesController < ApplicationController
 
   def index
     @year = params[:year]&.to_i || Date.current.year
-    @households = Household.includes(:household_dues_payments).order(:name)
+    @households = Household.includes(:household_dues_payments, :users).order(:name)
     @months = (1..12).to_a
 
     # Build a hash for quick lookup: { household_id => { month => paid } }

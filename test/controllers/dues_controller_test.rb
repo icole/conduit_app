@@ -34,6 +34,15 @@ class DuesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+
+  test "index shows household member names" do
+    sign_in_as(@admin_user)
+    get dues_url
+    assert_response :success
+    @household.users.each do |user|
+      assert_select "td", text: /#{Regexp.escape(user.name)}/
+    end
+  end
   test "should toggle payment status from unpaid to paid" do
     sign_in_as(@admin_user)
     household = households(:empty_household)

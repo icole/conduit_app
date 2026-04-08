@@ -40,7 +40,12 @@
             <tbody>
               <% @households.each do |household| %>
                 <tr class="hover">
-                  <td class="sticky left-0 bg-base-100 z-10 font-medium"><%= household.name %></td>
+                  <td class="sticky left-0 bg-base-100 z-10">
+                    <div class="font-medium"><%= household.name %></div>
+                    <% if household.member_names.present? %>
+                      <div class="text-xs text-base-content/60"><%= household.member_names %></div>
+                    <% end %>
+                  </td>
                   <% @months.each do |month| %>
                     <td class="text-center">
                       <% paid = @payment_status.dig(household.id, month) || false %>
