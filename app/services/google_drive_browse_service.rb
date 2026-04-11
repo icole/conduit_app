@@ -19,13 +19,16 @@ class GoogleDriveBrowseService
     query = "mimeType != 'application/vnd.google-apps.folder' and trashed = false"
     fields = "files(id, name, mimeType, modifiedTime, webViewLink, iconLink)"
 
+    drive_id = @community.google_drive_folder_id
     response = api.drive_service.list_files(
       q: query,
       order_by: "modifiedTime desc",
       page_size: max_results,
       fields: fields,
       supports_all_drives: true,
-      include_items_from_all_drives: true
+      include_items_from_all_drives: true,
+      corpora: "drive",
+      drive_id: drive_id
     )
 
     files = (response.files || []).map do |file|

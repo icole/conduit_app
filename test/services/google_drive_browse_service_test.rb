@@ -89,7 +89,7 @@ class GoogleDriveBrowseServiceTest < ActiveSupport::TestCase
     ])
 
     mock_drive = Minitest::Mock.new
-    mock_drive.expect(:list_files, fake_response, [], q: String, order_by: "modifiedTime desc", page_size: 5, fields: String, supports_all_drives: true, include_items_from_all_drives: true)
+    mock_drive.expect(:list_files, fake_response, [], q: String, order_by: "modifiedTime desc", page_size: 5, fields: String, supports_all_drives: true, include_items_from_all_drives: true, corpora: "drive", drive_id: "root_folder")
 
     mock_api = Struct.new(:drive_service).new(mock_drive)
 
