@@ -22,10 +22,7 @@ class CalendarController < ApplicationController
     # Get Google Calendar events and convert them to objects compatible with simple_calendar
     begin
       if !Rails.env.test?
-        auth = Google::Auth::ServiceAccountCredentials.make_creds(
-          json_key_io: CalendarCredentials.credentials_io,
-          scope: Google::Apis::CalendarV3::AUTH_CALENDAR)
-        service = GoogleCalendarApiService.new(auth)
+        service = GoogleCalendarApiService.from_service_account_with_acl_scope
         @google_events_result = service.get_events(
           time_min: start_of_month,
           time_max: end_of_month

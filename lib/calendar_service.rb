@@ -9,10 +9,11 @@ class CalendarService
   private
 
   def authorize_service_account
-    # Option 1: Direct file path
-    Google::Auth::ServiceAccountCredentials.make_creds(
+    credentials = Google::Auth::ServiceAccountCredentials.make_creds(
       json_key_io: CalendarCredentials.credentials_io,
       scope: [ "https://www.googleapis.com/auth/calendar" ]
     )
+    credentials.sub = ENV["GOOGLE_IMPERSONATE_EMAIL"]
+    credentials
   end
 end

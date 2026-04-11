@@ -7,10 +7,7 @@ class CalendarEventsController < ApplicationController
 
   def index
     # Get events from Google Calendar
-    auth = Google::Auth::ServiceAccountCredentials.make_creds(
-      json_key_io: CalendarCredentials.credentials_io,
-      scope: Google::Apis::CalendarV3::AUTH_CALENDAR)
-    service = GoogleCalendarApiService.new(auth)
+    service = GoogleCalendarApiService.from_service_account_with_acl_scope
     google_events_result = service.get_events
 
     # Get local calendar events
