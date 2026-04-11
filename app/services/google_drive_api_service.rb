@@ -53,7 +53,9 @@ class GoogleDriveApiService
       response = drive_service.list_files(
         q: query,
         page_size: max_results,
-        fields: "files(id, name, description, createdTime, modifiedTime, webViewLink, parents, permissions)"
+        fields: "files(id, name, description, createdTime, modifiedTime, webViewLink, parents, permissions)",
+        supports_all_drives: true,
+        include_items_from_all_drives: true
       )
 
       format_folders(response.files)
@@ -74,7 +76,8 @@ class GoogleDriveApiService
     begin
       folder = drive_service.get_file(
         folder_id,
-        fields: "id, name, description, createdTime, modifiedTime, webViewLink, parents, permissions"
+        fields: "id, name, description, createdTime, modifiedTime, webViewLink, parents, permissions",
+        supports_all_drives: true
       )
       format_folder(folder)
     rescue Google::Apis::ClientError => e
@@ -103,7 +106,9 @@ class GoogleDriveApiService
       query = "mimeType != 'application/vnd.google-apps.folder' and trashed = false and '#{folder_id}' in parents"
       top_level_response = drive_service.list_files(
         q: query,
-        fields: fields
+        fields: fields,
+        supports_all_drives: true,
+        include_items_from_all_drives: true
       )
       all_files.concat(top_level_response.files) if top_level_response.files
 
@@ -116,7 +121,9 @@ class GoogleDriveApiService
           query = "mimeType != 'application/vnd.google-apps.folder' and trashed = false and '#{subfolder[:id]}' in parents"
           folder_response = drive_service.list_files(
             q: query,
-            fields: fields
+            fields: fields,
+            supports_all_drives: true,
+            include_items_from_all_drives: true
           )
           all_files.concat(folder_response.files) if folder_response.files
         rescue StandardError => e
@@ -161,7 +168,9 @@ class GoogleDriveApiService
           query = "mimeType = 'application/vnd.google-apps.folder' and trashed = false and '#{current_folder}' in parents"
           response = drive_service.list_files(
             q: query,
-            fields: "files(id, name, parents)"
+            fields: "files(id, name, parents)",
+            supports_all_drives: true,
+            include_items_from_all_drives: true
           )
 
           if response.files&.any?
@@ -203,7 +212,9 @@ class GoogleDriveApiService
           query = "mimeType != 'application/vnd.google-apps.folder' and trashed = false and '#{folder_id}' in parents"
           response = drive_service.list_files(
             q: query,
-            fields: fields
+            fields: fields,
+            supports_all_drives: true,
+            include_items_from_all_drives: true
           )
           all_files.concat(response.files) if response.files
         rescue StandardError => e
@@ -229,7 +240,7 @@ class GoogleDriveApiService
   def export_as_html(file_id)
     begin
       # First, get file metadata to determine mime type
-      file = drive_service.get_file(file_id, fields: "id, name, mimeType")
+      file = drive_service.get_file(file_id, fields: "id, name, mimeType", supports_all_drives: true)
 
       export_mime_type = case file.mime_type
       when "application/vnd.google-apps.document"
@@ -267,7 +278,7 @@ class GoogleDriveApiService
   # Export a Google Spreadsheet as XLSX
   # Fallback for spreadsheets that can't be exported as HTML (e.g., form response sheets)
   def export_as_xlsx(file_id)
-    file = drive_service.get_file(file_id, fields: "id, name, mimeType")
+    file = drive_service.get_file(file_id, fields: "id, name, mimeType", supports_all_drives: true)
     xlsx_mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     content = StringIO.new
     drive_service.export_file(file_id, xlsx_mime, download_dest: content)
@@ -292,9 +303,9 @@ class GoogleDriveApiService
 
   # Download a non-Google-native file (PDF, DOCX, images, etc.) as binary
   def download_file(file_id)
-    file = drive_service.get_file(file_id, fields: "id, name, mimeType")
+    file = drive_service.get_file(file_id, fields: "id, name, mimeType", supports_all_drives: true)
     content = StringIO.new
-    drive_service.get_file(file_id, download_dest: content)
+    drive_service.get_file(file_id, download_dest: content, supports_all_drives: true)
     content.rewind
 
     {
@@ -329,7 +340,8 @@ class GoogleDriveApiService
         folder_id,
         permission,
         fields: "id",
-        send_notification_email: true
+        send_notification_email: true,
+        supports_all_drives: true
       )
 
       # Return success result
@@ -420,7 +432,9 @@ class GoogleDriveApiService
         query = "mimeType = 'application/vnd.google-apps.folder' and trashed = false and '#{current_folder}' in parents"
         response = drive_service.list_files(
           q: query,
-          fields: "files(id, name)"
+          fields: "files(id, name)",
+          supports_all_drives: true,
+          include_items_from_all_drives: true
         )
 
         if response.files && response.files.any?

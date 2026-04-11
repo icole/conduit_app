@@ -23,7 +23,9 @@ class GoogleDriveBrowseService
       q: query,
       order_by: "modifiedTime desc",
       page_size: max_results,
-      fields: fields
+      fields: fields,
+      supports_all_drives: true,
+      include_items_from_all_drives: true
     )
 
     files = (response.files || []).map do |file|
