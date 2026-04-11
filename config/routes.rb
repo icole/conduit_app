@@ -164,11 +164,6 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :drive_shares, only: [ :create, :index ] do
-    collection do
-      get :success
-    end
-  end
 
   # Chat routes (Stream Chat integration)
   resources :chat, only: [ :index ] do

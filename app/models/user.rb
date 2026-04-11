@@ -31,7 +31,6 @@ class User < ApplicationRecord
   has_many :created_meals, class_name: "Meal", foreign_key: "created_by_id", dependent: :nullify
   has_many :deleted_meals, class_name: "Meal", foreign_key: "deleted_by_id", dependent: :nullify
   has_many :discussion_topics, dependent: :destroy
-  has_many :drive_shares, dependent: :destroy
   belongs_to :invitation, optional: true
   belongs_to :household, optional: true
 

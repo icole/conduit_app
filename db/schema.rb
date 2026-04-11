@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_07_073933) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_11_181500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -266,19 +266,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_07_073933) do
     t.index ["deleted_by_id"], name: "index_documents_on_deleted_by_id"
     t.index ["discarded_at"], name: "index_documents_on_discarded_at"
     t.index ["document_folder_id"], name: "index_documents_on_document_folder_id"
-  end
-
-  create_table "drive_shares", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "folder_id", null: false
-    t.string "folder_name"
-    t.string "permission_id"
-    t.string "role", default: "reader"
-    t.datetime "shared_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["folder_id", "user_id"], name: "index_drive_shares_on_folder_id_and_user_id", unique: true
-    t.index ["user_id"], name: "index_drive_shares_on_user_id"
   end
 
   create_table "email_logs", force: :cascade do |t|
@@ -570,7 +557,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_07_073933) do
   add_foreign_key "documents", "document_folders"
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "documents", "users", column: "deleted_by_id"
-  add_foreign_key "drive_shares", "users"
   add_foreign_key "email_logs", "communities"
   add_foreign_key "household_dues_payments", "households"
   add_foreign_key "households", "communities"
