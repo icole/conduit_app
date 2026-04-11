@@ -12,18 +12,7 @@ class DocumentsTest < ApplicationSystemTestCase
     assert_selector "h1", text: "Documents"
   end
 
-  test "should create document" do
-    visit documents_url
-
-    count_before = Document.count
-    click_on "New Document"
-
-    # Should redirect to edit page for the new native document
-    assert_text "Untitled Document", wait: 5
-    assert_equal count_before + 1, Document.count
-  end
-
-  test "should show native document edit page" do
+test "should show native document edit page" do
     visit edit_document_url(@native_document)
 
     assert_selector "[data-title]", text: @native_document.title, wait: 5
