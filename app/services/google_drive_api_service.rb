@@ -31,6 +31,7 @@ class GoogleDriveApiService
       json_key_io: CalendarCredentials.credentials_io,
       scope: Google::Apis::DriveV3::AUTH_DRIVE_READONLY
     )
+    credentials.sub = ENV["GOOGLE_IMPERSONATE_EMAIL"]
     new(credentials)
   end
 
@@ -40,6 +41,7 @@ class GoogleDriveApiService
       json_key_io: CalendarCredentials.credentials_io,
       scope: Google::Apis::DriveV3::AUTH_DRIVE
     )
+    credentials.sub = ENV["GOOGLE_IMPERSONATE_EMAIL"]
     new(credentials)
   end
 

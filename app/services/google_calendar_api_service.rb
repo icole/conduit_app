@@ -32,6 +32,7 @@ class GoogleCalendarApiService
       json_key_io: CalendarCredentials.credentials_io,
       scope: Google::Apis::CalendarV3::AUTH_CALENDAR_READONLY
     )
+    credentials.sub = ENV["GOOGLE_IMPERSONATE_EMAIL"]
     new(credentials)
   end
 
@@ -42,6 +43,7 @@ class GoogleCalendarApiService
       json_key_io: CalendarCredentials.credentials_io,
       scope: "https://www.googleapis.com/auth/calendar"
     )
+    credentials.sub = ENV["GOOGLE_IMPERSONATE_EMAIL"]
     new(credentials)
   end
 

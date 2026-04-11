@@ -57,6 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOOGLE_CALENDAR_ID: test_calendar_id
+      GOOGLE_IMPERSONATE_EMAIL: test@example.com
 
     services:
       postgres:
