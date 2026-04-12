@@ -10,7 +10,6 @@ class CalendarPageTest < ApplicationSystemTestCase
 
     sign_in_as(@user)
 
-    # Set dummy env var so CalendarCredentials.configured? returns true
     @original_calendar_config = ENV["CALENDAR_CONFIG_FILE"]
     ENV["CALENDAR_CONFIG_FILE"] = "dummy_for_test"
   end
@@ -23,29 +22,22 @@ class CalendarPageTest < ApplicationSystemTestCase
     end
   end
 
-  test "subscribe button is visible on calendar page when user has no calendar share" do
+  test "subscribe dropdown is visible on calendar page" do
     skip "No google_calendar_id in community settings" unless @calendar_id.present?
-
-    # Delete any existing calendar shares for this user
-    CalendarShare.where(user_id: @user.id).destroy_all
 
     visit calendar_index_path
 
-    # The subscribe button should be visible on the calendar page
-    assert_selector "form[action='#{calendar_shares_path}']", visible: true
+    assert_selector ".dropdown", text: "Subscribe"
   end
 
-  test "subscribe button is hidden on calendar page when user already has calendar share" do
+  test "subscribe dropdown contains iCal options on calendar page" do
     skip "No google_calendar_id in community settings" unless @calendar_id.present?
-
-    # Ensure the user has a calendar share
-    CalendarShare.find_or_create_by(user_id: @user.id, calendar_id: @calendar_id) do |share|
-      share.shared_at = Time.current
-    end
 
     visit calendar_index_path
 
-    # The subscribe button should not be visible
-    assert_no_selector "form[action='#{calendar_shares_path}']"
+    find(".dropdown", text: "Subscribe").click
+
+    assert_selector "a", text: "Subscribe in Calendar App"
+    assert_selector "button", text: "Copy iCal URL"
   end
 end
