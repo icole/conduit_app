@@ -12,8 +12,8 @@
       </svg>
       <span class="hidden sm:inline">Subscribe</span>
     </label>
-    <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box shadow-lg border border-base-200 w-72 z-[100] p-2 mt-2">
-      <% if google_account? %>
+    <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box shadow-lg border border-base-200 w-56 z-[100] p-2 mt-2">
+      <% if google_account? && !@calendar_already_shared %>
         <li>
           <%= button_to calendar_shares_path, method: :post, class: "flex items-center gap-2", data: { turbo: "false" } do %>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4 shrink-0" fill="currentColor">
