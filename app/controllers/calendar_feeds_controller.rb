@@ -23,6 +23,7 @@ class CalendarFeedsController < ApplicationController
     cal = Icalendar::Calendar.new
     cal.prodid = "-//Crow Woods Community//Conduit//EN"
     cal.x_wr_calname = "Crow Woods Community"
+    cal.append_custom_property("X-WR-TIMEZONE", "America/Los_Angeles")
 
     if result[:status] == :success
       result[:events].each do |event|
@@ -36,8 +37,8 @@ class CalendarFeedsController < ApplicationController
             e.dtstart = Icalendar::Values::Date.new(event[:start_time].to_date)
             e.dtend = Icalendar::Values::Date.new(event[:end_time].to_date)
           else
-            e.dtstart = Icalendar::Values::DateTime.new(event[:start_time].utc)
-            e.dtend = Icalendar::Values::DateTime.new(event[:end_time].utc)
+            e.dtstart = Icalendar::Values::DateTime.new(event[:start_time].utc, "tzid" => "UTC")
+            e.dtend = Icalendar::Values::DateTime.new(event[:end_time].utc, "tzid" => "UTC")
           end
         end
       end
