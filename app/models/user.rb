@@ -96,6 +96,17 @@ class User < ApplicationRecord
     provider == "google_oauth2"
   end
 
+  # Calendar feed token for ICS subscription
+  def generate_calendar_feed_token!
+    return if calendar_feed_token.present?
+
+    update!(calendar_feed_token: SecureRandom.urlsafe_base64(20))
+  end
+
+  def calendar_feed_url(host: ENV.fetch("APP_HOST", "localhost:3000"))
+    Rails.application.routes.url_helpers.calendar_feed_url(token: calendar_feed_token, format: :ics, host: host, protocol: "https")
+  end
+
   # Stream Chat integration
   def stream_user_id
     # Use string ID for Stream Chat compatibility

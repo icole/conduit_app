@@ -1,18 +1,48 @@
-<% if @google_calendar_configured && !@calendar_already_shared %>
-  <% if google_account? %>
-    <%= button_to calendar_shares_path, method: :post, class: local_assigns[:button_class] || "badge badge-primary hover:badge-secondary cursor-pointer min-h-[44px] px-3", title: "Subscribe to this calendar", form_class: "inline-block", data: { turbo: "false", turbo_confirm: "Subscribe to the community calendar? This will share it with your Google account." } do %>
+<% if @google_calendar_configured %>
+  <%
+    # Ensure user has a feed token for ICS subscription
+    current_user.generate_calendar_feed_token! if current_user.calendar_feed_token.blank?
+    feed_url = calendar_feed_url(token: current_user.calendar_feed_token, format: :ics)
+    webcal_url = feed_url.sub(/\Ahttps?/, "webcal")
+  %>
+  <div class="dropdown dropdown-end">
+    <label tabindex="0" class="<%= local_assigns[:button_class] || 'btn btn-sm btn-outline' %> inline-flex items-center gap-1">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
       <span class="hidden sm:inline">Subscribe</span>
-      <span class="sm:hidden">Sub</span>
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 ml-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-      </svg>
-    <% end %>
-  <% else %>
-    <span class="<%= local_assigns[:disabled_class] || 'badge badge-ghost opacity-50 cursor-not-allowed min-h-[44px] px-3' %>" title="Google account required to subscribe">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-      </svg>
-      <span class="hidden sm:inline">Google Required</span>
-    </span>
-  <% end %>
+    </label>
+    <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box shadow-lg border border-base-200 w-64 z-[100] p-2 mt-2">
+      <% if google_account? && !@calendar_already_shared %>
+        <li>
+          <%= button_to calendar_shares_path, method: :post, class: "flex items-center gap-2", data: { turbo: "false" } do %>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4 shrink-0" fill="currentColor">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            <span class="text-sm">Add to Google Calendar</span>
+          <% end %>
+        </li>
+        <div class="divider my-1 px-2"></div>
+      <% end %>
+      <li>
+        <a href="<%= webcal_url %>" class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          <span class="text-sm">Subscribe in Calendar App</span>
+        </a>
+      </li>
+      <li>
+        <button class="flex items-center gap-2" data-controller="clipboard" data-clipboard-text-value="<%= feed_url %>" data-action="clipboard#copy">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+          </svg>
+          <span class="text-sm" data-clipboard-target="label">Copy iCal URL</span>
+        </button>
+      </li>
+    </ul>
+  </div>
 <% end %>

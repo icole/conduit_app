@@ -65,6 +65,7 @@ gem "image_processing", "~> 1.2"
 gem "google-apis-drive_v3", "~> 0.79.0"
 gem "googleauth", "~> 1.16"
 gem "google-apis-calendar_v3", "~> 0.53.0"
+gem "icalendar", "~> 2.10"
 
 gem "pstore"
 gem "simple_calendar"

@@ -163,6 +163,7 @@ Rails.application.routes.draw do
       get :success
     end
   end
+  get "calendar/feed/:token", to: "calendar_feeds#show", as: :calendar_feed
 
 
   # Chat routes (Stream Chat integration)
