@@ -47,6 +47,34 @@ class CalendarFeedsControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "events are marked as public and transparent" do
+    mock_events = {
+      status: :success,
+      events: [
+        {
+          id: "event1",
+          summary: "Community Meal",
+          description: "Weekly dinner",
+          location: "Common House",
+          start_time: Time.zone.parse("2026-04-15 18:30"),
+          end_time: Time.zone.parse("2026-04-15 20:00"),
+          all_day: false
+        }
+      ]
+    }
+
+    fake_service = Object.new
+    fake_service.define_singleton_method(:get_events) { |**_args| mock_events }
+
+    GoogleCalendarApiService.stub(:from_service_account_with_acl_scope, fake_service) do
+      get calendar_feed_url(token: "valid_test_token_123", format: :ics)
+    end
+
+    assert_response :success
+    assert_includes response.body, "CLASS:PUBLIC"
+    assert_includes response.body, "TRANSP:TRANSPARENT"
+  end
+
   test "returns ICS with all-day events" do
     mock_events = {
       status: :success,

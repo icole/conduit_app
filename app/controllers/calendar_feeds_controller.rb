@@ -33,6 +33,9 @@ class CalendarFeedsController < ApplicationController
           e.description = event[:description] if event[:description].present?
           e.location = event[:location] if event[:location].present?
 
+          e.ip_class = "PUBLIC"
+          e.transp = "TRANSPARENT"
+
           if event[:all_day]
             e.dtstart = Icalendar::Values::Date.new(event[:start_time].to_date)
             e.dtend = Icalendar::Values::Date.new(event[:end_time].to_date)
