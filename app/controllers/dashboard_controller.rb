@@ -53,15 +53,20 @@ class DashboardController < ApplicationController
     # Add calendar events (skip in test env since it hits Google API)
     if !Rails.env.test? && @google_calendar_configured
       begin
-        # Collect google_event_ids from meals to filter out duplicates
+        # Build lookup sets to filter out calendar events that duplicate meals
         meal_google_event_ids = meals.filter_map(&:google_event_id).to_set
+        meal_times = meals.map { |m| m.scheduled_at.to_i }.to_set
 
         service = GoogleCalendarApiService.from_service_account_with_acl_scope
         result = service.get_events(max_results: 10)
         if result[:events].present?
           result[:events].each do |event|
-            # Skip calendar events that are synced meals (already in timeline)
+            # Skip calendar events that match a meal by google_event_id
             next if meal_google_event_ids.include?(event[:id])
+
+            # Skip calendar events that look like synced meals (matching time + meal-like title)
+            next if meal_times.include?(event[:start_time].to_i) &&
+                    event[:summary]&.match?(/\A(Community Meal|Meal:)/i)
 
             items << {
               type: :event,
