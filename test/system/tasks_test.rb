@@ -125,14 +125,14 @@ class TasksTest < ApplicationSystemTestCase
     end
   end
 
-  test "assignment dropdown not shown on dashboard" do
+  test "dashboard shows assigned tasks without inline form" do
     visit dashboard_index_url
 
-    # Open the new task form from dashboard
-    find("input[placeholder='Add a new task...']").click
+    # Tasks should be visible on the dashboard
+    assert_text @received_task.title
 
-    # The assignment dropdown should not be present
-    assert_no_selector "label", text: "Assign to"
+    # The inline task creation form should not be on the dashboard
+    assert_no_selector "input[placeholder='Add a new task...']"
   end
 
   test "switching users to verify assignment works both ways" do
