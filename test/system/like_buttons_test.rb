@@ -35,5 +35,4 @@ class LikeButtonsTest < ApplicationSystemTestCase
     find("[data-testid='unlike-comment-button-#{@topic_comment.id}']").click
     assert find("[data-testid='like-comment-button-#{@topic_comment.id}']").visible?
   end
-
 end
