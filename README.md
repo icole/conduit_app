@@ -6,14 +6,12 @@ A Rails application for community coordination, with native iOS and Android apps
 
 ## Features
 
-* **Dashboard** - Community feed with posts, likes, and comments
+* **Dashboard** - Activity hub with unified timeline of upcoming events and meals, tasks, and documents
 * **Chat** - Real-time messaging powered by Stream Chat
 * **Calendar** - Event scheduling with Google Calendar integration
 * **Documents** - Shared documents with Google Drive integration
-* **Chores** - Task management with assignments and completion tracking
+* **Tasks** - Task management with assignments and completion tracking
 * **Meals** - Community meal scheduling with cook signup and RSVPs
-* **Decisions** - Community decision tracking
-* **Discussion Topics** - Threaded discussions
 
 ## Multi-Community Support
 
