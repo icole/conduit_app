@@ -6,6 +6,7 @@
   user_attending = meal.user_attending?(current_user)
   user_maybe = meal.user_maybe?(current_user)
   user_declined = meal.user_declined?(current_user)
+  user_late_plate = meal.user_late_plate?(current_user)
   rsvps_open = meal.rsvps_open?
   native_app = hotwire_native_app? rescue false
 
@@ -55,6 +56,8 @@
           <span class="badge badge-info badge-xs">Going</span>
         <% elsif user_maybe %>
           <span class="badge badge-warning badge-xs">Maybe</span>
+        <% elsif user_late_plate %>
+          <span class="badge badge-secondary badge-xs">Late Plate</span>
         <% elsif user_declined %>
           <span class="badge badge-ghost badge-xs opacity-60">Declined</span>
         <% end %>
@@ -102,6 +105,8 @@
           <div class="badge badge-info badge-sm">Going</div>
         <% elsif user_maybe %>
           <div class="badge badge-warning badge-sm">Maybe</div>
+        <% elsif user_late_plate %>
+          <div class="badge badge-secondary badge-sm">Late Plate</div>
         <% elsif user_declined %>
           <div class="badge badge-ghost badge-sm opacity-60">Declined</div>
         <% end %>
@@ -137,7 +142,7 @@
       <div class="text-sm text-base-content/60">
         <span class="font-medium text-base-content"><%= meal.total_attendees %></span> attending<% if meal.guests_count > 0 %><span class="text-base-content/50"> (+<%= meal.guests_count %> guests)</span><% end %><% if meal.late_plate_count > 0 %><span class="badge badge-secondary badge-sm ml-2"><%= meal.late_plate_count %> late</span><% end %>
       </div>
-      <% if !meal.cancelled? && rsvps_open && !user_is_cook && !user_attending && !user_maybe && !user_declined %>
+      <% if !meal.cancelled? && rsvps_open && !user_is_cook && !user_attending && !user_maybe && !user_late_plate && !user_declined %>
         <span class="text-primary text-sm font-medium">RSVP →</span>
       <% end %>
     </div>

@@ -129,6 +129,11 @@ class Meal < ApplicationRecord
     meal_rsvps.any? { |r| r.user_id == user.id && r.declined? }
   end
 
+  def user_late_plate?(user)
+    return false unless user
+    meal_rsvps.any? { |r| r.user_id == user.id && r.late_plate? }
+  end
+
   def total_attendees
     cooks_with_guests = meal_cooks.sum(&:total_count)
     rsvps_attending = meal_rsvps.select(&:attending?).sum { |r| 1 + r.guests_count }

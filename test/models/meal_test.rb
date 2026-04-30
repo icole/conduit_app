@@ -254,6 +254,14 @@ class MealTest < ActiveSupport::TestCase
     assert_not @meal.user_attending?(user_maybe)
   end
 
+  test "user_late_plate? returns true when user has late plate" do
+    user = users(:email_user)
+    assert @meal.user_late_plate?(user)
+
+    user_attending = users(:three)
+    assert_not @meal.user_late_plate?(user_attending)
+  end
+
   # Dependent destroy
   test "destroying meal destroys associated records" do
     meal = meals(:needs_cook)
