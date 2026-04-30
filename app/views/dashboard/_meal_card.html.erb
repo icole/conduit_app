@@ -48,6 +48,10 @@
         <%= link_to meal_path(meal), class: "badge badge-ghost badge-sm", data: { turbo_frame: "_top" } do %>
           Maybe
         <% end %>
+      <% elsif meal.user_declined?(current_user) %>
+        <%= link_to meal_path(meal), class: "badge badge-ghost badge-sm opacity-60", data: { turbo_frame: "_top" } do %>
+          Declined
+        <% end %>
       <% elsif meal.rsvps_open? %>
         <%= link_to meal_path(meal), class: "badge badge-outline badge-sm", data: { turbo_frame: "_top" } do %>
           RSVP
