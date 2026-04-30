@@ -67,3 +67,9 @@ build/
 
 # Excel files
 *.xlsx
+
+# Playwright MCP artifacts
+.playwright-mcp/
+
+# Superpowers brainstorm artifacts
+.superpowers/

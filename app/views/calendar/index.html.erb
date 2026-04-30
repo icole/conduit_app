@@ -66,9 +66,8 @@
         <div class="card-body">
           <h3 class="card-title text-lg">Upcoming Events</h3>
           <div class="space-y-3">
-            <% upcoming_events = @calendar_events.select { |event| event.start_time >= Time.current }.first(5) %>
-            <% if upcoming_events.any? %>
-              <% upcoming_events.each do |event| %>
+            <% if @upcoming_events.any? %>
+              <% @upcoming_events.each do |event| %>
                 <div class="border-l-2 <%= event.respond_to?(:all_day) && event.all_day ? 'border-info' : 'border-success' %> pl-3">
                   <div class="block hover:bg-base-200 p-2 rounded transition-colors">
                     <div class="font-medium text-sm flex items-center gap-1">

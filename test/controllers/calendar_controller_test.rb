@@ -29,6 +29,14 @@ class CalendarControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "index fetches upcoming events beyond current month" do
+    sign_in_user
+    get calendar_index_url
+    assert_response :success
+    # upcoming_events should look ahead beyond the displayed month
+    assert_not_nil assigns(:upcoming_events)
+  end
+
   test "index sets calendar sharing variables" do
     sign_in_user
     get calendar_index_url

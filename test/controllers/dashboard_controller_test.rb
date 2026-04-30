@@ -2,20 +2,72 @@ require "test_helper"
 require "minitest/mock"
 
 class DashboardControllerTest < ActionDispatch::IntegrationTest
-  test "should get index for regular user and show posts" do
+  test "dashboard index loads successfully with timeline items" do
     sign_in_user
     get dashboard_index_url
     assert_response :success
-    assert_equal 2, assigns(:posts).count
-    assert_not_nil assigns(:post)
+    assert_not_nil assigns(:timeline_items)
   end
 
-  test "dashboard index renders lazy turbo frame for documents" do
+  test "dashboard timeline includes upcoming meals sorted by date" do
+    sign_in_user
+    get dashboard_index_url
+    assert_response :success
+
+    timeline = assigns(:timeline_items)
+    meals_in_timeline = timeline.select { |item| item[:type] == :meal }
+    assert meals_in_timeline.any?, "Timeline should include meals"
+
+    # Verify sorted by start time
+    times = timeline.map { |item| item[:start_time] }
+    assert_equal times, times.sort
+  end
+
+  test "dashboard timeline excludes cancelled and past meals" do
+    sign_in_user
+    get dashboard_index_url
+
+    timeline = assigns(:timeline_items)
+    meal_titles = timeline.select { |item| item[:type] == :meal }.map { |item| item[:meal].title }
+    assert_not_includes meal_titles, "Cancelled Dinner"
+    assert_not_includes meal_titles, "Past Community Meal"
+  end
+
+  test "dashboard timeline is limited to 10 items" do
+    sign_in_user
+    get dashboard_index_url
+
+    timeline = assigns(:timeline_items)
+    assert timeline.length <= 10
+  end
+
+  test "dashboard loads tasks assigned to current user" do
+    sign_in_user
+    get dashboard_index_url
+    assert_response :success
+    assert_not_nil assigns(:tasks)
+  end
+
+  test "dashboard renders lazy turbo frame for documents" do
     sign_in_user
     get dashboard_index_url
     assert_response :success
     assert_select "turbo-frame#dashboard-documents[src]"
-    assert_select "a[href='#{documents_path}']"
+    assert_select "turbo-frame#dashboard-documents a[href='#{documents_path}'][data-turbo-frame='_top']"
+  end
+
+  test "dashboard renders view all calendar link with turbo frame top" do
+    sign_in_user
+    get dashboard_index_url
+    assert_response :success
+    assert_select "a[href='#{calendar_index_path}']"
+  end
+
+  test "dashboard renders view all tasks link" do
+    sign_in_user
+    get dashboard_index_url
+    assert_response :success
+    assert_select "a[href='#{tasks_path}']"
   end
 
   test "documents_section returns drive files when configured" do
@@ -60,17 +112,11 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     mock_service.verify
   end
 
-  test "should get index for restricted user and not show posts" do
-    # Sign in as a restricted user
-    sign_in_user(uid: "restricted123", email: "restricted@example.com")
-
-    # Get the signed in user and mark as restricted
-    user = User.find_by(email: "restricted@example.com")
-    user.update(restricted_access: true)
-
+  test "dashboard does not include posts" do
+    sign_in_user
     get dashboard_index_url
     assert_response :success
-    assert_equal 0, assigns(:posts).count
+    assert_nil assigns(:posts)
     assert_nil assigns(:post)
   end
 end

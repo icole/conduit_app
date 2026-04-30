@@ -1,0 +1,58 @@
+<div class="bg-base-100 rounded-lg border border-base-200 p-3 border-l-4 border-l-warning">
+  <div class="flex items-start justify-between gap-2">
+    <div class="min-w-0">
+      <div class="flex items-center gap-1.5 mb-0.5">
+        <span class="font-medium text-sm truncate"><%= meal.title %></span>
+        <span class="badge badge-warning badge-xs font-medium">MEAL</span>
+      </div>
+
+      <div class="text-xs text-base-content/60">
+        <%= meal.scheduled_at.strftime("%-I:%M %p") %>
+        <% if meal.location.present? %>
+          · <%= meal.location %>
+        <% end %>
+      </div>
+
+      <div class="text-xs mt-1">
+        <% if meal.cooks.any? %>
+          <span class="text-base-content/70">
+            <% head = meal.head_cook %>
+            <% helpers = meal.helpers %>
+            <% if head %>
+              <span class="font-medium text-base-content"><%= head.name %></span> cooking
+              <% if helpers.any? %>
+                · <%= helpers.map(&:name).join(", ") %> helping
+              <% end %>
+            <% end %>
+          </span>
+        <% elsif meal.needs_head_cook? %>
+          <span class="text-error font-medium">Needs a cook volunteer!</span>
+        <% end %>
+
+        <% attending_count = meal.attending_count %>
+        <% if attending_count > 0 %>
+          · <%= attending_count %> attending
+        <% end %>
+      </div>
+    </div>
+
+    <%# RSVP status indicator %>
+    <div class="shrink-0">
+      <% if meal.user_is_cook?(current_user) %>
+        <span class="badge badge-warning badge-sm">Cooking</span>
+      <% elsif meal.user_attending?(current_user) %>
+        <%= link_to meal_path(meal), class: "badge badge-success badge-sm", data: { turbo_frame: "_top" } do %>
+          RSVP'd
+        <% end %>
+      <% elsif meal.user_maybe?(current_user) %>
+        <%= link_to meal_path(meal), class: "badge badge-ghost badge-sm", data: { turbo_frame: "_top" } do %>
+          Maybe
+        <% end %>
+      <% elsif meal.rsvps_open? %>
+        <%= link_to meal_path(meal), class: "badge badge-outline badge-sm", data: { turbo_frame: "_top" } do %>
+          RSVP
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>

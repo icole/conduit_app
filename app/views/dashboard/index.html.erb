@@ -1,217 +1,97 @@
-<% if hotwire_native_app? %>
-  <!-- Native Mobile View - Compact list-based layout -->
-  <div class="space-y-4">
-    <!-- Upcoming Events Section -->
-    <section>
-      <div class="flex items-center justify-between mb-2 px-1">
+<% content_for :title, "Dashboard" %>
+
+<div class="max-w-6xl mx-auto p-3 sm:p-4">
+  <div class="flex flex-col lg:flex-row gap-4 sm:gap-6">
+
+    <!-- Main Column: What's Coming Up -->
+    <div class="min-w-0 flex-1">
+      <div class="flex items-center justify-between mb-3 px-1">
         <h2 class="text-lg font-semibold flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          Upcoming
+          What's Coming Up
         </h2>
         <div class="flex items-center gap-2">
-          <%= render "shared/calendar_subscribe_button", button_class: "badge badge-primary badge-sm cursor-pointer", disabled_class: "badge badge-ghost badge-sm opacity-50 cursor-not-allowed" %>
+          <%= render "shared/calendar_subscribe_button", button_class: "btn btn-ghost btn-xs", disabled_class: "btn btn-ghost btn-xs btn-disabled opacity-50" %>
           <%= link_to calendar_index_path, class: "text-sm text-primary font-medium" do %>
             View all →
           <% end %>
         </div>
       </div>
-      <div class="bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200">
-        <% if @events[:events].present? %>
-          <% @events[:events].first(5).each do |event| %>
-            <div class="px-3 py-2.5">
-              <div class="font-medium text-sm truncate"><%= event[:summary] %></div>
-              <div class="text-xs text-base-content/60 mt-0.5">
-                <%= event[:start_time].strftime("%a, %b %-d") %>
-                <% if event[:start_time].strftime("%H:%M") != "00:00" %>
-                  · <%= event[:start_time].strftime("%-I:%M %p") %>
-                <% end %>
-              </div>
-            </div>
-          <% end %>
-        <% else %>
-          <div class="px-3 py-4 text-center text-sm text-base-content/50">
-            No upcoming events
-          </div>
-        <% end %>
-      </div>
-    </section>
 
-    <!-- Documents Section (lazy-loaded from Drive) -->
-    <%= turbo_frame_tag "dashboard-documents", src: documents_section_dashboard_index_path, loading: :lazy, class: "block" do %>
+      <% if @timeline_items.any? %>
+        <div class="space-y-2">
+          <% @timeline_items.group_by { |item| item[:start_time].to_date }.each do |date, items| %>
+            <%# Day group header %>
+            <div class="text-xs font-semibold text-base-content/50 uppercase tracking-wide mt-4 first:mt-0 mb-1 px-1 pb-1 border-b border-base-200">
+              <% if date == Date.current %>
+                Today — <%= date.strftime("%A, %b %-d") %>
+              <% elsif date == Date.current + 1 %>
+                Tomorrow — <%= date.strftime("%A, %b %-d") %>
+              <% else %>
+                <%= date.strftime("%A, %b %-d") %>
+              <% end %>
+            </div>
+
+            <% items.each do |item| %>
+              <% if item[:type] == :meal %>
+                <%= render "dashboard/meal_card", meal: item[:meal], current_user: current_user %>
+              <% else %>
+                <%= render "dashboard/event_card", event: item[:event] %>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center py-12 text-base-content/50">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <p class="text-sm">No upcoming events or meals</p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Sidebar: Tasks + Documents -->
+    <div class="w-full lg:w-96 lg:min-w-[24rem] shrink-0 space-y-4 sm:space-y-6 overflow-hidden">
+
+      <!-- My Tasks -->
       <section>
         <div class="flex items-center justify-between mb-2 px-1">
-          <h2 class="text-lg font-semibold flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <h3 class="text-base font-semibold flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            Documents
-          </h2>
-          <%= link_to documents_path, class: "text-sm text-primary font-medium" do %>
+            My Tasks
+          </h3>
+          <%= link_to tasks_path, class: "text-sm text-primary font-medium" do %>
             View all →
           <% end %>
         </div>
-        <div class="bg-base-100 rounded-lg border border-base-200 flex justify-center py-4">
-          <span class="loading loading-spinner loading-md text-primary"></span>
-        </div>
+        <%= render "dashboard/tasks_section" %>
       </section>
-    <% end %>
-  </div>
-<% else %>
-<!-- Main Content Grid - Desktop/Web View -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-4" data-controller="posts">
-  <!-- Posts Column - Hidden on mobile, shown on desktop -->
-  <div class="hidden lg:block col-span-1 lg:col-span-1 order-1">
-    <div class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-6">
-          <h2 class="card-title text-xl sm:text-2xl font-bold">Community Wall</h2>
-          <% if @post %>
-            <button class="btn btn-primary w-full sm:w-auto min-h-[44px]" data-action="click->posts#showForm">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              <span class="hidden sm:inline">New Post</span>
-              <span class="sm:hidden">Post</span>
-            </button>
-          <% end %>
-        </div>
 
-        <!-- New Post Form -->
-        <% if @post %>
-          <div id="new-post-form" class="<%= 'hidden' unless @post.errors.any? %> mb-6">
-            <div class="card bg-base-200 p-4">
-              <h3 class="text-lg font-semibold mb-3">Create Post</h3>
-              <%= render "posts/form", post: @post %>
-            </div>
-          </div>
-        <% end %>
-
-        <!-- Posts Feed -->
-        <div id="community-posts" class="space-y-6">
-          <% if @posts.any? %>
-            <%= render @posts %>
-          <% else %>
-            <div class="text-center p-8 bg-base-200 rounded-lg">
-              <div class="text-5xl mb-4">📝</div>
-              <% if current_user.restricted_access %>
-                <h3 class="text-xl font-medium mb-2">Community Posts</h3>
-                <p class="text-base-content/70">Posts will be visible once you have full access to the community.</p>
-              <% else %>
-                <h3 class="text-xl font-medium mb-2">No posts yet</h3>
-                <p class="text-base-content/70">Be the first to share something with the community!</p>
-              <% end %>
-            </div>
-          <% end %>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main content on mobile, sidebar on desktop -->
-  <div class="col-span-1 lg:col-span-1 order-2 space-y-4 sm:space-y-6">
-    <!-- Upcoming Events -->
-    <div class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 mb-2">
-          <h2 class="card-title text-xl lg:text-lg font-semibold flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Upcoming Events
-          </h3>
-          <div class="flex items-center gap-1 w-full sm:w-auto justify-end">
-            <%= render "shared/calendar_subscribe_button" %>
-          </div>
-        </div>
-        <div id="event-feed">
-          <%= render 'calendar_events/calendar_list', calendar_events: @events %>
-        </div>
-
-        <% if @events[:events].present? %>
-          <div class="mt-4 text-right">
-            <%= link_to calendar_index_path, class: "link link-hover text-sm flex items-center justify-end gap-1" do %>
-              <span>View all events</span>
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
-    </div>
-
-    <!-- Documents Section (lazy-loaded from Drive) -->
-    <%= turbo_frame_tag "dashboard-documents", src: documents_section_dashboard_index_path, loading: :lazy, class: "block" do %>
-      <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 mb-2">
-            <h2 class="card-title text-xl lg:text-lg font-semibold flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <!-- Documents (lazy-loaded) -->
+      <%= turbo_frame_tag "dashboard-documents", src: documents_section_dashboard_index_path, loading: :lazy, class: "block" do %>
+        <section>
+          <div class="flex items-center justify-between mb-2 px-1">
+            <h3 class="text-base font-semibold flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              Community Documents
-            </h2>
-            <%= link_to documents_path, class: "link link-hover text-sm flex items-center gap-1" do %>
-              <span>View all</span>
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
+              Documents
+            </h3>
+            <%= link_to documents_path, class: "text-sm text-primary font-medium", data: { turbo_frame: "_top" } do %>
+              View all →
             <% end %>
           </div>
-          <div class="flex justify-center py-8">
+          <div class="bg-base-100 rounded-lg border border-base-200 flex justify-center py-4">
             <span class="loading loading-spinner loading-md text-primary"></span>
           </div>
-        </div>
-      </div>
-    <% end %>
+        </section>
+      <% end %>
 
-    <!-- Tasks - Hidden on mobile, shown on desktop -->
-    <div class="hidden lg:block card bg-base-100 shadow-xl" data-controller="tasks">
-      <div class="card-body">
-        <h3 class="card-title text-base sm:text-lg font-semibold">✅ My Tasks</h3>
-        <p class="text-xs text-base-content/70">Tasks assigned to you</p>
-
-        <!-- Inline Task Form -->
-        <div class="form-control w-full mt-2">
-          <%= form_with(model: Task.new, class: "join w-full", data: { controller: "reset-form", action: "turbo:submit-end->reset-form#reset" }) do |form| %>
-            <%= form.hidden_field :assigned_to_user_id, value: current_user.id %>
-            <%= form.text_field :title,
-                                class: "input input-bordered w-full join-item focus:outline-none focus:border-base-300 min-h-[44px]",
-                placeholder: "Add a new task...",
-                required: true,
-                autocomplete: "off" %>
-            <%= form.submit "Add", class: "btn btn-primary join-item min-h-[44px] px-4" %>
-          <% end %>
-        </div>
-
-        <!-- Task List -->
-        <div id="task-list" class="mt-4">
-          <% if @tasks.any? %>
-            <div id="task-list-items" class="rounded-lg border border-base-200 overflow-hidden">
-              <% @tasks.each do |task| %>
-                <%= render "tasks/task", task: task %>
-              <% end %>
-            </div>
-          <% else %>
-            <div class="text-center p-6 bg-base-200 rounded-lg">
-              <p class="text-base-content/70">No tasks assigned yet. Add your first task above!</p>
-            </div>
-          <% end %>
-        </div>
-
-        <!-- View All Tasks Link -->
-        <div class="mt-4 text-right">
-          <%= link_to tasks_path, class: "link link-hover text-sm flex items-center justify-end gap-1" do %>
-            <span>View all tasks</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          <% end %>
-        </div>
-      </div>
     </div>
   </div>
 </div>
-<% end %>

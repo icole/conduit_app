@@ -2,24 +2,14 @@ class DashboardController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    # Load posts only for non-restricted users
-    if current_user.restricted_access
-      @posts = Post.none  # Empty relation, no posts shown
-      @post = nil         # Don't show the new post form
-    else
-      @posts = Post.order(created_at: :desc)
-      @post = Post.new
-    end
-
-    # Show tasks created by the current user OR assigned to them
-    @tasks = Task.where("assigned_to_user_id = ?", current_user.id)
-    @tasks = @tasks.where(status: "active") if params[:status].blank?
-
+    @tasks = Task.where(assigned_to_user_id: current_user.id)
+                 .where(status: "active")
     @task = Task.new
 
-    # Check if the user already has a calendar share
-    calendar_id = current_community.google_calendar_id
-    @calendar_already_shared = calendar_id.present? && CalendarShare.calendar_shared_with_user?(calendar_id, current_user)
+    @calendar_already_shared = begin
+      calendar_id = current_community.google_calendar_id
+      calendar_id.present? && CalendarShare.calendar_shared_with_user?(calendar_id, current_user)
+    end
 
     @google_calendar_configured = begin
       defined?(CalendarCredentials) && CalendarCredentials.configured? && current_community.google_calendar_id.present?
@@ -27,17 +17,7 @@ class DashboardController < ApplicationController
       false
     end
 
-    if !Rails.env.test? && @google_calendar_configured
-      begin
-        service = GoogleCalendarApiService.from_service_account_with_acl_scope
-        @events = service.get_events(max_results: 5)
-      rescue StandardError => e
-        Rails.logger.error("Failed to load calendar events: #{e.message}")
-        @events = { events: [], status: :error, error: e.message }
-      end
-    else
-      @events = { events: [], status: :not_configured }
-    end
+    @timeline_items = build_timeline
   end
 
   def documents_section
@@ -49,5 +29,53 @@ class DashboardController < ApplicationController
     end
 
     render partial: "dashboard/documents_section", layout: false
+  end
+
+  private
+
+  def build_timeline
+    items = []
+
+    # Add upcoming meals
+    meals = Meal.where(community: current_community)
+                .upcoming
+                .includes(:cooks, :meal_cooks, :meal_rsvps)
+                .limit(10)
+
+    meals.each do |meal|
+      items << {
+        type: :meal,
+        start_time: meal.scheduled_at,
+        meal: meal
+      }
+    end
+
+    # Add calendar events (skip in test env since it hits Google API)
+    if !Rails.env.test? && @google_calendar_configured
+      begin
+        # Collect google_event_ids from meals to filter out duplicates
+        meal_google_event_ids = meals.filter_map(&:google_event_id).to_set
+
+        service = GoogleCalendarApiService.from_service_account_with_acl_scope
+        result = service.get_events(max_results: 10)
+        if result[:events].present?
+          result[:events].each do |event|
+            # Skip calendar events that are synced meals (already in timeline)
+            next if meal_google_event_ids.include?(event[:id])
+
+            items << {
+              type: :event,
+              start_time: event[:start_time],
+              event: event
+            }
+          end
+        end
+      rescue StandardError => e
+        Rails.logger.error("Failed to load calendar events: #{e.message}")
+      end
+    end
+
+    # Sort by start time and limit to 10
+    items.sort_by { |item| item[:start_time] }.first(10)
   end
 end

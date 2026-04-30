@@ -23,51 +23,43 @@ class CalendarController < ApplicationController
     begin
       if !Rails.env.test?
         service = GoogleCalendarApiService.from_service_account_with_acl_scope
+
+        # Fetch events for the calendar grid (current month)
         @google_events_result = service.get_events(
           time_min: start_of_month,
           time_max: end_of_month
         )
 
+        # Fetch upcoming events separately (next 90 days from now)
+        upcoming_result = service.get_events(
+          time_min: Time.current,
+          max_results: 5
+        )
+
         # Convert Google Calendar events to objects that work with simple_calendar
         if @google_events_result[:status] == :success && @google_events_result[:events].any?
-          @calendar_events = @google_events_result[:events].map do |event|
-            # For all-day events, set end_time to start_time so they only appear on one day
-            start_time = event[:start_time]
-            end_time = event[:all_day] ? start_time : event[:end_time]
-
-            # Create an object that mimics CalendarEvent for simple_calendar compatibility
-            obj = Object.new
-            obj.define_singleton_method(:title) { event[:summary] || "Untitled Event" }
-            obj.define_singleton_method(:start_time) { start_time }
-            obj.define_singleton_method(:end_time) { end_time }
-            obj.define_singleton_method(:location) { event[:location] }
-            obj.define_singleton_method(:google_event) { true }
-            obj.define_singleton_method(:google_event_id) { event[:id] }
-            obj.define_singleton_method(:all_day) { event[:all_day] }
-            obj.define_singleton_method(:respond_to?) { |method| [ :title, :start_time, :end_time, :location, :google_event, :google_event_id, :all_day ].include?(method.to_sym) }
-            obj.define_singleton_method(:time_range) do
-              if event[:all_day]
-                "#{start_time.strftime('%b %d, %Y')} • All Day"
-              elsif start_time.to_date == end_time.to_date
-                "#{start_time.strftime('%b %d, %Y')} • #{start_time.strftime('%l:%M %p')} - #{end_time.strftime('%l:%M %p')}"
-              else
-                "#{start_time.strftime('%b %d, %Y %l:%M %p')} - #{end_time.strftime('%b %d, %Y %l:%M %p')}"
-              end
-            end
-            obj
-          end.sort_by(&:start_time)
+          @calendar_events = build_calendar_event_objects(@google_events_result[:events])
         else
           @calendar_events = []
+        end
+
+        # Build upcoming events list from the separate query
+        if upcoming_result[:status] == :success && upcoming_result[:events].any?
+          @upcoming_events = build_calendar_event_objects(upcoming_result[:events])
+        else
+          @upcoming_events = []
         end
       else
         @google_events_result = { events: [], status: :success }
         @calendar_events = []
+        @upcoming_events = []
       end
     rescue StandardError => e
       Rails.logger.error "Failed to load Google Calendar events: #{e.message}"
       Rails.logger.error e.backtrace
       @google_events_result = { events: [], status: :error }
       @calendar_events = []
+      @upcoming_events = []
     end
   end
 
@@ -94,6 +86,33 @@ class CalendarController < ApplicationController
     rescue
       false
     end
+  end
+
+  def build_calendar_event_objects(events)
+    events.map do |event|
+      start_time = event[:start_time]
+      end_time = event[:all_day] ? start_time : event[:end_time]
+
+      obj = Object.new
+      obj.define_singleton_method(:title) { event[:summary] || "Untitled Event" }
+      obj.define_singleton_method(:start_time) { start_time }
+      obj.define_singleton_method(:end_time) { end_time }
+      obj.define_singleton_method(:location) { event[:location] }
+      obj.define_singleton_method(:google_event) { true }
+      obj.define_singleton_method(:google_event_id) { event[:id] }
+      obj.define_singleton_method(:all_day) { event[:all_day] }
+      obj.define_singleton_method(:respond_to?) { |method| [ :title, :start_time, :end_time, :location, :google_event, :google_event_id, :all_day ].include?(method.to_sym) }
+      obj.define_singleton_method(:time_range) do
+        if event[:all_day]
+          "#{start_time.strftime('%b %d, %Y')} • All Day"
+        elsif start_time.to_date == end_time.to_date
+          "#{start_time.strftime('%b %d, %Y')} • #{start_time.strftime('%l:%M %p')} - #{end_time.strftime('%l:%M %p')}"
+        else
+          "#{start_time.strftime('%b %d, %Y %l:%M %p')} - #{end_time.strftime('%b %d, %Y %l:%M %p')}"
+        end
+      end
+      obj
+    end.sort_by(&:start_time)
   end
 
   def format_google_event_time_range(event)

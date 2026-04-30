@@ -1,0 +1,9 @@
+<div class="bg-base-100 rounded-lg border border-base-200 p-3 border-l-4 border-l-primary">
+  <div class="font-medium text-sm"><%= event[:summary] %></div>
+  <div class="text-xs text-base-content/60 mt-0.5">
+    <%= event[:start_time].strftime("%-I:%M %p") %>
+    <% if event[:location].present? %>
+      · <%= event[:location] %>
+    <% end %>
+  </div>
+</div>
