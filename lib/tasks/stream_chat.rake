@@ -364,4 +364,76 @@ namespace :stream_chat do
 
     puts "\n=== Done ==="
   end
+
+  desc "Add all community members to ALL channels in their community (with confirmation)"
+  task sync_all_channels: :environment do
+    unless StreamChatClient.configured?
+      puts "Stream Chat is not configured."
+      next
+    end
+
+    client = StreamChatClient.client
+
+    Community.find_each do |community|
+      puts "\n=== Community: #{community.name} (#{community.slug}) ==="
+
+      users = ActsAsTenant.with_tenant(community) { User.all.to_a }
+      user_ids = users.map { |u| u.id.to_s }
+      puts "  Members (#{users.length}): #{users.map(&:name).join(', ')}"
+
+      # Query all channels for this community
+      response = client.query_channels(
+        {
+          "type" => { "$eq" => "team" },
+          "community_slug" => { "$eq" => community.slug }
+        },
+        sort: { "created_at" => -1 },
+        limit: 100
+      )
+
+      channels = response["channels"]
+      if channels.empty?
+        puts "  No channels found for this community."
+        next
+      end
+
+      puts "\n  Channels to sync (#{channels.length}):"
+      channels.each do |channel_data|
+        ch = channel_data["channel"]
+        member_count = channel_data["members"]&.length || 0
+        puts "    - #{ch['id']} (#{ch['name'] || 'unnamed'}) — #{member_count} current members"
+      end
+
+      print "\n  Add all #{users.length} members to these #{channels.length} channels? [y/N] "
+      confirm = $stdin.gets&.strip&.downcase
+      unless confirm == "y"
+        puts "  Skipped."
+        next
+      end
+
+      # Ensure all users exist in Stream
+      users.each do |user|
+        client.upsert_user({
+          id: user.id.to_s,
+          name: user.name,
+          role: user.admin? ? "admin" : "user"
+        })
+      end
+
+      channels.each do |channel_data|
+        channel_id = channel_data["channel"]["id"]
+        begin
+          channel = client.channel("team", channel_id: channel_id)
+          channel.add_members(user_ids)
+          puts "    Added members to #{channel_id}"
+        rescue => e
+          puts "    Error with #{channel_id}: #{e.message}"
+        end
+      end
+
+      puts "  Done!"
+    end
+
+    puts "\n=== All communities processed ==="
+  end
 end
