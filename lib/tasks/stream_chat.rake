@@ -397,22 +397,45 @@ namespace :stream_chat do
         next
       end
 
-      puts "\n  Channels to sync (#{channels.length}):"
+      # Build a diff of missing members per channel
+      channels_to_update = {}
       channels.each do |channel_data|
         ch = channel_data["channel"]
-        member_count = channel_data["members"]&.length || 0
-        puts "    - #{ch['id']} (#{ch['name'] || 'unnamed'}) — #{member_count} current members"
+        existing_member_ids = (channel_data["members"] || []).map { |m| m["user_id"] }
+        missing_ids = user_ids - existing_member_ids
+        missing_names = missing_ids.map { |id| users.find { |u| u.id.to_s == id }&.name }.compact
+
+        if missing_ids.any?
+          channels_to_update[ch["id"]] = { missing_ids: missing_ids, missing_names: missing_names, name: ch["name"] }
+        end
       end
 
-      print "\n  Add all #{users.length} members to these #{channels.length} channels? [y/N] "
-      confirm = $stdin.gets&.strip&.downcase
+      if channels_to_update.empty?
+        puts "  All members are already in all channels!"
+        next
+      end
+
+      puts "\n  Missing members:"
+      channels_to_update.each do |channel_id, info|
+        puts "    - #{channel_id} (#{info[:name] || 'unnamed'}) — add: #{info[:missing_names].join(', ')}"
+      end
+
+      if ENV["CONFIRM"] == "yes"
+        confirm = "y"
+      else
+        print "\n  Proceed? [y/N] "
+        confirm = $stdin.gets&.strip&.downcase
+      end
       unless confirm == "y"
         puts "  Skipped."
         next
       end
 
-      # Ensure all users exist in Stream
-      users.each do |user|
+      # Ensure missing users exist in Stream
+      missing_user_ids = channels_to_update.values.flat_map { |info| info[:missing_ids] }.uniq
+      missing_user_ids.each do |uid|
+        user = users.find { |u| u.id.to_s == uid }
+        next unless user
         client.upsert_user({
           id: user.id.to_s,
           name: user.name,
@@ -420,12 +443,11 @@ namespace :stream_chat do
         })
       end
 
-      channels.each do |channel_data|
-        channel_id = channel_data["channel"]["id"]
+      channels_to_update.each do |channel_id, info|
         begin
           channel = client.channel("team", channel_id: channel_id)
-          channel.add_members(user_ids)
-          puts "    Added members to #{channel_id}"
+          channel.add_members(info[:missing_ids])
+          puts "    Added #{info[:missing_names].join(', ')} to #{channel_id}"
         rescue => e
           puts "    Error with #{channel_id}: #{e.message}"
         end
