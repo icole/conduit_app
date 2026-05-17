@@ -10,6 +10,7 @@ class LoginViewController: UIViewController {
     private let communityLabel = UILabel()
     private let emailTextField = UITextField()
     private let passwordTextField = UITextField()
+    private let forgotPasswordButton = UIButton(type: .system)
     private let loginButton = UIButton(type: .system)
     private let googleSignInButton = UIButton(type: .system)  // Changed to regular UIButton
     private let dividerLabel = UILabel()
@@ -77,6 +78,13 @@ class LoginViewController: UIViewController {
         passwordTextField.textContentType = .password
         passwordTextField.translatesAutoresizingMaskIntoConstraints = false
 
+        // Forgot Password Button
+        forgotPasswordButton.setTitle("Forgot password?", for: .normal)
+        forgotPasswordButton.titleLabel?.font = .systemFont(ofSize: 14)
+        forgotPasswordButton.setTitleColor(.systemBlue, for: .normal)
+        forgotPasswordButton.contentHorizontalAlignment = .trailing
+        forgotPasswordButton.translatesAutoresizingMaskIntoConstraints = false
+
         // Login Button
         loginButton.setTitle("Sign In", for: .normal)
         loginButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
@@ -136,6 +144,7 @@ class LoginViewController: UIViewController {
         view.addSubview(communityLabel)
         view.addSubview(emailTextField)
         view.addSubview(passwordTextField)
+        view.addSubview(forgotPasswordButton)
         view.addSubview(loginButton)
         view.addSubview(dividerLabel)
         view.addSubview(googleSignInButton)
@@ -212,8 +221,13 @@ class LoginViewController: UIViewController {
             passwordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
             passwordTextField.heightAnchor.constraint(equalToConstant: 50),
 
+            // Forgot Password Button
+            forgotPasswordButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 8),
+            forgotPasswordButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
+            forgotPasswordButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
+
             // Error Label
-            errorLabel.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 16),
+            errorLabel.topAnchor.constraint(equalTo: forgotPasswordButton.bottomAnchor, constant: 8),
             errorLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
             errorLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
 
@@ -245,6 +259,7 @@ class LoginViewController: UIViewController {
 
     private func setupActions() {
         loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
+        forgotPasswordButton.addTarget(self, action: #selector(forgotPasswordTapped), for: .touchUpInside)
 
         // Add Google Sign-In button action HERE as well
         googleSignInButton.addTarget(self, action: #selector(googleSignInTapped), for: .touchUpInside)
@@ -286,6 +301,12 @@ class LoginViewController: UIViewController {
 
         // Perform login
         performLogin(email: email, password: password)
+    }
+
+    @objc private func forgotPasswordTapped() {
+        let baseURL = AppConfig.baseURL.absoluteString
+        guard let url = URL(string: "\(baseURL)/password_reset/new") else { return }
+        UIApplication.shared.open(url)
     }
 
     @objc private func dismissKeyboard() {
