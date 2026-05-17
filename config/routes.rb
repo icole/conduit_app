@@ -197,6 +197,12 @@ Rails.application.routes.draw do
   get "account/delete", to: "account#delete", as: :delete_account
   delete "account", to: "account#destroy", as: :destroy_account
 
+  # Password reset routes (public)
+  get "password_reset/new", to: "password_resets#new", as: :password_reset_new
+  get "password_reset/edit", to: "password_resets#edit", as: :password_reset_edit
+  post "password_reset", to: "password_resets#create", as: :password_reset
+  patch "password_reset", to: "password_resets#update"
+
   # Profile routes (for users to edit their own profile)
   resource :profile, only: [ :edit, :update ]
 

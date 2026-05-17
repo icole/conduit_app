@@ -1,0 +1,26 @@
+<div class="container mx-auto px-4 py-16 flex justify-center">
+  <div class="card bg-base-100 shadow-xl w-full max-w-md">
+    <div class="card-body">
+      <h2 class="card-title text-2xl font-bold text-center w-full justify-center mb-6">Choose a New Password</h2>
+
+      <%= form_with url: password_reset_path, method: :patch, class: "space-y-4" do |f| %>
+        <%= hidden_field_tag :token, @token %>
+
+        <div class="form-control">
+          <%= f.label :password, "New Password", class: "label" %>
+          <%= f.password_field :password, class: "input input-bordered w-full", required: true, minlength: 6, autocomplete: "new-password" %>
+          <label class="label">
+            <span class="label-text-alt text-base-content/50">Minimum 6 characters</span>
+          </label>
+        </div>
+
+        <div class="form-control">
+          <%= f.label :password_confirmation, "Confirm Password", class: "label" %>
+          <%= f.password_field :password_confirmation, class: "input input-bordered w-full", required: true, autocomplete: "new-password" %>
+        </div>
+
+        <%= f.submit "Update Password", class: "btn btn-primary w-full" %>
+      <% end %>
+    </div>
+  </div>
+</div>
