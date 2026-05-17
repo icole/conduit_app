@@ -67,16 +67,9 @@ Add a Roles & Time Tracking system within the existing Tasks tab. Provides visib
 | frequency | enum | `daily`, `weekly`, `biweekly`, `monthly`, `quarterly` |
 | auto_assign_to_holder | boolean | Auto-assign generated tasks to current role holder |
 
-### AuditLogEntry
+### Audit Log (PaperTrail)
 
-| Field | Type | Notes |
-|-------|------|-------|
-| user_id | bigint | Who made the change |
-| auditable_type | string | Polymorphic (Role, RoleAssignment) |
-| auditable_id | bigint | What was changed |
-| action | string | `created`, `updated`, `assigned`, `unassigned` |
-| changes | jsonb | Before/after diff |
-| created_at | datetime | When |
+No custom table needed. Add `has_paper_trail` to `Role` and `RoleAssignment` models. PaperTrail is already configured in this project with `whodunnit` tracking via `ApplicationController`. Provides who changed what, when, and before/after diffs out of the box.
 
 ---
 
@@ -147,9 +140,9 @@ Committees/task forces use the same `Role` model with `role_type: "committee"`:
 
 ### Audit Log
 
-- All role changes recorded (create, edit, assign, unassign)
+- Uses existing PaperTrail gem (`has_paper_trail` on Role and RoleAssignment)
 - Viewable per-role in the detail view (collapsible section)
-- Shows: who changed what, when, before/after values
+- Shows: who changed what, when, before/after values (via PaperTrail versions)
 
 ---
 
