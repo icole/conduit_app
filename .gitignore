@@ -73,3 +73,5 @@ build/
 
 # Superpowers brainstorm artifacts
 .superpowers/
+docs/ideas/
+docs/superpowers/
