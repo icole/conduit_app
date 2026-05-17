@@ -11,7 +11,7 @@ class JwtService
     def encode(payload, expiry = DEFAULT_EXPIRY)
       # Add expiration to payload
       payload[:exp] = (Time.current + expiry).to_i
-      payload[:iat] = Time.current.to_i
+      payload[:iat] ||= Time.current.to_i
 
       JWT.encode(payload, SECRET_KEY, "HS256")
     end
