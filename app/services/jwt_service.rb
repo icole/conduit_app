@@ -52,5 +52,36 @@ class JwtService
       Rails.logger.error "Token verification error: #{e.message}"
       nil
     end
+
+    def generate_password_reset_token(user)
+      payload = {
+        user_id: user.id,
+        community_id: user.community_id,
+        type: "password_reset"
+      }
+      encode(payload, 1.hour)
+    end
+
+    def verify_password_reset_token(token)
+      decoded = decode(token)
+      return nil unless decoded && decoded[:type] == "password_reset"
+
+      community = Community.find_by(id: decoded[:community_id])
+      return nil unless community
+
+      user = ActsAsTenant.with_tenant(community) do
+        User.find_by(id: decoded[:user_id])
+      end
+      return nil unless user
+
+      # Single-use check: token must have been issued at or after password_reset_sent_at
+      return nil if user.password_reset_sent_at.nil?
+      return nil if decoded[:iat].to_i < user.password_reset_sent_at.to_i
+
+      user
+    rescue StandardError => e
+      Rails.logger.error "Password reset token verification error: #{e.message}"
+      nil
+    end
   end
 end
