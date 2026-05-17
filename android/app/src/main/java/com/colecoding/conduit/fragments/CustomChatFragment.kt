@@ -353,7 +353,7 @@ class CustomChatFragment : Fragment() {
         actions.add { toggleMuteChannel(channel) }
 
         // Mark as read
-        val unreadCount = channel.currentUserUnreadCount
+        val unreadCount = channel.currentUserUnreadCount()
         if (unreadCount > 0) {
             options.add("Mark as Read")
             actions.add { markChannelAsRead(channel) }
