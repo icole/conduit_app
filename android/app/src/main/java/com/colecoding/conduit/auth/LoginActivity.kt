@@ -105,7 +105,14 @@ class LoginActivity : AppCompatActivity() {
 
         binding.btnGoogleSignIn.setOnClickListener { signInWithGoogle() }
 
+        binding.btnForgotPassword.setOnClickListener { openForgotPassword() }
+
         binding.btnSwitchCommunity.setOnClickListener { switchCommunity() }
+    }
+
+    private fun openForgotPassword() {
+        val url = "${AppConfig.getBaseUrl(this)}/password_reset/new"
+        startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)))
     }
 
     private fun switchCommunity() {
