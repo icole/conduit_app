@@ -12,7 +12,7 @@ class UserMailerTest < ActionMailer::TestCase
   test "password_reset sends email to user with reset link" do
     email = UserMailer.password_reset(@user, @token)
 
-    assert_equal ["emailuser@example.com"], email.to
+    assert_equal [ "emailuser@example.com" ], email.to
     assert_equal "Reset your password", email.subject
     assert_match "password_reset/edit", email.body.encoded
     assert_match @token, email.body.encoded
