@@ -66,8 +66,9 @@
                     <span class="text-base-content/50">Never</span>
                   <% end %>
                 </td>
-                <td>
+                <td class="flex gap-1">
                   <%= link_to "Edit", edit_user_path(user), class: "btn btn-ghost btn-sm" %>
+                  <%= button_to "Reset Password", send_password_reset_user_path(user), method: :post, class: "btn btn-ghost btn-sm", data: { turbo_confirm: "Send password reset email to #{user.email}?" } %>
                 </td>
               </tr>
             <% end %>

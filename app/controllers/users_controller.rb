@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
   before_action :authorize_admin!
-  before_action :set_user, only: [ :edit, :update, :destroy ]
+  before_action :set_user, only: [ :edit, :update, :destroy, :send_password_reset ]
 
   def index
     @users = User.all.order(last_active_at: :desc, created_at: :desc)
@@ -32,6 +32,14 @@ class UsersController < ApplicationController
 
     @user.destroy
     redirect_to users_path, notice: "User was successfully deleted."
+  end
+
+  def send_password_reset
+    @user.update!(password_reset_sent_at: Time.current)
+    token = JwtService.generate_password_reset_token(@user)
+    UserMailer.password_reset(@user, token).deliver_later
+
+    redirect_to users_path, notice: "Password reset email sent to #{@user.email}."
   end
 
   private

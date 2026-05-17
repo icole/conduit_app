@@ -98,7 +98,11 @@ Rails.application.routes.draw do
   # ActionMailbox routes for inbound email processing
   mount ActionMailbox::Engine => "/rails/action_mailbox"
 
-  resources :users, only: [ :index, :edit, :update, :destroy ]
+  resources :users, only: [ :index, :edit, :update, :destroy ] do
+    member do
+      post :send_password_reset
+    end
+  end
   resources :households, except: [ :show ]
   resources :email_logs, only: [ :index, :show ]
   resources :dues, only: [ :index ] do
