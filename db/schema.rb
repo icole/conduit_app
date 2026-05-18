@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_18_020143) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -451,6 +451,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
     t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
   end
 
+  create_table "roles", force: :cascade do |t|
+    t.bigint "community_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.bigint "deleted_by_id"
+    t.text "description"
+    t.datetime "discarded_at"
+    t.text "duties"
+    t.string "group"
+    t.string "role_type", default: "role", null: false
+    t.integer "term_length_months"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "vacant", default: true, null: false
+    t.index ["community_id", "title"], name: "index_roles_on_community_id_and_title", unique: true
+    t.index ["community_id"], name: "index_roles_on_community_id"
+    t.index ["created_by_id"], name: "index_roles_on_created_by_id"
+    t.index ["deleted_by_id"], name: "index_roles_on_deleted_by_id"
+    t.index ["discarded_at"], name: "index_roles_on_discarded_at"
+    t.index ["group"], name: "index_roles_on_group"
+    t.index ["role_type"], name: "index_roles_on_role_type"
+    t.index ["vacant"], name: "index_roles_on_vacant"
+  end
+
   create_table "tasks", force: :cascade do |t|
     t.integer "assigned_to_user_id"
     t.bigint "community_id", null: false
@@ -582,6 +606,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
   add_foreign_key "posts", "users", column: "created_by_id"
   add_foreign_key "posts", "users", column: "deleted_by_id"
   add_foreign_key "push_subscriptions", "users"
+  add_foreign_key "roles", "communities"
+  add_foreign_key "roles", "users", column: "created_by_id"
+  add_foreign_key "roles", "users", column: "deleted_by_id"
   add_foreign_key "tasks", "communities"
   add_foreign_key "tasks", "users"
   add_foreign_key "tasks", "users", column: "assigned_to_user_id"
