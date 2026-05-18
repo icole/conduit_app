@@ -81,10 +81,9 @@ Rails.application.configure do
   config.hosts = [
     "conduit.crowwoods.com",
     "conduit-staging.crowwoods.com",
-    /.*\.crowwoods\.com/,
-    IPAddr.new("0.0.0.0/0")       # Allow IP-based health checks from load balancer
+    /.*\.crowwoods\.com/
   ]
 
-  # Skip DNS rebinding protection for the default health check endpoint.
+  # Skip DNS rebinding protection for the health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end

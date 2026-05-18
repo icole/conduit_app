@@ -9,7 +9,10 @@ if Rails.env.production? && ENV["SENTRY_DSN"].present?
     # Sample 10% of transactions for performance monitoring
     config.traces_sample_rate = 0.1
 
-    # Filter sensitive data and noisy errors before sending
+    # Do not send PII (cookies, user IP, request body) by default
+    config.send_default_pii = false
+
+    # Filter noisy errors before sending
     config.before_send = lambda do |event, hint|
       exception = hint[:exception]
 
@@ -18,13 +21,6 @@ if Rails.env.production? && ENV["SENTRY_DSN"].present?
          exception.is_a?(Encoding::InvalidByteSequenceError) ||
          exception.is_a?(Encoding::UndefinedConversionError)
         return nil
-      end
-
-      # Scrub sensitive parameters from request data
-      if event.request&.data.is_a?(Hash)
-        %w[password password_confirmation token secret api_key].each do |key|
-          event.request.data[key] = "[FILTERED]" if event.request.data.key?(key)
-        end
       end
 
       event
