@@ -113,3 +113,5 @@ group :test do
 end
 
 gem "jsbundling-rails", "~> 1.3"
+
+gem "rack-attack", "~> 6.7"
