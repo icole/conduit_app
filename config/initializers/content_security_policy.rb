@@ -16,6 +16,11 @@ Rails.application.configure do
     policy.frame_src   :none
     policy.base_uri    :self
     policy.form_action :self
+
+    # Send violation reports to Sentry
+    if ENV["SENTRY_CSP_REPORT_URI"].present?
+      policy.report_uri ENV["SENTRY_CSP_REPORT_URI"]
+    end
   end
 
   # Generate session nonces for permitted importmap and inline scripts.
