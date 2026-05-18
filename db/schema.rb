@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_18_020905) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_18_021145) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -451,6 +451,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_020905) do
     t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
   end
 
+  create_table "recurring_task_templates", force: :cascade do |t|
+    t.boolean "auto_assign_to_holder", default: true, null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "frequency", null: false
+    t.date "last_generated_at"
+    t.bigint "role_id", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["frequency"], name: "index_recurring_task_templates_on_frequency"
+    t.index ["role_id"], name: "index_recurring_task_templates_on_role_id"
+  end
+
   create_table "role_assignments", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.string "assignment_type", default: "holder", null: false
@@ -642,6 +655,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_020905) do
   add_foreign_key "posts", "users", column: "created_by_id"
   add_foreign_key "posts", "users", column: "deleted_by_id"
   add_foreign_key "push_subscriptions", "users"
+  add_foreign_key "recurring_task_templates", "roles"
   add_foreign_key "role_assignments", "roles"
   add_foreign_key "role_assignments", "users"
   add_foreign_key "roles", "communities"
