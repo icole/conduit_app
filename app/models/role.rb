@@ -11,7 +11,7 @@ class Role < ApplicationRecord
   has_many :users, through: :role_assignments
   # TODO: Uncomment as models are created in subsequent tasks
   # has_many :tasks, dependent: :nullify
-  # has_many :time_entries, dependent: :destroy
+  has_many :time_entries, dependent: :destroy
   # has_many :recurring_task_templates, dependent: :destroy
 
   validates :title, presence: true, uniqueness: { scope: :community_id }

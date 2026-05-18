@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_18_020559) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_18_020905) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -516,6 +516,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_020559) do
     t.index ["user_id"], name: "index_tasks_on_user_id"
   end
 
+  create_table "time_entries", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "entry_type", null: false
+    t.decimal "hours", precision: 5, scale: 2, null: false
+    t.date "logged_on", null: false
+    t.string "note"
+    t.bigint "role_id"
+    t.bigint "task_id"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["entry_type"], name: "index_time_entries_on_entry_type"
+    t.index ["logged_on"], name: "index_time_entries_on_logged_on"
+    t.index ["role_id", "logged_on"], name: "index_time_entries_on_role_id_and_logged_on"
+    t.index ["role_id"], name: "index_time_entries_on_role_id"
+    t.index ["task_id"], name: "index_time_entries_on_task_id"
+    t.index ["user_id", "logged_on"], name: "index_time_entries_on_user_id_and_logged_on"
+    t.index ["user_id"], name: "index_time_entries_on_user_id"
+  end
+
   create_table "topic_comments", force: :cascade do |t|
     t.text "content"
     t.datetime "created_at", null: false
@@ -633,6 +652,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_020559) do
   add_foreign_key "tasks", "users", column: "assigned_to_user_id"
   add_foreign_key "tasks", "users", column: "created_by_id"
   add_foreign_key "tasks", "users", column: "deleted_by_id"
+  add_foreign_key "time_entries", "roles"
+  add_foreign_key "time_entries", "tasks"
+  add_foreign_key "time_entries", "users"
   add_foreign_key "topic_comments", "discussion_topics"
   add_foreign_key "topic_comments", "users"
   add_foreign_key "users", "communities"
