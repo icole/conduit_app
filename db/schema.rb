@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_18_020143) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_18_020559) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -451,6 +451,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_020143) do
     t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
   end
 
+  create_table "role_assignments", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.string "assignment_type", default: "holder", null: false
+    t.datetime "created_at", null: false
+    t.date "ends_at"
+    t.bigint "role_id", null: false
+    t.date "starts_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["active"], name: "index_role_assignments_on_active"
+    t.index ["assignment_type"], name: "index_role_assignments_on_assignment_type"
+    t.index ["ends_at"], name: "index_role_assignments_on_ends_at"
+    t.index ["role_id", "user_id", "active"], name: "idx_role_assignments_unique_active", unique: true, where: "((active = true) AND ((assignment_type)::text = 'holder'::text))"
+    t.index ["role_id"], name: "index_role_assignments_on_role_id"
+    t.index ["user_id"], name: "index_role_assignments_on_user_id"
+  end
+
   create_table "roles", force: :cascade do |t|
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
@@ -606,6 +623,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_020143) do
   add_foreign_key "posts", "users", column: "created_by_id"
   add_foreign_key "posts", "users", column: "deleted_by_id"
   add_foreign_key "push_subscriptions", "users"
+  add_foreign_key "role_assignments", "roles"
+  add_foreign_key "role_assignments", "users"
   add_foreign_key "roles", "communities"
   add_foreign_key "roles", "users", column: "created_by_id"
   add_foreign_key "roles", "users", column: "deleted_by_id"

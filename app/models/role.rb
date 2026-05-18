@@ -7,9 +7,9 @@ class Role < ApplicationRecord
   GROUPS = %w[hoa_officers garden facilities community].freeze
   ROLE_TYPES = %w[role committee].freeze
 
+  has_many :role_assignments, dependent: :destroy
+  has_many :users, through: :role_assignments
   # TODO: Uncomment as models are created in subsequent tasks
-  # has_many :role_assignments, dependent: :destroy
-  # has_many :users, through: :role_assignments
   # has_many :tasks, dependent: :nullify
   # has_many :time_entries, dependent: :destroy
   # has_many :recurring_task_templates, dependent: :destroy
@@ -26,4 +26,16 @@ class Role < ApplicationRecord
   scope :ordered, -> { order(:group, :title) }
 
   default_scope { ordered }
+
+  def current_holders
+    role_assignments.active_assignments.holders
+  end
+
+  def current_backup
+    role_assignments.active_assignments.backups.first
+  end
+
+  def update_vacancy!
+    update_column(:vacant, role_assignments.active_assignments.holders.none?)
+  end
 end
