@@ -1,0 +1,4 @@
+<div class="<%= hotwire_native_app? ? '' : '-mx-2 sm:mx-0 px-2 sm:px-0' %>">
+  <h1 class="text-xl font-bold mb-4">Assign: <%= @role.title %></h1>
+  <%= render "role_assignments/form", assignment: @assignment, role: @role %>
+</div>
