@@ -1,0 +1,45 @@
+<div class="<%= hotwire_native_app? ? '' : '-mx-2 sm:mx-0 px-2 sm:px-0' %>">
+  <h1 class="text-xl sm:text-2xl font-bold mb-4">My Time</h1>
+
+  <% if @monthly_by_role.any? %>
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold mb-2">This Month</h2>
+      <div class="space-y-2">
+        <% @monthly_by_role.each do |role_id, hours| %>
+          <% role = @roles.find { |r| r.id == role_id } %>
+          <% next unless role %>
+          <div class="flex justify-between items-center py-2 border-b border-base-200">
+            <span class="font-medium text-sm"><%= role.title %></span>
+            <span class="badge badge-ghost"><%= hours %> hrs</span>
+          </div>
+        <% end %>
+      </div>
+      <p class="text-right mt-2 font-bold">Total: <%= @monthly_by_role.values.sum %> hrs</p>
+    </div>
+  <% end %>
+
+  <h2 class="text-lg font-semibold mb-2">Recent Entries</h2>
+  <div class="space-y-2">
+    <% @time_entries.each do |entry| %>
+      <div class="card bg-base-100 border border-base-200 p-3">
+        <div class="flex justify-between items-center">
+          <div>
+            <span class="font-medium text-sm"><%= entry.role&.title || "Unlinked" %></span>
+            <span class="text-xs text-base-content/60 ml-2"><%= entry.logged_on.strftime("%b %d") %></span>
+            <% if entry.note.present? %>
+              <p class="text-xs text-base-content/60 mt-0.5"><%= entry.note %></p>
+            <% end %>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="badge badge-sm"><%= entry.hours %> hrs</span>
+            <%= button_to "x", time_entry_path(entry), method: :delete, class: "btn btn-ghost btn-xs", data: { turbo_confirm: "Delete this time entry?" } %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="mt-6">
+    <%= link_to "Back to Roles", roles_path, class: "btn btn-ghost btn-sm" %>
+  </div>
+</div>
