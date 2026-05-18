@@ -81,7 +81,7 @@ gem "sentry-ruby"
 gem "sentry-rails"
 
 # Resend for transactional email
-gem "resend", "~> 0.17"
+gem "resend", "~> 1.3"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
