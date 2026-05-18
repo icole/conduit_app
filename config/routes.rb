@@ -120,6 +120,12 @@ Rails.application.routes.draw do
       post :restore
     end
   end
+  resources :roles do
+    resources :role_assignments, only: [ :new, :create, :destroy ], shallow: true
+    resources :time_entries, only: [ :new, :create ], shallow: true
+    resources :recurring_task_templates, only: [ :new, :create, :edit, :update, :destroy ], shallow: true
+  end
+  resources :time_entries, only: [ :index, :destroy ]
   resources :posts, only: [ :create, :update, :destroy ] do
     resources :likes, only: [ :create, :destroy ]
     resources :comments, only: [ :create, :destroy ] do
