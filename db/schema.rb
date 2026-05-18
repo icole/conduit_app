@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_18_021145) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_18_021347) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -515,6 +515,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_021145) do
     t.datetime "discarded_at"
     t.date "due_date"
     t.integer "priority_order"
+    t.bigint "role_id"
     t.string "status"
     t.string "title"
     t.datetime "updated_at", null: false
@@ -526,6 +527,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_021145) do
     t.index ["discarded_at"], name: "index_tasks_on_discarded_at"
     t.index ["due_date"], name: "index_tasks_on_due_date"
     t.index ["priority_order"], name: "index_tasks_on_priority_order"
+    t.index ["role_id"], name: "index_tasks_on_role_id"
     t.index ["user_id"], name: "index_tasks_on_user_id"
   end
 
@@ -662,6 +664,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_021145) do
   add_foreign_key "roles", "users", column: "created_by_id"
   add_foreign_key "roles", "users", column: "deleted_by_id"
   add_foreign_key "tasks", "communities"
+  add_foreign_key "tasks", "roles"
   add_foreign_key "tasks", "users"
   add_foreign_key "tasks", "users", column: "assigned_to_user_id"
   add_foreign_key "tasks", "users", column: "created_by_id"

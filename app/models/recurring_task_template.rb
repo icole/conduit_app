@@ -10,7 +10,7 @@ class RecurringTaskTemplate < ApplicationRecord
     task = Task.create!(
       title: title,
       description: description,
-      # TODO: Add role: role once Task has role_id column (Task 5)
+      role: role,
       user: assigned_user,
       assigned_to_user: auto_assign_to_holder ? assigned_user : nil,
       status: auto_assign_to_holder ? "active" : "backlog"
