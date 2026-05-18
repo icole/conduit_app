@@ -16,6 +16,10 @@ module ConduitApp
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    # Catch malformed encoding in request parameters before they reach the app
+    require_relative "../app/middleware/encoding_error_handler"
+    config.middleware.insert_before 0, EncodingErrorHandler
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
