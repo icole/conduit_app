@@ -31,7 +31,7 @@ class Meal < ApplicationRecord
   scope :for_month, ->(date) { where(scheduled_at: date.beginning_of_month..date.end_of_month).order(:scheduled_at) }
   scope :rsvp_open, -> { where(rsvps_closed: false).where("rsvp_deadline > ?", Time.current) }
   scope :recent, -> { order(created_at: :desc) }
-  scope :with_card_associations, -> { includes(:meal_cooks, :cooks, :meal_rsvps, :rich_text_menu) }
+  scope :with_card_associations, -> { includes(meal_cooks: :user).includes(:meal_rsvps, :rich_text_menu) }
 
   # Status helpers
   def upcoming?
