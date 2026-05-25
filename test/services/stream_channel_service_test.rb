@@ -17,13 +17,13 @@ class StreamChannelServiceTest < ActiveSupport::TestCase
     # query succeeds (channel exists), then add_members succeeds
     StreamChannelService::DEFAULT_CHANNELS.each do
       mock_channel.expect :query, { "channel" => {} }, [], user_id: @user.id.to_s
-      mock_channel.expect :add_members, true, [[ @user.id.to_s ]]
+      mock_channel.expect :add_members, true, [ [ @user.id.to_s ] ]
     end
 
     mock_client = Minitest::Mock.new
     StreamChannelService::DEFAULT_CHANNELS.each do |channel_data|
       channel_id = "#{@community.slug}-#{channel_data[:id]}"
-      mock_client.expect :channel, mock_channel, ["team"], channel_id: channel_id, data: {
+      mock_client.expect :channel, mock_channel, [ "team" ], channel_id: channel_id, data: {
         name: channel_data[:name],
         created_by_id: @user.id.to_s
       }
