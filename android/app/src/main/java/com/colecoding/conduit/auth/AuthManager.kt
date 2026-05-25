@@ -3,6 +3,8 @@ package com.colecoding.conduit.auth
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import android.webkit.CookieManager
 import android.webkit.WebStorage
 import android.webkit.WebView
@@ -52,6 +54,64 @@ object AuthManager {
 
     fun setAuthToken(context: Context, token: String) {
         getPrefs(context).edit().putString(KEY_AUTH_TOKEN, token).apply()
+    }
+
+    /**
+     * Attempt to refresh an expired auth token using the server's refresh endpoint.
+     * Returns the new token on success, null if refresh fails (token too old or invalid).
+     */
+    suspend fun refreshAuthToken(context: Context): String? {
+        val expiredToken = getAuthToken(context) ?: return null
+
+        return withContext(Dispatchers.IO) {
+            try {
+                val baseUrl = com.colecoding.conduit.config.AppConfig.getBaseUrl(context)
+                val url = java.net.URL("$baseUrl/api/v1/auth/refresh")
+                val connection = url.openConnection() as java.net.HttpURLConnection
+
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("Accept", "application/json")
+                connection.setRequestProperty("Authorization", "Bearer $expiredToken")
+                connection.connectTimeout = 5000
+                connection.readTimeout = 5000
+
+                val responseCode = connection.responseCode
+                Log.d(TAG, "Token refresh response code: $responseCode")
+
+                if (responseCode == java.net.HttpURLConnection.HTTP_OK) {
+                    val response = connection.inputStream.bufferedReader().use { it.readText() }
+                    val jsonObject = org.json.JSONObject(response)
+                    val newToken = jsonObject.getString("auth_token")
+
+                    // Store the new token
+                    setAuthToken(context, newToken)
+
+                    // Update user data if present
+                    if (jsonObject.has("user")) {
+                        val userObject = jsonObject.getJSONObject("user")
+                        if (userObject.has("id")) {
+                            setUserId(context, userObject.getInt("id").toString())
+                        }
+                        if (userObject.has("name")) {
+                            setUserName(context, userObject.getString("name"))
+                        }
+                    }
+
+                    Log.d(TAG, "Token refreshed successfully")
+                    connection.disconnect()
+                    newToken
+                } else {
+                    val errorResponse = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                    Log.e(TAG, "Token refresh failed: $responseCode - $errorResponse")
+                    connection.disconnect()
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error refreshing token", e)
+                null
+            }
+        }
     }
 
     fun isAuthenticated(context: Context): Boolean {
