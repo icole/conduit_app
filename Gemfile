@@ -34,7 +34,7 @@ gem "discard", "~> 1.3"
 gem "paper_trail", "~> 17.0"
 
 # JWT for secure token generation
-gem "jwt", "~> 2.7"
+gem "jwt", "~> 2.10"
 
 # Authentication
 gem "omniauth", "~> 2.1"
