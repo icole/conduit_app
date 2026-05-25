@@ -287,55 +287,101 @@ class CustomChatFragment : Fragment() {
 
     private suspend fun createChannelViaServer(name: String): String? {
         return withContext(Dispatchers.IO) {
-            try {
-                val baseUrl = com.colecoding.conduit.config.AppConfig.getBaseUrl(requireContext())
-                val url = java.net.URL("$baseUrl/chat/channels")
-                val connection = url.openConnection() as java.net.HttpURLConnection
+            attemptCreateChannel(name)
+        }
+    }
 
-                connection.requestMethod = "POST"
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Accept", "application/json")
+    private suspend fun attemptCreateChannel(name: String, isRetry: Boolean = false): String? {
+        try {
+            val baseUrl = com.colecoding.conduit.config.AppConfig.getBaseUrl(requireContext())
+            val url = java.net.URL("$baseUrl/chat/channels")
+            val connection = url.openConnection() as java.net.HttpURLConnection
 
-                // Use JWT auth token (preferred for mobile API)
-                val authToken = AuthManager.getAuthToken(requireContext())
-                if (authToken != null) {
-                    connection.setRequestProperty("Authorization", "Bearer $authToken")
-                    Log.d(TAG, "Using auth token for channel creation")
-                } else {
-                    // Fall back to session cookie
-                    val sessionCookie = AuthManager.getSessionCookie(requireContext())
-                    if (sessionCookie != null) {
-                        connection.setRequestProperty("Cookie", sessionCookie)
-                        Log.d(TAG, "Using session cookie for channel creation")
+            connection.requestMethod = "POST"
+            connection.setRequestProperty("Content-Type", "application/json")
+            connection.setRequestProperty("Accept", "application/json")
+
+            // Use JWT auth token (preferred for mobile API)
+            val authToken = AuthManager.getAuthToken(requireContext())
+            if (authToken != null) {
+                connection.setRequestProperty("Authorization", "Bearer $authToken")
+                Log.d(TAG, "Using auth token for channel creation")
+            } else {
+                // Fall back to session cookie
+                val sessionCookie = AuthManager.getSessionCookie(requireContext())
+                if (sessionCookie != null) {
+                    connection.setRequestProperty("Cookie", sessionCookie)
+                    Log.d(TAG, "Using session cookie for channel creation")
+                }
+            }
+
+            connection.doOutput = true
+
+            // Create request body
+            val requestBody = org.json.JSONObject().apply {
+                put("name", name)
+            }
+            connection.outputStream.write(requestBody.toString().toByteArray())
+
+            val responseCode = connection.responseCode
+            if (responseCode == 200) {
+                val response = connection.inputStream.bufferedReader().readText()
+                val jsonResponse = org.json.JSONObject(response)
+                val channelId = jsonResponse.getString("channel_id")
+                Log.d(TAG, "Server created channel with ID: $channelId")
+                connection.disconnect()
+                return channelId
+            } else if (responseCode == 401 && !isRetry) {
+                // Check if it's a token_expired error
+                val errorResponse = connection.errorStream?.bufferedReader()?.readText()
+                connection.disconnect()
+
+                if (errorResponse != null) {
+                    try {
+                        val errorJson = org.json.JSONObject(errorResponse)
+                        if (errorJson.optString("error") == "token_expired") {
+                            Log.d(TAG, "Token expired, attempting refresh...")
+                            val newToken = AuthManager.refreshAuthToken(requireContext())
+                            if (newToken != null) {
+                                Log.d(TAG, "Token refreshed, retrying channel creation")
+                                return attemptCreateChannel(name, isRetry = true)
+                            } else {
+                                Log.e(TAG, "Token refresh failed, redirecting to login")
+                                withContext(Dispatchers.Main) {
+                                    redirectToLogin()
+                                }
+                                return null
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing error response", e)
                     }
                 }
 
-                connection.doOutput = true
-
-                // Create request body
-                val requestBody = org.json.JSONObject().apply {
-                    put("name", name)
+                Log.e(TAG, "Authentication failed, redirecting to login")
+                withContext(Dispatchers.Main) {
+                    redirectToLogin()
                 }
-                connection.outputStream.write(requestBody.toString().toByteArray())
-
-                val responseCode = connection.responseCode
-                if (responseCode == 200) {
-                    val response = connection.inputStream.bufferedReader().readText()
-                    val jsonResponse = org.json.JSONObject(response)
-                    val channelId = jsonResponse.getString("channel_id")
-                    Log.d(TAG, "Server created channel with ID: $channelId")
-                    connection.disconnect()
-                    channelId
-                } else {
-                    val errorResponse = connection.errorStream?.bufferedReader()?.readText()
-                    Log.e(TAG, "Failed to create channel via server, status: $responseCode, error: $errorResponse")
-                    connection.disconnect()
-                    null
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error creating channel via server", e)
-                null
+                return null
+            } else {
+                val errorResponse = connection.errorStream?.bufferedReader()?.readText()
+                Log.e(TAG, "Failed to create channel via server, status: $responseCode, error: $errorResponse")
+                connection.disconnect()
+                return null
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating channel via server", e)
+            return null
+        }
+    }
+
+    private fun redirectToLogin() {
+        activity?.let { activity ->
+            AuthManager.logout(activity)
+            val intent = android.content.Intent(activity, com.colecoding.conduit.auth.LoginActivity::class.java)
+            intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+            activity.startActivity(intent)
+            android.widget.Toast.makeText(activity, "Session expired. Please log in again.", android.widget.Toast.LENGTH_LONG).show()
         }
     }
 
