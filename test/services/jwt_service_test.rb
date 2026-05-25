@@ -64,4 +64,52 @@ class JwtServiceTest < ActiveSupport::TestCase
     result = JwtService.verify_password_reset_token(token)
     assert_nil result
   end
+
+  # --- decode_expired tests ---
+
+  test "decode_expired returns payload for expired token" do
+    token = JwtService.encode(
+      { user_id: @user.id, community_id: @user.community_id, type: "auth" },
+      -1.hour
+    )
+
+    result = JwtService.decode_expired(token)
+    assert_not_nil result
+    assert_equal @user.id, result[:user_id]
+    assert_equal "auth", result[:type]
+  end
+
+  test "decode_expired returns nil for invalid signature" do
+    payload = { user_id: @user.id, type: "auth", exp: 1.hour.ago.to_i }
+    token = JWT.encode(payload, "wrong_secret", "HS256")
+
+    result = JwtService.decode_expired(token)
+    assert_nil result
+  end
+
+  test "decode_expired returns nil for malformed token" do
+    result = JwtService.decode_expired("not.a.valid.token")
+    assert_nil result
+  end
+
+  # --- token_expired? tests ---
+
+  test "token_expired? returns true for expired token" do
+    token = JwtService.encode(
+      { user_id: @user.id, community_id: @user.community_id, type: "auth" },
+      -1.hour
+    )
+
+    assert JwtService.token_expired?(token)
+  end
+
+  test "token_expired? returns false for valid token" do
+    token = JwtService.generate_auth_token(@user)
+
+    assert_not JwtService.token_expired?(token)
+  end
+
+  test "token_expired? returns false for malformed token" do
+    assert_not JwtService.token_expired?("garbage")
+  end
 end

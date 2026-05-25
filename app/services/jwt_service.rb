@@ -27,6 +27,23 @@ class JwtService
       nil
     end
 
+    def decode_expired(token)
+      decoded = JWT.decode(token, SECRET_KEY, true, algorithm: "HS256", verify_expiration: false)
+      HashWithIndifferentAccess.new(decoded.first)
+    rescue JWT::DecodeError => e
+      Rails.logger.error "JWT decode_expired error: #{e.message}"
+      nil
+    end
+
+    def token_expired?(token)
+      JWT.decode(token, SECRET_KEY, true, algorithm: "HS256")
+      false
+    rescue JWT::ExpiredSignature
+      true
+    rescue JWT::DecodeError
+      false
+    end
+
     def generate_auth_token(user)
       payload = {
         user_id: user.id,
