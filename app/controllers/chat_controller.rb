@@ -355,6 +355,12 @@ class ChatController < ApplicationController
         set_current_tenant(user.community) if user.community
         return
       end
+
+      # Token was present but invalid — check if it's specifically expired
+      if JwtService.token_expired?(token)
+        render json: { error: "token_expired" }, status: :unauthorized
+        return
+      end
     end
 
     # Fall back to session authentication

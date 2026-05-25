@@ -96,4 +96,24 @@ class ChatControllerTest < ActionDispatch::IntegrationTest
       assert_response :unauthorized
     end
   end
+
+  # --- token_expired error tests ---
+
+  test "expired token returns token_expired error" do
+    expired_token = JwtService.encode(
+      { user_id: @admin_user.id, community_id: @community.id, type: "auth" },
+      -2.days
+    )
+
+    StreamChatClient.stub :configured?, true do
+      post create_chat_channel_url,
+        params: { name: "Test Channel" },
+        headers: { "Authorization" => "Bearer #{expired_token}" },
+        as: :json
+
+      assert_response :unauthorized
+      json = JSON.parse(response.body)
+      assert_equal "token_expired", json["error"]
+    end
+  end
 end
