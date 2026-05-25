@@ -78,6 +78,64 @@ module Api
         end
       end
 
+      # POST /api/v1/auth/refresh
+      # Accepts an expired (but validly-signed) JWT within 7-day grace window
+      # Returns a fresh auth token
+      REFRESH_GRACE_PERIOD = 7.days
+
+      def refresh
+        auth_header = request.headers["Authorization"]
+
+        unless auth_header.present? && auth_header.start_with?("Bearer ")
+          render json: { error: "invalid_token" }, status: :unauthorized
+          return
+        end
+
+        token = auth_header.split(" ").last
+
+        # Decode ignoring expiry (but still verifying signature)
+        decoded = JwtService.decode_expired(token)
+
+        unless decoded && decoded[:type] == "auth"
+          render json: { error: "invalid_token" }, status: :unauthorized
+          return
+        end
+
+        # Reject if token is still valid (not expired)
+        unless JwtService.token_expired?(token)
+          render json: { error: "token_not_expired" }, status: :unauthorized
+          return
+        end
+
+        # Check grace window: expired no more than 7 days ago
+        expired_at = Time.at(decoded[:exp])
+        if expired_at < REFRESH_GRACE_PERIOD.ago
+          render json: { error: "token_expired_beyond_refresh" }, status: :unauthorized
+          return
+        end
+
+        # Verify user still exists
+        community = Community.find_by(id: decoded[:community_id])
+        user = community && ActsAsTenant.with_tenant(community) { User.find_by(id: decoded[:user_id]) }
+
+        unless user
+          render json: { error: "invalid_token" }, status: :unauthorized
+          return
+        end
+
+        # Issue fresh token
+        new_token = JwtService.generate_auth_token(user)
+
+        render json: {
+          auth_token: new_token,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name
+          }
+        }, status: :ok
+      end
+
       # DELETE /api/v1/logout
       def logout
         session[:user_id] = nil

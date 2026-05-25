@@ -16,6 +16,7 @@ Rails.application.routes.draw do
       post "establish_session", to: "auth#establish_session"
       get "auth/check", to: "auth#check"
       get "stream_token", to: "auth#stream_token"
+      post "auth/refresh", to: "auth#refresh"
       delete "logout", to: "auth#logout"
     end
   end
