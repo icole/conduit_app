@@ -64,7 +64,7 @@ gem "image_processing", "~> 1.2"
 # Google Drive API - Using specific service gem as recommended
 gem "google-apis-drive_v3", "~> 0.81.0"
 gem "googleauth", "~> 1.16"
-gem "google-apis-calendar_v3", "~> 0.53.0"
+gem "google-apis-calendar_v3", "~> 0.54.0"
 gem "icalendar", "~> 2.12"
 
 gem "pstore"
