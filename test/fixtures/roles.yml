@@ -1,0 +1,36 @@
+garden_maven:
+  community: crow_woods
+  title: Garden Health Maven
+  role_type: role
+  group: garden
+  term_length_months: 6
+  duties: "Manage watering, plant health, equipment maintenance, winterizing"
+  description: "Use the Common House spigot when possible. Hoses stored in common storage room."
+  vacant: false
+
+president:
+  community: crow_woods
+  title: HOA President
+  role_type: role
+  group: hoa_officers
+  term_length_months: 12
+  duties: "Draft agendas, oversee community guidelines review, run HOA meetings, handle crises"
+  vacant: false
+
+facilitator:
+  community: crow_woods
+  title: Facilitator
+  role_type: role
+  group: community
+  term_length_months: 6
+  duties: "Co-facilitate monthly meetings, create agenda, send agenda, follow up on action items"
+  vacant: true
+
+signage_committee:
+  community: crow_woods
+  title: Signage Committee
+  role_type: committee
+  group: community
+  term_length_months: 3
+  duties: "Design, source, and install community signage"
+  vacant: false

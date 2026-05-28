@@ -110,6 +110,17 @@ class TaskTest < ActiveSupport::TestCase
     assert_includes Task.prioritized, active_task
   end
 
+  test "should optionally belong to a role" do
+    role = roles(:garden_maven)
+    task = Task.create!(title: "Winterize spigots", user: @user, role: role)
+    assert_equal role, task.role
+  end
+
+  test "should not require role" do
+    task = Task.new(title: "Unrelated task", user: @user)
+    assert task.valid?
+  end
+
   test "should auto-activate tasks with assignment or due date" do
     # Task with assignment should be active
     assigned_task = Task.create!(
