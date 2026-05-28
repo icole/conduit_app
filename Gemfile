@@ -28,7 +28,7 @@ gem "bcrypt", "~> 3.1.22"
 gem "acts_as_tenant", "~> 1.0"
 
 # Soft delete for content models [https://github.com/jhawthorn/discard]
-gem "discard", "~> 1.3"
+gem "discard", "~> 2.0"
 
 # Audit trail for model changes [https://github.com/paper-trail-gem/paper_trail]
 gem "paper_trail", "~> 17.0"
