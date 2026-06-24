@@ -170,7 +170,7 @@ class TasksController < ApplicationController
   end
 
   def task_params
-    params.require(:task).permit(:title, :description, :status, :assigned_to_user_id, :due_date)
+    params.require(:task).permit(:title, :description, :status, :assigned_to_user_id, :due_date, :role_id)
   end
 
   def reorder_pending_tasks

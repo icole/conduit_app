@@ -1,0 +1,20 @@
+grounds_walk:
+  role: garden_maven
+  title: Grounds walk
+  description: "Walk the grounds to observe and respond to landscaping needs"
+  frequency: biweekly
+  auto_assign_to_holder: true
+
+garbage_day:
+  role: garden_maven
+  title: Take out garbage bins
+  description: "Take out all garbage, recycling, and yard waste bins on garbage day"
+  frequency: weekly
+  auto_assign_to_holder: true
+
+hot_tub_maintenance:
+  role: signage_committee
+  title: Hot tub filter check
+  description: "Check and clean hot tub filter cartridge"
+  frequency: monthly
+  auto_assign_to_holder: true

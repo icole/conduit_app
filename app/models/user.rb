@@ -47,6 +47,10 @@ class User < ApplicationRecord
   has_many :meal_rsvps, dependent: :destroy
   has_many :rsvped_meals, through: :meal_rsvps, source: :meal
 
+  # Roles
+  has_many :role_assignments, dependent: :destroy
+  has_many :roles, through: :role_assignments
+
   # Notifications
   has_many :push_subscriptions, dependent: :destroy
   has_many :in_app_notifications, dependent: :destroy
