@@ -197,13 +197,6 @@ GEM
       json (~> 2.0)
       mime-types (~> 3.4)
       rack (~> 3.1)
-    ffi (1.17.2-aarch64-linux-gnu)
-    ffi (1.17.2-aarch64-linux-musl)
-    ffi (1.17.2-arm-linux-gnu)
-    ffi (1.17.2-arm-linux-musl)
-    ffi (1.17.2-arm64-darwin)
-    ffi (1.17.2-x86_64-linux-gnu)
-    ffi (1.17.2-x86_64-linux-musl)
     fiber-annotation (0.2.0)
     fiber-local (1.1.0)
       fiber-storage
@@ -255,9 +248,7 @@ GEM
       logger
       ostruct
     ice_cube (0.17.0)
-    image_processing (1.14.0)
-      mini_magick (>= 4.9.5, < 6)
-      ruby-vips (>= 2.0.17, < 3)
+    image_processing (2.0.2)
     importmap-rails (2.2.3)
       actionpack (>= 6.0.0)
       activesupport (>= 6.0.0)
@@ -307,8 +298,6 @@ GEM
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
     mime-types-data (3.2025.0924)
-    mini_magick (5.3.1)
-      logger
     mini_mime (1.1.5)
     minitest (5.27.0)
     msgpack (1.8.1)
@@ -509,9 +498,6 @@ GEM
       faraday (>= 1)
       faraday-multipart (>= 1)
     ruby-progressbar (1.13.0)
-    ruby-vips (2.2.5)
-      ffi (~> 1.12)
-      logger
     rubyzip (3.4.0)
     securerandom (0.4.1)
     selenium-webdriver (4.45.0)
@@ -643,7 +629,7 @@ DEPENDENCIES
   googleauth (~> 1.17)
   heroicon
   icalendar (~> 2.12)
-  image_processing (~> 1.2)
+  image_processing (~> 2.0)
   importmap-rails
   jbuilder
   jsbundling-rails (~> 1.3)
