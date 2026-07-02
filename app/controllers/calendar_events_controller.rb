@@ -13,11 +13,20 @@ class CalendarEventsController < ApplicationController
   end
 
   def create
+    start_time = Time.zone.parse(event_params[:start_time]) rescue nil
+    end_time = Time.zone.parse(event_params[:end_time]) rescue nil
+
+    if start_time.nil? || end_time.nil?
+      @event = OpenStruct.new(event_params)
+      flash.now[:alert] = "Start time and end time are required."
+      return render :new, status: :unprocessable_entity
+    end
+
     result = google_service.create_event(
       calendar_id: calendar_id,
       title: event_params[:title],
-      start_time: Time.zone.parse(event_params[:start_time]),
-      end_time: Time.zone.parse(event_params[:end_time]),
+      start_time: start_time,
+      end_time: end_time,
       description: event_params[:description] || "",
       location: event_params[:location] || ""
     )
@@ -39,12 +48,21 @@ class CalendarEventsController < ApplicationController
   end
 
   def update
+    start_time = Time.zone.parse(event_params[:start_time]) rescue nil
+    end_time = Time.zone.parse(event_params[:end_time]) rescue nil
+
+    if start_time.nil? || end_time.nil?
+      @event = OpenStruct.new(event_params.merge(google_event_id: params[:google_event_id]))
+      flash.now[:alert] = "Start time and end time are required."
+      return render :edit, status: :unprocessable_entity
+    end
+
     result = google_service.update_event(
       calendar_id: calendar_id,
       event_id: params[:google_event_id],
       title: event_params[:title],
-      start_time: Time.zone.parse(event_params[:start_time]),
-      end_time: Time.zone.parse(event_params[:end_time]),
+      start_time: start_time,
+      end_time: end_time,
       description: event_params[:description] || "",
       location: event_params[:location] || ""
     )
@@ -116,7 +134,7 @@ class CalendarEventsController < ApplicationController
   end
 
   def calendar_id
-    ENV["GOOGLE_CALENDAR_ID"]
+    ENV.fetch("GOOGLE_CALENDAR_ID")
   end
 
   def event_params
