@@ -155,14 +155,7 @@ Rails.application.routes.draw do
       get "show_event/:event_id", action: :show_event, as: :show_event
     end
   end
-  resources :calendar_events, only: [ :new, :create, :show, :edit, :update, :destroy ] do
-    resources :document_links, only: [ :create, :destroy ], module: :calendar_events
-    collection do
-      post :import_from_google
-      get :edit, path: "edit_google/:google_event_id", action: :edit, as: :edit_google
-      delete :destroy, path: "delete_google/:google_event_id", action: :destroy, as: :delete_google
-    end
-  end
+  resources :calendar_events, param: :google_event_id, only: [ :new, :create, :show, :edit, :update, :destroy ]
   resources :calendar_shares, only: [ :create ] do
     collection do
       get :success
