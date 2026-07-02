@@ -30,19 +30,6 @@
         </div>
       <% end %>
 
-      <% if @decision.calendar_event.present? %>
-        <div class="mt-6">
-          <h3 class="font-semibold text-lg mb-2">Related Meeting</h3>
-          <div class="card bg-base-200">
-            <div class="card-body p-4">
-              <p class="font-medium"><%= @decision.calendar_event.title %></p>
-              <p class="text-sm text-base-content/70"><%= @decision.calendar_event.time_range %></p>
-              <%= link_to "View Meeting", calendar_event_path(@decision.calendar_event), class: "btn btn-sm btn-outline mt-2" %>
-            </div>
-          </div>
-        </div>
-      <% end %>
-
       <% if @decision.document.present? %>
         <div class="mt-6">
           <h3 class="font-semibold text-lg mb-2">Meeting Notes</h3>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_02_201117) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -70,35 +70,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
-  end
-
-  create_table "calendar_events", force: :cascade do |t|
-    t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
-    t.bigint "created_by_id"
-    t.bigint "deleted_by_id"
-    t.text "description"
-    t.datetime "discarded_at"
-    t.datetime "end_time"
-    t.string "google_event_id"
-    t.string "location"
-    t.datetime "start_time", null: false
-    t.string "title", null: false
-    t.datetime "updated_at", null: false
-    t.index ["community_id"], name: "index_calendar_events_on_community_id"
-    t.index ["created_by_id"], name: "index_calendar_events_on_created_by_id"
-    t.index ["deleted_by_id"], name: "index_calendar_events_on_deleted_by_id"
-    t.index ["discarded_at"], name: "index_calendar_events_on_discarded_at"
-  end
-
-  create_table "calendar_events_documents", force: :cascade do |t|
-    t.bigint "calendar_event_id", null: false
-    t.datetime "created_at", null: false
-    t.bigint "document_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["calendar_event_id", "document_id"], name: "index_calendar_events_documents_uniqueness", unique: true
-    t.index ["calendar_event_id"], name: "index_calendar_events_documents_on_calendar_event_id"
-    t.index ["document_id"], name: "index_calendar_events_documents_on_document_id"
   end
 
   create_table "calendar_shares", force: :cascade do |t|
@@ -195,7 +166,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
   end
 
   create_table "decisions", force: :cascade do |t|
-    t.bigint "calendar_event_id"
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
@@ -206,7 +176,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
     t.bigint "document_id"
     t.string "title", null: false
     t.datetime "updated_at", null: false
-    t.index ["calendar_event_id"], name: "index_decisions_on_calendar_event_id"
     t.index ["community_id"], name: "index_decisions_on_community_id"
     t.index ["created_by_id"], name: "index_decisions_on_created_by_id"
     t.index ["decision_date"], name: "index_decisions_on_decision_date"
@@ -451,6 +420,60 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
     t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
   end
 
+  create_table "recurring_task_templates", force: :cascade do |t|
+    t.boolean "auto_assign_to_holder", default: true, null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "frequency", null: false
+    t.date "last_generated_at"
+    t.bigint "role_id", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["frequency"], name: "index_recurring_task_templates_on_frequency"
+    t.index ["role_id"], name: "index_recurring_task_templates_on_role_id"
+  end
+
+  create_table "role_assignments", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.string "assignment_type", default: "holder", null: false
+    t.datetime "created_at", null: false
+    t.date "ends_at"
+    t.bigint "role_id", null: false
+    t.date "starts_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["active"], name: "index_role_assignments_on_active"
+    t.index ["assignment_type"], name: "index_role_assignments_on_assignment_type"
+    t.index ["ends_at"], name: "index_role_assignments_on_ends_at"
+    t.index ["role_id", "user_id", "active"], name: "idx_role_assignments_unique_active", unique: true, where: "((active = true) AND ((assignment_type)::text = 'holder'::text))"
+    t.index ["role_id"], name: "index_role_assignments_on_role_id"
+    t.index ["user_id"], name: "index_role_assignments_on_user_id"
+  end
+
+  create_table "roles", force: :cascade do |t|
+    t.bigint "community_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.bigint "deleted_by_id"
+    t.text "description"
+    t.datetime "discarded_at"
+    t.text "duties"
+    t.string "group"
+    t.string "role_type", default: "role", null: false
+    t.integer "term_length_months"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "vacant", default: true, null: false
+    t.index ["community_id", "title"], name: "index_roles_on_community_id_and_title", unique: true
+    t.index ["community_id"], name: "index_roles_on_community_id"
+    t.index ["created_by_id"], name: "index_roles_on_created_by_id"
+    t.index ["deleted_by_id"], name: "index_roles_on_deleted_by_id"
+    t.index ["discarded_at"], name: "index_roles_on_discarded_at"
+    t.index ["group"], name: "index_roles_on_group"
+    t.index ["role_type"], name: "index_roles_on_role_type"
+    t.index ["vacant"], name: "index_roles_on_vacant"
+  end
+
   create_table "tasks", force: :cascade do |t|
     t.integer "assigned_to_user_id"
     t.bigint "community_id", null: false
@@ -461,6 +484,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
     t.datetime "discarded_at"
     t.date "due_date"
     t.integer "priority_order"
+    t.bigint "role_id"
     t.string "status"
     t.string "title"
     t.datetime "updated_at", null: false
@@ -472,7 +496,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
     t.index ["discarded_at"], name: "index_tasks_on_discarded_at"
     t.index ["due_date"], name: "index_tasks_on_due_date"
     t.index ["priority_order"], name: "index_tasks_on_priority_order"
+    t.index ["role_id"], name: "index_tasks_on_role_id"
     t.index ["user_id"], name: "index_tasks_on_user_id"
+  end
+
+  create_table "time_entries", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "entry_type", null: false
+    t.decimal "hours", precision: 5, scale: 2, null: false
+    t.date "logged_on", null: false
+    t.string "note"
+    t.bigint "role_id"
+    t.bigint "task_id"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["entry_type"], name: "index_time_entries_on_entry_type"
+    t.index ["logged_on"], name: "index_time_entries_on_logged_on"
+    t.index ["role_id", "logged_on"], name: "index_time_entries_on_role_id_and_logged_on"
+    t.index ["role_id"], name: "index_time_entries_on_role_id"
+    t.index ["task_id"], name: "index_time_entries_on_task_id"
+    t.index ["user_id", "logged_on"], name: "index_time_entries_on_user_id_and_logged_on"
+    t.index ["user_id"], name: "index_time_entries_on_user_id"
   end
 
   create_table "topic_comments", force: :cascade do |t|
@@ -523,13 +567,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
+  create_table "workload_sentiments", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "month", null: false
+    t.bigint "role_id", null: false
+    t.string "sentiment", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["role_id"], name: "index_workload_sentiments_on_role_id"
+    t.index ["user_id", "role_id", "month"], name: "idx_workload_sentiments_unique", unique: true
+    t.index ["user_id"], name: "index_workload_sentiments_on_user_id"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "calendar_events", "communities"
-  add_foreign_key "calendar_events", "users", column: "created_by_id"
-  add_foreign_key "calendar_events", "users", column: "deleted_by_id"
-  add_foreign_key "calendar_events_documents", "calendar_events"
-  add_foreign_key "calendar_events_documents", "documents"
   add_foreign_key "calendar_shares", "users"
   add_foreign_key "chore_assignments", "chores"
   add_foreign_key "chore_assignments", "users"
@@ -544,7 +595,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
   add_foreign_key "comments", "users"
   add_foreign_key "comments", "users", column: "created_by_id"
   add_foreign_key "comments", "users", column: "deleted_by_id"
-  add_foreign_key "decisions", "calendar_events"
   add_foreign_key "decisions", "communities"
   add_foreign_key "decisions", "documents"
   add_foreign_key "decisions", "users", column: "created_by_id"
@@ -582,14 +632,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_014951) do
   add_foreign_key "posts", "users", column: "created_by_id"
   add_foreign_key "posts", "users", column: "deleted_by_id"
   add_foreign_key "push_subscriptions", "users"
+  add_foreign_key "recurring_task_templates", "roles"
+  add_foreign_key "role_assignments", "roles"
+  add_foreign_key "role_assignments", "users"
+  add_foreign_key "roles", "communities"
+  add_foreign_key "roles", "users", column: "created_by_id"
+  add_foreign_key "roles", "users", column: "deleted_by_id"
   add_foreign_key "tasks", "communities"
+  add_foreign_key "tasks", "roles"
   add_foreign_key "tasks", "users"
   add_foreign_key "tasks", "users", column: "assigned_to_user_id"
   add_foreign_key "tasks", "users", column: "created_by_id"
   add_foreign_key "tasks", "users", column: "deleted_by_id"
+  add_foreign_key "time_entries", "roles"
+  add_foreign_key "time_entries", "tasks"
+  add_foreign_key "time_entries", "users"
   add_foreign_key "topic_comments", "discussion_topics"
   add_foreign_key "topic_comments", "users"
   add_foreign_key "users", "communities"
   add_foreign_key "users", "households"
   add_foreign_key "users", "invitations"
+  add_foreign_key "workload_sentiments", "roles"
+  add_foreign_key "workload_sentiments", "users"
 end

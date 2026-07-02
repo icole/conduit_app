@@ -5,7 +5,6 @@ class Document < ApplicationRecord
 
   belongs_to :document_folder, optional: true
 
-  has_and_belongs_to_many :calendar_events
   has_many :decisions, dependent: :nullify
 
   has_one_attached :file

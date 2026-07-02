@@ -13,7 +13,6 @@
               <tr>
                 <th>Title</th>
                 <th>Date</th>
-                <th>Meeting</th>
                 <th>Notes</th>
                 <th>Actions</th>
               </tr>
@@ -23,13 +22,6 @@
                 <tr>
                   <td class="font-medium"><%= link_to decision.title, decision_path(decision), class: "link link-hover" %></td>
                   <td><%= decision.formatted_date %></td>
-                  <td>
-                    <% if decision.calendar_event %>
-                      <%= link_to decision.calendar_event.title, calendar_event_path(decision.calendar_event), class: "link link-hover text-sm" %>
-                    <% else %>
-                      <span class="text-base-content/60">-</span>
-                    <% end %>
-                  </td>
                   <td>
                     <% if decision.document %>
                       <%= link_to "View Notes", decision.document.safe_google_drive_url, target: "_blank", class: "btn btn-xs btn-outline btn-info" %>

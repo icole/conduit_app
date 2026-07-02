@@ -9,7 +9,6 @@ class Community < ApplicationRecord
   has_many :meals, dependent: :destroy
   has_many :meal_schedules, dependent: :destroy
   has_many :discussion_topics, dependent: :destroy
-  has_many :calendar_events, dependent: :destroy
   has_many :documents, dependent: :destroy
   has_many :decisions, dependent: :destroy
   has_many :invitations, dependent: :destroy

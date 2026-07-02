@@ -33,16 +33,6 @@
       </div>
 
       <div class="form-control w-full mb-4">
-        <%= form.label :calendar_event_id, "Related Meeting (optional)", class: "label label-text font-medium" %>
-        <%= form.collection_select :calendar_event_id, @calendar_events, :id, :title_with_date,
-            { prompt: "Select a meeting...", include_blank: true },
-            { class: "select select-bordered w-full" } %>
-        <div class="label">
-          <span class="label-text-alt text-base-content/60">Link this decision to a specific meeting</span>
-        </div>
-      </div>
-
-      <div class="form-control w-full mb-4">
         <%= form.label :document_id, "Meeting Notes (optional)", class: "label label-text font-medium" %>
         <%= form.collection_select :document_id, @documents, :id, :title,
             { prompt: "Select meeting notes...", include_blank: true },
