@@ -155,4 +155,46 @@ class CalendarEventsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to calendar_index_url
     @mock_service.verify
   end
+
+  test "destroy redirects with error flash when google api fails" do
+    @mock_service.expect(:delete_event, { status: :client_error, error: "Permission denied" },
+      calendar_id: ENV["GOOGLE_CALENDAR_ID"],
+      event_id: "test_event_abc123")
+
+    GoogleCalendarApiService.stub(:from_service_account_with_acl_scope, @mock_service) do
+      delete calendar_event_url(google_event_id: "test_event_abc123")
+    end
+
+    assert_redirected_to calendar_index_url
+    assert_equal "Failed to delete event: Permission denied", flash[:alert]
+    @mock_service.verify
+  end
+
+  test "update re-renders edit with event populated when google api fails" do
+    @mock_service.expect(:update_event, { status: :client_error, error: "API quota exceeded" },
+      calendar_id: ENV["GOOGLE_CALENDAR_ID"],
+      event_id: "test_event_abc123",
+      title: "Updated Title",
+      start_time: ->(t) { t.is_a?(Time) || t.is_a?(ActiveSupport::TimeWithZone) },
+      end_time: ->(t) { t.is_a?(Time) || t.is_a?(ActiveSupport::TimeWithZone) },
+      description: "Updated desc",
+      location: "New Location")
+
+    GoogleCalendarApiService.stub(:from_service_account_with_acl_scope, @mock_service) do
+      patch calendar_event_url(google_event_id: "test_event_abc123"), params: {
+        calendar_event: {
+          title: "Updated Title",
+          description: "Updated desc",
+          start_time: 1.day.from_now,
+          end_time: 1.day.from_now + 1.hour,
+          location: "New Location"
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal "test_event_abc123", assigns(:event).google_event_id
+    assert_equal "Updated Title", assigns(:event).title
+    @mock_service.verify
+  end
 end

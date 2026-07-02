@@ -53,18 +53,23 @@ class CalendarEventsController < ApplicationController
       redirect_to calendar_event_path(google_event_id: params[:google_event_id]),
                   notice: "Event was successfully updated."
     else
+      @event = OpenStruct.new(event_params.merge(google_event_id: params[:google_event_id]))
       flash.now[:alert] = "Failed to update event: #{result[:error]}"
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
-    google_service.delete_event(
+    result = google_service.delete_event(
       calendar_id: calendar_id,
       event_id: params[:google_event_id]
     )
 
-    redirect_to calendar_index_path, notice: "Event was successfully deleted."
+    if result[:status] == :success
+      redirect_to calendar_index_path, notice: "Event was successfully deleted."
+    else
+      redirect_to calendar_index_path, alert: "Failed to delete event: #{result[:error]}"
+    end
   end
 
   private
