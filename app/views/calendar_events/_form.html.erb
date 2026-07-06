@@ -21,27 +21,50 @@
         <%= form.text_field :location, name: "calendar_event[location]", value: event.location, class: "input input-bordered w-full", placeholder: "Event location" %>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div class="form-control w-full">
-          <%= form.label :start_time, "Start Time *", class: "label label-text font-medium" %>
-          <%= form.datetime_field :start_time, name: "calendar_event[start_time]", value: event.start_time, class: "input input-bordered w-full", required: true %>
-          <div class="label">
-            <span class="label-text-alt text-base-content/60">Enter time in Pacific Time (PT)</span>
+      <div data-controller="event-time">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+          <div class="form-control w-full">
+            <label class="label label-text font-medium">Start *</label>
+            <div class="flex gap-2">
+              <input type="date" name="calendar_event[start_date]"
+                     value="<%= event.start_time&.strftime('%Y-%m-%d') %>"
+                     class="input input-bordered flex-1"
+                     required
+                     data-event-time-target="startDate"
+                     data-action="change->event-time#startChanged" />
+              <input type="time" name="calendar_event[start_time_of_day]"
+                     value="<%= event.start_time&.strftime('%H:%M') %>"
+                     class="input input-bordered w-32"
+                     required
+                     data-event-time-target="startTime"
+                     data-action="change->event-time#startChanged" />
+            </div>
+          </div>
+
+          <div class="form-control w-full">
+            <label class="label label-text font-medium">End *</label>
+            <div class="flex gap-2">
+              <input type="date" name="calendar_event[end_date]"
+                     value="<%= event.end_time&.strftime('%Y-%m-%d') %>"
+                     class="input input-bordered flex-1"
+                     required
+                     data-event-time-target="endDate" />
+              <input type="time" name="calendar_event[end_time_of_day]"
+                     value="<%= event.end_time&.strftime('%H:%M') %>"
+                     class="input input-bordered w-32"
+                     required
+                     data-event-time-target="endTime" />
+            </div>
           </div>
         </div>
-
-        <div class="form-control w-full">
-          <%= form.label :end_time, "End Time *", class: "label label-text font-medium" %>
-          <%= form.datetime_field :end_time, name: "calendar_event[end_time]", value: event.end_time, class: "input input-bordered w-full", required: true %>
-          <div class="label">
-            <span class="label-text-alt text-base-content/60">Enter time in Pacific Time (PT)</span>
-          </div>
+        <div class="label">
+          <span class="label-text-alt text-base-content/60">Times in Pacific Time (PT)</span>
         </div>
       </div>
 
       <div class="flex justify-end gap-3 mt-6">
         <%= link_to 'Cancel', calendar_index_path, class: "btn btn-ghost" %>
-        <%= form.submit class: "btn btn-primary" %>
+        <%= form.submit(event.google_event_id ? "Update Event" : "Create Event", class: "btn btn-primary") %>
       </div>
     <% end %>
   </div>

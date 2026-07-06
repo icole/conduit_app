@@ -22,6 +22,9 @@ class CalendarEventsControllerTest < ActionDispatch::IntegrationTest
     }
 
     @mock_service = Minitest::Mock.new
+
+    @start_date = 1.day.from_now.strftime("%Y-%m-%d")
+    @end_date = @start_date
   end
 
   test "should get new" do
@@ -31,9 +34,6 @@ class CalendarEventsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should create event on google calendar" do
-    start_time = 1.day.from_now
-    end_time = 1.day.from_now + 1.hour
-
     @mock_service.expect(:create_event, { status: :success, event_id: "new_event_123", html_link: "https://..." },
       calendar_id: ENV["GOOGLE_CALENDAR_ID"],
       title: "Community Meeting",
@@ -47,8 +47,10 @@ class CalendarEventsControllerTest < ActionDispatch::IntegrationTest
         calendar_event: {
           title: "Community Meeting",
           description: "Monthly check-in",
-          start_time: start_time,
-          end_time: end_time,
+          start_date: @start_date,
+          start_time_of_day: "18:00",
+          end_date: @end_date,
+          end_time_of_day: "19:00",
           location: "Common House"
         }
       }
@@ -72,8 +74,10 @@ class CalendarEventsControllerTest < ActionDispatch::IntegrationTest
         calendar_event: {
           title: "Test",
           description: "",
-          start_time: 1.day.from_now,
-          end_time: 1.day.from_now + 1.hour,
+          start_date: @start_date,
+          start_time_of_day: "18:00",
+          end_date: @end_date,
+          end_time_of_day: "19:00",
           location: ""
         }
       }
@@ -81,6 +85,20 @@ class CalendarEventsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     @mock_service.verify
+  end
+
+  test "create shows error when datetime fields are missing" do
+    post calendar_events_url, params: {
+      calendar_event: {
+        title: "Test",
+        start_date: "",
+        start_time_of_day: "",
+        end_date: "",
+        end_time_of_day: ""
+      }
+    }
+
+    assert_response :unprocessable_entity
   end
 
   test "should show event from google calendar" do
@@ -132,8 +150,10 @@ class CalendarEventsControllerTest < ActionDispatch::IntegrationTest
         calendar_event: {
           title: "Updated Title",
           description: "Updated desc",
-          start_time: 1.day.from_now,
-          end_time: 1.day.from_now + 1.hour,
+          start_date: @start_date,
+          start_time_of_day: "18:00",
+          end_date: @end_date,
+          end_time_of_day: "19:00",
           location: "New Location"
         }
       }
@@ -185,8 +205,10 @@ class CalendarEventsControllerTest < ActionDispatch::IntegrationTest
         calendar_event: {
           title: "Updated Title",
           description: "Updated desc",
-          start_time: 1.day.from_now,
-          end_time: 1.day.from_now + 1.hour,
+          start_date: @start_date,
+          start_time_of_day: "18:00",
+          end_date: @end_date,
+          end_time_of_day: "19:00",
           location: "New Location"
         }
       }

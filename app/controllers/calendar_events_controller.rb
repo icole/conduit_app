@@ -13,11 +13,11 @@ class CalendarEventsController < ApplicationController
   end
 
   def create
-    start_time = Time.zone.parse(event_params[:start_time]) rescue nil
-    end_time = Time.zone.parse(event_params[:end_time]) rescue nil
+    start_time = parse_event_datetime(:start)
+    end_time = parse_event_datetime(:end)
 
     if start_time.nil? || end_time.nil?
-      @event = OpenStruct.new(event_params)
+      @event = build_event_from_params
       flash.now[:alert] = "Start time and end time are required."
       return render :new, status: :unprocessable_entity
     end
@@ -35,7 +35,7 @@ class CalendarEventsController < ApplicationController
       redirect_to calendar_event_path(google_event_id: result[:event_id]),
                   notice: "Event was successfully created."
     else
-      @event = OpenStruct.new(event_params)
+      @event = build_event_from_params
       flash.now[:alert] = "Failed to create event: #{result[:error]}"
       render :new, status: :unprocessable_entity
     end
@@ -48,11 +48,11 @@ class CalendarEventsController < ApplicationController
   end
 
   def update
-    start_time = Time.zone.parse(event_params[:start_time]) rescue nil
-    end_time = Time.zone.parse(event_params[:end_time]) rescue nil
+    start_time = parse_event_datetime(:start)
+    end_time = parse_event_datetime(:end)
 
     if start_time.nil? || end_time.nil?
-      @event = OpenStruct.new(event_params.merge(google_event_id: params[:google_event_id]))
+      @event = build_event_from_params(google_event_id: params[:google_event_id])
       flash.now[:alert] = "Start time and end time are required."
       return render :edit, status: :unprocessable_entity
     end
@@ -71,7 +71,7 @@ class CalendarEventsController < ApplicationController
       redirect_to calendar_event_path(google_event_id: params[:google_event_id]),
                   notice: "Event was successfully updated."
     else
-      @event = OpenStruct.new(event_params.merge(google_event_id: params[:google_event_id]))
+      @event = build_event_from_params(google_event_id: params[:google_event_id])
       flash.now[:alert] = "Failed to update event: #{result[:error]}"
       render :edit, status: :unprocessable_entity
     end
@@ -138,6 +138,31 @@ class CalendarEventsController < ApplicationController
   end
 
   def event_params
-    params.require(:calendar_event).permit(:title, :description, :start_time, :end_time, :location)
+    params.require(:calendar_event).permit(:title, :description, :location,
+      :start_date, :start_time_of_day, :end_date, :end_time_of_day,
+      :start_time, :end_time)
+  end
+
+  def parse_event_datetime(prefix)
+    date = event_params[:"#{prefix}_date"]
+    time = event_params[:"#{prefix}_time_of_day"]
+    return nil if date.blank? || time.blank?
+
+    Time.zone.parse("#{date} #{time}")
+  rescue ArgumentError
+    nil
+  end
+
+  def build_event_from_params(**extra)
+    start_time = parse_event_datetime(:start)
+    end_time = parse_event_datetime(:end)
+    OpenStruct.new(
+      title: event_params[:title],
+      description: event_params[:description],
+      location: event_params[:location],
+      start_time: start_time,
+      end_time: end_time,
+      **extra
+    )
   end
 end
