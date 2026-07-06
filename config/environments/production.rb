@@ -81,7 +81,8 @@ Rails.application.configure do
   config.hosts = [
     "conduit.crowwoods.com",
     "conduit-staging.crowwoods.com",
-    /.*\.crowwoods\.com/
+    /.*\.crowwoods\.com/,
+    "api.conduitcoho.app"
   ]
 
   # Skip DNS rebinding protection for the health check endpoint.

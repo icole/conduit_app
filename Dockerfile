@@ -3,7 +3,7 @@
 
 ARG RUBY_VERSION=3.4.4
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
-ARG CACHE_BREAKER=1
+ARG CACHE_BREAKER=3
 
 
 # Rails app lives here

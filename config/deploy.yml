@@ -1,5 +1,6 @@
 service: conduit_app
 image: <%= ENV["DOCKER_USERNAME"] %>/conduit_app
+deploy_timeout: 120
 
 servers:
   web:
