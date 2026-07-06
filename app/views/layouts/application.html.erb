@@ -37,7 +37,7 @@
   <%= Sentry.get_trace_propagation_meta.html_safe %>
   </head>
 
-<body class="<%= content_for?(:full_bleed) ? 'h-screen overflow-hidden' : '' %>">
+<body class="bg-base-100 <%= content_for?(:full_bleed) ? 'h-screen overflow-hidden' : '' %>">
 <main class="w-full bg-base-100 flex flex-col <%= content_for?(:full_bleed) ? 'h-full' : 'min-h-screen' %>">
   <% unless hotwire_native_app? %>
     <%= render "layouts/navbar" %>
