@@ -1,0 +1,46 @@
+<%= form_with(model: role) do |form| %>
+  <% if role.errors.any? %>
+    <div class="alert alert-error mb-4">
+      <ul>
+        <% role.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :title, class: "label" %>
+    <%= form.text_field :title, class: "input input-bordered w-full", required: true %>
+  </div>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :role_type, "Type", class: "label" %>
+    <%= form.select :role_type, Role::ROLE_TYPES.map { |t| [t.humanize, t] }, {}, class: "select select-bordered w-full" %>
+  </div>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :group, "Category", class: "label" %>
+    <%= form.select :group, Role::GROUPS.map { |g| [g.humanize.titleize, g] }, { include_blank: "None" }, class: "select select-bordered w-full" %>
+  </div>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :term_length_months, "Term Length (months)", class: "label" %>
+    <%= form.number_field :term_length_months, class: "input input-bordered w-full", min: 1 %>
+  </div>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :duties, "Duties (official responsibilities)", class: "label" %>
+    <%= form.text_area :duties, class: "textarea textarea-bordered w-full", rows: 6 %>
+  </div>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :description, "Role Guide (practical tips for the holder)", class: "label" %>
+    <%= form.text_area :description, class: "textarea textarea-bordered w-full", rows: 4 %>
+  </div>
+
+  <div class="flex justify-end gap-2 mt-6">
+    <%= link_to "Cancel", roles_path, class: "btn btn-ghost" %>
+    <%= form.submit role.persisted? ? "Update" : "Create Role", class: "btn btn-primary" %>
+  </div>
+<% end %>

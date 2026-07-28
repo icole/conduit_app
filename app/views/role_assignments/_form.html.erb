@@ -1,0 +1,36 @@
+<%= form_with(model: [ role, assignment ]) do |form| %>
+  <% if assignment.errors.any? %>
+    <div class="alert alert-error mb-4">
+      <ul>
+        <% assignment.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :user_id, "Person", class: "label" %>
+    <%= form.select :user_id, @users.map { |u| [u.name, u.id] }, { include_blank: "Select person" }, class: "select select-bordered w-full" %>
+  </div>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :assignment_type, "Role Type", class: "label" %>
+    <%= form.select :assignment_type, RoleAssignment::ASSIGNMENT_TYPES.map { |t| [t.humanize, t] }, {}, class: "select select-bordered w-full" %>
+  </div>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :starts_at, "Start Date", class: "label" %>
+    <%= form.date_field :starts_at, class: "input input-bordered w-full", value: assignment.starts_at || Date.current %>
+  </div>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :ends_at, "End Date (optional)", class: "label" %>
+    <%= form.date_field :ends_at, class: "input input-bordered w-full", value: assignment.ends_at || (role.term_length_months ? Date.current + role.term_length_months.months : nil) %>
+  </div>
+
+  <div class="flex justify-end gap-2 mt-6">
+    <%= link_to "Cancel", role_path(role), class: "btn btn-ghost" %>
+    <%= form.submit "Assign", class: "btn btn-primary" %>
+  </div>
+<% end %>

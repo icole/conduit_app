@@ -1,0 +1,15 @@
+<%= link_to role_path(role), class: "card bg-base-100 border border-base-200 p-3 block hover:bg-base-200 transition" do %>
+  <div class="flex items-center justify-between">
+    <div>
+      <h3 class="font-medium text-sm sm:text-base"><%= role.title %></h3>
+      <% if role.current_holders.any? %>
+        <p class="text-xs text-base-content/60 mt-0.5">
+          <%= role.current_holders.map { |a| a.user.name }.join(", ") %>
+        </p>
+      <% end %>
+    </div>
+    <% if role.vacant? %>
+      <span class="badge badge-warning badge-sm">Vacant</span>
+    <% end %>
+  </div>
+<% end %>

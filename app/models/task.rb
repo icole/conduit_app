@@ -5,6 +5,7 @@ class Task < ApplicationRecord
 
   belongs_to :user
   belongs_to :assigned_to_user, class_name: "User", optional: true
+  belongs_to :role, optional: true
 
   validates :title, presence: true
   validates :status, presence: true, inclusion: { in: %w[backlog active completed] }

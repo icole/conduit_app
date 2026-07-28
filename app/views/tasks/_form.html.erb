@@ -24,9 +24,10 @@
     <%= form.date_field :due_date, class: "input input-bordered w-full cursor-pointer", data: { date_field_target: "input", action: "click->date-field#openDatePicker" } %>
   </div>
 
-  <%# Only show user assignment on tasks page, not on dashboard %>
+  <%# Only show user assignment and role on tasks page, not on dashboard %>
   <% if controller_name == 'tasks' %>
     <%= render "tasks/user_select", form: form, task: task, users: @users %>
+    <%= render "tasks/role_select", form: form %>
   <% end %>
 
   <% if task.persisted? %>
