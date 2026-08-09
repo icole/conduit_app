@@ -2,7 +2,9 @@ class MealSchedule < ApplicationRecord
   acts_as_tenant :community
 
   belongs_to :created_by, class_name: "User"
-  has_many :meals, dependent: :destroy
+  has_many :meals
+
+  before_destroy :destroy_all_meals
 
   validates :name, presence: true
   validates :day_of_week, presence: true, inclusion: { in: 0..6 }
@@ -61,5 +63,11 @@ class MealSchedule < ApplicationRecord
       location: location,
       status: "upcoming"
     )
+  end
+
+  private
+
+  def destroy_all_meals
+    meals.with_discarded.destroy_all
   end
 end
