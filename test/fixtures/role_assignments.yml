@@ -1,0 +1,31 @@
+maven_holder:
+  role: garden_maven
+  user: one
+  assignment_type: holder
+  starts_at: <%= 2.months.ago.to_date %>
+  ends_at: <%= 4.months.from_now.to_date %>
+  active: true
+
+maven_backup:
+  role: garden_maven
+  user: two
+  assignment_type: backup
+  starts_at: <%= 2.months.ago.to_date %>
+  ends_at: <%= 4.months.from_now.to_date %>
+  active: true
+
+president_holder:
+  role: president
+  user: two
+  assignment_type: holder
+  starts_at: <%= 6.months.ago.to_date %>
+  ends_at: <%= 6.months.from_now.to_date %>
+  active: true
+
+signage_member_one:
+  role: signage_committee
+  user: one
+  assignment_type: holder
+  starts_at: <%= 1.month.ago.to_date %>
+  ends_at: <%= 2.months.from_now.to_date %>
+  active: true

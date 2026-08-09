@@ -2,12 +2,19 @@
   <!-- Header -->
   <div class="flex justify-between items-center gap-2 <%= hotwire_native_app? ? 'mb-2 px-1' : 'mb-4' %>">
     <h1 class="<%= hotwire_native_app? ? 'text-lg font-semibold' : 'text-xl sm:text-2xl font-bold' %>">Tasks</h1>
-    <button class="<%= hotwire_native_app? ? 'btn btn-primary btn-sm gap-1' : 'btn btn-primary btn-sm sm:btn-md' %>" data-action="click->tasks#showForm" title="New Task">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-      </svg>
-      <span class="<%= hotwire_native_app? ? '' : 'hidden sm:inline' %>">Add</span>
-    </button>
+    <div class="flex items-center gap-2">
+      <%= link_to roles_path, class: "btn btn-ghost btn-sm btn-square", title: "Community Roles" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      <% end %>
+      <button class="<%= hotwire_native_app? ? 'btn btn-primary btn-sm gap-1' : 'btn btn-primary btn-sm sm:btn-md' %>" data-action="click->tasks#showForm" title="New Task">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        <span class="<%= hotwire_native_app? ? '' : 'hidden sm:inline' %>">Add</span>
+      </button>
+    </div>
   </div>
 
   <%= turbo_frame_tag "tasks_content" do %>

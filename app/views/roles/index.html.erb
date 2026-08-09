@@ -1,0 +1,32 @@
+<div class="<%= hotwire_native_app? ? '' : '-mx-2 sm:mx-0 px-2 sm:px-0' %>">
+  <div class="flex justify-between items-center gap-2 mb-4">
+    <h1 class="text-xl sm:text-2xl font-bold">Roles</h1>
+    <%= link_to "Add Role", new_role_path, class: "btn btn-primary btn-sm" %>
+  </div>
+
+  <% Role::GROUPS.each do |group| %>
+    <% roles = @roles_by_group[group] %>
+    <% if roles.present? %>
+      <h2 class="text-lg font-semibold mt-6 mb-3 capitalize"><%= group.humanize.titleize %></h2>
+      <div class="space-y-2">
+        <% roles.each do |role| %>
+          <%= render "roles/role_card", role: role %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <% committees = @roles_by_group[nil]&.select { |r| r.role_type == "committee" } %>
+  <% if committees.present? %>
+    <h2 class="text-lg font-semibold mt-6 mb-3">Committees</h2>
+    <div class="space-y-2">
+      <% committees.each do |role| %>
+        <%= render "roles/role_card", role: role %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="mt-6">
+    <%= link_to "Back to Tasks", tasks_path, class: "btn btn-ghost btn-sm" %>
+  </div>
+</div>

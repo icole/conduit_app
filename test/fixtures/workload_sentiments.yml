@@ -1,0 +1,5 @@
+maven_sentiment:
+  user: one
+  role: garden_maven
+  sentiment: just_right
+  month: <%= 1.month.ago.beginning_of_month %>

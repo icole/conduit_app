@@ -1,0 +1,43 @@
+<%= form_with(model: [ role, time_entry ]) do |form| %>
+  <% if time_entry.errors.any? %>
+    <div class="alert alert-error mb-4">
+      <ul>
+        <% time_entry.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :entry_type, "Type", class: "label" %>
+    <%= form.select :entry_type, TimeEntry::ENTRY_TYPES.map { |t| [t.humanize, t] }, {}, class: "select select-bordered w-full" %>
+  </div>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :hours, class: "label" %>
+    <%= form.number_field :hours, class: "input input-bordered w-full", step: 0.25, min: 0.25, required: true %>
+  </div>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :logged_on, "Date", class: "label" %>
+    <%= form.date_field :logged_on, class: "input input-bordered w-full", required: true %>
+  </div>
+
+  <% if @tasks.any? %>
+    <div class="form-control w-full mb-4">
+      <%= form.label :task_id, "Task (optional)", class: "label" %>
+      <%= form.select :task_id, @tasks.map { |t| [t.title, t.id] }, { include_blank: "No specific task" }, class: "select select-bordered w-full" %>
+    </div>
+  <% end %>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :note, "Note (optional)", class: "label" %>
+    <%= form.text_field :note, class: "input input-bordered w-full", placeholder: "What did you work on?" %>
+  </div>
+
+  <div class="flex justify-end gap-2 mt-6">
+    <%= link_to "Cancel", role_path(role), class: "btn btn-ghost" %>
+    <%= form.submit "Log Time", class: "btn btn-primary" %>
+  </div>
+<% end %>
