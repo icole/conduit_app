@@ -91,8 +91,8 @@ GEM
     bcrypt_pbkdf (1.1.2)
     bigdecimal (4.1.2)
     bindex (0.8.1)
-    bootsnap (1.24.6)
-      msgpack (~> 1.2)
+    bootsnap (1.25.0)
+      msgpack (~> 1.5)
     brakeman (8.0.5)
       racc
     builder (3.3.0)
@@ -311,7 +311,7 @@ GEM
       logger
     mini_mime (1.1.5)
     minitest (5.27.0)
-    msgpack (1.8.1)
+    msgpack (1.8.4)
     multi_json (1.21.1)
     multi_xml (0.8.1)
       bigdecimal (>= 3.1, < 5)
