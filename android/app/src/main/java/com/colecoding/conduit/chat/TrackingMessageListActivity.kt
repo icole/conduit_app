@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import com.colecoding.conduit.ui.padForSystemBars
 import io.getstream.chat.android.ui.feature.messages.MessageListActivity
 
 /**
@@ -28,6 +30,10 @@ class TrackingMessageListActivity : MessageListActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Stream owns this activity's layout, so pad its content root instead.
+        // Required from API 36, where the theme's edge-to-edge opt-out is ignored.
+        findViewById<View>(android.R.id.content).padForSystemBars()
 
         // Extract CID from the intent that Stream's parent class uses
         channelCid = intent.getStringExtra(EXTRA_CID)

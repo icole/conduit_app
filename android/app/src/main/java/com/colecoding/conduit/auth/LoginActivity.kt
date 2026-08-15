@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.colecoding.conduit.ui.padForSystemBars
 import com.colecoding.conduit.BuildConfig
 import com.colecoding.conduit.MainActivity
 import com.colecoding.conduit.config.AppConfig
@@ -66,6 +67,7 @@ class LoginActivity : AppCompatActivity() {
 
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.padForSystemBars()
 
         setupCommunityName()
         setupGoogleSignIn()

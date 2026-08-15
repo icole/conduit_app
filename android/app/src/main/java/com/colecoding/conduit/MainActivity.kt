@@ -20,6 +20,8 @@ import com.colecoding.conduit.config.AppConfig
 import com.colecoding.conduit.config.CommunityManager
 import com.colecoding.conduit.fragments.AccountFragment
 import com.colecoding.conduit.fragments.CustomChatFragment
+import com.colecoding.conduit.ui.Edge
+import com.colecoding.conduit.ui.padForSystemBars
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dev.hotwire.navigation.activities.HotwireActivity
 import dev.hotwire.navigation.navigator.NavigatorConfiguration
@@ -179,6 +181,14 @@ class MainActivity : HotwireActivity() {
 
         // Initialize views
         bottomNavigation = findViewById(R.id.bottom_navigation)
+
+        // Apps targeting API 36 can't opt out of edge-to-edge, so keep the tab
+        // content clear of the status bar and the tab strip clear of the
+        // gesture bar. The root's primary_dark background fills the status bar.
+        findViewById<View>(R.id.root)
+            .padForSystemBars(setOf(Edge.LEFT, Edge.TOP, Edge.RIGHT))
+        bottomNavigation.padForSystemBars(setOf(Edge.BOTTOM))
+
         homeNavigatorHost = findViewById(R.id.home_navigator_host)
         tasksNavigatorHost = findViewById(R.id.tasks_navigator_host)
         mealsNavigatorHost = findViewById(R.id.meals_navigator_host)

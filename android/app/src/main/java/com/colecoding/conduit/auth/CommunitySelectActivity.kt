@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.colecoding.conduit.ui.padForSystemBars
 import com.colecoding.conduit.R
 import com.colecoding.conduit.config.CommunityManager
 import com.colecoding.conduit.databinding.ActivityCommunitySelectBinding
@@ -39,6 +40,7 @@ class CommunitySelectActivity : AppCompatActivity() {
 
         binding = ActivityCommunitySelectBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.padForSystemBars()
 
         setupRecyclerView()
         setupContinueButton()

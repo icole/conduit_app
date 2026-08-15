@@ -21,12 +21,12 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace 'com.colecoding.conduit'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.colecoding.conduitapp"
         minSdk 28  // Required by hotwire-native-android
-        targetSdk 35
+        targetSdk 36  // Google Play requires API 36+ from Aug 30, 2026
         versionCode 14
         versionName "1.0.14"
 
