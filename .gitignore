@@ -51,6 +51,10 @@ wide-gamma-462206-r8-823649cf4ac3.json
 .yarn/
 
 .DS_Store
+
+# Lefthook local configuration (for developer-specific hooks)
+lefthook-local.yml
+
 # ClaudeOnRails
 .claude-on-rails/sessions/
 .claude-swarm/
