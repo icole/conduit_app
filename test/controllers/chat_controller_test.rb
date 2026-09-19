@@ -116,4 +116,37 @@ class ChatControllerTest < ActionDispatch::IntegrationTest
       assert_equal "token_expired", json["error"]
     end
   end
+
+  # --- Stream user sync ---
+
+  test "token syncs the user to Stream with the shared payload, never the admin role" do
+    mock_channel = Minitest::Mock.new
+    StreamChannelService::DEFAULT_CHANNELS.each do
+      mock_channel.expect :query, { "channel" => {} }, [], user_id: @admin_user.id.to_s
+      mock_channel.expect :add_members, true, [ [ @admin_user.id.to_s ] ]
+    end
+
+    mock_client = Minitest::Mock.new
+    mock_client.expect :upsert_user, {}, [ @admin_user.stream_user_data ]
+    StreamChannelService::DEFAULT_CHANNELS.each do |channel_data|
+      mock_client.expect :channel, mock_channel, [ "team" ],
+        channel_id: "#{@community.slug}-#{channel_data[:id]}",
+        data: { name: channel_data[:name], created_by_id: @admin_user.id.to_s }
+    end
+    mock_client.expect :create_token, "stream-token", [ @admin_user.id.to_s ]
+
+    StreamChatClient.stub :configured?, true do
+      StreamChatClient.stub :client, mock_client do
+        get token_chat_index_url,
+          headers: { "Authorization" => "Bearer #{@admin_token}" },
+          as: :json
+
+        assert_response :ok
+        assert_equal "stream-token", JSON.parse(response.body)["token"]
+      end
+    end
+
+    mock_client.verify
+    mock_channel.verify
+  end
 end

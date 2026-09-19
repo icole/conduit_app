@@ -111,13 +111,19 @@ class User < ApplicationRecord
     id.to_s
   end
 
+  # The single source of truth for what we send to Stream about a user.
+  # Every upsert_user/upsert_users call must go through this.
+  #
+  # Stream's built-in "admin" role is app-wide (it can read and moderate any
+  # channel in the Stream app, across every community), so community admins
+  # must never be mapped to it. Community-level moderation belongs on channel
+  # membership roles, not the app role.
   def stream_user_data
     {
       id: stream_user_id,
       name: name,
       image: avatar_url || gravatar_url,
-      role: admin? ? "admin" : "user",
-      email: email
+      role: "user"
     }
   end
 

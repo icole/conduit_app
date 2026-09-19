@@ -105,15 +105,8 @@ class ChatController < ApplicationController
       channel_id = "#{community.slug}-#{base_id}"
 
       # Get all community users and sync them to Stream
-      community_users = community.users.select(:id, :name, :avatar_url, :admin)
-      users_to_sync = community_users.map do |u|
-        {
-          id: u.id.to_s,
-          name: u.name,
-          image: u.avatar_url,
-          role: u.admin? ? "admin" : "user"
-        }
-      end
+      community_users = community.users.select(:id, :name, :avatar_url, :email)
+      users_to_sync = community_users.map(&:stream_user_data)
 
       # Upsert all users to Stream (creates them if they don't exist)
       client.upsert_users(users_to_sync)
@@ -306,12 +299,7 @@ class ChatController < ApplicationController
 
   def sync_user_to_stream(user = nil)
     user ||= current_user
-    StreamChatClient.client.upsert_user({
-      id: user.id.to_s,
-      name: user.name,
-      image: user.avatar_url,
-      role: user.admin? ? "admin" : "user"
-    })
+    StreamChatClient.client.upsert_user(user.stream_user_data)
   rescue StreamChat::StreamAPIException => e
     Rails.logger.error "Failed to sync user to Stream: #{e.message}"
     raise e

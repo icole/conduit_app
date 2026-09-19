@@ -16,9 +16,13 @@ namespace :stream do
   task sync_users: :environment do
     if StreamChatClient.configured?
       puts "Syncing users to Stream Chat..."
-      User.find_each do |user|
-        user.sync_to_stream_chat
-        puts "Synced user: #{user.name}"
+      Community.find_each do |community|
+        ActsAsTenant.with_tenant(community) do
+          User.find_each do |user|
+            user.sync_to_stream_chat
+            puts "Synced user: #{user.name} (#{community.slug})"
+          end
+        end
       end
       puts "All users have been synced to Stream Chat!"
     else

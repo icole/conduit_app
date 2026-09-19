@@ -178,4 +178,18 @@ class UserTest < ActiveSupport::TestCase
     user = User.new(provider: "", uid: nil, email: "test@example.com", name: "Test", password: "password123")
     assert_not user.google_account?
   end
+
+  # Stream Chat payload
+
+  test "stream_user_data never grants Stream's app-wide admin role" do
+    admin = users(:admin_user)
+    assert admin.admin?, "fixture should be a community admin"
+
+    assert_equal "user", admin.stream_user_data[:role]
+    assert_equal "user", users(:regular_user).stream_user_data[:role]
+  end
+
+  test "stream_user_data does not send the user's email to Stream" do
+    assert_not_includes users(:admin_user).stream_user_data.keys, :email
+  end
 end

@@ -12,11 +12,7 @@ namespace :stream_chat do
     end
 
     # Sync user to Stream
-    StreamChatClient.client.upsert_user({
-      id: user.id.to_s,
-      name: user.name,
-      role: "admin"
-    })
+    StreamChatClient.client.upsert_user(user.stream_user_data)
 
     if StreamChannelService.setup_default_channels(user)
       puts "Default channels created successfully!"
@@ -78,11 +74,7 @@ namespace :stream_chat do
 
       # Ensure admin user exists in Stream
       begin
-        client.upsert_user({
-          id: admin_user.id.to_s,
-          name: admin_user.name,
-          role: "admin"
-        })
+        client.upsert_user(admin_user.stream_user_data)
       rescue => e
         puts "  Warning: Could not upsert user: #{e.message}"
       end
@@ -436,11 +428,7 @@ namespace :stream_chat do
       missing_user_ids.each do |uid|
         user = users.find { |u| u.id.to_s == uid }
         next unless user
-        client.upsert_user({
-          id: user.id.to_s,
-          name: user.name,
-          role: user.admin? ? "admin" : "user"
-        })
+        client.upsert_user(user.stream_user_data)
       end
 
       channels_to_update.each do |channel_id, info|

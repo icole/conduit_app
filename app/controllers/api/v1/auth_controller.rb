@@ -383,12 +383,7 @@ module Api
       end
 
       def sync_user_to_stream
-        StreamChatClient.client.upsert_user({
-          id: @current_user.id.to_s,
-          name: @current_user.name,
-          image: @current_user.avatar_url,
-          role: @current_user.admin? ? "admin" : "user"
-        })
+        StreamChatClient.client.upsert_user(@current_user.stream_user_data)
       rescue StreamChat::StreamAPIException => e
         Rails.logger.error "Failed to sync user to Stream: #{e.message}"
         raise e
