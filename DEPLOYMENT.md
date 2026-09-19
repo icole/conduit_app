@@ -10,11 +10,22 @@
 
 ### Required for Stream Chat
 
+Two Stream apps, two pairs of credentials. Keep them in the same `.env`:
+
 ```bash
-# Stream Chat Configuration (get from https://getstream.io/)
-STREAM_API_KEY=your_stream_api_key
-STREAM_API_SECRET=your_stream_api_secret
+# Local development (loaded by dotenv when you run bin/rails server)
+STREAM_API_KEY=your_dev_stream_api_key
+STREAM_API_SECRET=your_dev_stream_api_secret
+
+# Production (what `kamal deploy` ships — see .kamal/secrets)
+STREAM_PROD_API_KEY=your_production_stream_api_key
+STREAM_PROD_API_SECRET=your_production_stream_api_secret
 ```
+
+Inside the container the app always reads `STREAM_API_KEY` / `STREAM_API_SECRET`;
+`.kamal/secrets` maps those to the `STREAM_PROD_*` values at deploy time so a plain
+`source .env` can never push dev credentials to production. Staging has its own
+`.env.staging` with its own `STREAM_API_KEY` pair (a third Stream app).
 
 ### Other Required Variables
 
@@ -104,7 +115,8 @@ After successful deployment:
 ### Troubleshooting
 
 #### Stream Chat not working?
-- Verify STREAM_API_KEY and STREAM_API_SECRET are correct
+- Verify STREAM_PROD_API_KEY and STREAM_PROD_API_SECRET in `.env` are the production app's (Stream dashboard → app → Overview)
+- Confirm what the container is running: `kamal app exec --reuse 'printenv STREAM_API_KEY'`
 - Check Rails logs: `kamal app logs`
 - Test Stream connection: `kamal app exec 'bin/rails stream:test'`
 

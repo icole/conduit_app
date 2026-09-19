@@ -6,19 +6,20 @@
 echo "🚀 Deploying ConduitApp with Stream Chat integration..."
 
 # Check if Stream environment variables are set
-if [ -z "$STREAM_API_KEY" ] || [ -z "$STREAM_API_SECRET" ]; then
-    echo "❌ Error: Stream Chat environment variables not found!"
+# Production deploys ship STREAM_PROD_* (see .kamal/secrets). The bare STREAM_* pair is local dev.
+if [ -z "$STREAM_PROD_API_KEY" ] || [ -z "$STREAM_PROD_API_SECRET" ]; then
+    echo "❌ Error: Stream Chat production credentials not found!"
     echo ""
     echo "Please set the following environment variables:"
-    echo "  export STREAM_API_KEY=your_stream_api_key"
-    echo "  export STREAM_API_SECRET=your_stream_api_secret"
+    echo "  export STREAM_PROD_API_KEY=your_production_stream_api_key"
+    echo "  export STREAM_PROD_API_SECRET=your_production_stream_api_secret"
     echo ""
     echo "You can add these to your .env file or shell profile"
     exit 1
 fi
 
-echo "✅ Stream Chat credentials found"
-echo "  API Key: ${STREAM_API_KEY:0:10}..."
+echo "✅ Stream Chat production credentials found"
+echo "  API Key: ${STREAM_PROD_API_KEY:0:10}..."
 
 # Check if other required environment variables are set
 required_vars=(
