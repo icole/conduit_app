@@ -9,12 +9,14 @@
 #   backfill.plan     # => [Row, ...]  what would change, and why
 #   backfill.apply!   # writes `team` on every channel that needs it
 #   backfill.verify   # => report hash; must be :ok before flipping the toggle
+#   backfill.enable_multi_tenant!  # verifies, then flips the app setting
 class StreamTeamBackfill
   CHANNEL_FILTER = { "type" => { "$eq" => "team" } }.freeze
   SORT = { "created_at" => -1 }.freeze
   PAGE_SIZE = 100
 
   class UnattributedChannels < StandardError; end
+  class NotReady < StandardError; end
 
   Row = Struct.new(:type, :id, :current_team, :community_slug, :resolved_team, :source, keyword_init: true) do
     def changed?
@@ -51,7 +53,17 @@ class StreamTeamBackfill
     end
   end
 
+  # Which Stream app we're talking to and whether teams are being enforced.
+  def app_info
+    app = @client.get_app_settings["app"]
+    {
+      name: app["name"],
+      multi_tenant_enabled: app["multi_tenant_enabled"] == true
+    }
+  end
+
   def verify
+    info = app_info
     channels = all_channels
 
     channels_without_team = channels.select { |c| c["team"].blank? }.map { |c| c["id"] }
@@ -61,11 +73,25 @@ class StreamTeamBackfill
     users_without_teams = find_users_without_teams
 
     {
+      app_name: info[:name],
+      multi_tenant_enabled: info[:multi_tenant_enabled],
       channels_without_team: channels_without_team,
       channels_mismatched: channels_mismatched,
       users_without_teams: users_without_teams,
       ok: channels_without_team.empty? && channels_mismatched.empty? && users_without_teams.empty?
     }
+  end
+
+  # Turns on Stream's multi-tenant enforcement, but only once every channel and
+  # user is assigned - otherwise they'd lose access the moment it flips.
+  # Returns false if it was already enabled.
+  def enable_multi_tenant!
+    report = verify
+    raise NotReady, "Teams are not fully assigned; run verify first" unless report[:ok]
+    return false if report[:multi_tenant_enabled]
+
+    @client.update_app_settings(multi_tenant_enabled: true)
+    true
   end
 
   private

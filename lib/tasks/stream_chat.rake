@@ -1,4 +1,14 @@
 namespace :stream_chat do
+  # Prints which Stream app the credentials point at and whether teams are
+  # enforced. Used by every teams task so you always know what you're touching.
+  def print_stream_app_header(backfill)
+    info = backfill.app_info
+    key = StreamChatClient.api_key.to_s
+    puts "Stream app: #{info[:name]}  (API key #{key[0, 6]}…)  multi-tenant: #{info[:multi_tenant_enabled] ? 'ENABLED' : 'off'}"
+    puts ""
+    info
+  end
+
   desc "Setup default Stream Chat channels for HOA community"
   task setup_channels: :environment do
     puts "Setting up default Stream Chat channels..."
@@ -452,6 +462,12 @@ namespace :stream_chat do
     end
 
     backfill = StreamTeamBackfill.new(legacy_slug: ENV["LEGACY_SLUG"])
+    info = print_stream_app_header(backfill)
+    if info[:multi_tenant_enabled]
+      puts "WARNING: multi-tenant mode is already enabled on this app - team changes take effect immediately."
+      puts ""
+    end
+
     rows = backfill.plan
 
     if rows.empty?
@@ -495,7 +511,9 @@ namespace :stream_chat do
       next
     end
 
-    report = StreamTeamBackfill.new.verify
+    backfill = StreamTeamBackfill.new
+    print_stream_app_header(backfill)
+    report = backfill.verify
 
     puts "Channels without team:  #{report[:channels_without_team].size}"
     report[:channels_without_team].each { |id| puts "  - #{id}" }
@@ -504,11 +522,75 @@ namespace :stream_chat do
     puts "Users without their community's team:  #{report[:users_without_teams].size}"
     report[:users_without_teams].each { |id| puts "  - user #{id}" }
 
-    if report[:ok]
-      puts "\nOK - safe to enable multi-tenant mode in the Stream dashboard."
+    if report[:ok] && report[:multi_tenant_enabled]
+      puts "\nOK - multi-tenant mode is enabled and every channel and user is assigned to a team."
+    elsif report[:ok]
+      puts "\nOK - safe to enable multi-tenant mode: bin/rails stream_chat:enable_multi_tenant CONFIRM=true"
+    elsif report[:multi_tenant_enabled]
+      puts "\nPROBLEM - multi-tenant mode is ENABLED but the items above are unassigned, so those users/channels are"
+      puts "currently invisible. Fix them now (stream:sync_users, stream_chat:backfill_teams APPLY=true) or disable"
+      puts "multi-tenant mode: bin/rails stream_chat:disable_multi_tenant CONFIRM=true"
+      exit 1
     else
       puts "\nNOT READY - run stream:sync_users and stream_chat:backfill_teams APPLY=true, then re-verify."
       exit 1
     end
+  end
+
+  desc "Enable Stream multi-tenant (Teams) enforcement. Refuses unless verify_teams passes. Requires CONFIRM=true."
+  task enable_multi_tenant: :environment do
+    unless StreamChatClient.configured?
+      puts "Stream Chat is not configured."
+      next
+    end
+
+    backfill = StreamTeamBackfill.new
+    info = print_stream_app_header(backfill)
+
+    if info[:multi_tenant_enabled]
+      puts "Multi-tenant mode is already enabled. Nothing to do."
+      next
+    end
+
+    unless ENV["CONFIRM"] == "true"
+      puts "This makes Stream enforce team isolation for every user and channel on the app above."
+      puts "Run stream_chat:verify_teams first, then re-run with CONFIRM=true."
+      next
+    end
+
+    begin
+      backfill.enable_multi_tenant!
+    rescue StreamTeamBackfill::NotReady => e
+      puts "Refused: #{e.message} (bin/rails stream_chat:verify_teams)"
+      exit 1
+    end
+
+    puts "Multi-tenant mode is now: #{backfill.app_info[:multi_tenant_enabled] ? 'ENABLED' : 'off (?!)'}"
+    puts "Smoke-test from the apps now. Rollback: bin/rails stream_chat:disable_multi_tenant CONFIRM=true"
+  end
+
+  desc "Disable Stream multi-tenant enforcement (rollback). Removes all team isolation. Requires CONFIRM=true."
+  task disable_multi_tenant: :environment do
+    unless StreamChatClient.configured?
+      puts "Stream Chat is not configured."
+      next
+    end
+
+    backfill = StreamTeamBackfill.new
+    info = print_stream_app_header(backfill)
+
+    unless info[:multi_tenant_enabled]
+      puts "Multi-tenant mode is already off. Nothing to do."
+      next
+    end
+
+    unless ENV["CONFIRM"] == "true"
+      puts "This turns off team checking: every user could access every community's channels."
+      puts "Re-run with CONFIRM=true only as a rollback."
+      next
+    end
+
+    StreamChatClient.client.update_app_settings(multi_tenant_enabled: false)
+    puts "Multi-tenant mode is now: #{backfill.app_info[:multi_tenant_enabled] ? 'ENABLED (?!)' : 'off'}"
   end
 end

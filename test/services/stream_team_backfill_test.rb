@@ -83,6 +83,7 @@ class StreamTeamBackfillTest < ActiveSupport::TestCase
 
   test "verify reports channels without a team, mismatched channels, and users without teams" do
     mock_client = Minitest::Mock.new
+    mock_client.expect :get_app_settings, { "app" => { "name" => "Conduit", "multi_tenant_enabled" => false } }
     stub_channels(mock_client,
       channel("crow-woods-general", team: "crow-woods", community_slug: "crow-woods"),
       channel("crow-woods-events", community_slug: "crow-woods"),
@@ -107,6 +108,80 @@ class StreamTeamBackfillTest < ActiveSupport::TestCase
     communities_with_users = Community.all.count { |c| ActsAsTenant.with_tenant(c) { User.exists? } }
     assert_equal communities_with_users, report[:users_without_teams].size
     assert_not report[:ok]
+    mock_client.verify
+  end
+
+  # --- multi-tenant app state ---
+
+  def stub_app_settings(mock_client, multi_tenant:, name: "Conduit Prod")
+    mock_client.expect :get_app_settings, { "app" => { "name" => name, "multi_tenant_enabled" => multi_tenant } }
+  end
+
+  def stub_all_users_with_teams(mock_client)
+    Community.find_each do |community|
+      ids = ActsAsTenant.with_tenant(community) { User.order(:id).pluck(:id).map(&:to_s) }
+      next if ids.empty?
+
+      users = ids.map { |id| { "id" => id, "teams" => [ community.slug ] } }
+      mock_client.expect :query_users, { "users" => users }, [ { "id" => { "$in" => ids } } ], limit: StreamTeamBackfill::PAGE_SIZE
+    end
+  end
+
+  test "app_info reports the app name and whether multi-tenant mode is enabled" do
+    mock_client = Minitest::Mock.new
+    stub_app_settings(mock_client, multi_tenant: false, name: "Conduit Dev")
+
+    info = StreamTeamBackfill.new(client: mock_client).app_info
+
+    assert_equal "Conduit Dev", info[:name]
+    assert_equal false, info[:multi_tenant_enabled]
+    mock_client.verify
+  end
+
+  test "verify includes the multi-tenant state and is ok when everything is assigned" do
+    mock_client = Minitest::Mock.new
+    stub_app_settings(mock_client, multi_tenant: true)
+    stub_channels(mock_client, channel("crow-woods-general", team: "crow-woods", community_slug: "crow-woods"))
+    stub_all_users_with_teams(mock_client)
+
+    report = StreamTeamBackfill.new(client: mock_client).verify
+
+    assert report[:ok]
+    assert_equal true, report[:multi_tenant_enabled]
+    mock_client.verify
+  end
+
+  test "enable_multi_tenant! refuses while verify is not ok" do
+    mock_client = Minitest::Mock.new
+    stub_app_settings(mock_client, multi_tenant: false)
+    stub_channels(mock_client, channel("crow-woods-events", community_slug: "crow-woods"))
+    stub_all_users_with_teams(mock_client)
+
+    assert_raises StreamTeamBackfill::NotReady do
+      StreamTeamBackfill.new(client: mock_client).enable_multi_tenant!
+    end
+    mock_client.verify
+  end
+
+  test "enable_multi_tenant! flips the app setting once verify is ok" do
+    mock_client = Minitest::Mock.new
+    stub_app_settings(mock_client, multi_tenant: false)
+    stub_channels(mock_client, channel("crow-woods-general", team: "crow-woods", community_slug: "crow-woods"))
+    stub_all_users_with_teams(mock_client)
+    mock_client.expect :update_app_settings, {}, [], multi_tenant_enabled: true
+
+    StreamTeamBackfill.new(client: mock_client).enable_multi_tenant!
+
+    mock_client.verify
+  end
+
+  test "enable_multi_tenant! is a no-op when already enabled" do
+    mock_client = Minitest::Mock.new
+    stub_app_settings(mock_client, multi_tenant: true)
+    stub_channels(mock_client, channel("crow-woods-general", team: "crow-woods", community_slug: "crow-woods"))
+    stub_all_users_with_teams(mock_client)
+
+    assert_equal false, StreamTeamBackfill.new(client: mock_client).enable_multi_tenant!
     mock_client.verify
   end
 end
