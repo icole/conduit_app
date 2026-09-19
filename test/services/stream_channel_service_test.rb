@@ -23,10 +23,8 @@ class StreamChannelServiceTest < ActiveSupport::TestCase
     mock_client = Minitest::Mock.new
     StreamChannelService::DEFAULT_CHANNELS.each do |channel_data|
       channel_id = "#{@community.slug}-#{channel_data[:id]}"
-      mock_client.expect :channel, mock_channel, [ "team" ], channel_id: channel_id, data: {
-        name: channel_data[:name],
-        created_by_id: @user.id.to_s
-      }
+      mock_client.expect :channel, mock_channel, [ "team" ], channel_id: channel_id,
+        data: StreamChannelService.channel_data(@community, name: channel_data[:name], created_by_id: @user.id.to_s)
     end
 
     StreamChatClient.stub :client, mock_client do
@@ -35,5 +33,14 @@ class StreamChannelServiceTest < ActiveSupport::TestCase
 
     mock_client.verify
     mock_channel.verify
+  end
+
+  test "channel_data always carries the community's team and slug" do
+    data = StreamChannelService.channel_data(@community, name: "Pets")
+
+    assert_equal @community.slug, data[:team]
+    assert_equal @community.slug, data[:community_slug]
+    assert_equal @community.id, data[:community_id]
+    assert_equal "Pets", data[:name]
   end
 end

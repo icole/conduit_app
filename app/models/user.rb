@@ -118,12 +118,16 @@ class User < ApplicationRecord
   # channel in the Stream app, across every community), so community admins
   # must never be mapped to it. Community-level moderation belongs on channel
   # membership roles, not the app role.
+  #
+  # `teams` is the community slug: once Stream's multi-tenant mode is enabled
+  # a user can only see channels whose `team` is in this list.
   def stream_user_data
     {
       id: stream_user_id,
       name: name,
       image: avatar_url || gravatar_url,
-      role: "user"
+      role: "user",
+      teams: [ community.slug ]
     }
   end
 

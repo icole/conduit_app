@@ -8,6 +8,17 @@ class StreamChannelService
     { id: "events", name: "Events", description: "Community events and gatherings" }
   ].freeze
 
+  # Every channel we create or update goes through this so it always carries
+  # the community's Stream `team` (enforced once multi-tenant mode is on) and
+  # our own community metadata.
+  def self.channel_data(community, **attrs)
+    {
+      team: community.slug,
+      community_id: community.id,
+      community_slug: community.slug
+    }.merge(attrs)
+  end
+
   def self.setup_default_channels(user)
     client = StreamChatClient.client
     community = user.community
@@ -24,12 +35,7 @@ class StreamChannelService
         channel.query(user_id: user.id.to_s)
 
         # Update the channel if it already exists
-        channel.update({
-          name: channel_data[:name],
-          description: channel_data[:description],
-          community_id: community.id,
-          community_slug: community.slug
-        })
+        channel.update(channel_data(community, name: channel_data[:name], description: channel_data[:description]))
 
         # Add user as member
         channel.add_members([ user.id.to_s ])
@@ -39,12 +45,7 @@ class StreamChannelService
         # Channel might already exist, try to update it
         if e.message.include?("already exists")
           channel.update(
-            {
-              name: channel_data[:name],
-              description: channel_data[:description],
-              community_id: community.id,
-              community_slug: community.slug
-            },
+            channel_data(community, name: channel_data[:name], description: channel_data[:description]),
             user_id: user.id.to_s
           )
 
@@ -71,10 +72,9 @@ class StreamChannelService
       begin
         channel_id = community_channel_id(community, channel_data[:id])
         # Pass created_by_id so Stream's GetOrCreate works with server-side auth
-        channel = client.channel("team", channel_id: channel_id, data: {
-          name: channel_data[:name],
-          created_by_id: user.id.to_s
-        })
+        channel = client.channel("team", channel_id: channel_id, data: channel_data(
+          community, name: channel_data[:name], created_by_id: user.id.to_s
+        ))
 
         channel.query(user_id: user.id.to_s)
         channel.add_members([ user.id.to_s ])

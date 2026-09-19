@@ -192,4 +192,9 @@ class UserTest < ActiveSupport::TestCase
   test "stream_user_data does not send the user's email to Stream" do
     assert_not_includes users(:admin_user).stream_user_data.keys, :email
   end
+
+  test "stream_user_data scopes the user to their community's Stream team" do
+    user = users(:regular_user)
+    assert_equal [ user.community.slug ], user.stream_user_data[:teams]
+  end
 end

@@ -111,14 +111,13 @@ namespace :stream_chat do
         channel_id = "#{community.slug}-#{channel_data[:id]}"
 
         begin
-          # Initialize channel with custom_data
-          custom_data = {
-            "name" => channel_data[:name],
-            "description" => channel_data[:description],
-            "community_id" => community.id,
-            "community_slug" => community.slug,
-            "members" => [ admin_user.id.to_s ]
-          }
+          # Initialize channel with community metadata + team
+          custom_data = StreamChannelService.channel_data(
+            community,
+            name: channel_data[:name],
+            description: channel_data[:description],
+            members: [ admin_user.id.to_s ]
+          )
           channel = client.channel("team", channel_id: channel_id, data: custom_data)
 
           # Create the channel (this will use custom_data set above)
@@ -126,12 +125,9 @@ namespace :stream_chat do
           puts "    Created/updated channel: #{channel_id}"
 
           # Ensure metadata is set
-          channel.update_partial({
-            "name" => channel_data[:name],
-            "description" => channel_data[:description],
-            "community_id" => community.id,
-            "community_slug" => community.slug
-          })
+          channel.update_partial(
+            StreamChannelService.channel_data(community, name: channel_data[:name], description: channel_data[:description])
+          )
         rescue => e
           puts "    Error with channel #{channel_id}: #{e.message}"
         end
@@ -445,5 +441,74 @@ namespace :stream_chat do
     end
 
     puts "\n=== All communities processed ==="
+  end
+
+  desc "Plan (or with APPLY=true, write) the Stream team for every channel. " \
+       "Safe to run before multi-tenant mode is enabled. LEGACY_SLUG=slug assigns old unprefixed default channels."
+  task backfill_teams: :environment do
+    unless StreamChatClient.configured?
+      puts "Stream Chat is not configured."
+      next
+    end
+
+    backfill = StreamTeamBackfill.new(legacy_slug: ENV["LEGACY_SLUG"])
+    rows = backfill.plan
+
+    if rows.empty?
+      puts "No channels found."
+      next
+    end
+
+    width = rows.map { |r| r.id.length }.max
+    puts format("%-#{width}s  %-18s  %-18s  %-15s  %s", "channel", "current team", "resolved team", "source", "action")
+    rows.each do |row|
+      action =
+        if row.unattributed? then "UNATTRIBUTED"
+        elsif row.changed? then "set team"
+        else "ok"
+        end
+      puts format("%-#{width}s  %-18s  %-18s  %-15s  %s", row.id, row.current_team || "-", row.resolved_team || "-", row.source || "-", action)
+    end
+
+    puts ""
+    puts "#{rows.count(&:changed?)} to update, #{rows.count { |r| !r.changed? && !r.unattributed? }} already correct, " \
+         "#{rows.count(&:unattributed?)} unattributed"
+
+    if rows.any?(&:unattributed?)
+      puts "Unattributed channels must be assigned (set community_slug) or deleted before applying."
+      puts "For old unprefixed default channels, pass LEGACY_SLUG=<slug>."
+      next
+    end
+
+    if ENV["APPLY"] == "true"
+      applied = backfill.apply!
+      puts "Updated #{applied.size} channel(s)."
+    else
+      puts "Dry run. Re-run with APPLY=true to write."
+    end
+  end
+
+  desc "Verify every channel and every user has a Stream team. Must pass before enabling multi-tenant mode."
+  task verify_teams: :environment do
+    unless StreamChatClient.configured?
+      puts "Stream Chat is not configured."
+      next
+    end
+
+    report = StreamTeamBackfill.new.verify
+
+    puts "Channels without team:  #{report[:channels_without_team].size}"
+    report[:channels_without_team].each { |id| puts "  - #{id}" }
+    puts "Channels whose team != community_slug:  #{report[:channels_mismatched].size}"
+    report[:channels_mismatched].each { |id| puts "  - #{id}" }
+    puts "Users without their community's team:  #{report[:users_without_teams].size}"
+    report[:users_without_teams].each { |id| puts "  - user #{id}" }
+
+    if report[:ok]
+      puts "\nOK - safe to enable multi-tenant mode in the Stream dashboard."
+    else
+      puts "\nNOT READY - run stream:sync_users and stream_chat:backfill_teams APPLY=true, then re-verify."
+      exit 1
+    end
   end
 end

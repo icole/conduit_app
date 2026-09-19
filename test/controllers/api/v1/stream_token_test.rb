@@ -22,7 +22,7 @@ class Api::V1::StreamTokenTest < ActionDispatch::IntegrationTest
     StreamChannelService::DEFAULT_CHANNELS.each do |channel_data|
       mock_client.expect :channel, mock_channel, [ "team" ],
         channel_id: "#{@community.slug}-#{channel_data[:id]}",
-        data: { name: channel_data[:name], created_by_id: @admin_user.id.to_s }
+        data: StreamChannelService.channel_data(@community, name: channel_data[:name], created_by_id: @admin_user.id.to_s)
     end
     mock_client.expect :create_token, "stream-token", [ @admin_user.id.to_s ]
 

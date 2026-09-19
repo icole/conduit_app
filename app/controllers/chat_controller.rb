@@ -105,7 +105,7 @@ class ChatController < ApplicationController
       channel_id = "#{community.slug}-#{base_id}"
 
       # Get all community users and sync them to Stream
-      community_users = community.users.select(:id, :name, :avatar_url, :email)
+      community_users = community.users.order(:id)
       users_to_sync = community_users.map(&:stream_user_data)
 
       # Upsert all users to Stream (creates them if they don't exist)
@@ -113,12 +113,10 @@ class ChatController < ApplicationController
 
       community_user_ids = community_users.map { |u| u.id.to_s }
 
-      # Create the channel with data
-      channel = client.channel("team", channel_id: channel_id, data: {
-        name: channel_name,
-        members: community_user_ids,
-        community_slug: community.slug
-      })
+      # Create the channel inside the community's team with all members
+      channel = client.channel("team", channel_id: channel_id, data: StreamChannelService.channel_data(
+        community, name: channel_name, members: community_user_ids
+      ))
       channel.create(user.id.to_s)
 
       Rails.logger.info "Created channel #{channel_id} with #{community_user_ids.length} members"

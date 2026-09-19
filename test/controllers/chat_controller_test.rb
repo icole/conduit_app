@@ -131,7 +131,7 @@ class ChatControllerTest < ActionDispatch::IntegrationTest
     StreamChannelService::DEFAULT_CHANNELS.each do |channel_data|
       mock_client.expect :channel, mock_channel, [ "team" ],
         channel_id: "#{@community.slug}-#{channel_data[:id]}",
-        data: { name: channel_data[:name], created_by_id: @admin_user.id.to_s }
+        data: StreamChannelService.channel_data(@community, name: channel_data[:name], created_by_id: @admin_user.id.to_s)
     end
     mock_client.expect :create_token, "stream-token", [ @admin_user.id.to_s ]
 
@@ -143,6 +143,35 @@ class ChatControllerTest < ActionDispatch::IntegrationTest
 
         assert_response :ok
         assert_equal "stream-token", JSON.parse(response.body)["token"]
+      end
+    end
+
+    mock_client.verify
+    mock_channel.verify
+  end
+
+  test "create_channel creates the channel inside the community's Stream team" do
+    community_users = @community.users.order(:id)
+    channel_id = "#{@community.slug}-pets"
+
+    mock_channel = Minitest::Mock.new
+    mock_channel.expect :create, {}, [ @admin_user.id.to_s ]
+
+    mock_client = Minitest::Mock.new
+    mock_client.expect :upsert_users, {}, [ community_users.map(&:stream_user_data) ]
+    mock_client.expect :channel, mock_channel, [ "team" ],
+      channel_id: channel_id,
+      data: StreamChannelService.channel_data(@community, name: "Pets", members: community_users.map { |u| u.id.to_s })
+
+    StreamChatClient.stub :configured?, true do
+      StreamChatClient.stub :client, mock_client do
+        post create_chat_channel_url,
+          params: { name: "Pets" },
+          headers: { "Authorization" => "Bearer #{@admin_token}" },
+          as: :json
+
+        assert_response :ok
+        assert_equal channel_id, JSON.parse(response.body)["channel_id"]
       end
     end
 
