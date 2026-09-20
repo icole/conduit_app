@@ -70,4 +70,15 @@ class Api::V1::GoogleAuthTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
     assert_nil JSON.parse(response.body)["auth_token"]
   end
+
+  test "google_auth requires community_domain even for existing users" do
+    verified = { "email" => @user.email, "email_verified" => "true", "name" => @user.name, "sub" => @user.uid }
+
+    GoogleIdTokenVerifier.stub(:verify, verified) do
+      post api_v1_google_auth_url, params: { id_token: "valid-token" }, as: :json
+    end
+
+    assert_response :bad_request
+    assert_equal "community_domain_required", JSON.parse(response.body)["error"]
+  end
 end

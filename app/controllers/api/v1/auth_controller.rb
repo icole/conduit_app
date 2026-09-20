@@ -11,24 +11,14 @@ module Api
 
       # POST /api/v1/login
       def login
-        # Search across all tenants since we're using API domain
-        user = ActsAsTenant.without_tenant do
+        community = required_community or return
+
+        # Email is only unique per community, so the lookup must be scoped.
+        user = ActsAsTenant.with_tenant(community) do
           User.find_by(email: params[:email]&.downcase)
         end
 
         if user&.authenticate(params[:password])
-          # Verify user belongs to the expected community (if specified)
-          if params[:community_domain].present?
-            expected_community = Community.find_by(domain: params[:community_domain])
-            Rails.logger.info "[LOGIN] community_domain param: #{params[:community_domain].inspect}"
-            Rails.logger.info "[LOGIN] expected_community: #{expected_community&.id} (#{expected_community&.name})"
-            Rails.logger.info "[LOGIN] user.community_id: #{user.community_id}, user.community: #{user.community&.name}"
-            if expected_community.nil? || user.community_id != expected_community.id
-              render json: { error: "User not found in this community" }, status: :unauthorized
-              return
-            end
-          end
-
           # Set tenant for the user's community
           set_current_tenant(user.community)
 
@@ -218,6 +208,8 @@ module Api
           return
         end
 
+        community = required_community or return
+
         begin
           verified_data = GoogleIdTokenVerifier.verify(params[:id_token])
           unless verified_data
@@ -235,27 +227,18 @@ module Api
           image_url = verified_data["picture"]
           google_uid = verified_data["sub"]  # Google's unique user ID
 
-          # First, check if user already exists:
-          # 1. By email (primary lookup)
-          # 2. By Google UID (for users who linked different Google account)
-          # Search across all tenants since we're using API domain
-          user = ActsAsTenant.without_tenant do
+          # Look the user up inside the named community only: email is unique
+          # per community, not globally.
+          #   1. By email (primary lookup)
+          #   2. By Google UID (for users who linked a different Google account)
+          user = ActsAsTenant.with_tenant(community) do
             User.find_by(email: email.downcase) ||
               (google_uid.present? && User.find_by(provider: "google_oauth2", uid: google_uid))
           end
 
-          Rails.logger.info "Google Auth: email=#{email}, existing_user=#{user.present?}"
+          Rails.logger.info "Google Auth: community=#{community.slug} existing_user=#{user.present?}"
 
           if user
-            # Verify user belongs to the expected community (if specified)
-            if params[:community_domain].present?
-              expected_community = Community.find_by(domain: params[:community_domain])
-              if expected_community.nil? || user.community_id != expected_community.id
-                render json: { error: "User not found in this community" }, status: :unauthorized
-                return
-              end
-            end
-
             # Set tenant for the user's community
             set_current_tenant(user.community)
 
@@ -267,19 +250,7 @@ module Api
               name: user.name.presence || name
             )
           else
-            # New user - need to set tenant first
-            if params[:community_domain].blank?
-              render json: { error: "Community domain is required for new users" }, status: :bad_request
-              return
-            end
-
-            community = Community.find_by(domain: params[:community_domain])
-            if community.nil?
-              render json: { error: "Community not found" }, status: :not_found
-              return
-            end
-
-            # Set tenant before creating user
+            # New user - set tenant before creating
             set_current_tenant(community)
 
             # Check invitation requirement only for truly new users
@@ -334,6 +305,34 @@ module Api
       end
 
       private
+
+      # The community a login is scoped to. Renders the error and returns nil
+      # when it is missing or unknown, so callers can `or return`.
+      def required_community
+        domain = params[:community_domain]
+        if domain.blank?
+          render json: { error: "community_domain_required" }, status: :bad_request
+          return nil
+        end
+
+        community = community_from_domain(domain)
+        unless community
+          render json: { error: "User not found in this community" }, status: :unauthorized
+          return nil
+        end
+
+        community
+      end
+
+      # Strict domain lookup, except that local development maps localhost and
+      # the Android emulator host to the dev community (mirrors find_community_by_host).
+      def community_from_domain(domain)
+        if Rails.env.development? && (domain.include?("localhost") || domain == "10.0.2.2")
+          return Community.find_by(slug: "crow-woods")
+        end
+
+        Community.find_by(domain: domain) || Community.find_by(domain: domain.sub(/\Awww\./, ""))
+      end
 
       def set_tenant_from_jwt
         auth_header = request.headers["Authorization"]
