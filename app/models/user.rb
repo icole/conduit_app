@@ -54,7 +54,7 @@ class User < ApplicationRecord
 
   # Allow OAuth users to not have a password
   # Only validate password when it's being set (new record or password change)
-  validates :password, presence: true, length: { minimum: 6 }, if: -> { provider.blank? && (new_record? || password_digest_changed?) }
+  validates :password, presence: true, length: { minimum: 8 }, if: -> { provider.blank? && (new_record? || password_digest_changed?) }
   validates :password, confirmation: true, if: -> { password.present? }
 
   # Handle discarded records before destroy - Discardable's default scope hides them from dependent: :destroy

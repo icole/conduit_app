@@ -197,4 +197,15 @@ class UserTest < ActiveSupport::TestCase
     user = users(:regular_user)
     assert_equal [ user.community.slug ], user.stream_user_data[:teams]
   end
+
+  # Password policy
+
+  test "password must be at least 8 characters" do
+    user = User.new(name: "Test", email: "pw@example.com", password: "1234567", password_confirmation: "1234567")
+    assert_not user.valid?
+    assert_includes user.errors[:password], "is too short (minimum is 8 characters)"
+
+    user.password = user.password_confirmation = "12345678"
+    assert user.valid?, user.errors.full_messages.join(", ")
+  end
 end
