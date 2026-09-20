@@ -7,13 +7,13 @@ class ChatController < ApplicationController
 
   # Skip standard session auth for mobile API endpoints - they use JWT
   skip_before_action :authenticate_user!, only: MOBILE_API_ACTIONS
-  before_action :authenticate_user!, except: [ :debug ] + MOBILE_API_ACTIONS
+  before_action :authenticate_user!, except: MOBILE_API_ACTIONS
 
   # Mobile API auth - supports both JWT and session
   before_action :set_tenant_from_jwt, only: MOBILE_API_ACTIONS
   before_action :authenticate_api_or_session!, only: MOBILE_API_ACTIONS
 
-  before_action :ensure_stream_configured, except: [ :debug, :token ]
+  before_action :ensure_stream_configured, except: [ :token ]
 
   # Skip CSRF for API endpoints called from mobile apps
   skip_forgery_protection only: MOBILE_API_ACTIONS
@@ -77,12 +77,6 @@ class ChatController < ApplicationController
         }
       end
     end
-  end
-
-  # GET /chat/test_native
-  # Test page to verify Turbo Native detection
-  def test_native
-    render layout: turbo_native_app? ? "turbo_native" : "application"
   end
 
   # POST /chat/channels
@@ -265,20 +259,6 @@ class ChatController < ApplicationController
       Rails.logger.error "Error syncing channel members: #{e.message}"
       render json: { error: "Failed to sync members" }, status: :internal_server_error
     end
-  end
-
-  # GET /chat/debug
-  # Debug page to check Stream configuration
-  def debug
-    render json: {
-      stream_configured: StreamChatClient.configured?,
-      api_key_present: ENV["STREAM_API_KEY"].present?,
-      api_secret_present: ENV["STREAM_API_SECRET"].present?,
-      turbo_native_app: turbo_native_app?,
-      user_agent: request.user_agent,
-      authenticated: user_signed_in?,
-      user_id: current_user&.id
-    }
   end
 
   private

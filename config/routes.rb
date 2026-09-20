@@ -168,8 +168,6 @@ Rails.application.routes.draw do
   resources :chat, only: [ :index ] do
     collection do
       get :token # API endpoint for mobile app token
-      get :test_native # Test Turbo Native detection
-      get :debug # Debug endpoint to check configuration
     end
   end
   post "chat/channels", to: "chat#create_channel", as: :create_chat_channel

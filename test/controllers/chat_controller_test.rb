@@ -178,4 +178,16 @@ class ChatControllerTest < ActionDispatch::IntegrationTest
     mock_client.verify
     mock_channel.verify
   end
+
+  # --- no debug endpoints in a public build ---
+
+  test "chat/debug is not routable" do
+    get "/chat/debug", as: :json
+    assert_response :not_found
+  end
+
+  test "chat/test_native is not routable" do
+    get "/chat/test_native"
+    assert_response :not_found
+  end
 end
