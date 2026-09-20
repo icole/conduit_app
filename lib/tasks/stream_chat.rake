@@ -593,4 +593,34 @@ namespace :stream_chat do
     StreamChatClient.client.update_app_settings(multi_tenant_enabled: false)
     puts "Multi-tenant mode is now: #{backfill.app_info[:multi_tenant_enabled] ? 'ENABLED (?!)' : 'off'}"
   end
+
+  desc "Audit cross-community isolation the way an attacker would: query Stream with real user tokens, no app, no filter. Exits 1 on any leak."
+  task audit_isolation: :environment do
+    unless StreamChatClient.configured?
+      puts "Stream Chat is not configured."
+      next
+    end
+
+    print_stream_app_header(StreamTeamBackfill.new)
+    report = StreamIsolationAudit.new.run
+
+    report[:communities].each do |slug, r|
+      puts "#{slug} (as user #{r[:user_id]})"
+      puts "  unfiltered queryChannels returned #{r[:visible_count]} channel(s)"
+      puts "    foreign (other community's):  #{r[:foreign_visible].size}"
+      r[:foreign_visible].each { |id| puts "      LEAK  #{id}" }
+      puts "    unattributed:                 #{r[:unattributed_visible].size}"
+      r[:unattributed_visible].each { |id| puts "      LEAK  #{id}" }
+      puts "  direct query of #{r[:probed_count]} foreign channel(s): #{r[:foreign_readable].size} readable"
+      r[:foreign_readable].each { |id| puts "      LEAK  #{id}" }
+    end
+
+    puts ""
+    if report[:leaks]
+      puts "LEAKS FOUND - channels are reachable across community boundaries with a plain user token."
+      exit 1
+    else
+      puts "CLEAN - no user token could see or read another community's channels."
+    end
+  end
 end
