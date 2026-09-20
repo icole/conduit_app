@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_20_050000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_20_060000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -79,56 +79,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_050000) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["user_id"], name: "index_calendar_shares_on_user_id"
-  end
-
-  create_table "chore_assignments", force: :cascade do |t|
-    t.boolean "active", default: true, null: false
-    t.bigint "chore_id", null: false
-    t.datetime "created_at", null: false
-    t.date "end_date"
-    t.date "start_date"
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["active"], name: "index_chore_assignments_on_active"
-    t.index ["chore_id", "active"], name: "index_chore_assignments_on_chore_id_and_active"
-    t.index ["chore_id"], name: "index_chore_assignments_on_chore_id"
-    t.index ["user_id"], name: "index_chore_assignments_on_user_id"
-  end
-
-  create_table "chore_completions", force: :cascade do |t|
-    t.bigint "chore_id", null: false
-    t.datetime "completed_at", null: false
-    t.bigint "completed_by_id", null: false
-    t.datetime "created_at", null: false
-    t.text "notes"
-    t.datetime "updated_at", null: false
-    t.index ["chore_id", "completed_at"], name: "index_chore_completions_on_chore_id_and_completed_at"
-    t.index ["chore_id"], name: "index_chore_completions_on_chore_id"
-    t.index ["completed_at"], name: "index_chore_completions_on_completed_at"
-    t.index ["completed_by_id"], name: "index_chore_completions_on_completed_by_id"
-  end
-
-  create_table "chores", force: :cascade do |t|
-    t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
-    t.bigint "created_by_id"
-    t.bigint "deleted_by_id"
-    t.text "description"
-    t.datetime "discarded_at"
-    t.string "frequency"
-    t.jsonb "frequency_details", default: {}
-    t.string "name", null: false
-    t.date "next_due_date"
-    t.bigint "proposed_by_id", null: false
-    t.string "status", default: "proposed", null: false
-    t.datetime "updated_at", null: false
-    t.index ["community_id"], name: "index_chores_on_community_id"
-    t.index ["created_by_id"], name: "index_chores_on_created_by_id"
-    t.index ["deleted_by_id"], name: "index_chores_on_deleted_by_id"
-    t.index ["discarded_at"], name: "index_chores_on_discarded_at"
-    t.index ["next_due_date"], name: "index_chores_on_next_due_date"
-    t.index ["proposed_by_id"], name: "index_chores_on_proposed_by_id"
-    t.index ["status"], name: "index_chores_on_status"
   end
 
   create_table "comments", force: :cascade do |t|
@@ -555,14 +505,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_050000) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "calendar_shares", "users"
-  add_foreign_key "chore_assignments", "chores"
-  add_foreign_key "chore_assignments", "users"
-  add_foreign_key "chore_completions", "chores"
-  add_foreign_key "chore_completions", "users", column: "completed_by_id"
-  add_foreign_key "chores", "communities"
-  add_foreign_key "chores", "users", column: "created_by_id"
-  add_foreign_key "chores", "users", column: "deleted_by_id"
-  add_foreign_key "chores", "users", column: "proposed_by_id"
   add_foreign_key "comments", "comments", column: "parent_id"
   add_foreign_key "comments", "posts"
   add_foreign_key "comments", "users"

@@ -42,8 +42,6 @@ class CommentsController < ApplicationController
   def set_commentable
     if params[:post_id]
       @commentable = Post.find(params[:post_id])
-    elsif params[:chore_id]
-      @commentable = Chore.find(params[:chore_id])
     elsif params[:meal_id]
       @commentable = Meal.find(params[:meal_id])
     else
@@ -62,8 +60,6 @@ class CommentsController < ApplicationController
   def fallback_location
     if @commentable.is_a?(Post)
       dashboard_index_path
-    elsif @commentable.is_a?(Chore)
-      chores_path(view: "proposed")
     elsif @commentable.is_a?(Meal)
       meal_path(@commentable)
     else
@@ -75,8 +71,6 @@ class CommentsController < ApplicationController
     # Set instance variables for backward compatibility with turbo stream templates
     if @commentable.is_a?(Post)
       @post = @commentable
-    elsif @commentable.is_a?(Chore)
-      @chore = @commentable
     elsif @commentable.is_a?(Meal)
       @meal = @commentable
     end

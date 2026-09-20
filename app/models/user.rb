@@ -22,18 +22,10 @@ class User < ApplicationRecord
   has_many :deleted_decisions, class_name: "Decision", foreign_key: "deleted_by_id", dependent: :nullify
   has_many :created_documents, class_name: "Document", foreign_key: "created_by_id", dependent: :nullify
   has_many :deleted_documents, class_name: "Document", foreign_key: "deleted_by_id", dependent: :nullify
-  has_many :created_chores, class_name: "Chore", foreign_key: "created_by_id", dependent: :nullify
-  has_many :deleted_chores, class_name: "Chore", foreign_key: "deleted_by_id", dependent: :nullify
   has_many :created_meals, class_name: "Meal", foreign_key: "created_by_id", dependent: :nullify
   has_many :deleted_meals, class_name: "Meal", foreign_key: "deleted_by_id", dependent: :nullify
   belongs_to :invitation, optional: true
   belongs_to :household, optional: true
-
-  # Chores associations
-  has_many :proposed_chores, class_name: "Chore", foreign_key: "proposed_by_id", dependent: :destroy
-  has_many :chore_assignments, dependent: :destroy
-  has_many :assigned_chores, through: :chore_assignments, source: :chore
-  has_many :chore_completions, foreign_key: "completed_by_id", dependent: :destroy
 
   # Meals associations
   has_many :created_meal_schedules, class_name: "MealSchedule", foreign_key: "created_by_id", dependent: :destroy

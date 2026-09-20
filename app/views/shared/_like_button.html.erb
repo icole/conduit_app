@@ -24,11 +24,6 @@
       like_path = post_comment_likes_path(post, likeable)
       user_like = likeable.likes.find_by(user: current_user)
       unlike_path = user_like ? post_comment_like_path(post, likeable, user_like) : nil
-    elsif likeable.commentable.is_a?(Chore)
-      chore = likeable.commentable
-      like_path = chore_comment_likes_path(chore, likeable)
-      user_like = likeable.likes.find_by(user: current_user)
-      unlike_path = user_like ? chore_comment_like_path(chore, likeable, user_like) : nil
     elsif likeable.commentable.is_a?(Meal)
       meal = likeable.commentable
       like_path = meal_comment_likes_path(meal, likeable)
@@ -37,12 +32,8 @@
     else
       raise ArgumentError, "Unsupported commentable type: #{likeable.commentable.class.name}"
     end
-  when Chore
-    like_path = chore_likes_path(likeable)
-    user_like = likeable.likes.find_by(user: current_user)
-    unlike_path = user_like ? chore_like_path(likeable, user_like) : nil
   else
-    raise ArgumentError, "Unsupported likeable type: #{likeable.class.name}. Supported types: Post, Comment, Chore"
+    raise ArgumentError, "Unsupported likeable type: #{likeable.class.name}. Supported types: Post, Comment"
   end
 
   # Style configurations

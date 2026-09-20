@@ -5,7 +5,6 @@ class Community < ApplicationRecord
   has_many :households, dependent: :destroy
   has_many :posts, dependent: :destroy
   has_many :tasks, dependent: :destroy
-  has_many :chores, dependent: :destroy
   has_many :meals, dependent: :destroy
   has_many :meal_schedules, dependent: :destroy
   has_many :documents, dependent: :destroy

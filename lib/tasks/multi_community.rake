@@ -21,7 +21,7 @@ namespace :multi_community do
     # Step 2: Associate all existing records with this community
     # Use unscoped to bypass acts_as_tenant scoping
     models_to_update = [
-      User, Post, Task, Chore, Meal, MealSchedule,
+      User, Post, Task, Meal, MealSchedule,
       Document, Decision, Invitation
     ]
 

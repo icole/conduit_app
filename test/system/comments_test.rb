@@ -3,109 +3,53 @@ require "application_system_test_case"
 class CommentsTest < ApplicationSystemTestCase
   setup do
     @user = users(:one)
-    @other_user = users(:two)
-
-    # Create a chore with no comments for testing first comment
-    @chore_with_no_comments = Chore.create!(
-      name: "Test Chore Without Comments",
-      description: "A chore for testing first comment functionality",
-      frequency: "weekly",
-      proposed_by: @user,
-      status: "active"
-    )
+    # A meal with no comments, for testing the first-comment placeholder
+    @meal = meals(:upcoming_meal)
+    @meal.comments.destroy_all
 
     sign_in_user
   end
 
-  test "first comment on chore removes placeholder message immediately" do
-    visit chore_path(@chore_with_no_comments)
+  test "first comment on a meal removes placeholder message immediately" do
+    visit meal_path(@meal)
 
-    # Verify placeholder message is initially present
-    assert_selector "#chore-#{@chore_with_no_comments.id}-no-comments", text: "No comments yet"
+    assert_selector "#meal-#{@meal.id}-no-comments", text: "No comments yet"
 
-    # Add the first comment
-    within "#comments" do
-      fill_in "comment[content]", with: "This is the first comment on this chore!"
-      click_on "Post"
-    end
+    fill_in "comment[content]", with: "This is the first comment on this meal!"
+    click_on "Post"
 
-    # Verify the comment appears immediately
-    assert_selector "[data-testid='comment-content']", text: "This is the first comment on this chore!"
-
-    # Verify the placeholder message is removed immediately (no page refresh needed)
-    assert_no_selector "#chore-#{@chore_with_no_comments.id}-no-comments", wait: 1
-
-    # Verify the comment form is reset and ready for another comment
+    assert_selector "[data-testid='comment-content']", text: "This is the first comment on this meal!"
+    assert_no_selector "#meal-#{@meal.id}-no-comments", wait: 1
     assert_field "comment[content]", with: ""
   end
 
-  test "second comment on chore appends correctly without affecting first comment" do
-    visit chore_path(@chore_with_no_comments)
+  test "second comment appends without affecting the first" do
+    visit meal_path(@meal)
 
-    # Add the first comment
-    within "#comments" do
-      fill_in "comment[content]", with: "First comment"
-      click_on "Post"
-    end
-
-    # Verify first comment appears
+    fill_in "comment[content]", with: "First comment"
+    click_on "Post"
     assert_selector "[data-testid='comment-content']", text: "First comment"
 
-    # Add the second comment
-    within "#comments" do
-      fill_in "comment[content]", with: "Second comment"
-      click_on "Post"
-    end
+    fill_in "comment[content]", with: "Second comment"
+    click_on "Post"
 
-    # Verify both comments are present
     assert_selector "[data-testid='comment-content']", text: "First comment"
     assert_selector "[data-testid='comment-content']", text: "Second comment"
-
-    # Verify no placeholder message exists
-    assert_no_selector "#chore-#{@chore_with_no_comments.id}-no-comments"
-
-    # Verify we have 2 comments total
+    assert_no_selector "#meal-#{@meal.id}-no-comments"
     assert_selector "[data-testid='comment-content']", count: 2
   end
 
-  test "deleting the only comment shows placeholder message again" do
-    visit chore_path(@chore_with_no_comments)
+  test "deleting a comment removes it immediately" do
+    visit meal_path(@meal)
 
-    # Add a comment first
-    within "#comments" do
-      fill_in "comment[content]", with: "Only comment"
-      click_on "Post"
-    end
-
-    # Verify comment appears and placeholder is gone
+    fill_in "comment[content]", with: "Only comment"
+    click_on "Post"
     assert_selector "[data-testid='comment-content']", text: "Only comment"
-    assert_no_selector "#chore-#{@chore_with_no_comments.id}-no-comments"
 
-    # Delete the comment
     accept_confirm do
       find("[data-testid*='delete-comment-button']").click
     end
 
-    # Verify comment is removed immediately
     assert_no_selector "[data-testid='comment-content']", text: "Only comment", wait: 2
-
-    # Note: We're not testing that the placeholder reappears because that would require
-    # additional logic that currently doesn't exist. The current implementation just
-    # removes the comment, leaving an empty comments section.
   end
-
-  test "first comment on a chore works from a fresh page" do
-    # Test with chore
-    visit chore_path(@chore_with_no_comments)
-    within "#comments" do
-      fill_in "comment[content]", with: "Chore comment"
-      click_on "Post"
-    end
-    assert_selector "[data-testid='comment-content']", text: "Chore comment"
-    assert_no_selector "#chore-#{@chore_with_no_comments.id}-no-comments"
-  end
-
-  private
-
-  # sign_in_user method is inherited from ApplicationSystemTestCase
 end
