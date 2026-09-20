@@ -79,9 +79,17 @@ CALENDAR_CONFIG_CONTENT=base64_encoded_service_account_json
    kamal init
    ```
 
-### Deploy with Stream Chat
+### Deploy
 
-Use the provided deployment script that validates all required environment variables:
+`.env.deploy` must export **every** variable that `.kamal/secrets` references — Kamal reads them
+from the shell and will deploy empty strings without complaint. `bin/deploy-preflight` checks
+that before anything ships:
+
+```bash
+. ./.env.deploy && bin/deploy-preflight && bundle exec kamal deploy
+```
+
+Or use the wrapper script, which runs the same preflight:
 
 ```bash
 ./deploy_with_stream.sh

@@ -24,5 +24,5 @@ bin/rails test test/system/meals_test.rb:42 # Run specific test
 
 - Commit locally as you work; batch related changes
 - Pushing to `main` does **not** trigger builds: the Codemagic iOS/Android workflows are manual, and only a `v*` tag triggers the App Store workflow (see `codemagic.yaml`)
-- Server deploys are manual too: `. ./.env.deploy && bundle exec kamal deploy`
+- Server deploys are manual too: `. ./.env.deploy && bin/deploy-preflight && bundle exec kamal deploy` — the preflight refuses to ship if any secret named in `.kamal/secrets` is empty in the shell (Kamal itself will silently deploy blanks)
 - Native builds are only needed when files under `ios/` or `android/` change — batch those; most server work ships without one

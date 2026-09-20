@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Refuses to deploy if any variable that .kamal/secrets reads from the shell
+# is unset or empty. Kamal itself will happily ship blank secrets, which took
+# production chat/email down on 2026-09-19. Run after sourcing .env.deploy:
+#
+#   . ./.env.deploy && bin/deploy-preflight && bundle exec kamal deploy
+#
+# Never prints values, only names.
+set -u
+
+secrets_file="${1:-.kamal/secrets}"
+missing=()
+
+while read -r var; do
+  [ -z "$var" ] && continue
+  if [ -z "${!var:-}" ]; then
+    missing+=("$var")
+  fi
+done < <(grep -oE '\$[A-Z_][A-Z0-9_]*' "$secrets_file" | tr -d '$' | sort -u)
+
+if [ ${#missing[@]} -ne 0 ]; then
+  echo "deploy-preflight: refusing to deploy - these secrets are empty in the current shell:" >&2
+  for var in "${missing[@]}"; do echo "  - $var" >&2; done
+  echo "Add them to .env.deploy (export VAR=...) and re-source it." >&2
+  exit 1
+fi
+
+echo "deploy-preflight: all $(grep -oE '\$[A-Z_][A-Z0-9_]*' "$secrets_file" | sort -u | wc -l) secrets present"

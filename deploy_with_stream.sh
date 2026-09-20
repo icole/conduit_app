@@ -52,6 +52,9 @@ fi
 
 echo "✅ All required environment variables are set"
 
+# Refuse to ship any secret that .kamal/secrets would read as empty
+bin/deploy-preflight || exit 1
+
 # Deploy with Kamal
 echo ""
 echo "📦 Building and deploying with Kamal..."
