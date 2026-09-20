@@ -40,4 +40,18 @@ class Api::V1::StreamTokenTest < ActionDispatch::IntegrationTest
     mock_client.verify
     mock_channel.verify
   end
+
+  test "stream_token is refused while the community is pending" do
+    user = users(:pending_admin)
+    token = JwtService.generate_auth_token(user)
+
+    StreamChatClient.stub :configured?, true do
+      get api_v1_stream_token_url, headers: { "Authorization" => "Bearer #{token}" }, as: :json
+    end
+
+    assert_response :forbidden
+    json = JSON.parse(response.body)
+    assert_equal "community_not_active", json["error"]
+    assert_equal "pending", json["status"]
+  end
 end

@@ -1,0 +1,8 @@
+<% if user_signed_in? && current_community&.pending? %>
+  <div class="alert alert-info rounded-none justify-center text-sm" role="status">
+    <span>
+      <strong><%= current_community.name %></strong> is waiting for approval.
+      Chat and collaborative documents are unavailable until your community is approved (usually within a day).
+    </span>
+  </div>
+<% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_20_020000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_20_040000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -159,10 +159,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_020000) do
     t.string "name", null: false
     t.jsonb "settings", default: {}
     t.string "slug", null: false
+    t.string "status", default: "pending", null: false
     t.string "time_zone", default: "America/New_York"
     t.datetime "updated_at", null: false
     t.index ["domain"], name: "index_communities_on_domain", unique: true
     t.index ["slug"], name: "index_communities_on_slug", unique: true
+    t.index ["status"], name: "index_communities_on_status"
   end
 
   create_table "decisions", force: :cascade do |t|

@@ -8,6 +8,9 @@ module Api
       skip_before_action :set_tenant_from_domain
       before_action :set_tenant_from_jwt, only: [ :stream_token, :check, :logout, :establish_session ]
       before_action :authenticate_api_user!, only: [ :stream_token, :check, :logout, :establish_session ]
+      # Tenant comes from the JWT above, so the suspension check must run after it.
+      # Logout stays allowed so a suspended member can still revoke their token.
+      before_action :enforce_community_status, only: [ :stream_token, :check, :establish_session ]
 
       # POST /api/v1/login
       def login
@@ -175,6 +178,11 @@ module Api
         end
 
         if @current_user
+          unless @current_user.community.chat_available?
+            render json: { error: "community_not_active", status: @current_user.community.status }, status: :forbidden
+            return
+          end
+
           # Sync user to Stream first
           sync_user_to_stream
 

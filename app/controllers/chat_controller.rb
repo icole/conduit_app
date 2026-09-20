@@ -13,6 +13,10 @@ class ChatController < ApplicationController
   before_action :set_tenant_from_jwt, only: MOBILE_API_ACTIONS
   before_action :authenticate_api_or_session!, only: MOBILE_API_ACTIONS
 
+  # Tenant for mobile actions is only known after authenticate_api_or_session!,
+  # so re-run the suspension check after it.
+  before_action :enforce_community_status, only: MOBILE_API_ACTIONS
+
   before_action :ensure_stream_configured, except: [ :token ]
 
   # Skip CSRF for API endpoints called from mobile apps
@@ -21,6 +25,11 @@ class ChatController < ApplicationController
   # GET /chat
   def index
     Rails.logger.info "ChatController#index - user_id: #{session[:user_id]}, current_user: #{current_user&.id}, turbo_native: #{turbo_native_app?}, user_agent: #{request.user_agent}"
+
+    unless current_community.chat_available?
+      redirect_to root_path, alert: "Chat will be available once your community is approved."
+      return
+    end
 
     if turbo_native_app?
       # For iOS app, show a page that will trigger native chat
@@ -49,6 +58,11 @@ class ChatController < ApplicationController
     end
 
     user = api_current_user
+    unless user.community.chat_available?
+      render json: { error: "community_not_active", status: user.community.status }, status: :forbidden
+      return
+    end
+
     respond_to do |format|
       format.json do
         render json: {

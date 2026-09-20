@@ -13,6 +13,10 @@ class Community < ApplicationRecord
   has_many :decisions, dependent: :destroy
   has_many :invitations, dependent: :destroy
 
+  # Lifecycle: self-created communities start pending; approval unlocks the
+  # metered features (chat, collaborative docs); suspension locks members out.
+  enum :status, { pending: "pending", active: "active", suspended: "suspended" }, default: "pending"
+
   validates :name, presence: true
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9-]+\z/, message: "only allows lowercase letters, numbers, and hyphens" }
   validates :domain, presence: true, uniqueness: true
@@ -32,6 +36,29 @@ class Community < ApplicationRecord
 
   def smtp_from_address
     "#{smtp_from_name} <#{settings&.dig('smtp_username') || ENV['SMTP_USERNAME']}>"
+  end
+
+  def approve!
+    update!(status: "active")
+    CommunityMailer.approved(self).deliver_later
+  end
+
+  # Members can no longer use the app; existing mobile sessions end immediately.
+  def suspend!
+    transaction do
+      update!(status: "suspended")
+      ActsAsTenant.with_tenant(self) { User.find_each(&:revoke_mobile_tokens!) }
+    end
+  end
+
+  # Whether Stream chat may be used. CON-59 adds the per-community flag here.
+  def chat_available?
+    active?
+  end
+
+  # Whether Liveblocks collaborative editing may be used.
+  def collaboration_available?
+    active?
   end
 
   def dues_tracking_enabled?

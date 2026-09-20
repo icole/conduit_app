@@ -33,7 +33,7 @@ namespace :admin do
       print "Email: "
       email = $stdin.gets.chomp
 
-      print "Password (min 6 characters): "
+      print "Password (min 8 characters): "
       password = $stdin.gets.chomp
 
       if name.blank? || email.blank? || password.blank?

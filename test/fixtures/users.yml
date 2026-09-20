@@ -106,3 +106,16 @@ oauth_no_password:
   email: oauth_nopass@example.com
   provider: google_oauth2
   # No password_digest - simulates OAuth-only user
+
+pending_admin:
+  community: pending_community
+  name: Pending Admin
+  email: pending@example.com
+  admin: true
+  password_digest: <%= BCrypt::Password.create('testpassword123') %>
+
+suspended_user:
+  community: suspended_community
+  name: Suspended User
+  email: suspended@example.com
+  password_digest: <%= BCrypt::Password.create('testpassword123') %>

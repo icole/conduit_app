@@ -19,7 +19,8 @@ namespace :demo do
     community = Community.find_or_initialize_by(slug: community_slug)
     community.assign_attributes(
       name: community_name,
-      domain: community_domain
+      domain: community_domain,
+      status: "active"
     )
 
     if community.save

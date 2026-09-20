@@ -52,7 +52,8 @@ class StreamIsolationAuditTest < ActiveSupport::TestCase
     end
 
     def create_token(user_id)
-      @tokens.fetch(user_id)
+      # Communities other than the two under test get a token nothing responds to.
+      @tokens.fetch(user_id) { "tok-#{user_id}" }
     end
 
     def verify = true

@@ -9,7 +9,7 @@ module Api
 
       # GET /api/v1/communities
       def index
-        communities = Community.all.order(:name)
+        communities = Community.active.order(:name)
         render json: communities.map { |c|
           {
             id: c.id,

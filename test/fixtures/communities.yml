@@ -4,6 +4,7 @@ crow_woods:
   name: Crow Woods
   slug: crow-woods
   domain: crowwoods.test
+  status: active
   settings:
     google_calendar_id: test_calendar_id
     google_drive_folder_id: test_folder_id
@@ -13,5 +14,22 @@ other_community:
   name: Other Community
   slug: other-community
   domain: other.test
+  status: active
   settings: {}
   time_zone: America/Los_Angeles
+
+pending_community:
+  name: Pending Community
+  slug: pending-community
+  domain: pending.test
+  status: pending
+  settings: {}
+  time_zone: America/New_York
+
+suspended_community:
+  name: Suspended Community
+  slug: suspended-community
+  domain: suspended.test
+  status: suspended
+  settings: {}
+  time_zone: America/New_York

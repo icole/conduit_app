@@ -15,6 +15,7 @@ class ApplicationController < ActionController::Base
   before_action :set_tenant_from_domain
   before_action :authenticate_user!
   before_action :verify_user_belongs_to_tenant!
+  before_action :enforce_community_status
   before_action :set_current_attributes
   before_action :update_last_active, if: :user_signed_in?
 
@@ -133,6 +134,20 @@ class ApplicationController < ActionController::Base
 
       # Fail the request - do NOT show any data
       render plain: "Access denied - session error", status: :forbidden
+    end
+  end
+
+  # Members of a suspended community can only log out or delete their account.
+  SUSPENDED_ALLOWED_CONTROLLERS = %w[sessions account pages password_resets].freeze
+
+  def enforce_community_status
+    return unless current_community&.suspended?
+    return if SUSPENDED_ALLOWED_CONTROLLERS.include?(controller_path)
+
+    if request.format.json? || controller_path.start_with?("api/")
+      render json: { error: "community_suspended" }, status: :forbidden
+    else
+      render "shared/community_suspended", status: :forbidden
     end
   end
 

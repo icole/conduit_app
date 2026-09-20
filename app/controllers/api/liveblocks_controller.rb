@@ -38,6 +38,11 @@ module Api
     # POST /api/liveblocks/auth
     # Authenticates the user for Liveblocks and returns a token
     def auth
+      unless current_community.collaboration_available?
+        render json: { error: "community_not_active", status: current_community.status }, status: :forbidden
+        return
+      end
+
       # Get room ID from request (format: "document:123")
       room = params[:room]
 

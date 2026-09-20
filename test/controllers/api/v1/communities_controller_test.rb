@@ -4,21 +4,25 @@ module Api
   module V1
     class CommunitiesControllerTest < ActionDispatch::IntegrationTest
       setup do
-        # Create test communities with different names to test ordering
+        # Create active test communities with different names to test ordering
+        # (new communities default to pending, which the index omits)
         @community_alpha = Community.create!(
           name: "Alpha Community",
           slug: "alpha",
-          domain: "alpha.test"
+          domain: "alpha.test",
+          status: "active"
         )
         @community_beta = Community.create!(
           name: "Beta Community",
           slug: "beta",
-          domain: "beta.test"
+          domain: "beta.test",
+          status: "active"
         )
         @community_gamma = Community.create!(
           name: "Gamma Community",
           slug: "gamma",
-          domain: "gamma.test"
+          domain: "gamma.test",
+          status: "active"
         )
       end
 
@@ -94,6 +98,15 @@ module Api
         json_response = JSON.parse(response.body)
         assert_equal [], json_response
         assert_kind_of Array, json_response
+      end
+
+      test "omits pending and suspended communities" do
+        get api_v1_communities_url
+        slugs = JSON.parse(response.body).map { |c| c["slug"] }
+
+        assert_includes slugs, "crow-woods"
+        assert_not_includes slugs, "pending-community"
+        assert_not_includes slugs, "suspended-community"
       end
     end
   end

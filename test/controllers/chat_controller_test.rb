@@ -190,4 +190,15 @@ class ChatControllerTest < ActionDispatch::IntegrationTest
     get "/chat/test_native"
     assert_response :not_found
   end
+
+  test "token is refused while the community is pending" do
+    token = JwtService.generate_auth_token(users(:pending_admin))
+
+    StreamChatClient.stub :configured?, true do
+      get token_chat_index_url, headers: { "Authorization" => "Bearer #{token}" }, as: :json
+    end
+
+    assert_response :forbidden
+    assert_equal "community_not_active", JSON.parse(response.body)["error"]
+  end
 end
