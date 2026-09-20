@@ -46,7 +46,6 @@ env:
     - LIVEBLOCKS_SECRET_KEY
   clear:
     SOLID_QUEUE_IN_PUMA: true
-    ALLOWED_EMAILS: <%= ENV["ALLOWED_EMAILS"] %>
 
 volumes:
   - "conduit_app_storage:/rails/storage"

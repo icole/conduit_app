@@ -44,7 +44,6 @@ env:
     SOLID_QUEUE_IN_PUMA: true
     RAILS_ENV: production
     # Staging-specific: allow broader access for testing
-    ALLOWED_EMAILS: "<%= ENV["STAGING_ALLOWED_EMAILS"] || ENV["ALLOWED_EMAILS"] %>"
 
 volumes:
   - "conduit_app_staging_storage:/rails/storage"

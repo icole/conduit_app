@@ -80,9 +80,6 @@ Rails.application.routes.draw do
 
   resources :push_subscriptions, only: [ :create, :destroy ]
 
-  # ActionMailbox routes for inbound email processing
-  mount ActionMailbox::Engine => "/rails/action_mailbox"
-
   resources :users, only: [ :index, :edit, :update, :destroy ] do
     member do
       post :send_password_reset

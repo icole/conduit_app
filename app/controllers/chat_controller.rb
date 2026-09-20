@@ -24,8 +24,6 @@ class ChatController < ApplicationController
 
   # GET /chat
   def index
-    Rails.logger.info "ChatController#index - user_id: #{session[:user_id]}, current_user: #{current_user&.id}, turbo_native: #{turbo_native_app?}, user_agent: #{request.user_agent}"
-
     unless current_community.chat_available?
       redirect_to root_path, alert: "Chat will be available once your community is approved."
       return

@@ -18,10 +18,7 @@ class SessionsController < ApplicationController
     if user&.authenticate(params[:password])
       session[:user_id] = user.id
       # Redirect to the originally requested page or root
-      return_to = session[:return_to]
-      Rails.logger.info "Login successful - return_to was: #{return_to}, user_agent: #{request.user_agent}"
       redirect_path = session.delete(:return_to) || root_path
-      Rails.logger.info "Redirecting to: #{redirect_path}"
       redirect_to redirect_path, notice: "Logged in successfully!"
     else
       flash.now[:alert] = "Invalid email or password"
@@ -48,10 +45,7 @@ class SessionsController < ApplicationController
         session[:user_id] = user.id
         session.delete(:invitation_token) if invitation_token.present?
         # Redirect to the originally requested page or root
-        return_to = session[:return_to]
-        Rails.logger.info "OAuth Login - return_to was: #{return_to}"
         redirect_path = session.delete(:return_to) || root_path
-        Rails.logger.info "OAuth Login - redirecting to: #{redirect_path}"
         redirect_to redirect_path, notice: "Logged in with Google successfully!"
       else
         redirect_to login_path, alert: "Failed to log in with Google: #{user.errors.full_messages.join(', ')}"
@@ -91,7 +85,7 @@ class SessionsController < ApplicationController
         session[:authenticated_via] = "mobile_token"
         session[:authenticated_at] = Time.current.to_i
 
-        Rails.logger.info "Auth login successful for user #{user.id}, session_id: #{session.id}, redirect_to: #{redirect_path}"
+        Rails.logger.info "Auth login successful for user #{user.id}"
 
         # For WebView, return a simple HTML response that confirms auth and redirects
         respond_to do |format|

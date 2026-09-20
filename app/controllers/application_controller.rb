@@ -101,7 +101,6 @@ class ApplicationController < ActionController::Base
       # Store the intended destination URL to redirect back after login
       if request.get?
         session[:return_to] = request.fullpath
-        Rails.logger.info "Auth required - storing return_to: #{request.fullpath}, user_agent: #{request.user_agent}"
       end
       redirect_to login_path, alert: "You must be logged in to access this page."
     end
