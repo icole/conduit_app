@@ -8,6 +8,8 @@ servers:
 
 ssh:
   user: <%= ENV["CONDUIT_SSH_USER"] %>
+  # GCE host key; not a default OpenSSH name, so name it rather than rely on an agent
+  keys: [ "~/.ssh/google_compute_engine" ]
 
 proxy:
   ssl: true
