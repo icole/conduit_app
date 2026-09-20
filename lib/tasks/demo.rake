@@ -53,15 +53,6 @@ namespace :demo do
       # Create some sample data for the demo
       puts "Creating sample data..."
 
-      # Sample posts
-      3.times do |i|
-        Post.find_or_create_by!(
-          content: "Welcome to the demo community! This is sample post #{i + 1}. Feel free to explore the app!",
-          user: user
-        )
-      end
-      puts "  Created sample posts"
-
       # Sample meals (upcoming)
       3.times do |i|
         scheduled_at = (Date.today + (i + 1).weeks).to_datetime.change(hour: 18)
@@ -143,7 +134,6 @@ namespace :demo do
 
     ActsAsTenant.with_tenant(community) do
       puts "  Users: #{User.count}"
-      puts "  Posts: #{Post.count}"
       puts "  Meals: #{Meal.count}"
       puts "  Tasks: #{Task.count}"
     end
@@ -162,9 +152,6 @@ namespace :demo do
 
     ActsAsTenant.with_tenant(community) do
       # Delete all associated data
-      puts "  Deleting posts..."
-      Post.destroy_all
-
       puts "  Deleting meals..."
       Meal.destroy_all
 

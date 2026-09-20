@@ -13,18 +13,9 @@
   text_unliked = "Like"
 
   case likeable
-  when Post
-    like_path = post_likes_path(likeable)
-    user_like = likeable.likes.find_by(user: current_user)
-    unlike_path = user_like ? post_like_path(likeable, user_like) : nil
   when Comment
     # Polymorphic comments - need to find the commentable for nested routes
-    if likeable.commentable.is_a?(Post)
-      post = likeable.commentable
-      like_path = post_comment_likes_path(post, likeable)
-      user_like = likeable.likes.find_by(user: current_user)
-      unlike_path = user_like ? post_comment_like_path(post, likeable, user_like) : nil
-    elsif likeable.commentable.is_a?(Meal)
+    if likeable.commentable.is_a?(Meal)
       meal = likeable.commentable
       like_path = meal_comment_likes_path(meal, likeable)
       user_like = likeable.likes.find_by(user: current_user)
@@ -33,7 +24,7 @@
       raise ArgumentError, "Unsupported commentable type: #{likeable.commentable.class.name}"
     end
   else
-    raise ArgumentError, "Unsupported likeable type: #{likeable.class.name}. Supported types: Post, Comment"
+    raise ArgumentError, "Unsupported likeable type: #{likeable.class.name}. Supported types: Comment"
   end
 
   # Style configurations

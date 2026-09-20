@@ -40,9 +40,7 @@ class CommentsController < ApplicationController
   private
 
   def set_commentable
-    if params[:post_id]
-      @commentable = Post.find(params[:post_id])
-    elsif params[:meal_id]
+    if params[:meal_id]
       @commentable = Meal.find(params[:meal_id])
     else
       redirect_back(fallback_location: root_path, alert: "Invalid comment target.")
@@ -58,9 +56,7 @@ class CommentsController < ApplicationController
   end
 
   def fallback_location
-    if @commentable.is_a?(Post)
-      dashboard_index_path
-    elsif @commentable.is_a?(Meal)
+    if @commentable.is_a?(Meal)
       meal_path(@commentable)
     else
       root_path
@@ -69,9 +65,7 @@ class CommentsController < ApplicationController
 
   def set_legacy_instance_variables
     # Set instance variables for backward compatibility with turbo stream templates
-    if @commentable.is_a?(Post)
-      @post = @commentable
-    elsif @commentable.is_a?(Meal)
+    if @commentable.is_a?(Meal)
       @meal = @commentable
     end
   end

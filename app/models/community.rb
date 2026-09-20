@@ -3,7 +3,6 @@ class Community < ApplicationRecord
   # but useful for admin/reporting queries
   has_many :users, dependent: :destroy
   has_many :households, dependent: :destroy
-  has_many :posts, dependent: :destroy
   has_many :tasks, dependent: :destroy
   has_many :meals, dependent: :destroy
   has_many :meal_schedules, dependent: :destroy

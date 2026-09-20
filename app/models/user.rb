@@ -5,7 +5,6 @@ class User < ApplicationRecord
 
   has_secure_password validations: false
 
-  has_many :posts, dependent: :destroy
   has_many :likes, dependent: :destroy
   has_many :comments, dependent: :destroy
   has_many :tasks, dependent: :destroy
@@ -14,8 +13,6 @@ class User < ApplicationRecord
   # Discardable associations - nullify created_by and deleted_by references when user is deleted
   has_many :created_tasks, class_name: "Task", foreign_key: "created_by_id", dependent: :nullify
   has_many :deleted_tasks, class_name: "Task", foreign_key: "deleted_by_id", dependent: :nullify
-  has_many :created_posts, class_name: "Post", foreign_key: "created_by_id", dependent: :nullify
-  has_many :deleted_posts, class_name: "Post", foreign_key: "deleted_by_id", dependent: :nullify
   has_many :created_comments, class_name: "Comment", foreign_key: "created_by_id", dependent: :nullify
   has_many :deleted_comments, class_name: "Comment", foreign_key: "deleted_by_id", dependent: :nullify
   has_many :created_decisions, class_name: "Decision", foreign_key: "created_by_id", dependent: :nullify
@@ -151,7 +148,6 @@ class User < ApplicationRecord
     # Delete discarded records that reference this user via user_id
     # These are hidden by Discardable's default_scope and missed by dependent: :destroy
     Task.unscoped.where(user_id: id).discarded.delete_all
-    Post.unscoped.where(user_id: id).discarded.delete_all
     Comment.unscoped.where(user_id: id).discarded.delete_all
   end
 

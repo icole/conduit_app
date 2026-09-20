@@ -36,22 +36,14 @@ class LikesController < ApplicationController
   def set_likeable
     if params[:comment_id]
       @likeable = Comment.find(params[:comment_id])
-    elsif params[:post_id]
-      @likeable = Post.find(params[:post_id])
     else
       redirect_back(fallback_location: root_path, alert: "Invalid like target.")
     end
   end
 
   def fallback_location
-    if @likeable.is_a?(Post)
-      dashboard_index_path
-    elsif @likeable.is_a?(Comment)
-      if @likeable.commentable.is_a?(Post)
-        dashboard_index_path
-      else
-        root_path
-      end
+    if @likeable.is_a?(Comment) && @likeable.commentable.is_a?(Meal)
+      meal_path(@likeable.commentable)
     else
       root_path
     end

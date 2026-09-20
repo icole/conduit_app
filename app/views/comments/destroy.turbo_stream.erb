@@ -1,10 +1,4 @@
-<% if @post %>
-  <%= turbo_stream.remove dom_id(@comment) %>
-  <!-- Update comment count -->
-  <%= turbo_stream.replace "post-#{@post.id}-comment-button" do %>
-    <%= render "posts/comment_button", post: @post.reload %>
-  <% end %>
-<% elsif @meal %>
+<% if @meal %>
   <%= turbo_stream.remove dom_id(@comment) %>
 <% else %>
   <!-- For other commentables, redirect to the page -->

@@ -1,11 +1,11 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  content: "Great job organizing the tool shed! It's so much easier to find things now."
+  content: "I can bring a salad for this one."
   user: two
-  commentable: one (Post)
+  commentable: needs_cook (Meal)
 
 two:
-  content: "I'll bring a salad for the community dinner tonight. Looking forward to it!"
+  content: "Looking forward to it - I'll bring dessert."
   user: one
-  commentable: two (Post)
+  commentable: upcoming_meal (Meal)

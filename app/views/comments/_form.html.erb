@@ -1,14 +1,10 @@
 <% 
   # Determine the commentable object from available variables
-  # Support both old (post:) and new (commentable:) parameter styles
+  # Resolve the commentable from whatever the caller passed
   commentable_obj = if local_assigns[:commentable]
     commentable
-  elsif local_assigns[:post] 
-    post
   elsif defined?(commentable) && commentable
     commentable
-  elsif defined?(post) && post
-    post
   else
     # Fallback: try to infer from comment if it exists
     comment&.commentable

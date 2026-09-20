@@ -1,7 +1,5 @@
 <%= turbo_stream.replace dom_id(@likeable, :like_section) do %>
   <% case @likeable %>
-  <% when Post %>
-    <%= render "shared/like_button", likeable: @likeable, style: :post %>
   <% when Comment %>
     <%= render "shared/like_button", likeable: @likeable, style: :comment %>
   <% else %>

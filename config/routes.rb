@@ -105,12 +105,6 @@ Rails.application.routes.draw do
       post :restore
     end
   end
-  resources :posts, only: [ :create, :update, :destroy ] do
-    resources :likes, only: [ :create, :destroy ]
-    resources :comments, only: [ :create, :destroy ] do
-      resources :likes, only: [ :create, :destroy ]
-    end
-  end
 
   resources :document_folders, only: [ :create, :update, :destroy ]
   resources :documents do

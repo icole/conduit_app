@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_20_060000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_20_070000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -90,7 +90,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_060000) do
     t.bigint "deleted_by_id"
     t.datetime "discarded_at"
     t.bigint "parent_id"
-    t.bigint "post_id"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable_type_and_commentable_id"
@@ -98,7 +97,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_060000) do
     t.index ["deleted_by_id"], name: "index_comments_on_deleted_by_id"
     t.index ["discarded_at"], name: "index_comments_on_discarded_at"
     t.index ["parent_id"], name: "index_comments_on_parent_id"
-    t.index ["post_id"], name: "index_comments_on_post_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
 
@@ -327,22 +325,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_060000) do
     t.index ["status"], name: "index_meals_on_status"
   end
 
-  create_table "posts", force: :cascade do |t|
-    t.bigint "community_id", null: false
-    t.text "content"
-    t.datetime "created_at", null: false
-    t.bigint "created_by_id"
-    t.bigint "deleted_by_id"
-    t.datetime "discarded_at"
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["community_id"], name: "index_posts_on_community_id"
-    t.index ["created_by_id"], name: "index_posts_on_created_by_id"
-    t.index ["deleted_by_id"], name: "index_posts_on_deleted_by_id"
-    t.index ["discarded_at"], name: "index_posts_on_discarded_at"
-    t.index ["user_id"], name: "index_posts_on_user_id"
-  end
-
   create_table "push_subscriptions", force: :cascade do |t|
     t.string "auth_key", null: false
     t.datetime "created_at", null: false
@@ -506,7 +488,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_060000) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "calendar_shares", "users"
   add_foreign_key "comments", "comments", column: "parent_id"
-  add_foreign_key "comments", "posts"
   add_foreign_key "comments", "users"
   add_foreign_key "comments", "users", column: "created_by_id"
   add_foreign_key "comments", "users", column: "deleted_by_id"
@@ -538,10 +519,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_060000) do
   add_foreign_key "meals", "meal_schedules"
   add_foreign_key "meals", "users", column: "created_by_id"
   add_foreign_key "meals", "users", column: "deleted_by_id"
-  add_foreign_key "posts", "communities"
-  add_foreign_key "posts", "users"
-  add_foreign_key "posts", "users", column: "created_by_id"
-  add_foreign_key "posts", "users", column: "deleted_by_id"
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "recurring_task_templates", "roles"
   add_foreign_key "role_assignments", "roles"

@@ -2,8 +2,8 @@
 
 one:
   user: one
-  likeable: one (Post)
+  likeable: one (Comment)
 
 two:
   user: two
-  likeable: two (Post)
+  likeable: two (Comment)
