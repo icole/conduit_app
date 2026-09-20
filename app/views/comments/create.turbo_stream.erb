@@ -27,30 +27,6 @@
   <%= turbo_stream.replace "post-#{@post.id}-comment-button" do %>
     <%= render "posts/comment_button", post: @post.reload %>
   <% end %>
-<% elsif @discussion_topic %>
-  <% if @comment.reply? %>
-    <!-- For replies, we need to reload the root comment to show the new nested reply -->
-    <% root_comment = @comment.root_comment %>
-    <%= turbo_stream.replace dom_id(root_comment) do %>
-      <%= render "shared/comment", comment: root_comment %>
-    <% end %>
-    
-    <!-- Hide the reply form after successful submission -->
-    <%= turbo_stream.update "reply-form-#{@comment.parent.id}", "" %>
-  <% else %>
-    <!-- For top-level comments, append to the list -->
-    <%= turbo_stream.append "discussiontopic-#{@discussion_topic.id}-comments-list" do %>
-      <%= render "shared/comment", comment: @comment %>
-    <% end %>
-    
-    <!-- Remove "no comments" message if this is the first comment -->
-    <%= turbo_stream.remove "discussiontopic-#{@discussion_topic.id}-no-comments" %>
-    
-    <!-- Always reset the main comment form -->
-    <%= turbo_stream.replace "new_comment_discussiontopic_#{@discussion_topic.id}" do %>
-      <%= render "shared/comment_form", commentable: @discussion_topic, comment: Comment.new %>
-    <% end %>
-  <% end %>
 <% elsif @chore %>
   <% if @comment.reply? %>
     <!-- For replies, we need to reload the root comment to show the new nested reply -->

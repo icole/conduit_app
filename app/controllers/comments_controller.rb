@@ -44,8 +44,6 @@ class CommentsController < ApplicationController
       @commentable = Post.find(params[:post_id])
     elsif params[:chore_id]
       @commentable = Chore.find(params[:chore_id])
-    elsif params[:discussion_topic_id]
-      @commentable = DiscussionTopic.find(params[:discussion_topic_id])
     elsif params[:meal_id]
       @commentable = Meal.find(params[:meal_id])
     else
@@ -66,8 +64,6 @@ class CommentsController < ApplicationController
       dashboard_index_path
     elsif @commentable.is_a?(Chore)
       chores_path(view: "proposed")
-    elsif @commentable.is_a?(DiscussionTopic)
-      discussion_topic_path(@commentable)
     elsif @commentable.is_a?(Meal)
       meal_path(@commentable)
     else
@@ -81,8 +77,6 @@ class CommentsController < ApplicationController
       @post = @commentable
     elsif @commentable.is_a?(Chore)
       @chore = @commentable
-    elsif @commentable.is_a?(DiscussionTopic)
-      @discussion_topic = @commentable
     elsif @commentable.is_a?(Meal)
       @meal = @commentable
     end

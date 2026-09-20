@@ -20,7 +20,7 @@ ConduitApp is a management platform for a **cohousing community**. Cohousing is 
 This application helps manage:
 - **Community Meals**: Scheduling, cook rotation, RSVP tracking, and guest management
 - **Chores & Work Parties**: Tracking shared responsibilities and community maintenance
-- **Discussions & Decisions**: Facilitating community dialogue and recording decisions
+- **Decisions**: Recording community decisions
 - **Calendar & Events**: Community gatherings, meetings, and social events
 - **Documents**: Meeting minutes, policies, and shared resources
 - **Communication**: Posts, comments, and notifications

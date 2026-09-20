@@ -20,15 +20,12 @@ class User < ApplicationRecord
   has_many :deleted_comments, class_name: "Comment", foreign_key: "deleted_by_id", dependent: :nullify
   has_many :created_decisions, class_name: "Decision", foreign_key: "created_by_id", dependent: :nullify
   has_many :deleted_decisions, class_name: "Decision", foreign_key: "deleted_by_id", dependent: :nullify
-  has_many :created_discussion_topics, class_name: "DiscussionTopic", foreign_key: "created_by_id", dependent: :nullify
-  has_many :deleted_discussion_topics, class_name: "DiscussionTopic", foreign_key: "deleted_by_id", dependent: :nullify
   has_many :created_documents, class_name: "Document", foreign_key: "created_by_id", dependent: :nullify
   has_many :deleted_documents, class_name: "Document", foreign_key: "deleted_by_id", dependent: :nullify
   has_many :created_chores, class_name: "Chore", foreign_key: "created_by_id", dependent: :nullify
   has_many :deleted_chores, class_name: "Chore", foreign_key: "deleted_by_id", dependent: :nullify
   has_many :created_meals, class_name: "Meal", foreign_key: "created_by_id", dependent: :nullify
   has_many :deleted_meals, class_name: "Meal", foreign_key: "deleted_by_id", dependent: :nullify
-  has_many :discussion_topics, dependent: :destroy
   belongs_to :invitation, optional: true
   belongs_to :household, optional: true
 
@@ -164,7 +161,6 @@ class User < ApplicationRecord
     Task.unscoped.where(user_id: id).discarded.delete_all
     Post.unscoped.where(user_id: id).discarded.delete_all
     Comment.unscoped.where(user_id: id).discarded.delete_all
-    DiscussionTopic.unscoped.where(user_id: id).discarded.delete_all
   end
 
   def gravatar_url

@@ -128,12 +128,6 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :discussion_topics do
-    resources :comments, only: [ :create, :destroy ] do
-      resources :likes, only: [ :create, :destroy ]
-    end
-    resources :likes, only: [ :create, :destroy ]
-  end
   resources :document_folders, only: [ :create, :update, :destroy ]
   resources :documents do
     member do

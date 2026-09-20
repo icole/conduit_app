@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_20_040000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_20_050000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -184,24 +184,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_040000) do
     t.index ["deleted_by_id"], name: "index_decisions_on_deleted_by_id"
     t.index ["discarded_at"], name: "index_decisions_on_discarded_at"
     t.index ["document_id"], name: "index_decisions_on_document_id"
-  end
-
-  create_table "discussion_topics", force: :cascade do |t|
-    t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
-    t.bigint "created_by_id"
-    t.bigint "deleted_by_id"
-    t.text "description"
-    t.datetime "discarded_at"
-    t.datetime "last_activity_at"
-    t.string "title"
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["community_id"], name: "index_discussion_topics_on_community_id"
-    t.index ["created_by_id"], name: "index_discussion_topics_on_created_by_id"
-    t.index ["deleted_by_id"], name: "index_discussion_topics_on_deleted_by_id"
-    t.index ["discarded_at"], name: "index_discussion_topics_on_discarded_at"
-    t.index ["user_id"], name: "index_discussion_topics_on_user_id"
   end
 
   create_table "document_folders", force: :cascade do |t|
@@ -521,18 +503,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_040000) do
     t.index ["user_id"], name: "index_time_entries_on_user_id"
   end
 
-  create_table "topic_comments", force: :cascade do |t|
-    t.text "content"
-    t.datetime "created_at", null: false
-    t.bigint "discussion_topic_id", null: false
-    t.integer "parent_id"
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["discussion_topic_id"], name: "index_topic_comments_on_discussion_topic_id"
-    t.index ["parent_id"], name: "index_topic_comments_on_parent_id"
-    t.index ["user_id"], name: "index_topic_comments_on_user_id"
-  end
-
   create_table "users", force: :cascade do |t|
     t.boolean "admin", default: false
     t.string "avatar_url"
@@ -602,10 +572,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_040000) do
   add_foreign_key "decisions", "documents"
   add_foreign_key "decisions", "users", column: "created_by_id"
   add_foreign_key "decisions", "users", column: "deleted_by_id"
-  add_foreign_key "discussion_topics", "communities"
-  add_foreign_key "discussion_topics", "users"
-  add_foreign_key "discussion_topics", "users", column: "created_by_id"
-  add_foreign_key "discussion_topics", "users", column: "deleted_by_id"
   add_foreign_key "document_folders", "communities"
   add_foreign_key "document_folders", "document_folders", column: "parent_id"
   add_foreign_key "document_folders", "users", column: "created_by_id"
@@ -650,8 +616,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_040000) do
   add_foreign_key "time_entries", "roles"
   add_foreign_key "time_entries", "tasks"
   add_foreign_key "time_entries", "users"
-  add_foreign_key "topic_comments", "discussion_topics"
-  add_foreign_key "topic_comments", "users"
   add_foreign_key "users", "communities"
   add_foreign_key "users", "households"
   add_foreign_key "users", "invitations"

@@ -14,13 +14,6 @@ class CommentsTest < ApplicationSystemTestCase
       status: "active"
     )
 
-    # Create a discussion topic with no comments for testing first comment
-    @discussion_topic_with_no_comments = DiscussionTopic.create!(
-      title: "Test Discussion Without Comments",
-      description: "A discussion topic for testing first comment functionality",
-      user: @user
-    )
-
     sign_in_user
   end
 
@@ -41,26 +34,6 @@ class CommentsTest < ApplicationSystemTestCase
 
     # Verify the placeholder message is removed immediately (no page refresh needed)
     assert_no_selector "#chore-#{@chore_with_no_comments.id}-no-comments", wait: 1
-
-    # Verify the comment form is reset and ready for another comment
-    assert_field "comment[content]", with: ""
-  end
-
-  test "first comment on discussion topic removes placeholder message immediately" do
-    visit discussion_topic_path(@discussion_topic_with_no_comments)
-
-    # Verify placeholder message is initially present
-    assert_selector "#discussiontopic-#{@discussion_topic_with_no_comments.id}-no-comments", text: "No comments yet"
-
-    # Add the first comment (discussion topics don't have #comments wrapper)
-    fill_in "comment[content]", with: "This is the first comment on this discussion!"
-    click_on "Post"
-
-    # Verify the comment appears immediately
-    assert_selector "[data-testid='comment-content']", text: "This is the first comment on this discussion!"
-
-    # Verify the placeholder message is removed immediately (no page refresh needed)
-    assert_no_selector "#discussiontopic-#{@discussion_topic_with_no_comments.id}-no-comments", wait: 1
 
     # Verify the comment form is reset and ready for another comment
     assert_field "comment[content]", with: ""
@@ -121,7 +94,7 @@ class CommentsTest < ApplicationSystemTestCase
     # removes the comment, leaving an empty comments section.
   end
 
-  test "first comment works consistently across different comment types" do
+  test "first comment on a chore works from a fresh page" do
     # Test with chore
     visit chore_path(@chore_with_no_comments)
     within "#comments" do
@@ -130,13 +103,6 @@ class CommentsTest < ApplicationSystemTestCase
     end
     assert_selector "[data-testid='comment-content']", text: "Chore comment"
     assert_no_selector "#chore-#{@chore_with_no_comments.id}-no-comments"
-
-    # Test with discussion topic (no #comments wrapper)
-    visit discussion_topic_path(@discussion_topic_with_no_comments)
-    fill_in "comment[content]", with: "Discussion comment"
-    click_on "Post"
-    assert_selector "[data-testid='comment-content']", text: "Discussion comment"
-    assert_no_selector "#discussiontopic-#{@discussion_topic_with_no_comments.id}-no-comments"
   end
 
   private
