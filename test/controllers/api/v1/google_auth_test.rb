@@ -81,4 +81,37 @@ class Api::V1::GoogleAuthTest < ActionDispatch::IntegrationTest
     assert_response :bad_request
     assert_equal "community_domain_required", JSON.parse(response.body)["error"]
   end
+
+  # --- new accounts need an invitation ---
+
+  def newcomer_claims
+    { "email" => "newcomer@example.com", "email_verified" => "true", "name" => "Newcomer", "sub" => "sub-newcomer" }
+  end
+
+  test "google_auth refuses to create a new user without a valid invitation" do
+    GoogleIdTokenVerifier.stub(:verify, newcomer_claims) do
+      assert_no_difference("User.count") do
+        post api_v1_google_auth_url, params: { id_token: "valid-token", community_domain: @community.domain }, as: :json
+      end
+    end
+
+    assert_response :forbidden
+    assert_nil JSON.parse(response.body)["auth_token"]
+  end
+
+  test "google_auth creates a new user with a valid invitation token" do
+    invitation = Invitation.create!
+
+    GoogleIdTokenVerifier.stub(:verify, newcomer_claims) do
+      assert_difference("User.count", 1) do
+        post api_v1_google_auth_url,
+          params: { id_token: "valid-token", community_domain: @community.domain, invitation_token: invitation.token },
+          as: :json
+      end
+    end
+
+    assert_response :ok
+    assert JSON.parse(response.body)["auth_token"].present?
+    assert_equal @community.id, User.find_by(email: "newcomer@example.com").community_id
+  end
 end

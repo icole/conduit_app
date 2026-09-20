@@ -40,8 +40,6 @@ class RegistrationsController < ApplicationController
   end
 
   def valid_invitation_token?
-    return true if Rails.env.test?
-
     token = session[:invitation_token]
     token.present? && User.valid_invitation?(token)
   end

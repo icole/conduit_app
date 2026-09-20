@@ -15,9 +15,13 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
       }
     }
 
-    OmniAuth.config.mock_auth[:google_oauth2] = OmniAuth::AuthHash.new(
-      default_attrs.deep_merge(user_attrs)
-    )
+    auth = default_attrs.deep_merge(user_attrs)
+    OmniAuth.config.mock_auth[:google_oauth2] = OmniAuth::AuthHash.new(auth)
+
+    # A brand-new account needs an invitation, exactly as in production.
+    unless User.exists?(provider: "google_oauth2", uid: auth[:uid].to_s)
+      visit accept_invitation_path(Invitation.create!.token)
+    end
 
     visit "/auth/google_oauth2/callback"
   end

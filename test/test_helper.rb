@@ -38,6 +38,11 @@ module ActiveSupport
         auth_attrs
       )
 
+      # A brand-new account needs an invitation, exactly as in production.
+      unless User.exists?(provider: "google_oauth2", uid: auth_attrs[:uid].to_s)
+        get accept_invitation_path(Invitation.create!.token)
+      end
+
       get "/auth/google_oauth2/callback"
     end
   end

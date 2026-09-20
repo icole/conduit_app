@@ -148,9 +148,7 @@ module Api
           # Force session to be created
           session[:established_at] = Time.current.to_i
 
-          # Log session details for debugging
           Rails.logger.info "Session established for user #{@current_user.id}"
-          Rails.logger.info "Session ID: #{session.id}"
 
           render json: {
             success: true,
@@ -261,8 +259,8 @@ module Api
             # New user - set tenant before creating
             set_current_tenant(community)
 
-            # Check invitation requirement only for truly new users
-            if !Rails.env.test? && !User.valid_invitation?(params[:invitation_token])
+            # New accounts need a valid invitation
+            unless User.valid_invitation?(params[:invitation_token])
               render json: { error: "Access restricted to invited users only" }, status: :forbidden
               return
             end
