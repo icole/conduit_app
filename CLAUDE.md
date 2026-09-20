@@ -4,7 +4,7 @@
 2. **Run the test, confirm it fails** — For the right reason, not syntax errors.
 3. **Write minimum code to pass** — Then refactor if needed.
 4. **Before committing:** `bin/rubocop && bin/rails test && bin/brakeman --no-pager`
-5. **Don't push** — Batch commits locally. Ask before pushing to main.
+5. **Ask before pushing to main** — Batch commits locally; pushing is free (no auto-builds), but it's the user's call.
 
 ---
 
@@ -22,7 +22,7 @@ bin/rails test test/system/meals_test.rb:42 # Run specific test
 
 ## Git Workflow
 
-Every push to `main` triggers Codemagic builds (iOS/Android). To save build minutes:
-- Commit locally as you work
-- Batch related changes
-- Push once when feature is complete
+- Commit locally as you work; batch related changes
+- Pushing to `main` does **not** trigger builds: the Codemagic iOS/Android workflows are manual, and only a `v*` tag triggers the App Store workflow (see `codemagic.yaml`)
+- Server deploys are manual too: `. ./.env.deploy && bundle exec kamal deploy`
+- Native builds are only needed when files under `ios/` or `android/` change — batch those; most server work ships without one
