@@ -89,6 +89,13 @@ class User < ApplicationRecord
     Invitation.find_by(token: token)&.valid_for_use?
   end
 
+  # Invalidates every mobile JWT issued so far (they embed token_version).
+  # Call on logout, password change, or anything else that should end
+  # existing device sessions. Web sessions are cookie-based and unaffected.
+  def revoke_mobile_tokens!
+    increment!(:token_version)
+  end
+
   # Check if user authenticated via Google OAuth
   def google_account?
     provider == "google_oauth2"

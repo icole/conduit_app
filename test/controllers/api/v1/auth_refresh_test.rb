@@ -109,4 +109,19 @@ class Api::V1::AuthRefreshTest < ActionDispatch::IntegrationTest
     json = JSON.parse(response.body)
     assert_equal "invalid_token", json["error"]
   end
+
+  test "refresh rejects an expired token whose token_version is stale" do
+    expired_token = JwtService.encode(
+      { user_id: @user.id, community_id: @user.community_id, type: "auth", token_version: @user.token_version },
+      -3.days
+    )
+    @user.revoke_mobile_tokens!
+
+    post api_v1_auth_refresh_url,
+      headers: { "Authorization" => "Bearer #{expired_token}" },
+      as: :json
+
+    assert_response :unauthorized
+    assert_equal "invalid_token", JSON.parse(response.body)["error"]
+  end
 end

@@ -42,8 +42,8 @@ class PasswordResetsController < ApplicationController
 
     @token = params[:token]
 
-    if params[:password].length < 6
-      flash.now[:alert] = "Password must be at least 6 characters"
+    if params[:password].length < 8
+      flash.now[:alert] = "Password must be at least 8 characters"
       render :edit, status: :unprocessable_entity
       return
     end
@@ -57,6 +57,7 @@ class PasswordResetsController < ApplicationController
     ActsAsTenant.with_tenant(@user.community) do
       if @user.update(password: params[:password], password_confirmation: params[:password_confirmation])
         @user.update!(password_reset_sent_at: nil)
+        @user.revoke_mobile_tokens!
         redirect_to login_path, notice: "Password updated successfully. You can now log in."
       else
         flash.now[:alert] = @user.errors.full_messages.join(", ")

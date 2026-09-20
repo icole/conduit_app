@@ -32,6 +32,7 @@ class AccountController < ApplicationController
 
     # Update with new password
     if @user.update(password: params[:new_password], password_confirmation: params[:new_password_confirmation])
+      @user.revoke_mobile_tokens!
       redirect_to account_path, notice: "Password updated successfully"
     else
       redirect_to account_path, alert: @user.errors.full_messages.join(", ")
@@ -50,6 +51,7 @@ class AccountController < ApplicationController
 
     # Set the password
     if @user.update(password: params[:new_password], password_confirmation: params[:new_password_confirmation])
+      @user.revoke_mobile_tokens!
       redirect_to account_path, notice: "Password set successfully"
     else
       redirect_to account_path, alert: @user.errors.full_messages.join(", ")

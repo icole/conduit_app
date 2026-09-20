@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_02_201117) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_20_020000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -547,6 +547,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_201117) do
     t.datetime "password_reset_sent_at"
     t.string "provider"
     t.boolean "restricted_access", default: false, null: false
+    t.integer "token_version", default: 0, null: false
     t.string "uid"
     t.datetime "updated_at", null: false
     t.index ["calendar_feed_token"], name: "index_users_on_calendar_feed_token", unique: true

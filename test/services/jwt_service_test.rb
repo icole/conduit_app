@@ -112,4 +112,29 @@ class JwtServiceTest < ActiveSupport::TestCase
   test "token_expired? returns false for malformed token" do
     assert_not JwtService.token_expired?("garbage")
   end
+
+  # Mobile token revocation
+
+  test "generate_auth_token embeds the user's token_version" do
+    decoded = JwtService.decode(JwtService.generate_auth_token(@user))
+    assert_equal @user.token_version, decoded[:token_version]
+  end
+
+  test "verify_auth_token rejects a token issued before the user's tokens were revoked" do
+    token = JwtService.generate_auth_token(@user)
+    assert_equal @user, JwtService.verify_auth_token(token)
+
+    @user.revoke_mobile_tokens!
+
+    assert_nil JwtService.verify_auth_token(token)
+    assert_equal @user, JwtService.verify_auth_token(JwtService.generate_auth_token(@user.reload))
+  end
+
+  test "verify_auth_token treats a legacy token with no token_version claim as version 0" do
+    legacy = JwtService.encode({ user_id: @user.id, community_id: @user.community_id, type: "auth" })
+    assert_equal @user, JwtService.verify_auth_token(legacy)
+
+    @user.revoke_mobile_tokens!
+    assert_nil JwtService.verify_auth_token(legacy)
+  end
 end

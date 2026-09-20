@@ -49,7 +49,8 @@ class JwtService
         user_id: user.id,
         community_id: user.community_id,
         email: user.email,
-        type: "auth"
+        type: "auth",
+        token_version: user.token_version
       }
       encode(payload)
     end
@@ -58,16 +59,25 @@ class JwtService
       decoded = decode(token)
       return nil unless decoded && decoded[:type] == "auth"
 
-      # Set tenant context for the user lookup
-      community = Community.find_by(id: decoded[:community_id])
-      return nil unless community
-
-      ActsAsTenant.with_tenant(community) do
-        User.find_by(id: decoded[:user_id])
-      end
+      user_for_auth_claims(decoded)
     rescue StandardError => e
       Rails.logger.error "Token verification error: #{e.message}"
       nil
+    end
+
+    # Resolves the user for an "auth" payload, enforcing token_version so a
+    # revoked token is rejected even if its signature and expiry are fine.
+    # Tokens issued before token_version existed carry no claim and count as
+    # version 0, which matches the column default until the user revokes.
+    def user_for_auth_claims(decoded)
+      community = Community.find_by(id: decoded[:community_id])
+      return nil unless community
+
+      user = ActsAsTenant.with_tenant(community) { User.find_by(id: decoded[:user_id]) }
+      return nil unless user
+      return nil unless decoded[:token_version].to_i == user.token_version
+
+      user
     end
 
     def generate_password_reset_token(user)

@@ -51,4 +51,17 @@ class AccountControllerTest < ActionDispatch::IntegrationTest
     @user.reload
     assert @user.authenticate("newpassword456")
   end
+
+  test "update_password revokes existing mobile tokens" do
+    token = JwtService.generate_auth_token(@user)
+
+    patch update_password_path, params: {
+      current_password: "testpassword123",
+      new_password: "newpassword456",
+      new_password_confirmation: "newpassword456"
+    }
+
+    assert_redirected_to account_path
+    assert_nil JwtService.verify_auth_token(token)
+  end
 end

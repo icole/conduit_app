@@ -104,9 +104,8 @@ module Api
           return
         end
 
-        # Verify user still exists
-        community = Community.find_by(id: decoded[:community_id])
-        user = community && ActsAsTenant.with_tenant(community) { User.find_by(id: decoded[:user_id]) }
+        # Verify user still exists and the token hasn't been revoked
+        user = JwtService.user_for_auth_claims(decoded)
 
         unless user
           render json: { error: "invalid_token" }, status: :unauthorized
@@ -128,6 +127,7 @@ module Api
 
       # DELETE /api/v1/logout
       def logout
+        @current_user.revoke_mobile_tokens!
         session[:user_id] = nil
         render json: { success: true }, status: :ok
       end

@@ -120,4 +120,19 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
   end
+
+  test "update revokes existing mobile tokens" do
+    @user.update!(password_reset_sent_at: Time.current)
+    mobile_token = JwtService.generate_auth_token(@user)
+    token = JwtService.generate_password_reset_token(@user)
+
+    patch password_reset_path, params: {
+      token: token,
+      password: "newpassword123",
+      password_confirmation: "newpassword123"
+    }
+
+    assert_redirected_to login_path
+    assert_nil JwtService.verify_auth_token(mobile_token)
+  end
 end
