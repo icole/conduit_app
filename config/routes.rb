@@ -9,7 +9,9 @@ Rails.application.routes.draw do
     get "liveblocks/users", to: "liveblocks#users"
 
     namespace :v1 do
-      resources :communities, only: [ :index ]
+      resources :communities, only: [ :index ] do
+        get :lookup, on: :collection
+      end
       get "users/search", to: "users#search"
       post "login", to: "auth#login"
       post "google_auth", to: "auth#google_auth"

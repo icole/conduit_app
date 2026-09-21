@@ -21,8 +21,9 @@ class CommunitySignupsController < ApplicationController
       session[:community_id] = @signup.community.id
       set_current_tenant(@signup.community)
 
-      redirect_to root_path, notice: "Welcome! #{@signup.community.name} is set up. " \
-        "Check your email to verify your address - chat unlocks once your community is approved."
+      redirect_to root_path, notice: "Welcome! #{@signup.community.name} is set up - " \
+        "in the mobile app, find it with the name \"#{@signup.community.slug}\". " \
+        "Check your email to verify your address; chat unlocks once your community is approved."
     else
       render :new, status: :unprocessable_entity
     end
