@@ -3,6 +3,7 @@ class InvitationsController < ApplicationController
   before_action :set_invitation, only: [ :accept ]
   skip_before_action :authenticate_user!, only: [ :accept ]
   before_action :admin_only, except: [ :accept ]
+  before_action :require_verified_email, only: [ :new, :create ]
 
   def new
     # If we already have an active invitation, redirect to it
@@ -57,6 +58,12 @@ class InvitationsController < ApplicationController
 
   def set_invitation
     @invitation = Invitation.find_by(token: params[:id])
+  end
+
+  def require_verified_email
+    return if current_user.email_verified?
+
+    redirect_to root_path, alert: "Please verify your email address before inviting others."
   end
 
   def admin_only

@@ -46,12 +46,18 @@ class User < ApplicationRecord
   # Handle discarded records before destroy - Discardable's default scope hides them from dependent: :destroy
   before_destroy :cleanup_discarded_records
 
+  # A changed email address must be verified again
+  before_update :reset_email_verification, if: :will_save_change_to_email?
+  after_update_commit :send_email_verification!, if: :saved_change_to_email?
+
   def self.from_omniauth(auth, invitation_token = nil)
     user = where(provider: auth.provider, uid: auth.uid).first_or_initialize do |user|
       user.email = auth.info.email
       user.name = auth.info.name
       # Don't set a password for OAuth users - they can optionally set one later
       user.avatar_url = auth.info.image
+      # Google has already verified the address
+      user.email_verified_at = Time.current
     end
 
     invitation_token ||= user.invitation&.token
@@ -73,6 +79,22 @@ class User < ApplicationRecord
 
   def self.valid_invitation?(token)
     Invitation.find_by(token: token)&.valid_for_use?
+  end
+
+  # Email verification. Password sign-ups start unverified; Google sign-ins
+  # are verified at creation. Unverified users can browse but can't use the
+  # metered features or invite others.
+  def email_verified?
+    email_verified_at.present?
+  end
+
+  def send_email_verification!
+    update!(email_verification_sent_at: Time.current)
+    UserMailer.verify_email(self, JwtService.generate_email_verification_token(self)).deliver_later
+  end
+
+  def verify_email!
+    update!(email_verified_at: Time.current, email_verification_sent_at: nil)
   end
 
   # Invalidates every mobile JWT issued so far (they embed token_version).
@@ -143,6 +165,10 @@ class User < ApplicationRecord
   end
 
   private
+
+  def reset_email_verification
+    self.email_verified_at = nil
+  end
 
   def cleanup_discarded_records
     # Delete discarded records that reference this user via user_id

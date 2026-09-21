@@ -25,6 +25,7 @@ class RegistrationsController < ApplicationController
     @user.invitation = invitation if invitation&.valid_for_use?
 
     if @user.save
+      @user.send_email_verification!
       session[:user_id] = @user.id
       session.delete(:invitation_token)
       redirect_to root_path, notice: "Welcome! Your account has been created."

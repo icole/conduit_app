@@ -7,6 +7,7 @@ one:
   email: jane@example.com
   provider: google_oauth2
   password_digest: <%= BCrypt::Password.create('password') %>
+  email_verified_at: <%= 1.year.ago %>
 
 two:
   community: crow_woods
@@ -15,6 +16,7 @@ two:
   email: mike@example.com
   provider: google_oauth2
   password_digest: <%= BCrypt::Password.create('password') %>
+  email_verified_at: <%= 1.year.ago %>
 
 admin_user:
   community: crow_woods
@@ -24,6 +26,7 @@ admin_user:
   provider: google_oauth2
   password_digest: <%= BCrypt::Password.create('password') %>
   admin: true
+  email_verified_at: <%= 1.year.ago %>
 
 regular_user:
   community: crow_woods
@@ -33,6 +36,7 @@ regular_user:
   provider: google_oauth2
   password_digest: <%= BCrypt::Password.create('password') %>
   admin: false
+  email_verified_at: <%= 1.year.ago %>
 
 three:
   community: crow_woods
@@ -41,6 +45,7 @@ three:
   email: alice@example.com
   provider: google_oauth2
   password_digest: <%= BCrypt::Password.create('password') %>
+  email_verified_at: <%= 1.year.ago %>
 
 four:
   community: crow_woods
@@ -49,6 +54,7 @@ four:
   email: bob@example.com
   provider: google_oauth2
   password_digest: <%= BCrypt::Password.create('password') %>
+  email_verified_at: <%= 1.year.ago %>
 
 five:
   community: crow_woods
@@ -57,6 +63,7 @@ five:
   email: carol@example.com
   provider: google_oauth2
   password_digest: <%= BCrypt::Password.create('password') %>
+  email_verified_at: <%= 1.year.ago %>
 
 six:
   community: crow_woods
@@ -67,23 +74,28 @@ six:
   password_digest: <%= BCrypt::Password.create('password') %>
 
 # Email users with password (no OAuth provider) - separate fixtures for test isolation
+  email_verified_at: <%= 1.year.ago %>
+
 email_user:
   community: crow_woods
   name: Email User
   email: emailuser@example.com
   password_digest: <%= BCrypt::Password.create('testpassword123') %>
+  email_verified_at: <%= 1.year.ago %>
 
 email_user_two:
   community: crow_woods
   name: Email User Two
   email: emailuser2@example.com
   password_digest: <%= BCrypt::Password.create('testpassword123') %>
+  email_verified_at: <%= 1.year.ago %>
 
 email_user_three:
   community: crow_woods
   name: Email User Three
   email: emailuser3@example.com
   password_digest: <%= BCrypt::Password.create('testpassword123') %>
+  email_verified_at: <%= 1.year.ago %>
 
 email_user_four:
   community: crow_woods
@@ -92,6 +104,8 @@ email_user_four:
   password_digest: <%= BCrypt::Password.create('testpassword123') %>
 
 # Email user for profile tests (separate from password change tests)
+  email_verified_at: <%= 1.year.ago %>
+
 email_user_profile:
   community: crow_woods
   name: Email User Profile
@@ -99,6 +113,8 @@ email_user_profile:
   password_digest: <%= BCrypt::Password.create('testpassword123') %>
 
 # OAuth user without a password (for testing "set password" flow)
+  email_verified_at: <%= 1.year.ago %>
+
 oauth_no_password:
   community: crow_woods
   uid: 777777777
@@ -106,6 +122,7 @@ oauth_no_password:
   email: oauth_nopass@example.com
   provider: google_oauth2
   # No password_digest - simulates OAuth-only user
+  email_verified_at: <%= 1.year.ago %>
 
 pending_admin:
   community: pending_community
@@ -113,15 +130,25 @@ pending_admin:
   email: pending@example.com
   admin: true
   password_digest: <%= BCrypt::Password.create('testpassword123') %>
+  email_verified_at: <%= 1.year.ago %>
 
 suspended_user:
   community: suspended_community
   name: Suspended User
   email: suspended@example.com
   password_digest: <%= BCrypt::Password.create('testpassword123') %>
+  email_verified_at: <%= 1.year.ago %>
 
 other_member:
   community: other_community
   name: Other Member
   email: member@other.test
   password_digest: <%= BCrypt::Password.create('testpassword123') %>
+  email_verified_at: <%= 1.year.ago %>
+
+unverified_user:
+  community: crow_woods
+  name: Unverified User
+  email: unverified@example.com
+  password_digest: <%= BCrypt::Password.create('testpassword123') %>
+  email_verification_sent_at: <%= 1.hour.ago %>

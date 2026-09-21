@@ -1,0 +1,11 @@
+<h2>Verify your email address</h2>
+
+<p>Hi <%= @user.name %>,</p>
+
+<p>Please confirm this is your email address by clicking the link below:</p>
+
+<p><a href="<%= @verify_url %>">Verify my email</a></p>
+
+<p>This link will expire in 24 hours. If you didn't create a Conduit account, you can safely ignore this email.</p>
+
+<p>Thanks,<br>The Conduit Team</p>

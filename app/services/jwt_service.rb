@@ -80,6 +80,29 @@ class JwtService
       user
     end
 
+    def generate_email_verification_token(user)
+      encode({ user_id: user.id, community_id: user.community_id, type: "email_verification" }, 24.hours)
+    end
+
+    # Single-use: valid only while the user has a pending verification and the
+    # token was issued at or after the latest send.
+    def verify_email_verification_token(token)
+      decoded = decode(token)
+      return nil unless decoded && decoded[:type] == "email_verification"
+
+      community = Community.find_by(id: decoded[:community_id])
+      return nil unless community
+
+      user = ActsAsTenant.with_tenant(community) { User.find_by(id: decoded[:user_id]) }
+      return nil unless user&.email_verification_sent_at
+      return nil if decoded[:iat].to_i < user.email_verification_sent_at.to_i
+
+      user
+    rescue StandardError => e
+      Rails.logger.error "Email verification token error: #{e.message}"
+      nil
+    end
+
     def generate_password_reset_token(user)
       payload = {
         user_id: user.id,

@@ -38,6 +38,11 @@ module Api
     # POST /api/liveblocks/auth
     # Authenticates the user for Liveblocks and returns a token
     def auth
+      unless current_user.email_verified?
+        render json: { error: "email_unverified" }, status: :forbidden
+        return
+      end
+
       if (reason = current_community.docs_unavailable_reason)
         render json: { error: reason, status: current_community.status }, status: :forbidden
         return

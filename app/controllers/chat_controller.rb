@@ -57,6 +57,11 @@ class ChatController < ApplicationController
     end
 
     user = api_current_user
+    unless user.email_verified?
+      render json: { error: "email_unverified" }, status: :forbidden
+      return
+    end
+
     if (reason = user.community.chat_unavailable_reason)
       render json: { error: reason, status: user.community.status }, status: :forbidden
       return

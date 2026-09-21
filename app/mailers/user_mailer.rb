@@ -8,4 +8,11 @@ class UserMailer < ApplicationMailer
 
     mail(to: @user.email, subject: "Reset your password")
   end
+
+  def verify_email(user, token)
+    @user = user
+    @verify_url = verify_email_url(token)
+
+    mail(to: @user.email, subject: "Verify your email address for Conduit")
+  end
 end

@@ -1,0 +1,6 @@
+<% if user_signed_in? && !current_user.email_verified? %>
+  <div class="alert alert-warning rounded-none justify-center text-sm gap-3" role="status">
+    <span>Please verify your email address &mdash; we sent a link to <strong><%= current_user.email %></strong>.</span>
+    <%= button_to "Resend", resend_email_verification_path, class: "btn btn-xs btn-outline" %>
+  </div>
+<% end %>

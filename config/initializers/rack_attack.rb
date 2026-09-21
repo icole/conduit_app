@@ -23,6 +23,11 @@ class Rack::Attack
     req.ip if req.post? && req.path == "/register"
   end
 
+  # Throttle verification email resends by IP (3 per hour)
+  throttle("email_verification_resend/ip", limit: 3, period: 1.hour) do |req|
+    req.ip if req.post? && req.path == "/email_verification/resend"
+  end
+
   # General request throttle by IP (300 requests per 5 minutes)
   throttle("requests/ip", limit: 300, period: 5.minutes, &:ip)
 

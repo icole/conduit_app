@@ -176,6 +176,11 @@ module Api
         end
 
         if @current_user
+          unless @current_user.email_verified?
+            render json: { error: "email_unverified" }, status: :forbidden
+            return
+          end
+
           if (reason = @current_user.community.chat_unavailable_reason)
             render json: { error: reason, status: @current_user.community.status }, status: :forbidden
             return
@@ -272,7 +277,8 @@ module Api
               password: SecureRandom.hex(16), # Random password for OAuth users
               provider: "google_oauth2",
               uid: google_uid,
-              avatar_url: image_url
+              avatar_url: image_url,
+              email_verified_at: Time.current
             )
 
             user.save!

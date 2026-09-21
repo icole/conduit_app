@@ -168,6 +168,10 @@ Rails.application.routes.draw do
   post "password_reset", to: "password_resets#create", as: :password_reset
   patch "password_reset", to: "password_resets#update"
 
+  # Email verification (link from the email works on any host, logged in or not)
+  get "email_verification/:token", to: "email_verifications#show", as: :verify_email, constraints: { token: /[^\/]+/ }
+  post "email_verification/resend", to: "email_verifications#resend", as: :resend_email_verification
+
   # Profile routes (for users to edit their own profile)
   resource :profile, only: [ :edit, :update ]
 
