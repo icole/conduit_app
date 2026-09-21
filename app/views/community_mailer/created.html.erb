@@ -1,0 +1,11 @@
+<h2>New community: <%= @community.name %></h2>
+
+<ul>
+  <li>Name: <%= @community.name %></li>
+  <li>Slug: <%= @community.slug %></li>
+  <li>Domain: <%= @community.domain %></li>
+  <li>Founder: <%= @founder&.name %> (<%= @founder&.email %>)</li>
+</ul>
+
+<p>It is <strong>pending</strong>. To approve:</p>
+<pre>bin/rails communities:approve SLUG=<%= @community.slug %></pre>

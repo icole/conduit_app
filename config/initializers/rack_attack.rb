@@ -23,6 +23,11 @@ class Rack::Attack
     req.ip if req.post? && req.path == "/register"
   end
 
+  # Throttle community creation by IP (3 per day)
+  throttle("community_signups/ip", limit: 3, period: 1.day) do |req|
+    req.ip if req.post? && req.path == "/communities"
+  end
+
   # Throttle verification email resends by IP (3 per hour)
   throttle("email_verification_resend/ip", limit: 3, period: 1.hour) do |req|
     req.ip if req.post? && req.path == "/email_verification/resend"

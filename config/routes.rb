@@ -150,6 +150,10 @@ Rails.application.routes.draw do
   get "auth_login", to: "sessions#auth_login"
   delete "logout", to: "sessions#destroy"
 
+  # Public "start a community" signup (no tenant, no session)
+  get "communities/new", to: "community_signups#new", as: :new_community_signup
+  post "communities", to: "community_signups#create", as: :community_signups
+
   # Registration routes
   get "register", to: "registrations#new"
   post "register", to: "registrations#create"

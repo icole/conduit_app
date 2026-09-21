@@ -79,7 +79,9 @@ Rails.application.configure do
     "conduit.crowwoods.com",
     "conduit-staging.crowwoods.com",
     /.*\.crowwoods\.com/,
-    "api.conduitcoho.app"
+    # Self-created communities get a <slug>.conduitcoho.app domain
+    /.*\.conduitcoho\.app/,
+    "conduitcoho.app"
   ]
 
   # Skip DNS rebinding protection for the health check endpoint.

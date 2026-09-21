@@ -1,0 +1,64 @@
+<div class="container mx-auto px-4 py-16 flex justify-center">
+  <div class="card bg-base-100 shadow-xl w-full max-w-md">
+    <div class="card-body">
+      <h2 class="card-title text-2xl font-bold text-center w-full justify-center mb-2">Start a community</h2>
+      <p class="text-sm text-base-content/70 text-center mb-6">
+        Set up Conduit for your cohousing community. You'll be its first admin and can invite your neighbours right away.
+      </p>
+
+      <%= form_with url: community_signups_path, method: :post, class: "space-y-4" do |f| %>
+        <% errors = @signup.community.errors.full_messages + @signup.user.errors.full_messages %>
+        <% if errors.any? %>
+          <div class="alert alert-error">
+            <div>
+              <% errors.each do |message| %>
+                <p class="text-sm"><%= message %></p>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="form-control">
+          <%= label_tag "community[name]", "Community name", class: "label" %>
+          <%= text_field_tag "community[name]", @signup.community.name, class: "input input-bordered w-full", required: true, placeholder: "Willow Creek Cohousing" %>
+        </div>
+
+        <div class="divider text-sm">your account</div>
+
+        <div class="form-control">
+          <%= label_tag "user[name]", "Your name", class: "label" %>
+          <%= text_field_tag "user[name]", @signup.user.name, class: "input input-bordered w-full", required: true, autocomplete: "name" %>
+        </div>
+
+        <div class="form-control">
+          <%= label_tag "user[email]", "Email", class: "label" %>
+          <%= email_field_tag "user[email]", @signup.user.email, class: "input input-bordered w-full", required: true, autocomplete: "email" %>
+        </div>
+
+        <div class="form-control">
+          <%= label_tag "user[password]", "Password", class: "label" %>
+          <%= password_field_tag "user[password]", nil, class: "input input-bordered w-full", required: true, minlength: 8, autocomplete: "new-password" %>
+          <label class="label">
+            <span class="label-text-alt text-base-content/50">Minimum 8 characters</span>
+          </label>
+        </div>
+
+        <div class="form-control">
+          <%= label_tag "user[password_confirmation]", "Confirm password", class: "label" %>
+          <%= password_field_tag "user[password_confirmation]", nil, class: "input input-bordered w-full", required: true, minlength: 8, autocomplete: "new-password" %>
+        </div>
+
+        <%= submit_tag "Create community", class: "btn btn-primary w-full" %>
+      <% end %>
+
+      <p class="text-xs text-center text-base-content/60 mt-4">
+        New communities are reviewed before chat and collaborative documents are switched on &mdash; usually within a day.
+        Everything else works straight away.
+      </p>
+
+      <div class="text-center mt-4">
+        <%= link_to "Already have an account? Log in", login_path, class: "link link-hover text-sm" %>
+      </div>
+    </div>
+  </div>
+</div>
