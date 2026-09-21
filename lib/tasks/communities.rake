@@ -35,4 +35,18 @@ namespace :communities do
     community.suspend!
     puts "#{community.slug}: #{community.status}. Mobile tokens revoked."
   end
+
+  desc "Turn a feature flag on or off for a community. SLUG=community-slug FLAG=chat_enabled|collaborative_docs_enabled VALUE=true|false"
+  task set_flag: :environment do
+    community = Community.find_by!(slug: ENV.fetch("SLUG"))
+    flag = ENV.fetch("FLAG")
+    unless Community::FEATURE_FLAGS.include?(flag)
+      puts "Unknown flag #{flag}. Known: #{Community::FEATURE_FLAGS.join(', ')}"
+      exit 1
+    end
+
+    community.public_send("#{flag}=", ENV.fetch("VALUE"))
+    community.save!
+    puts "#{community.slug}: #{flag} = #{community.public_send("#{flag}?")}"
+  end
 end

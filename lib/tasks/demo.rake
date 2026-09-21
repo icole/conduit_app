@@ -20,7 +20,9 @@ namespace :demo do
     community.assign_attributes(
       name: community_name,
       domain: community_domain,
-      status: "active"
+      status: "active",
+      chat_enabled: true,
+      collaborative_docs_enabled: true
     )
 
     if community.save

@@ -119,3 +119,9 @@ suspended_user:
   name: Suspended User
   email: suspended@example.com
   password_digest: <%= BCrypt::Password.create('testpassword123') %>
+
+other_member:
+  community: other_community
+  name: Other Member
+  email: member@other.test
+  password_digest: <%= BCrypt::Password.create('testpassword123') %>

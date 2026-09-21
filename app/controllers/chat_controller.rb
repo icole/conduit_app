@@ -24,8 +24,9 @@ class ChatController < ApplicationController
 
   # GET /chat
   def index
-    unless current_community.chat_available?
-      redirect_to root_path, alert: "Chat will be available once your community is approved."
+    if (reason = current_community.chat_unavailable_reason)
+      message = reason == "chat_disabled" ? "Chat isn't enabled for your community." : "Chat will be available once your community is approved."
+      redirect_to root_path, alert: message
       return
     end
 
@@ -56,8 +57,8 @@ class ChatController < ApplicationController
     end
 
     user = api_current_user
-    unless user.community.chat_available?
-      render json: { error: "community_not_active", status: user.community.status }, status: :forbidden
+    if (reason = user.community.chat_unavailable_reason)
+      render json: { error: reason, status: user.community.status }, status: :forbidden
       return
     end
 

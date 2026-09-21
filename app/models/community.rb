@@ -48,14 +48,40 @@ class Community < ApplicationRecord
     end
   end
 
-  # Whether Stream chat may be used. CON-59 adds the per-community flag here.
+  # Per-community feature flags for the metered third-party features. Off by
+  # default so a self-created community costs nothing until it is approved
+  # and switched on; existing communities were backfilled to on.
+  FEATURE_FLAGS = %w[chat_enabled collaborative_docs_enabled].freeze
+
+  FEATURE_FLAGS.each do |flag|
+    define_method("#{flag}?") { settings&.dig(flag) == true }
+    define_method("#{flag}=") { |value| self.settings = (settings || {}).merge(flag => ActiveModel::Type::Boolean.new.cast(value)) }
+  end
+
+  # Whether Stream chat may be used: the community must be active and have chat on.
   def chat_available?
-    active?
+    chat_unavailable_reason.nil?
+  end
+
+  # nil when chat is available, otherwise the machine-readable reason
+  # ("community_not_active" or "chat_disabled") the endpoints return.
+  def chat_unavailable_reason
+    return "community_not_active" unless active?
+    return "chat_disabled" unless chat_enabled?
+
+    nil
   end
 
   # Whether Liveblocks collaborative editing may be used.
   def collaboration_available?
-    active?
+    docs_unavailable_reason.nil?
+  end
+
+  def docs_unavailable_reason
+    return "community_not_active" unless active?
+    return "docs_disabled" unless collaborative_docs_enabled?
+
+    nil
   end
 
   def dues_tracking_enabled?

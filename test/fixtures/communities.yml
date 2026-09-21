@@ -8,6 +8,8 @@ crow_woods:
   settings:
     google_calendar_id: test_calendar_id
     google_drive_folder_id: test_folder_id
+    chat_enabled: true
+    collaborative_docs_enabled: true
   time_zone: America/New_York
 
 other_community:

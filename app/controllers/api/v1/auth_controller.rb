@@ -176,8 +176,8 @@ module Api
         end
 
         if @current_user
-          unless @current_user.community.chat_available?
-            render json: { error: "community_not_active", status: @current_user.community.status }, status: :forbidden
+          if (reason = @current_user.community.chat_unavailable_reason)
+            render json: { error: reason, status: @current_user.community.status }, status: :forbidden
             return
           end
 

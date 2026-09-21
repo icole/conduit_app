@@ -12,7 +12,9 @@
         <li><%= link_to "Calendar", calendar_index_path %></li>
         <li><%= link_to "Meals", meals_path %></li>
         <li><%= link_to "Docs", documents_path %></li>
-        <li><%= link_to "Chat", chat_index_path %></li>
+        <% if current_community.chat_available? %>
+          <li><%= link_to "Chat", chat_index_path %></li>
+        <% end %>
         <li class="divider"></li>
         <li><%= link_to account_path do %>
           Account Settings
@@ -50,7 +52,9 @@
         <li><%= link_to "Calendar", calendar_index_path, class: "btn btn-ghost btn-sm #{'btn-active' if controller_name.in?(['calendar', 'calendar_events'])}" %></li>
         <li><%= link_to "Meals", meals_path, class: "btn btn-ghost btn-sm #{'btn-active' if controller_name.in?(['meals', 'meal_schedules'])}" %></li>
         <li><%= link_to "Docs", documents_path, class: "btn btn-ghost btn-sm #{'btn-active' if controller_name.in?(['documents', 'document_folders'])}" %></li>
-        <li><%= link_to "Chat", chat_index_path, class: "btn btn-ghost btn-sm #{'btn-active' if controller_name == 'chat'}" %></li>
+        <% if current_community.chat_available? %>
+          <li><%= link_to "Chat", chat_index_path, class: "btn btn-ghost btn-sm #{'btn-active' if controller_name == 'chat'}" %></li>
+        <% end %>
 
         <!-- Admin Dropdown (if admin) -->
         <% if user_signed_in? && current_user.admin? %>
