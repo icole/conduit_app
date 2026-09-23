@@ -1,38 +1,39 @@
 package com.colecoding.conduit.auth
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.TextView
+import android.view.inputmethod.EditorInfo
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.colecoding.conduit.ui.padForSystemBars
 import com.colecoding.conduit.R
+import com.colecoding.conduit.config.AppConfig
+import com.colecoding.conduit.config.CommunityLookup
 import com.colecoding.conduit.config.CommunityManager
 import com.colecoding.conduit.databinding.ActivityCommunitySelectBinding
 import com.colecoding.conduit.models.Community
+import com.colecoding.conduit.ui.padForSystemBars
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
+import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
+/**
+ * Asks for the community by name and looks up that one community, rather than
+ * listing every community on the server.
+ */
 class CommunitySelectActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCommunitySelectBinding
-    private var communities: List<Community> = emptyList()
-    private var selectedCommunity: Community? = null
-    private lateinit var adapter: CommunityAdapter
+    private var foundCommunity: Community? = null
 
     companion object {
         private const val TAG = "CommunitySelectActivity"
-        private const val COMMUNITIES_API_URL = "https://api.conduitcoho.app/api/v1/communities"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,153 +43,115 @@ class CommunitySelectActivity : AppCompatActivity() {
         setContentView(binding.root)
         binding.root.padForSystemBars()
 
-        setupRecyclerView()
-        setupContinueButton()
-        fetchCommunities()
-    }
-
-    private fun setupRecyclerView() {
-        adapter = CommunityAdapter(
-            communities = communities,
-            selectedCommunity = selectedCommunity,
-            onCommunitySelected = { community ->
-                selectedCommunity = community
-                adapter.setSelectedCommunity(community)
-                binding.continueButton.isEnabled = true
-            }
-        )
-        binding.communitiesList.layoutManager = LinearLayoutManager(this)
-        binding.communitiesList.adapter = adapter
-    }
-
-    private fun setupContinueButton() {
-        binding.continueButton.setOnClickListener {
-            selectedCommunity?.let { community ->
-                // Build the full URL with https://
-                val url = "https://${community.domain}"
-
-                // Save the selected community
-                CommunityManager.setCommunityUrl(this, url)
-                CommunityManager.setCommunityName(this, community.name)
-
-                Log.d(TAG, "Selected community: ${community.name} at $url")
-
-                // Navigate to login
-                startActivity(Intent(this, LoginActivity::class.java))
-                finish()
+        binding.findButton.setOnClickListener { lookupCommunity() }
+        binding.communityInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                lookupCommunity()
+                true
+            } else {
+                false
             }
         }
+
+        // Typing again invalidates the previous result
+        binding.communityInput.addTextChangedListener(
+            afterTextChanged = { clearResult() }
+        )
+
+        binding.signupButton.setOnClickListener { openSignupForm() }
+        binding.continueButton.setOnClickListener { continueToLogin() }
     }
 
-    private fun fetchCommunities() {
+    private fun lookupCommunity() {
+        val baseUrl = AppConfig.getBaseUrl(this)
+        val url = CommunityLookup.lookupUrl(baseUrl, binding.communityInput.text?.toString().orEmpty())
+        if (url == null) {
+            showError(getString(R.string.community_input_hint))
+            return
+        }
+
+        clearResult()
         showLoading(true)
-        hideError()
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val url = URL(COMMUNITIES_API_URL)
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                connection.setRequestProperty("Accept", "application/json")
-                connection.connectTimeout = 10000
-                connection.readTimeout = 10000
+                val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    setRequestProperty("Accept", "application/json")
+                    connectTimeout = 10_000
+                    readTimeout = 10_000
+                }
 
-                val responseCode = connection.responseCode
-                Log.d(TAG, "Communities API response code: $responseCode")
-
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    val response = connection.inputStream.bufferedReader().use { it.readText() }
-                    val jsonArray = JSONArray(response)
-                    val fetchedCommunities = Community.listFromJson(jsonArray)
-
-                    withContext(Dispatchers.Main) {
-                        showLoading(false)
-                        communities = fetchedCommunities
-                        adapter.updateCommunities(communities)
-
-                        if (communities.isEmpty()) {
-                            showError("No communities available")
-                        }
-                    }
+                val code = connection.responseCode
+                val body = if (code == HttpURLConnection.HTTP_OK) {
+                    connection.inputStream.bufferedReader().use { it.readText() }
                 } else {
-                    withContext(Dispatchers.Main) {
-                        showLoading(false)
-                        showError("Failed to load communities (Error $responseCode)")
+                    null
+                }
+
+                withContext(Dispatchers.Main) {
+                    showLoading(false)
+                    when {
+                        body != null -> showFound(Community.fromJson(JSONObject(body)))
+                        code == HttpURLConnection.HTTP_NOT_FOUND -> showError(getString(R.string.community_not_found))
+                        else -> showError(getString(R.string.error_network))
                     }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error fetching communities", e)
+                Log.e(TAG, "Community lookup failed", e)
                 withContext(Dispatchers.Main) {
                     showLoading(false)
-                    showError("Failed to load communities: ${e.localizedMessage}")
+                    showError(getString(R.string.error_network))
                 }
             }
         }
+    }
+
+    private fun showFound(community: Community) {
+        foundCommunity = community
+        binding.foundText.text = if (community.isPending) {
+            "${community.name}\n${getString(R.string.community_pending_note)}"
+        } else {
+            community.name
+        }
+        binding.foundText.visibility = View.VISIBLE
+        binding.continueButton.isEnabled = true
+    }
+
+    private fun continueToLogin() {
+        val community = foundCommunity ?: return
+
+        // Debug builds talk to the local server; release builds use the community's domain
+        val url = if (AppConfig.isDebugBuild()) AppConfig.getBaseUrl(this) else "https://${community.domain}"
+
+        CommunityManager.setCommunityUrl(this, url)
+        CommunityManager.setCommunityName(this, community.name)
+
+        Log.d(TAG, "Selected community: ${community.name} at $url")
+
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
+    }
+
+    private fun openSignupForm() {
+        val url = CommunityLookup.signupUrl(AppConfig.getBaseUrl(this))
+        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    }
+
+    private fun clearResult() {
+        foundCommunity = null
+        binding.continueButton.isEnabled = false
+        binding.foundText.visibility = View.GONE
+        binding.errorText.visibility = View.GONE
     }
 
     private fun showLoading(show: Boolean) {
         binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
-        binding.communitiesList.visibility = if (show) View.GONE else View.VISIBLE
+        binding.findButton.isEnabled = !show
     }
 
     private fun showError(message: String) {
         binding.errorText.text = message
         binding.errorText.visibility = View.VISIBLE
-    }
-
-    private fun hideError() {
-        binding.errorText.visibility = View.GONE
-    }
-
-    // RecyclerView Adapter
-    private class CommunityAdapter(
-        private var communities: List<Community>,
-        private var selectedCommunity: Community?,
-        private val onCommunitySelected: (Community) -> Unit
-    ) : RecyclerView.Adapter<CommunityAdapter.ViewHolder>() {
-
-        class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val nameText: TextView = view.findViewById(android.R.id.text1)
-            val domainText: TextView = view.findViewById(android.R.id.text2)
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(android.R.layout.simple_list_item_2, parent, false)
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val community = communities[position]
-            holder.nameText.text = community.name
-            holder.domainText.text = community.domain
-
-            // Show selection state
-            val isSelected = selectedCommunity?.id == community.id
-            holder.itemView.isActivated = isSelected
-
-            // Update background based on selection
-            if (isSelected) {
-                holder.itemView.setBackgroundResource(android.R.color.holo_blue_light)
-            } else {
-                holder.itemView.setBackgroundResource(android.R.color.transparent)
-            }
-
-            holder.itemView.setOnClickListener {
-                onCommunitySelected(community)
-            }
-        }
-
-        override fun getItemCount() = communities.size
-
-        fun updateCommunities(newCommunities: List<Community>) {
-            communities = newCommunities
-            notifyDataSetChanged()
-        }
-
-        fun setSelectedCommunity(community: Community) {
-            selectedCommunity = community
-            notifyDataSetChanged()
-        }
     }
 }

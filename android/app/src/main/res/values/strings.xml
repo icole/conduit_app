@@ -11,10 +11,15 @@
     <string name="navigation_account">Account</string>
 
     <!-- Community Selection -->
-    <string name="community_select_title">Select Your Community</string>
-    <string name="community_select_subtitle">Choose the community you belong to</string>
+    <string name="community_select_title">Find Your Community</string>
+    <string name="community_select_subtitle">Enter the name your community uses on Conduit</string>
+    <string name="community_input_hint">Community name</string>
+    <string name="community_find">Find community</string>
     <string name="community_continue">Continue</string>
     <string name="community_switch">Switch Community</string>
+    <string name="community_start">Start a new community</string>
+    <string name="community_not_found">We couldn\'t find a community with that name. Check the spelling, or ask an admin for the name they use.</string>
+    <string name="community_pending_note">This community is awaiting approval — chat unlocks once it\'s approved.</string>
 
     <!-- Authentication -->
     <string name="login_title">Sign In</string>

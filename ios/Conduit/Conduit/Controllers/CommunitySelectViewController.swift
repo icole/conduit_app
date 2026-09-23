@@ -1,3 +1,4 @@
+import SafariServices
 import UIKit
 
 /// Data model for a community from the API
@@ -6,17 +7,21 @@ struct Community: Codable {
     let name: String
     let domain: String
     let slug: String
+    /// "pending", "active", or nil from older servers
+    let status: String?
+
+    var isPending: Bool { status == "pending" }
 }
 
-/// View controller for selecting a community before login
+/// Asks for the community by name and looks up that one community, rather than
+/// listing every community on the server.
 class CommunitySelectViewController: UIViewController {
 
     // MARK: - Properties
 
     var onCommunitySelected: (() -> Void)?
 
-    private var communities: [Community] = []
-    private var selectedCommunity: Community?
+    private var foundCommunity: Community?
 
     // MARK: - UI Elements
 
@@ -33,7 +38,7 @@ class CommunitySelectViewController: UIViewController {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Select Your Community"
+        label.text = "Find Your Community"
         label.font = UIFont.systemFont(ofSize: 28, weight: .bold)
         label.textAlignment = .center
         return label
@@ -42,18 +47,47 @@ class CommunitySelectViewController: UIViewController {
     private let subtitleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Choose the community you belong to"
+        label.text = "Enter the name your community uses on Conduit"
         label.font = UIFont.systemFont(ofSize: 16)
         label.textColor = .secondaryLabel
         label.textAlignment = .center
+        label.numberOfLines = 0
         return label
     }()
 
-    private let tableView: UITableView = {
-        let table = UITableView(frame: .zero, style: .insetGrouped)
-        table.translatesAutoresizingMaskIntoConstraints = false
-        table.register(UITableViewCell.self, forCellReuseIdentifier: "CommunityCell")
-        return table
+    private let communityTextField: UITextField = {
+        let field = UITextField()
+        field.translatesAutoresizingMaskIntoConstraints = false
+        field.placeholder = "Community name"
+        field.borderStyle = .roundedRect
+        field.autocapitalizationType = .none
+        field.autocorrectionType = .no
+        field.spellCheckingType = .no
+        field.clearButtonMode = .whileEditing
+        field.returnKeyType = .search
+        field.font = UIFont.systemFont(ofSize: 17)
+        return field
+    }()
+
+    private let findButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Find community", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        button.layer.cornerRadius = 12
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.systemBlue.cgColor
+        return button
+    }()
+
+    private let foundLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.isHidden = true
+        return label
     }()
 
     private let continueButton: UIButton = {
@@ -69,8 +103,16 @@ class CommunitySelectViewController: UIViewController {
         return button
     }()
 
+    private let signupButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Start a new community", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 16)
+        return button
+    }()
+
     private let activityIndicator: UIActivityIndicatorView = {
-        let indicator = UIActivityIndicatorView(style: .large)
+        let indicator = UIActivityIndicatorView(style: .medium)
         indicator.translatesAutoresizingMaskIntoConstraints = false
         indicator.hidesWhenStopped = true
         return indicator
@@ -91,7 +133,6 @@ class CommunitySelectViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        fetchCommunities()
     }
 
     // MARK: - UI Setup
@@ -100,18 +141,14 @@ class CommunitySelectViewController: UIViewController {
         view.backgroundColor = .systemBackground
         navigationController?.navigationBar.prefersLargeTitles = false
 
-        view.addSubview(logoImageView)
-        view.addSubview(titleLabel)
-        view.addSubview(subtitleLabel)
-        view.addSubview(tableView)
-        view.addSubview(continueButton)
-        view.addSubview(activityIndicator)
-        view.addSubview(errorLabel)
+        [ logoImageView, titleLabel, subtitleLabel, communityTextField, findButton,
+          foundLabel, errorLabel, activityIndicator, signupButton, continueButton ].forEach { view.addSubview($0) }
 
-        tableView.delegate = self
-        tableView.dataSource = self
-
+        communityTextField.delegate = self
+        communityTextField.addTarget(self, action: #selector(queryChanged), for: .editingChanged)
+        findButton.addTarget(self, action: #selector(findButtonTapped), for: .touchUpInside)
         continueButton.addTarget(self, action: #selector(continueButtonTapped), for: .touchUpInside)
+        signupButton.addTarget(self, action: #selector(signupButtonTapped), for: .touchUpInside)
 
         NSLayoutConstraint.activate([
             logoImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 40),
@@ -124,66 +161,111 @@ class CommunitySelectViewController: UIViewController {
             titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
 
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
-            subtitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            subtitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            subtitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            subtitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
 
-            errorLabel.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 16),
-            errorLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            errorLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            communityTextField.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 32),
+            communityTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            communityTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            communityTextField.heightAnchor.constraint(equalToConstant: 48),
 
-            tableView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 24),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: continueButton.topAnchor, constant: -20),
+            findButton.topAnchor.constraint(equalTo: communityTextField.bottomAnchor, constant: 12),
+            findButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            findButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            findButton.heightAnchor.constraint(equalToConstant: 48),
+
+            activityIndicator.topAnchor.constraint(equalTo: findButton.bottomAnchor, constant: 20),
+            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+
+            foundLabel.topAnchor.constraint(equalTo: findButton.bottomAnchor, constant: 20),
+            foundLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            foundLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+
+            errorLabel.topAnchor.constraint(equalTo: findButton.bottomAnchor, constant: 20),
+            errorLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            errorLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+
+            signupButton.bottomAnchor.constraint(equalTo: continueButton.topAnchor, constant: -8),
+            signupButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
             continueButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             continueButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             continueButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            continueButton.heightAnchor.constraint(equalToConstant: 50),
-
-            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            continueButton.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
 
-    // MARK: - API
+    // MARK: - Lookup
 
-    private func fetchCommunities() {
+    /// The lookup endpoint for what was typed, or nil if it was blank.
+    private func lookupURL(for query: String) -> URL? {
+        let normalized = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !normalized.isEmpty else { return nil }
+
+        var components = URLComponents(
+            url: AppConfig.baseURL.appendingPathComponent("api/v1/communities/lookup"),
+            resolvingAgainstBaseURL: false
+        )
+        components?.queryItems = [ URLQueryItem(name: "slug", value: normalized) ]
+        return components?.url
+    }
+
+    @objc private func findButtonTapped() {
+        communityTextField.resignFirstResponder()
+
+        guard let url = lookupURL(for: communityTextField.text ?? "") else {
+            showError("Enter your community's name.")
+            return
+        }
+
+        clearResult()
         activityIndicator.startAnimating()
-        tableView.isHidden = true
-        errorLabel.isHidden = true
+        findButton.isEnabled = false
 
-        // In debug mode, use local API; in production, use central API
-        let apiURL = AppConfig.baseURL.appendingPathComponent("api/v1/communities")
-
-        URLSession.shared.dataTask(with: apiURL) { [weak self] data, response, error in
+        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
             DispatchQueue.main.async {
-                self?.activityIndicator.stopAnimating()
-                self?.tableView.isHidden = false
+                guard let self = self else { return }
+                self.activityIndicator.stopAnimating()
+                self.findButton.isEnabled = true
 
-                if let error = error {
-                    self?.showError("Failed to load communities: \(error.localizedDescription)")
+                if error != nil {
+                    self.showError("Couldn't reach Conduit. Check your connection and try again.")
                     return
                 }
 
-                guard let data = data else {
-                    self?.showError("No data received")
+                let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+                if statusCode == 404 {
+                    self.showError("We couldn't find a community with that name. Check the spelling, or ask an admin for the name they use.")
                     return
                 }
 
-                do {
-                    let communities = try JSONDecoder().decode([Community].self, from: data)
-                    self?.communities = communities
-                    self?.tableView.reloadData()
-
-                    if communities.isEmpty {
-                        self?.showError("No communities available")
-                    }
-                } catch {
-                    self?.showError("Failed to parse communities: \(error.localizedDescription)")
+                guard statusCode == 200, let data = data,
+                      let community = try? JSONDecoder().decode(Community.self, from: data) else {
+                    self.showError("Couldn't reach Conduit. Check your connection and try again.")
+                    return
                 }
+
+                self.showFound(community)
             }
         }.resume()
+    }
+
+    private func showFound(_ community: Community) {
+        foundCommunity = community
+        foundLabel.text = community.isPending
+            ? "\(community.name)\nAwaiting approval — chat unlocks once it's approved."
+            : community.name
+        foundLabel.isHidden = false
+        continueButton.isEnabled = true
+        continueButton.alpha = 1.0
+    }
+
+    private func clearResult() {
+        foundCommunity = nil
+        foundLabel.isHidden = true
+        errorLabel.isHidden = true
+        continueButton.isEnabled = false
+        continueButton.alpha = 0.5
     }
 
     private func showError(_ message: String) {
@@ -193,25 +275,35 @@ class CommunitySelectViewController: UIViewController {
 
     // MARK: - Actions
 
-    @objc private func continueButtonTapped() {
-        guard let community = selectedCommunity else { return }
+    @objc private func queryChanged() {
+        // Typing again invalidates the previous result
+        if foundCommunity != nil || !errorLabel.isHidden {
+            clearResult()
+        }
+    }
 
-        // In debug mode, use localhost; in production, use the community's actual domain
+    @objc private func signupButtonTapped() {
+        let url = AppConfig.baseURL.appendingPathComponent("communities/new")
+        let safari = SFSafariViewController(url: url)
+        present(safari, animated: true)
+    }
+
+    @objc private func continueButtonTapped() {
+        guard let community = foundCommunity else { return }
+
+        // Debug builds talk to the local server; release builds use the community's domain
         let url: URL
         switch AppConfig.Environment.current {
         case .development:
-            // Use localhost with the domain stored for reference
             url = AppConfig.baseURL
         case .production:
-            // Build the full URL with https://
             guard let productionURL = URL(string: "https://\(community.domain)") else {
-                showError("Invalid community URL")
+                showError("That community's address looks invalid.")
                 return
             }
             url = productionURL
         }
 
-        // Save the selected community
         CommunityManager.shared.setCommunityURL(url)
         CommunityManager.shared.setCommunityName(community.name)
         CommunityManager.shared.setCommunityDomain(community.domain)
@@ -222,40 +314,11 @@ class CommunitySelectViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDelegate, UITableViewDataSource
+// MARK: - UITextFieldDelegate
 
-extension CommunitySelectViewController: UITableViewDelegate, UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return communities.count
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CommunityCell", for: indexPath)
-        let community = communities[indexPath.row]
-
-        var content = cell.defaultContentConfiguration()
-        content.text = community.name
-        content.secondaryText = community.domain
-        cell.contentConfiguration = content
-
-        // Show checkmark for selected community
-        if selectedCommunity?.id == community.id {
-            cell.accessoryType = .checkmark
-        } else {
-            cell.accessoryType = .none
-        }
-
-        return cell
-    }
-
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-
-        selectedCommunity = communities[indexPath.row]
-        tableView.reloadData()
-
-        // Enable continue button
-        continueButton.isEnabled = true
-        continueButton.alpha = 1.0
+extension CommunitySelectViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        findButtonTapped()
+        return true
     }
 }
