@@ -1,4 +1,6 @@
 class Community < ApplicationRecord
+  # Status and feature-flag changes are audited (see Admin::CommunitiesController)
+  has_paper_trail
   # has_many associations are optional with acts_as_tenant
   # but useful for admin/reporting queries
   has_many :users, dependent: :destroy

@@ -1,0 +1,63 @@
+<div class="w-full">
+  <h1 class="text-2xl font-bold mb-2">Communities</h1>
+  <p class="text-sm text-base-content/70 mb-6">
+    <%= @communities.count %> communities &middot;
+    <%= @communities.count { |c| c.pending? } %> awaiting approval
+  </p>
+
+  <div class="overflow-x-auto">
+    <table class="table table-zebra">
+      <thead>
+        <tr>
+          <th>Community</th>
+          <th>Status</th>
+          <th class="text-right">Members</th>
+          <th class="text-right">Chat users<br><span class="font-normal opacity-60">this month</span></th>
+          <th>Last active</th>
+          <th>Features</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @communities.each do |community| %>
+          <% stats = @stats[community.id] %>
+          <tr>
+            <td>
+              <div class="font-medium"><%= community.name %></div>
+              <div class="text-xs opacity-60"><%= community.slug %></div>
+            </td>
+            <td>
+              <span class="badge <%= { "active" => "badge-success", "pending" => "badge-warning", "suspended" => "badge-error" }[community.status] %>">
+                <%= community.status %>
+              </span>
+            </td>
+            <td class="text-right"><%= stats[:members] %></td>
+            <td class="text-right"><%= stats[:chat_users_this_month] %></td>
+            <td class="text-xs"><%= stats[:last_active_at]&.to_date || "&mdash;".html_safe %></td>
+            <td>
+              <div class="flex flex-col gap-1">
+                <% Community::FEATURE_FLAGS.each do |flag| %>
+                  <% on = community.public_send("#{flag}?") %>
+                  <%= button_to set_flag_admin_community_path(community, flag: flag, value: !on),
+                        class: "btn btn-xs #{on ? 'btn-success' : 'btn-ghost'}" do %>
+                    <%= flag.sub("_enabled", "").humanize %>: <%= on ? "on" : "off" %>
+                  <% end %>
+                <% end %>
+              </div>
+            </td>
+            <td class="whitespace-nowrap">
+              <% if community.pending? %>
+                <%= button_to "Approve", approve_admin_community_path(community), class: "btn btn-xs btn-primary" %>
+              <% end %>
+              <% unless community.suspended? %>
+                <%= button_to "Suspend", suspend_admin_community_path(community),
+                      class: "btn btn-xs btn-outline btn-error",
+                      form: { data: { turbo_confirm: "Suspend #{community.name}? Members lose access and are signed out of the apps." } } %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

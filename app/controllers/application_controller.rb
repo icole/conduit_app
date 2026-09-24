@@ -7,9 +7,6 @@ class ApplicationController < ActionController::Base
   include TurboNative
   include PaperTrail::Rails::Controller
 
-  # Track who makes changes for PaperTrail audit log
-  before_action :set_paper_trail_whodunnit
-
   # Set tenant from domain - must run before authenticate_user!
   set_current_tenant_through_filter
   before_action :set_tenant_from_domain
@@ -17,6 +14,10 @@ class ApplicationController < ActionController::Base
   before_action :verify_user_belongs_to_tenant!
   before_action :enforce_community_status
   before_action :set_current_attributes
+  # Track who makes changes for PaperTrail. Must run after the tenant is set:
+  # current_user is scoped to the community, so running this first recorded
+  # nil for every change.
+  before_action :set_paper_trail_whodunnit
   before_action :update_last_active, if: :user_signed_in?
 
   helper_method :current_user, :user_signed_in?, :google_account?, :current_community

@@ -152,6 +152,17 @@ Rails.application.routes.draw do
   get "auth_login", to: "sessions#auth_login"
   delete "logout", to: "sessions#destroy"
 
+  # Cross-community administration (super admins only)
+  namespace :admin do
+    resources :communities, only: [ :index ] do
+      member do
+        post :approve
+        post :suspend
+        post :set_flag
+      end
+    end
+  end
+
   # Public "start a community" signup (no tenant, no session)
   get "communities/new", to: "community_signups#new", as: :new_community_signup
   post "communities", to: "community_signups#create", as: :community_signups

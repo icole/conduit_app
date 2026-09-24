@@ -16,6 +16,9 @@
           <li><%= link_to "Chat", chat_index_path %></li>
         <% end %>
         <li class="divider"></li>
+        <% if current_user&.super_admin? %>
+          <li><%= link_to "Communities (admin)", admin_communities_path %></li>
+        <% end %>
         <li><%= link_to account_path do %>
           Account Settings
           <% unless google_account? %>
