@@ -42,6 +42,8 @@ env:
     - STREAM_API_SECRET
   clear:
     SOLID_QUEUE_IN_PUMA: true
+    CONDUIT_ADMIN_EMAIL: <%= ENV["CONDUIT_ADMIN_EMAIL"] %>
+    STREAM_MAU_LIMIT: <%= ENV["STREAM_MAU_LIMIT"] %>
     RAILS_ENV: production
     # Staging-specific: allow broader access for testing
 

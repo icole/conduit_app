@@ -46,6 +46,10 @@ env:
     - LIVEBLOCKS_SECRET_KEY
   clear:
     SOLID_QUEUE_IN_PUMA: true
+    # Where new-community and Stream usage alerts go; unset means don't send
+    CONDUIT_ADMIN_EMAIL: <%= ENV["CONDUIT_ADMIN_EMAIL"] %>
+    # Stream plan's monthly-active-user allowance, for the usage guardrail
+    STREAM_MAU_LIMIT: <%= ENV["STREAM_MAU_LIMIT"] %>
 
 volumes:
   - "conduit_app_storage:/rails/storage"
