@@ -186,6 +186,8 @@ module Api
             return
           end
 
+          @current_user.record_chat_access!
+
           # Sync user to Stream first
           sync_user_to_stream
 

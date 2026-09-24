@@ -283,6 +283,7 @@ class ChatController < ApplicationController
 
   def generate_stream_token(user = nil)
     user ||= current_user
+    user.record_chat_access!
     # Sync user to Stream first
     sync_user_to_stream(user)
 

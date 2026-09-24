@@ -1,0 +1,17 @@
+<h2>Chat usage is at <%= @report[:percent_used] %>% of the plan limit</h2>
+
+<p><strong><%= @report[:total] %></strong> of <strong><%= @report[:limit] %></strong> monthly active chat users
+  for <%= @report[:period].begin.strftime("%B %Y") %>.</p>
+
+<h3>By community</h3>
+<ul>
+  <% @report[:by_community].each do |slug, count| %>
+    <li><%= slug %>: <%= count %></li>
+  <% end %>
+</ul>
+
+<p>To reduce usage you can turn chat off for a community:</p>
+<pre>bin/rails communities:set_flag SLUG=&lt;slug&gt; FLAG=chat_enabled VALUE=false</pre>
+
+<p>Or suspend one entirely:</p>
+<pre>bin/rails communities:suspend SLUG=&lt;slug&gt; CONFIRM=true</pre>

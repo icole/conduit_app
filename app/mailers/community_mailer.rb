@@ -14,6 +14,14 @@ class CommunityMailer < ApplicationMailer
     mail(to: self.class.notify_address, subject: "New Conduit community pending: #{community.name}")
   end
 
+  # Heads-up that chat usage is approaching the Stream plan limit.
+  def stream_usage_alert(report)
+    @report = report
+
+    mail(to: self.class.notify_address,
+         subject: "Conduit chat usage at #{report[:percent_used]}% of the Stream plan limit")
+  end
+
   # Sent to every admin of a community when it is approved.
   def approved(community)
     @community = community

@@ -146,6 +146,12 @@ class User < ApplicationRecord
     }
   end
 
+  # Called whenever we hand this user a Stream token. Feeds StreamUsageReport,
+  # our proxy for Stream's monthly-active-user count.
+  def record_chat_access!
+    update_column(:last_chat_token_at, Time.current)
+  end
+
   def sync_to_stream_chat
     return unless StreamChatClient.configured?
 

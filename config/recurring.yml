@@ -19,6 +19,11 @@ production:
     schedule: every 15 minutes
     queue: default
 
+  stream_usage_report:
+    class: StreamUsageReportJob
+    schedule: every day at 7am
+    queue: default
+
 development:
   generate_weekly_meals:
     class: GenerateWeeklyMealsJob
@@ -38,4 +43,9 @@ development:
   close_rsvps:
     class: CloseRsvpsJob
     schedule: every 15 minutes
+    queue: default
+
+  stream_usage_report:
+    class: StreamUsageReportJob
+    schedule: every day at 7am
     queue: default
