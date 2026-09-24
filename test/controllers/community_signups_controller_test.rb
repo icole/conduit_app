@@ -11,10 +11,42 @@ class CommunitySignupsControllerTest < ActionDispatch::IntegrationTest
             password: "password123", password_confirmation: "password123" }
   }.freeze
 
+  # Production runs with ActsAsTenant require_tenant on and no ambient tenant;
+  # the test env disables both, which hid a 500 on this page.
+  def as_in_production
+    original = ActsAsTenant.configuration.require_tenant
+    original_tenant = ActsAsTenant.current_tenant
+    ActsAsTenant.configuration.require_tenant = true
+    ActsAsTenant.current_tenant = nil
+    yield
+  ensure
+    ActsAsTenant.configuration.require_tenant = original
+    ActsAsTenant.current_tenant = original_tenant
+  end
+
   test "the signup form is reachable without a tenant or a session" do
     get new_community_signup_path
     assert_response :success
     assert_select "form"
+  end
+
+  test "the signup form renders with tenant enforcement on" do
+    as_in_production do
+      get new_community_signup_path
+    end
+
+    assert_response :success
+    assert_select "form"
+  end
+
+  test "a community can be created with tenant enforcement on" do
+    as_in_production do
+      assert_difference "Community.count", 1 do
+        post community_signups_path, params: VALID
+      end
+    end
+
+    assert_redirected_to root_path
   end
 
   test "creating a community makes it pending with an admin founder" do

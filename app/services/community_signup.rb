@@ -9,7 +9,9 @@ class CommunitySignup
 
   def initialize(community_params: {}, user_params: {})
     @community = Community.new(name: community_params[:name].to_s.strip)
-    @user = User.new(user_params)
+    # The community this user will belong to does not exist yet, so build them
+    # outside tenant scope; #save assigns the community before validating.
+    @user = ActsAsTenant.without_tenant { User.new(user_params) }
   end
 
   def save
