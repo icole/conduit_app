@@ -1,4 +1,11 @@
 class InvitationsController < ApplicationController
+  include TenantFromInvitation
+
+  # Accepting happens with no session, so the tenant comes from the token
+  skip_before_action :set_tenant_from_domain, only: [ :accept ]
+  skip_before_action :verify_user_belongs_to_tenant!, only: [ :accept ]
+  before_action :set_tenant_from_invitation_or_domain, only: [ :accept ]
+
   before_action :authenticate_user!
   before_action :set_invitation, only: [ :accept ]
   skip_before_action :authenticate_user!, only: [ :accept ]
@@ -57,7 +64,8 @@ class InvitationsController < ApplicationController
   end
 
   def set_invitation
-    @invitation = Invitation.find_by(token: params[:id])
+    # Tenant is already set from this token by set_tenant_from_invitation_or_domain
+    @invitation = find_invitation_across_tenants(params[:id])
   end
 
   def require_verified_email

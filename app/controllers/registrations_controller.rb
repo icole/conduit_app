@@ -1,4 +1,12 @@
 class RegistrationsController < ApplicationController
+  include TenantFromInvitation
+
+  # Registering happens with no session beyond the accepted invitation, which
+  # is what tells us which community the new member is joining.
+  skip_before_action :set_tenant_from_domain
+  skip_before_action :verify_user_belongs_to_tenant!
+  before_action :set_tenant_from_invitation_or_domain
+
   skip_before_action :authenticate_user!
 
   def new
@@ -38,6 +46,10 @@ class RegistrationsController < ApplicationController
 
   def user_params
     params.require(:user).permit(:name, :email, :password, :password_confirmation)
+  end
+
+  def invitation_token_for_tenant
+    session[:invitation_token]
   end
 
   def valid_invitation_token?
