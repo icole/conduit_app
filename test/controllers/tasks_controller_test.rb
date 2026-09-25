@@ -357,4 +357,10 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     get tasks_url
     assert_select "#recently-completed", count: 0
   end
+
+  test "deleting from a Turbo page removes the task's row in place" do
+    delete task_url(@task), as: :turbo_stream
+    assert_response :success
+    assert_match %(<turbo-stream action="remove" target="task_#{@task.id}">), response.body
+  end
 end

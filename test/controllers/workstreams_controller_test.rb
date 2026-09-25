@@ -73,4 +73,21 @@ class WorkstreamsControllerTest < ActionDispatch::IntegrationTest
     get workstream_url(ActsAsTenant.without_tenant { workstreams(:other_general) })
     assert_response :not_found
   end
+
+  test "owners and admins can delete open work from the workstream page" do
+    task = Task.create!(title: "Paint the shed", user: users(:two), workstream: workstreams(:garbage))
+
+    sign_in users(:one) # owns Garbage & Recycling
+    get workstream_url(workstreams(:garbage))
+    assert_select "#task_#{task.id} form[action='#{task_path(task)}'] input[name='_method'][value='delete']"
+  end
+
+  test "other members don't get a delete button on someone else's open work" do
+    task = Task.create!(title: "Paint the shed", user: users(:two), workstream: workstreams(:garbage))
+
+    sign_in users(:three)
+    get workstream_url(workstreams(:garbage))
+    assert_select "#task_#{task.id}"
+    assert_select "#task_#{task.id} form[action='#{task_path(task)}']", count: 0
+  end
 end

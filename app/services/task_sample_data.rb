@@ -158,7 +158,7 @@ class TaskSampleData
       index = 0
       while (period = recurring.period_for(date)).end < @today
         task = recurring.instance_for(date)
-        unless task.completed?
+        if task && !task.completed?
           done_by = if person.nil?
             volunteers[index % volunteers.size]
           elsif LIGHTER_LOAD.include?(person.name) && index.odd?
@@ -180,7 +180,7 @@ class TaskSampleData
   # Released straight onto the record: sample data shouldn't post to chat.
   def release_this_week(recurring, person)
     task = recurring.instance_for(@today)
-    return unless task.assigned_to_user_id == person.id
+    return unless task && task.assigned_to_user_id == person.id
 
     task.update!(assigned_to_user: nil, released_by: person, released_at: Time.current)
   end

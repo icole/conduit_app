@@ -105,7 +105,7 @@
     <h2 class="font-semibold mb-2">Open work <span class="text-base-content/50 text-sm font-normal"><%= @open_tasks.size %></span></h2>
     <div class="space-y-2">
       <% @open_tasks.each do |task| %>
-        <div id="<%= dom_id task, :workstream %>" class="card bg-base-100 border border-base-200">
+        <div id="<%= dom_id task %>" class="card bg-base-100 border border-base-200">
           <div class="card-body p-3 sm:p-4 gap-2">
             <div class="flex items-start justify-between gap-3">
               <p class="font-medium min-w-0"><%= task.title %></p>
@@ -121,6 +121,10 @@
               <%= priority_badge(task.effective_priority) %>
               <%= effort_badge(task.estimated_minutes) %>
               <% if task.due_date %><span class="badge badge-sm badge-ghost">Due <%= task.due_date.strftime("%b %-d") %></span><% end %>
+              <% if can_manage || task.user_id == current_user.id %>
+                <%= button_to "Delete", task_path(task), method: :delete, class: "btn btn-ghost btn-xs text-error ml-auto",
+                      form: { class: "ml-auto", data: { turbo_confirm: task.recurring? ? "Delete this period's “#{task.title}”? The recurring task carries on." : "Delete “#{task.title}”?" } } %>
+              <% end %>
             </div>
             <% if can_manage && task.assigned_to_user.nil? %>
               <%= form_with model: task, url: task_path(task, return_to: workstream_path(@workstream)), method: :patch, class: "flex gap-2 items-center", data: { turbo_action: "replace" } do |form| %>

@@ -55,4 +55,17 @@ class NativeConfirmTest < ApplicationSystemTestCase
     assert_text "Released to the queue"
     assert_nil Task.find_by!(title: "Take out garbage & recycling").assigned_to_user
   end
+
+  test "deleting open work from a workstream in the app" do
+    task = recurring_tasks(:pantry_restock).instance_for
+    sign_in_as(users(:admin_user))
+    visit workstream_url(workstreams(:common_house))
+    behave_like_ios_web_view
+
+    within("#task_#{task.id}") { click_button "Delete" }
+    within("dialog[open]") { click_button "OK" }
+
+    assert_no_selector "#task_#{task.id}"
+    assert task.reload.discarded?
+  end
 end

@@ -101,4 +101,24 @@ class RecurringTaskTest < ActiveSupport::TestCase
     recurring_tasks(:pantry_restock).discard
     assert_no_difference("Task.count") { RecurringTask.generate_instances!(Date.new(2026, 3, 5)) }
   end
+
+  test "removing a recurring task takes its open instances with it and keeps completed ones" do
+    open_one = @recurring.instance_for(Date.new(2026, 3, 5))
+    done = @recurring.instance_for(Date.new(2026, 2, 26))
+    done.update!(status: "completed")
+
+    @recurring.discard
+
+    assert open_one.reload.discarded?
+    assert_not done.reload.discarded?
+  end
+
+  test "a deleted instance stays deleted instead of coming back" do
+    task = @recurring.instance_for(Date.new(2026, 3, 5))
+    task.discard
+
+    assert_nil @recurring.instance_for(Date.new(2026, 3, 6))
+    assert_nothing_raised { RecurringTask.generate_instances!(Date.new(2026, 3, 5)) }
+    assert_equal 1, Task.with_discarded.where(recurring_task: @recurring, period_start: Date.new(2026, 3, 2)).count
+  end
 end

@@ -15,6 +15,9 @@ class RecurringTask < ApplicationRecord
 
   default_scope -> { kept }
 
+  # Its open work goes with it; completed instances stay as contribution history.
+  after_discard { instances.open.find_each(&:discard) }
+
   validates :title, presence: true
   validates :frequency, inclusion: { in: FREQUENCIES.keys }
   validates :priority, inclusion: { in: Workstream::PRIORITIES }, allow_nil: true
@@ -50,21 +53,26 @@ class RecurringTask < ApplicationRecord
   end
 
   # This period's Task, created (pre-assigned to the default responsible
-  # person) the first time it's asked for.
+  # person) the first time it's asked for. nil if that period's instance was
+  # deleted: it stays deleted rather than coming back.
   def instance_for(date = Date.current)
     period = period_for(date)
-    instances.find_or_create_by!(period_start: period.begin) do |task|
-      task.title = title
-      task.description = description
-      task.workstream = workstream
-      task.user = created_by
-      task.assigned_to_user = default_responsible_user
-      task.estimated_minutes = estimated_minutes
-      task.due_date = period.end
-      task.status = "active"
-    end
+    existing = Task.with_discarded.find_by(recurring_task_id: id, period_start: period.begin)
+    return existing.kept? ? existing : nil if existing
+
+    instances.create!(
+      period_start: period.begin,
+      title: title,
+      description: description,
+      workstream: workstream,
+      user: created_by,
+      assigned_to_user: default_responsible_user,
+      estimated_minutes: estimated_minutes,
+      due_date: period.end,
+      status: "active"
+    )
   rescue ActiveRecord::RecordNotUnique
-    instances.find_by!(period_start: period.begin)
+    existing_instance(period)
   end
 
   # The date range of the period containing +date+.
@@ -80,5 +88,13 @@ class RecurringTask < ApplicationRecord
     else
       date.beginning_of_week..date.end_of_week
     end
+  end
+
+  private
+
+  # The period's instance, deleted or not; nil when it was deleted.
+  def existing_instance(period)
+    task = Task.with_discarded.find_by(recurring_task_id: id, period_start: period.begin)
+    task if task&.kept?
   end
 end
