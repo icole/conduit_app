@@ -3,21 +3,22 @@ require "test_helper"
 class TaskTest < ActiveSupport::TestCase
   def setup
     @user = users(:one)
+    @workstream = workstreams(:general)
   end
 
   test "should have default status of backlog" do
-    task = Task.new(title: "Test Task", user: @user)
+    task = Task.new(title: "Test Task", user: @user, workstream: @workstream)
     assert_equal "backlog", task.status
   end
 
   test "should validate status inclusion" do
-    task = Task.new(title: "Test Task", user: @user, status: "invalid")
+    task = Task.new(title: "Test Task", user: @user, workstream: @workstream, status: "invalid")
     assert_not task.valid?
     assert_includes task.errors[:status], "is not included in the list"
   end
 
   test "should prioritize task from backlog" do
-    task = Task.create!(title: "Test Task", user: @user, status: "backlog")
+    task = Task.create!(title: "Test Task", user: @user, workstream: @workstream, status: "backlog")
 
     assert_equal "backlog", task.status
     assert_nil task.priority_order
@@ -29,7 +30,7 @@ class TaskTest < ActiveSupport::TestCase
   end
 
   test "should move task to backlog" do
-    task = Task.create!(title: "Test Task", user: @user, status: "active", priority_order: 1)
+    task = Task.create!(title: "Test Task", user: @user, workstream: @workstream, status: "active", priority_order: 1)
 
     assert_equal "active", task.status
     assert_equal 1, task.priority_order
@@ -43,7 +44,7 @@ class TaskTest < ActiveSupport::TestCase
   test "should detect overdue tasks" do
     task = Task.create!(
       title: "Overdue Task",
-      user: @user,
+      user: @user, workstream: @workstream,
       due_date: 1.day.ago,
       status: "active"
     )
@@ -54,7 +55,7 @@ class TaskTest < ActiveSupport::TestCase
   test "should detect tasks due soon" do
     task = Task.create!(
       title: "Due Soon Task",
-      user: @user,
+      user: @user, workstream: @workstream,
       due_date: 3.days.from_now,
       status: "active"
     )
@@ -65,7 +66,7 @@ class TaskTest < ActiveSupport::TestCase
   test "should not mark completed tasks as overdue" do
     task = Task.create!(
       title: "Completed Overdue Task",
-      user: @user,
+      user: @user, workstream: @workstream,
       due_date: 1.day.ago,
       status: "active"  # Start as active
     )
@@ -78,11 +79,11 @@ class TaskTest < ActiveSupport::TestCase
 
   test "should assign next priority order when prioritizing" do
     # Create two existing active tasks
-    task1 = Task.create!(title: "Task 1", user: @user, status: "active", priority_order: 1)
-    task2 = Task.create!(title: "Task 2", user: @user, status: "active", priority_order: 2)
+    task1 = Task.create!(title: "Task 1", user: @user, workstream: @workstream, status: "active", priority_order: 1)
+    task2 = Task.create!(title: "Task 2", user: @user, workstream: @workstream, status: "active", priority_order: 2)
 
     # Create a backlog task
-    backlog_task = Task.create!(title: "Backlog Task", user: @user, status: "backlog")
+    backlog_task = Task.create!(title: "Backlog Task", user: @user, workstream: @workstream, status: "backlog")
 
     # Prioritize the backlog task
     backlog_task.prioritize!
@@ -92,12 +93,12 @@ class TaskTest < ActiveSupport::TestCase
   end
 
   test "should scope tasks correctly" do
-    backlog_task = Task.create!(title: "Backlog Task", user: @user, status: "backlog")
-    active_task = Task.create!(title: "Active Task", user: @user, status: "active", priority_order: 1)
-    completed_task = Task.create!(title: "Completed Task", user: @user, status: "completed")
+    backlog_task = Task.create!(title: "Backlog Task", user: @user, workstream: @workstream, status: "backlog")
+    active_task = Task.create!(title: "Active Task", user: @user, workstream: @workstream, status: "active", priority_order: 1)
+    completed_task = Task.create!(title: "Completed Task", user: @user, workstream: @workstream, status: "completed")
     overdue_task = Task.create!(
       title: "Overdue Task",
-      user: @user,
+      user: @user, workstream: @workstream,
       status: "active",
       due_date: 1.day.ago,
       priority_order: 2
@@ -114,7 +115,7 @@ class TaskTest < ActiveSupport::TestCase
     # Task with assignment should be active
     assigned_task = Task.create!(
       title: "Assigned Task",
-      user: @user,
+      user: @user, workstream: @workstream,
       assigned_to_user: @user
     )
     assert_equal "active", assigned_task.status
@@ -123,7 +124,7 @@ class TaskTest < ActiveSupport::TestCase
     # Task with due date should be active
     due_task = Task.create!(
       title: "Due Task",
-      user: @user,
+      user: @user, workstream: @workstream,
       due_date: 1.week.from_now
     )
     assert_equal "active", due_task.status
@@ -132,9 +133,66 @@ class TaskTest < ActiveSupport::TestCase
     # Regular task should stay in backlog
     backlog_task = Task.create!(
       title: "Regular Task",
-      user: @user
+      user: @user, workstream: @workstream
     )
     assert_equal "backlog", backlog_task.status
     assert_nil backlog_task.priority_order
+  end
+
+  test "requires a workstream (no orphan tasks)" do
+    task = Task.new(title: "Loose task", user: @user)
+    assert_not task.valid?
+    assert task.errors[:workstream].any?
+  end
+
+  test "cannot be added to a closed workstream" do
+    workstream = workstreams(:front_yard)
+    workstream.close!
+    task = Task.new(title: "Late addition", user: @user, workstream: workstream)
+    assert_not task.valid?
+    assert task.errors[:workstream].any?
+  end
+
+  test "effective priority comes from the recurring task, then the workstream" do
+    task = Task.new(title: "T", user: @user, workstream: workstreams(:garbage))
+    assert_equal "essential", task.effective_priority
+
+    task.recurring_task = recurring_tasks(:pantry_restock)
+    task.workstream = workstreams(:common_house)
+    assert_equal "important", task.effective_priority
+  end
+
+  test "estimated minutes must be positive when present" do
+    task = Task.new(title: "T", user: @user, workstream: @workstream, estimated_minutes: 0)
+    assert_not task.valid?
+    task.estimated_minutes = nil
+    assert task.valid?
+  end
+
+  test "completing a task records who completed it and when" do
+    task = Task.create!(title: "T", user: @user, workstream: @workstream, assigned_to_user: users(:two))
+    Current.set(user: users(:two)) { task.update!(status: "completed") }
+
+    assert_equal users(:two), task.completed_by
+    assert_not_nil task.completed_at
+  end
+
+  test "completion falls back to the assignee when there is no current user" do
+    task = Task.create!(title: "T", user: @user, workstream: @workstream, assigned_to_user: users(:two))
+    task.update!(status: "completed")
+    assert_equal users(:two), task.completed_by
+  end
+
+  test "reopening a completed task clears the completion record" do
+    task = tasks(:completed_task)
+    task.update!(completed_by: @user, completed_at: 1.day.ago)
+    task.update!(status: "active")
+    assert_nil task.completed_by
+    assert_nil task.completed_at
+  end
+
+  test "open scope excludes completed tasks" do
+    assert_includes Task.open, tasks(:one)
+    assert_not_includes Task.open, tasks(:completed_task)
   end
 end

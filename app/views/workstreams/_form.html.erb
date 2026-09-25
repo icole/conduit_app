@@ -1,0 +1,43 @@
+<%= form_with(model: workstream, class: "space-y-4") do |form| %>
+  <% if workstream.errors.any? %>
+    <div class="alert alert-error">
+      <ul class="list-disc list-inside">
+        <% workstream.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-control">
+    <%= form.label :name, class: "label" %>
+    <%= form.text_field :name, class: "input input-bordered w-full", required: true, placeholder: "e.g. Garbage & Recycling Coordinator" %>
+  </div>
+
+  <div class="form-control">
+    <%= form.label :description, "What it covers", class: "label" %>
+    <%= form.text_area :description, rows: 3, class: "textarea textarea-bordered w-full" %>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="form-control">
+      <%= form.label :workstream_type, "Type", class: "label" %>
+      <%= form.select :workstream_type, Workstream::TYPES.map { |value, label| [ label, value ] }, {}, class: "select select-bordered w-full" %>
+    </div>
+
+    <div class="form-control">
+      <%= form.label :priority, class: "label" %>
+      <%= form.select :priority, priority_options, {}, class: "select select-bordered w-full" %>
+    </div>
+  </div>
+
+  <div class="form-control">
+    <%= form.label :owner_id, "Owner", class: "label" %>
+    <%= form.select :owner_id, [ [ "No owner yet", "" ] ] + User.order(:name).map { |u| [ u.name, u.id ] }, {}, class: "select select-bordered w-full" %>
+  </div>
+
+  <div class="flex justify-end gap-2 pt-2">
+    <%= link_to "Cancel", workstream.persisted? ? workstream_path(workstream) : tasks_path(tab: "coverage"), class: "btn btn-ghost" %>
+    <%= form.submit workstream.persisted? ? "Save workstream" : "Create workstream", class: "btn btn-primary" %>
+  </div>
+<% end %>

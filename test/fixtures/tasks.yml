@@ -2,6 +2,7 @@
 
 one:
   community: crow_woods
+  workstream: general
   title: Complete Project Documentation
   description: Update all READMEs and add code comments
   status: backlog
@@ -9,6 +10,7 @@ one:
 
 two:
   community: crow_woods
+  workstream: general
   title: Fix UI Bug in Dashboard
   description: The sidebar collapses incorrectly on mobile
   status: backlog
@@ -16,6 +18,7 @@ two:
 
 assigned_task:
   community: crow_woods
+  workstream: general
   title: "Review Pull Request #42"
   description: Check the code quality and test coverage
   status: active
@@ -25,6 +28,7 @@ assigned_task:
 
 received_task:
   community: crow_woods
+  workstream: general
   title: Setup Development Environment
   description: Install all dependencies and configure local settings
   status: active
@@ -34,6 +38,7 @@ received_task:
 
 completed_task:
   community: crow_woods
+  workstream: general
   title: Refactor Authentication System
   description: Improve security and user experience
   status: completed

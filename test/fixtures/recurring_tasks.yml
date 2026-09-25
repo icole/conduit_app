@@ -1,0 +1,19 @@
+garbage_night:
+  community: crow_woods
+  workstream: garbage
+  title: Take out garbage & recycling
+  frequency: weekly
+  estimated_minutes: 15
+  default_responsible_user: one
+  created_by: admin_user
+  starts_on: 2026-01-05
+
+pantry_restock:
+  community: crow_woods
+  workstream: common_house
+  title: Restock common house pantry
+  frequency: weekly
+  priority: important
+  estimated_minutes: 40
+  created_by: admin_user
+  starts_on: 2026-01-05

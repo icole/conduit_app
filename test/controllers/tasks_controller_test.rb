@@ -28,17 +28,17 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   test "should create task and redirect to tasks when coming from tasks" do
     assert_difference("Task.count") do
       post tasks_url,
-           params: { task: { title: "Test Task", description: "Test description" } },
+           params: { task: { title: "Test Task", description: "Test description", workstream_id: workstreams(:general).id } },
            headers: { "HTTP_REFERER" => tasks_url }
     end
-    # Task without due date or assignment goes to backlog
-    assert_redirected_to tasks_url(view: "backlog")
+    # An unassigned task is open work in the queue
+    assert_redirected_to tasks_url(tab: "available")
   end
 
   test "should create task and redirect to dashboard when not coming from tasks" do
     assert_difference("Task.count") do
       post tasks_url,
-           params: { task: { title: "Test Task", description: "Test description" } },
+           params: { task: { title: "Test Task", description: "Test description", workstream_id: workstreams(:general).id } },
            headers: { "HTTP_REFERER" => dashboard_index_url }
     end
     assert_redirected_to dashboard_index_url
@@ -104,7 +104,8 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       title: "Completed Task",
       description: "This task is done",
       status: "completed",
-      user: @user
+      user: @user,
+      workstream: workstreams(:general)
     )
 
     # Test active filter
@@ -128,7 +129,8 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       title: "Backlog Task",
       description: "This task is in backlog",
       status: "backlog",
-      user: @user
+      user: @user,
+      workstream: workstreams(:general)
     )
 
     assert_equal "backlog", task.status
@@ -148,7 +150,8 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       description: "This task is active",
       status: "active",
       priority_order: 1,
-      user: @user
+      user: @user,
+      workstream: workstreams(:general)
     )
 
     assert_equal "active", task.status
@@ -164,11 +167,11 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
 
   test "should reorder tasks" do
     # Create multiple active tasks
-    task1 = Task.create!(title: "Task 1", status: "active", priority_order: 1, user: @user)
-    task2 = Task.create!(title: "Task 2", status: "active", priority_order: 2, user: @user)
-    task3 = Task.create!(title: "Task 3", status: "active", priority_order: 3, user: @user)
-    task4 = Task.create!(title: "Task 4", status: "active", priority_order: 4, user: @user)
-    task5 = Task.create!(title: "Task 5", status: "active", priority_order: 5, user: @user)
+    task1 = Task.create!(title: "Task 1", status: "active", priority_order: 1, user: @user, workstream: workstreams(:general))
+    task2 = Task.create!(title: "Task 2", status: "active", priority_order: 2, user: @user, workstream: workstreams(:general))
+    task3 = Task.create!(title: "Task 3", status: "active", priority_order: 3, user: @user, workstream: workstreams(:general))
+    task4 = Task.create!(title: "Task 4", status: "active", priority_order: 4, user: @user, workstream: workstreams(:general))
+    task5 = Task.create!(title: "Task 5", status: "active", priority_order: 5, user: @user, workstream: workstreams(:general))
 
     # Move task1 to position 3
     patch reorder_task_url(task1), params: { priority_order: 3 }
@@ -176,5 +179,65 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
 
     task1.reload
     assert_equal 3, task1.priority_order
+  end
+
+  test "creating a task without a workstream is rejected" do
+    assert_no_difference("Task.count") do
+      post tasks_url, params: { task: { title: "Orphan" } }
+    end
+    assert_response :unprocessable_entity
+  end
+
+  test "creating a task assigned to yourself lands on My Tasks" do
+    post tasks_url,
+         params: { task: { title: "Mine", workstream_id: workstreams(:general).id, assigned_to_user_id: @user.id, estimated_minutes: 45 } },
+         headers: { "HTTP_REFERER" => tasks_url }
+    task = Task.find_by!(title: "Mine")
+    assert_equal @user, task.assigned_to_user
+    assert_equal 45, task.estimated_minutes
+    assert_redirected_to tasks_url(tab: "my")
+  end
+
+  test "a member who doesn't own the workstream cannot assign a task to someone else" do
+    assert_no_difference("Task.count") do
+      post tasks_url, params: { task: { title: "For Mike", workstream_id: workstreams(:front_yard).id, assigned_to_user_id: users(:two).id } }
+    end
+    assert_response :unprocessable_entity
+  end
+
+  test "the workstream owner can assign a task to someone else" do
+    assert_difference("Task.count") do
+      post tasks_url, params: { task: { title: "For Mike", workstream_id: workstreams(:garbage).id, assigned_to_user_id: users(:two).id } }
+    end
+    assert_equal users(:two), Task.find_by!(title: "For Mike").assigned_to_user
+  end
+
+  test "a member cannot reassign someone else's task to a third person" do
+    task = tasks(:assigned_task) # assigned to two, in General (owned by admin)
+    patch task_url(task), params: { task: { assigned_to_user_id: users(:three).id } }
+    assert_response :unprocessable_entity
+    assert_equal users(:two), task.reload.assigned_to_user
+  end
+
+  test "the task form asks for a workstream (open ones only) and an effort estimate" do
+    workstreams(:front_yard).close!
+    get new_task_url(workstream_id: workstreams(:garbage).id)
+    assert_response :success
+    assert_select "select[name='task[workstream_id]'][required]" do
+      assert_select "option[selected][value='#{workstreams(:garbage).id}']"
+      assert_select "option[value='#{workstreams(:front_yard).id}']", count: 0
+    end
+    assert_select "select[name='task[estimated_minutes]']"
+  end
+
+  test "members who own nothing can only assign tasks to themselves" do
+    member = users(:three)
+    delete logout_path
+    sign_in_user({ uid: member.uid, name: member.name, email: member.email })
+    get new_task_url
+    assert_select "[data-controller='user-select']" do
+      assert_select "[data-name='#{member.name}']"
+      assert_select "[data-name='#{users(:two).name}']", count: 0
+    end
   end
 end

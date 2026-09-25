@@ -81,6 +81,8 @@ class TasksTest < ApplicationSystemTestCase
     # Fill in the form fields
     within "#new_task" do
       fill_in "task[title]", with: "Test assigned task"
+      # user one owns this workstream, so may assign to others
+      select workstreams(:garbage).name, from: "task[workstream_id]"
 
       # Use native select for user assignment
       select @user_two.name, from: "task[assigned_to_user_id]"
@@ -98,8 +100,9 @@ class TasksTest < ApplicationSystemTestCase
   end
 
   test "editing task assignment" do
-    # Ensure the task has active status to be visible in the default view
-    @task.update(status: "active", priority_order: 1)
+    # Ensure the task has active status to be visible in the default view.
+    # Only the workstream owner reassigns; user one owns this workstream.
+    @task.update(status: "active", priority_order: 1, workstream: workstreams(:garbage))
 
     # Visit the edit page directly
     visit edit_task_path(@task)

@@ -38,6 +38,8 @@
             <%= form.text_field :title, class: "input input-bordered w-full", required: true %>
           </div>
 
+          <%= render "tasks/workstream_fields", form: form, task: @task %>
+
 
           <div class="form-control w-full mb-4" data-controller="date-field">
             <%= form.label :due_date, "Due Date (optional)", class: "label" %>

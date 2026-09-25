@@ -1,0 +1,136 @@
+<% content_for :title, @workstream.name %>
+<% can_manage = current_user.admin? || @workstream.owned_by?(current_user) %>
+
+<div class="max-w-3xl mx-auto space-y-4">
+  <%= link_to tasks_path(tab: "coverage"), class: "inline-flex items-center gap-1 text-sm text-base-content/60 hover:text-base-content" do %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+    Coverage
+  <% end %>
+
+  <div class="card bg-base-100 border border-base-200 border-l-4 <%= workstream_accent_class(@workstream) %>">
+    <div class="card-body p-4 sm:p-6 gap-3">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <h1 class="text-xl sm:text-2xl font-bold"><%= @workstream.name %></h1>
+          <div class="flex flex-wrap items-center gap-1.5 mt-2">
+            <%= workstream_type_badge(@workstream) %>
+            <%= priority_badge(@workstream.priority) %>
+            <% if @workstream.closed? %><span class="badge badge-sm badge-neutral">Closed</span><% end %>
+          </div>
+        </div>
+        <% if @workstream.covered? %>
+          <span class="badge badge-sm badge-outline badge-success whitespace-nowrap">Covered</span>
+        <% else %>
+          <span class="badge badge-sm badge-error whitespace-nowrap">Needs owner</span>
+        <% end %>
+      </div>
+
+      <% if @workstream.description.present? %>
+        <p class="text-sm text-base-content/70"><%= @workstream.description %></p>
+      <% end %>
+
+      <p class="text-sm">
+        <% if @workstream.owner %>
+          <span class="text-base-content/60">Owner:</span> <%= @workstream.owner.name %>
+        <% else %>
+          <span class="text-error">No owner assigned</span>
+        <% end %>
+      </p>
+
+      <div class="flex flex-wrap gap-2">
+        <% unless @workstream.closed? %>
+          <%= link_to "+ Add task", new_task_path(workstream_id: @workstream.id), class: "btn btn-primary btn-sm", data: { turbo_frame: "_top" } %>
+        <% end %>
+        <% if current_user.admin? %>
+          <%= link_to "Edit", edit_workstream_path(@workstream), class: "btn btn-ghost btn-sm" %>
+        <% end %>
+        <% if can_manage && @workstream.project? %>
+          <% if @workstream.closed? %>
+            <%= button_to "Reopen project", reopen_workstream_path(@workstream), method: :patch, class: "btn btn-ghost btn-sm" %>
+          <% else %>
+            <%= button_to "Close project", close_workstream_path(@workstream), method: :patch, class: "btn btn-ghost btn-sm", form: { data: { turbo_confirm: "Close this project? Its open tasks stay visible here." } } %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <% if @workstream.ongoing? || @recurring_tasks.any? %>
+    <section>
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="font-semibold">Recurring tasks <span class="text-base-content/50 text-sm font-normal"><%= @recurring_tasks.size %></span></h2>
+        <% if current_user.admin? %>
+          <%= link_to "+ Recurring task", new_workstream_recurring_task_path(@workstream), class: "btn btn-ghost btn-xs" %>
+        <% end %>
+      </div>
+      <div class="space-y-2">
+        <% @recurring_tasks.each do |recurring| %>
+          <div id="<%= dom_id recurring %>" class="card bg-base-100 border border-base-200">
+            <div class="card-body p-3 sm:p-4 flex-row items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="font-medium"><%= recurring.title %></p>
+                <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+                  <%= priority_badge(recurring.effective_priority) %>
+                  <span class="badge badge-sm badge-ghost"><%= recurring.frequency_label %></span>
+                  <%= effort_badge(recurring.estimated_minutes) %>
+                </div>
+                <p class="text-xs mt-2">
+                  <% if recurring.default_responsible_user %>
+                    <span class="text-base-content/60">Responsible:</span> <%= recurring.default_responsible_user.name %>
+                  <% else %>
+                    <span class="<%= recurring.effective_priority == 'essential' ? 'text-error' : 'text-base-content/60' %>">Nobody responsible yet</span>
+                  <% end %>
+                </p>
+              </div>
+              <% if current_user.admin? %>
+                <div class="flex gap-1 shrink-0">
+                  <%= link_to "Edit", edit_workstream_recurring_task_path(@workstream, recurring), class: "btn btn-ghost btn-xs" %>
+                  <%= button_to "Remove", workstream_recurring_task_path(@workstream, recurring), method: :delete, class: "btn btn-ghost btn-xs text-error", form: { data: { turbo_confirm: "Remove this recurring task? Past instances are kept." } } %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+        <% if @recurring_tasks.empty? %>
+          <p class="text-sm text-base-content/50">No recurring tasks yet.</p>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <section>
+    <h2 class="font-semibold mb-2">Open work <span class="text-base-content/50 text-sm font-normal"><%= @open_tasks.size %></span></h2>
+    <div class="space-y-2">
+      <% @open_tasks.each do |task| %>
+        <div id="<%= dom_id task, :workstream %>" class="card bg-base-100 border border-base-200">
+          <div class="card-body p-3 sm:p-4 gap-2">
+            <div class="flex items-start justify-between gap-3">
+              <p class="font-medium min-w-0"><%= task.title %></p>
+              <% if task.assigned_to_user %>
+                <span class="text-xs text-base-content/60 whitespace-nowrap"><%= task.assigned_to_user.name %></span>
+              <% elsif task.released_by %>
+                <span class="badge badge-sm badge-info whitespace-nowrap">Released by <%= task.released_by.name.split(" ").first %></span>
+              <% else %>
+                <span class="badge badge-sm badge-ghost whitespace-nowrap">Unclaimed</span>
+              <% end %>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <%= priority_badge(task.effective_priority) %>
+              <%= effort_badge(task.estimated_minutes) %>
+              <% if task.due_date %><span class="badge badge-sm badge-ghost">Due <%= task.due_date.strftime("%b %-d") %></span><% end %>
+            </div>
+            <% if can_manage && task.assigned_to_user.nil? %>
+              <%= form_with model: task, url: task_path(task, return_to: workstream_path(@workstream)), method: :patch, class: "flex gap-2 items-center", data: { turbo: false } do |form| %>
+                <%= form.select :assigned_to_user_id, @users.map { |u| [ u.name, u.id ] }, { prompt: "Assign to…" }, class: "select select-bordered select-sm flex-1 min-w-0", required: true, aria: { label: "Assign #{task.title} to" } %>
+                <%= form.submit "Assign", class: "btn btn-sm" %>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+      <% if @open_tasks.empty? %>
+        <p class="text-sm text-base-content/50">Nothing open right now.</p>
+      <% end %>
+    </div>
+  </section>
+</div>

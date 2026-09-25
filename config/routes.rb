@@ -104,6 +104,13 @@ Rails.application.routes.draw do
       post :restore
     end
   end
+  resources :workstreams, except: [ :destroy ] do
+    member do
+      patch :close
+      patch :reopen
+    end
+    resources :recurring_tasks, except: [ :index, :show ]
+  end
 
   resources :document_folders, only: [ :create, :update, :destroy ]
   resources :documents do

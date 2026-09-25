@@ -1,0 +1,22 @@
+<%# Every task rolls up to a workstream. Closed projects take no new work. %>
+<% workstreams = Workstream.open.or(Workstream.where(id: task.workstream_id)).by_priority %>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+  <div class="form-control w-full mb-4">
+    <%= form.label :workstream_id, "Workstream", class: "label" %>
+    <% if workstreams.any? %>
+      <%= form.select :workstream_id,
+            workstreams.group_by(&:type_label).transform_values { |ws| ws.map { |w| [ w.name, w.id ] } },
+            { prompt: "Choose a workstream…" },
+            class: "select select-bordered w-full", required: true %>
+    <% else %>
+      <p class="text-sm text-base-content/60">There are no workstreams yet. An admin needs to set them up before tasks can be added.</p>
+    <% end %>
+  </div>
+
+  <div class="form-control w-full mb-4">
+    <%= form.label :estimated_minutes, "Estimated effort", class: "label" %>
+    <% options = effort_options %>
+    <% options << [ RecurringTask.effort_label(task.estimated_minutes), task.estimated_minutes ] if task.estimated_minutes && options.none? { |_, m| m == task.estimated_minutes } %>
+    <%= form.select :estimated_minutes, options, { include_blank: "Not estimated" }, class: "select select-bordered w-full" %>
+  </div>
+</div>

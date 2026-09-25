@@ -4,12 +4,19 @@ class Task < ApplicationRecord
   acts_as_tenant :community
 
   belongs_to :user
+  belongs_to :workstream
+  belongs_to :recurring_task, optional: true
   belongs_to :assigned_to_user, class_name: "User", optional: true
+  belongs_to :completed_by, class_name: "User", optional: true
+  belongs_to :released_by, class_name: "User", optional: true
 
   validates :title, presence: true
   validates :status, presence: true, inclusion: { in: %w[backlog active completed] }
+  validates :estimated_minutes, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+  validate :workstream_must_be_open, if: -> { workstream && (new_record? || workstream_id_changed?) }
 
   before_save :auto_set_status_and_priority, if: :new_record?
+  before_save :track_completion, if: :status_changed?
   before_create :set_created_by
 
   # Default status is 'backlog'
@@ -20,6 +27,7 @@ class Task < ApplicationRecord
   scope :active, -> { where(status: "active") }
   scope :pending, -> { where(status: "active") } # Keep for backward compatibility
   scope :completed, -> { where(status: "completed") }
+  scope :open, -> { where.not(status: "completed") }
   scope :prioritized, -> { where(status: "active").order(:priority_order, :created_at) }
   scope :with_due_date, -> { where.not(due_date: nil) }
   scope :overdue, -> { where("due_date < ? AND status != 'completed'", Date.current) }
@@ -50,6 +58,13 @@ class Task < ApplicationRecord
   def move_to_backlog!
     update!(status: "backlog", priority_order: nil)
   end
+
+  def effective_priority
+    recurring_task&.effective_priority || workstream.priority
+  end
+
+  def completed? = status == "completed"
+  def recurring? = recurring_task_id.present?
 
   # Check if task is overdue
   def overdue?
@@ -83,6 +98,20 @@ class Task < ApplicationRecord
     if assigned_to_user_id.present? || due_date.present?
       self.status = "active"
       self.priority_order = next_priority_order if priority_order.blank?
+    end
+  end
+
+  def workstream_must_be_open
+    errors.add(:workstream, "is closed") if workstream.closed?
+  end
+
+  def track_completion
+    if completed?
+      self.completed_at ||= Time.current
+      self.completed_by ||= Current.user || assigned_to_user || user
+    else
+      self.completed_at = nil
+      self.completed_by = nil
     end
   end
 

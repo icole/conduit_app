@@ -44,16 +44,16 @@ class TasksController < ApplicationController
   end
 
   def new
-    @task = Task.new
+    @task = Task.new(workstream_id: params[:workstream_id])
   end
 
   def create
     @task = current_user.tasks.build(task_params)
 
     respond_to do |format|
-      if @task.save
+      if assignment_allowed?(@task) && @task.save
         redirect_path = if request.referer&.include?("tasks")
-          tasks_path(view: @task.status == "active" ? "active" : "backlog")
+          tasks_path_for(@task)
         else
           dashboard_index_path
         end
@@ -73,7 +73,9 @@ class TasksController < ApplicationController
     # Get the return_to path from params or default to tasks_path
     return_to = params[:return_to] || tasks_path
 
-    if @task.update(task_params)
+    @task.assign_attributes(task_params)
+
+    if assignment_allowed?(@task) && @task.save
       # Explicitly redirect to the return_to path
       redirect_to return_to, notice: "Task was successfully updated."
     else
@@ -165,12 +167,41 @@ class TasksController < ApplicationController
     @task = Task.with_discarded.find(params[:id])
   end
 
+  # Only a workstream's owner (or an admin) hands work to someone else; anyone
+  # can take open work themselves or let go of their own.
   def set_users
-    @users = User.all
+    ids = [ current_user.id, @task&.assigned_to_user_id ].compact
+    @users = can_assign_others? ? User.all : User.where(id: ids)
+  end
+
+  def can_assign_others?(workstream = nil)
+    return true if current_user.admin?
+
+    workstream ? workstream.owned_by?(current_user) : Workstream.exists?(owner_id: current_user.id)
+  end
+
+  def assignment_allowed?(task)
+    return true unless task.assigned_to_user_id_changed?
+    return true if task.workstream && can_assign_others?(task.workstream)
+
+    was, now = task.assigned_to_user_id_was, task.assigned_to_user_id
+    return true if was.nil? && now == current_user.id
+    return true if was == current_user.id && now.nil?
+
+    task.errors.add(:assigned_to_user, "can only be changed by the workstream's owner")
+    false
+  end
+
+  def tasks_path_for(task)
+    case task.assigned_to_user_id
+    when current_user.id then tasks_path(tab: "my")
+    when nil then tasks_path(tab: "available")
+    else workstream_path(task.workstream)
+    end
   end
 
   def task_params
-    params.require(:task).permit(:title, :description, :status, :assigned_to_user_id, :due_date)
+    params.require(:task).permit(:title, :description, :status, :assigned_to_user_id, :due_date, :workstream_id, :estimated_minutes)
   end
 
   def reorder_pending_tasks

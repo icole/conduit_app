@@ -1,0 +1,57 @@
+<%= form_with(model: [ workstream, recurring_task ], class: "space-y-4") do |form| %>
+  <% if recurring_task.errors.any? %>
+    <div class="alert alert-error">
+      <ul class="list-disc list-inside">
+        <% recurring_task.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-control">
+    <%= form.label :title, class: "label" %>
+    <%= form.text_field :title, class: "input input-bordered w-full", required: true, placeholder: "e.g. Take out garbage & recycling" %>
+  </div>
+
+  <div class="form-control">
+    <%= form.label :description, class: "label" %>
+    <%= form.text_area :description, rows: 2, class: "textarea textarea-bordered w-full" %>
+  </div>
+
+  <div class="form-control">
+    <%= form.label :default_responsible_user_id, "Default responsible person", class: "label" %>
+    <%= form.select :default_responsible_user_id, [ [ "Nobody yet (coverage gap)", "" ] ] + User.order(:name).map { |u| [ u.name, u.id ] }, {}, class: "select select-bordered w-full" %>
+    <p class="text-xs text-base-content/60 mt-1">Each period's instance is pre-assigned to this person. They can release a single period if they're away.</p>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="form-control">
+      <%= form.label :frequency, class: "label" %>
+      <%= form.select :frequency, RecurringTask::FREQUENCIES.map { |value, label| [ label, value ] }, {}, class: "select select-bordered w-full" %>
+    </div>
+
+    <div class="form-control">
+      <%= form.label :priority, class: "label" %>
+      <%= form.select :priority, priority_options(include_inherit: true), {}, class: "select select-bordered w-full" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="form-control">
+      <%= form.label :estimated_minutes, "Agreed time (minutes)", class: "label" %>
+      <%= form.number_field :estimated_minutes, min: 1, step: 1, class: "input input-bordered w-full", required: true %>
+      <p class="text-xs text-base-content/60 mt-1">The time the group agrees this takes. It's what counts toward contribution, however long it actually takes.</p>
+    </div>
+
+    <div class="form-control">
+      <%= form.label :starts_on, "First period starts", class: "label" %>
+      <%= form.date_field :starts_on, class: "input input-bordered w-full" %>
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-2 pt-2">
+    <%= link_to "Cancel", workstream_path(workstream), class: "btn btn-ghost" %>
+    <%= form.submit recurring_task.persisted? ? "Save recurring task" : "Add recurring task", class: "btn btn-primary" %>
+  </div>
+<% end %>

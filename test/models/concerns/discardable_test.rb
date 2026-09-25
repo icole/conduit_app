@@ -72,7 +72,7 @@ class DiscardableTest < ActiveSupport::TestCase
   end
 
   test "created_by is set on create for models with user association" do
-    new_task = @user.tasks.create!(title: "Test task", status: "backlog")
+    new_task = @user.tasks.create!(title: "Test task", status: "backlog", workstream: workstreams(:general))
     assert_equal @user, new_task.created_by
   end
 

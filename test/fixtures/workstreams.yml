@@ -1,0 +1,41 @@
+general:
+  community: crow_woods
+  name: General
+  description: Tasks from before workstreams existed. Re-file them as you go.
+  workstream_type: permanent
+  status: active
+  priority: important
+  owner: admin_user
+
+garbage:
+  community: crow_woods
+  name: Garbage & Recycling Coordinator
+  description: Rolls the bins to the curb for weekly pickup and brings them back.
+  workstream_type: permanent
+  status: active
+  priority: essential
+  owner: one
+
+common_house:
+  community: crow_woods
+  name: Common House Wrangler
+  description: Keeps the Common House clean, stocked, and organized.
+  workstream_type: permanent
+  status: active
+  priority: essential
+
+front_yard:
+  community: crow_woods
+  name: Front yard project
+  description: Replant the front beds before summer.
+  workstream_type: ad_hoc
+  status: active
+  priority: important
+  owner: two
+
+other_general:
+  community: other_community
+  name: General
+  workstream_type: permanent
+  status: active
+  priority: important
