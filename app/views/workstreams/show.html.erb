@@ -29,12 +29,14 @@
       </div>
 
       <% if @workstream.description.present? %>
-        <p class="text-sm text-base-content/70"><%= @workstream.description %></p>
+        <div data-workstream-description class="text-sm text-base-content/70 space-y-2">
+          <%= simple_format(@workstream.description, {}, wrapper_tag: "p") %>
+        </div>
       <% end %>
 
       <p class="text-sm">
-        <% if @workstream.owner %>
-          <span class="text-base-content/70">Owner:</span> <%= @workstream.owner.name %>
+        <% if @owners.any? %>
+          <span class="text-base-content/70"><%= "Owner".pluralize(@owners.size) %>:</span> <%= @workstream.owner_names %>
         <% else %>
           <span class="text-error-ink">No owner assigned</span>
         <% end %>

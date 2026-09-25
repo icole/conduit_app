@@ -6,7 +6,8 @@ class Workstream < ApplicationRecord
   PRIORITIES = %w[essential important nice_to_have].freeze
   PRIORITY_LABELS = { "essential" => "Essential", "important" => "Important", "nice_to_have" => "Nice to have" }.freeze
 
-  belongs_to :owner, class_name: "User", optional: true
+  has_many :workstream_owners, dependent: :destroy
+  has_many :owners, -> { order(:name) }, through: :workstream_owners, source: :user
   has_many :tasks, dependent: :restrict_with_error
   has_many :recurring_tasks, dependent: :restrict_with_error
 
@@ -28,6 +29,9 @@ class Workstream < ApplicationRecord
     PRIORITY_LABELS[priority]
   end
 
+  # The first paragraph of the description, for cards.
+  def summary = description.to_s.split(/\n\s*\n/).first.to_s.strip
+
   def type_label = TYPES[workstream_type]
   def priority_label = self.class.priority_label(priority)
   def ongoing? = workstream_type == "permanent"
@@ -35,10 +39,17 @@ class Workstream < ApplicationRecord
   def closed? = status == "closed"
   def essential? = priority == "essential"
 
-  # A workstream is covered when someone owns it.
-  def covered? = owner_id.present?
+  scope :unowned, -> { where.missing(:workstream_owners) }
 
-  def owned_by?(user) = user.present? && owner_id == user.id
+  # A workstream is covered when someone owns it.
+  def covered? = owners.any?
+
+  def owned_by?(user) = user.present? && owners.include?(user)
+
+  # "Jane Smith", "Jane Smith & Mike Davis", "Ann, Bo & Cy"
+  def owner_names
+    owners.map(&:name).to_sentence(words_connector: ", ", two_words_connector: " & ", last_word_connector: " & ")
+  end
 
   def close!
     update!(status: "closed")

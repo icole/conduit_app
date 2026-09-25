@@ -121,4 +121,24 @@ class RecurringTaskTest < ActiveSupport::TestCase
     assert_nothing_raised { RecurringTask.generate_instances!(Date.new(2026, 3, 5)) }
     assert_equal 1, Task.with_discarded.where(recurring_task: @recurring, period_start: Date.new(2026, 3, 2)).count
   end
+
+  test "quarterly periods are calendar quarters" do
+    @recurring.frequency = "quarterly"
+    assert_equal Date.new(2026, 1, 1)..Date.new(2026, 3, 31), @recurring.period_for(Date.new(2026, 3, 5))
+    assert_equal Date.new(2026, 10, 1)..Date.new(2026, 12, 31), @recurring.period_for(Date.new(2026, 11, 20))
+  end
+
+  test "yearly periods start on the anniversary of starts_on, so the due date lands in the right season" do
+    @recurring.frequency = "yearly"
+    @recurring.starts_on = Date.new(2025, 11, 1) # winterize spigots: due by the end of October
+    assert_equal Date.new(2025, 11, 1)..Date.new(2026, 10, 31), @recurring.period_for(Date.new(2026, 3, 5))
+    assert_equal Date.new(2026, 11, 1)..Date.new(2027, 10, 31), @recurring.period_for(Date.new(2026, 11, 2))
+    assert_equal Date.new(2026, 10, 31), @recurring.instance_for(Date.new(2026, 3, 5)).due_date
+  end
+
+  test "yearly periods cope with a February 29 start" do
+    @recurring.frequency = "yearly"
+    @recurring.starts_on = Date.new(2024, 2, 29)
+    assert_equal Date.new(2026, 2, 28)..Date.new(2027, 2, 27), @recurring.period_for(Date.new(2026, 6, 1))
+  end
 end

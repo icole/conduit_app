@@ -421,4 +421,19 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     get new_task_url
     assert_select "select[name='task[repeats]'] option", text: "Weekly"
   end
+
+  test "a co-owner can assign a task to someone else" do
+    workstreams(:front_yard).owners << @user
+    assert_difference("Task.count") do
+      post tasks_url, params: { task: { title: "Dig the beds", workstream_id: workstreams(:front_yard).id, assigned_to_user_id: users(:two).id } }
+    end
+    assert_equal users(:two), Task.find_by!(title: "Dig the beds").assigned_to_user
+  end
+
+  test "coverage cards show just the summary paragraph of a description" do
+    workstreams(:garbage).update!(description: "Rolls the bins out.\n\nAlso, as needed or seasonally:\n• Break down boxes.")
+    get tasks_url(tab: "coverage")
+    assert_select "#workstream_#{workstreams(:garbage).id}", text: /Rolls the bins out\./
+    assert_select "#workstream_#{workstreams(:garbage).id}", text: /Break down boxes/, count: 0
+  end
 end

@@ -31,10 +31,19 @@
     </div>
   </div>
 
-  <div class="form-control">
-    <%= form.label :owner_id, "Owner", class: "label" %>
-    <%= form.select :owner_id, [ [ "No owner yet", "" ] ] + User.order(:name).map { |u| [ u.name, u.id ] }, {}, class: "select select-bordered w-full" %>
-  </div>
+  <fieldset class="form-control">
+    <legend class="label">Owners</legend>
+    <p class="text-xs text-base-content/70 mb-2">Anyone listed can assign its work and close it. Leave everyone unticked if it needs an owner.</p>
+    <%= hidden_field_tag "workstream[owner_ids][]", "" %>
+    <div class="border border-base-300 rounded-box p-2 max-h-64 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-1">
+      <% User.order(:name).each do |user| %>
+        <label class="flex items-center gap-2 p-2 rounded hover:bg-base-200 cursor-pointer">
+          <%= check_box_tag "workstream[owner_ids][]", user.id, workstream.owner_ids.include?(user.id), id: "workstream_owner_#{user.id}", class: "checkbox checkbox-sm" %>
+          <span><%= user.name %></span>
+        </label>
+      <% end %>
+    </div>
+  </fieldset>
 
   <div class="flex justify-end gap-2 pt-2">
     <%# In the apps these open as modals with a native Close button %>

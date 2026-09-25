@@ -41,7 +41,7 @@ class ContributionSummary
 
   # [name, detail] pairs for essential areas nobody is holding.
   def areas_needing_help
-    unowned = Workstream.open.where(priority: "essential", owner_id: nil).order(:name).map do |workstream|
+    unowned = Workstream.open.unowned.where(priority: "essential").order(:name).map do |workstream|
       [ workstream.name, "No owner assigned" ]
     end
 

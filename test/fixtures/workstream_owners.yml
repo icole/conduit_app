@@ -1,0 +1,14 @@
+general_admin:
+  community: crow_woods
+  workstream: general
+  user: admin_user
+
+garbage_one:
+  community: crow_woods
+  workstream: garbage
+  user: one
+
+front_yard_two:
+  community: crow_woods
+  workstream: front_yard
+  user: two

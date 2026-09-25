@@ -216,7 +216,7 @@ class TasksController < ApplicationController
   end
 
   def load_coverage_tab
-    workstreams = Workstream.includes(:owner, :recurring_tasks).order(:name)
+    workstreams = Workstream.includes(:owners, :recurring_tasks).order(:name)
     @ongoing = workstreams.open.ongoing
     @projects = workstreams.open.projects
     @closed_projects = workstreams.projects.where(status: "closed")
@@ -290,7 +290,7 @@ class TasksController < ApplicationController
   def can_assign_others?(workstream = nil)
     return true if current_user.admin?
 
-    workstream ? workstream.owned_by?(current_user) : Workstream.exists?(owner_id: current_user.id)
+    workstream ? workstream.owned_by?(current_user) : WorkstreamOwner.exists?(user_id: current_user.id)
   end
 
   def assignment_allowed?(task)
@@ -301,7 +301,7 @@ class TasksController < ApplicationController
     return true if was.nil? && now == current_user.id
     return true if was == current_user.id && now.nil?
 
-    task.errors.add(:assigned_to_user, "can only be changed by the workstream's owner")
+    task.errors.add(:assigned_to_user, "can only be changed by one of the workstream's owners")
     false
   end
 

@@ -6,7 +6,7 @@ class WorkstreamTest < ActiveSupport::TestCase
   end
 
   test "valid with a name, type and priority" do
-    workstream = Workstream.new(name: "Grounds", workstream_type: "permanent", priority: "important", owner: @owner)
+    workstream = Workstream.new(name: "Grounds", workstream_type: "permanent", priority: "important", owners: [ @owner ])
     assert workstream.valid?
   end
 
@@ -49,5 +49,26 @@ class WorkstreamTest < ActiveSupport::TestCase
   test "priority_rank orders essential before important before nice to have" do
     ranks = %w[essential important nice_to_have].map { |p| Workstream.priority_rank(p) }
     assert_equal ranks.sort, ranks
+  end
+
+  test "a workstream can have several owners, and each of them owns it" do
+    workstream = workstreams(:front_yard)
+    workstream.owners << users(:three)
+
+    assert_equal [ users(:three), users(:two) ].sort_by(&:name), workstream.owners.sort_by(&:name)
+    assert workstream.owned_by?(users(:two))
+    assert workstream.owned_by?(users(:three))
+    assert_not workstream.owned_by?(users(:one))
+    assert workstream.covered?
+  end
+
+  test "owner_names reads naturally for one or several owners" do
+    assert_equal "Jane Smith", workstreams(:garbage).owner_names
+    workstreams(:garbage).owners << users(:two)
+    assert_equal "Jane Smith & Mike Davis", workstreams(:garbage).reload.owner_names
+  end
+
+  test "a person owns a workstream only once" do
+    assert_raises(ActiveRecord::RecordInvalid) { WorkstreamOwner.create!(workstream: workstreams(:garbage), user: users(:one)) }
   end
 end

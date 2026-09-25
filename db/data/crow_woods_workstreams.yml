@@ -1,0 +1,302 @@
+# Crow Woods workstreams and recurring tasks, from Crow-Woods-Workstream-Prioritization.xlsx.
+# Priority: the members' 1-5 vote average, rounded (>=4.5 essential, 2.5-4.49 important, <2.5 nice to have).
+# Owners are first names. Apply with: bin/rails workstreams:import SLUG=crow-woods FILE=db/data/crow_woods_workstreams.yml
+---
+rename_workstreams:
+  Crow Woods Cohousing Ambassador: Crow Woods Ambassador
+rename_recurring_tasks:
+  Sweep boardwalks: Sweep decks & boardwalks
+remove_recurring_tasks:
+- Check and clean the hot tub
+- Clean shared kitchen
+- Compost turnover
+- Organize the tool shed
+- Plan the garden work party
+- Restock common house pantry
+- Review contractor invoices
+- Take out garbage & recycling
+- Update the meal calendar
+- Water the greenhouse
+remove_unstarted_tasks:
+- Buy supplies for work party
+- Draft quarterly budget note
+workstreams:
+- name: Garbage & Recycling Coordinator
+  type: permanent
+  description: Rolls the community's trash, recycling, and yard-waste bins to the curb for weekly pickup and brings them back.
+  owners:
+  - Carrie
+  priority: essential
+  recurring_tasks:
+  - title: Take bins to the curb
+    description: 'Roll up to 3 trash, 3 compost, and 4 recycling bins to the curb, lids facing the street. When: Thu 8am; Fri on holiday weeks.'
+    frequency: weekly
+    minutes: 15
+  - title: Bring bins back & store
+    description: Return all bins to the south-fence storage after pickup.
+    frequency: weekly
+    minutes: 10
+  also:
+  - 'Break down recycling boxes (as needed): Flatten cardboard and stack it neatly between the recycling bins.'
+  - 'Follow the pickup schedule (ongoing): Track the biweekly recycling and holiday schedule (city ''Recycle It'' app).'
+  - 'Arrange a backup (as needed): Line up a reliable backup when away - this task cannot be skipped.'
+  time_commitment: "~5-20 min/week"
+- name: Garden Health
+  type: permanent
+  description: Keeps the landscaping healthy - watering in dry months, handling pests and pruning, planting, and winterizing spigots.
+  owners:
+  - Erin
+  priority: important
+  recurring_tasks:
+  - title: Landscape checks
+    description: Walk the grounds to spot and respond to any needs.
+    frequency: biweekly
+    minutes: 30
+  - title: Winterize spigots
+    description: Shut off and drain all outdoor spigots before the first freeze.
+    frequency: yearly
+    minutes: 90
+    first_period_starts: 11-01
+  also:
+  - 'Watering (dry months) (weekly in summer): Water all landscaped areas using hoses, soakers, sprinklers, and timers.'
+  - 'Plant health (as needed): Handle pests, diseases, and tree pruning or removal as needed.'
+  - 'Planting & seeding (seasonal): Propose and manage new planting (ferns, wildflower seed) and source plants.'
+  - 'Equipment upkeep (as needed): Inspect, repair, and replace hoses, timers, and tools; maintain hose racks and storage.'
+  time_commitment: Seasonal; heavy in summer (0-8 hrs/mo)
+- name: Garden People Wrangler
+  type: permanent
+  description: Organizes the people side of the garden - work parties, raised-bed assignments, compost, and teaching.
+  owners:
+  - Nina
+  priority: important
+  recurring_tasks:
+  - title: Run work parties
+    description: Schedule, lead, and attend community garden work parties.
+    frequency: monthly
+    minutes: 150
+  - title: Raised-bed allotment
+    description: Coordinate who gets which sunny/shady raised beds and the shared water setup.
+    frequency: yearly
+    minutes: 180
+    first_period_starts: 02-01
+  - title: Maintain compost bins
+    description: Add water, stir, add brown material, and reinforce to keep rats out.
+    frequency: monthly
+    minutes: 30
+  also:
+  - 'Community education (as needed): Teach members how to weed, build soil, and understand the local ecology.'
+  time_commitment: "~4-8 hrs/month"
+- name: Groundskeeper
+  type: permanent
+  description: Keeps shared paths, decks, gutters, drainage, and outdoor lighting in good shape.
+  owners:
+  - Carrie
+  priority: important
+  recurring_tasks:
+  - title: Sweep decks & boardwalks
+    description: Push-broom the boardwalks, hot tub platform, and Common House deck; wash if needed.
+    frequency: weekly
+    minutes: 40
+  - title: Clear gutter guards
+    description: Brush needles off the gutter guards from the ground (no ladders).
+    frequency: monthly
+    minutes: 45
+  also:
+  - 'Maintain wood chip paths (as needed): Rake chips back onto paths, straighten edges, and clear pinecones.'
+  - 'Monitor path & courtyard lights (ongoing): Notice burnt-out bulbs or outages and get them replaced.'
+  - 'Watch storm drainage (seasonal (wet months)): Check grates and drainage areas, especially before and during heavy rain.'
+  time_commitment: "~3-4 hrs/month"
+- name: Common House Wrangler
+  type: permanent
+  description: Keeps the Common House clean, stocked, and organized, including shared equipment.
+  owners:
+  - Joe
+  priority: important
+  recurring_tasks:
+  - title: Sweep / vacuum Common House
+    description: Clean the Common House floors.
+    frequency: weekly
+    minutes: 40
+  - title: Check kitchen & appliances
+    description: Check sink, pots/pans, dishwasher, disposal, fridge, counters, coffee pot, windows, and doors.
+    frequency: weekly
+    minutes: 15
+  - title: Deep clean
+    description: Thorough deep-clean of the Common House.
+    frequency: quarterly
+    minutes: 150
+  - title: Maintain storage & equipment list
+    description: Keep the common storage room organized and the equipment inventory/checkout list current.
+    frequency: monthly
+    minutes: 30
+  also:
+  - 'Take out waste after meals (after each meal): Empty garbage, recycling, and compost after each shared meal.'
+  - 'Launder linens (as needed): Wash Common House linens as needed.'
+  - 'Monitor & restock supplies (as needed): Restock sponges, soaps, cleaning supplies, and trash/compost bags (reimbursed).'
+  - 'Clean outdoor furniture (seasonal): Clean and maintain the Common House outdoor furniture.'
+  time_commitment: "~4-6 hrs/month"
+- name: Community Meal Supporter
+  type: permanent
+  description: Keeps community meals running smoothly - dietary needs, the meal calendar, and RSVP/cook reminders.
+  owners:
+  - Kat
+  priority: important
+  recurring_tasks:
+  - title: Keep meal calendar filled
+    description: Add meals to the Conduit calendar so 4-6 weeks are always scheduled.
+    frequency: monthly
+    minutes: 20
+  - title: Send reminders
+    description: Nudge members via Conduit chat to RSVP, sign up to cook, or help.
+    frequency: weekly
+    minutes: 10
+  - title: Meal check-in on agenda
+    description: Make sure a 'how are meals going' discussion reaches a meeting agenda.
+    frequency: quarterly
+    minutes: 5
+  also:
+  - 'Maintain dietary form (as needed): Keep the dietary-restrictions form current and share as needed.'
+  - 'Onboard new residents (as needed (move-ins)): Send the dietary form to new residents.'
+  time_commitment: "~0.5-2 hrs/month"
+- name: Amenities (Hot Tub, Fire Pit, Fountain)
+  type: permanent
+  description: Maintains the hot tub, fire pit, and fountain and keeps those areas clean and safe.
+  owners:
+  - Rachel
+  priority: important
+  recurring_tasks:
+  - title: 'Hot tub: test & balance chemicals'
+    description: Test the water and add chemicals/salt to keep levels right.
+    frequency: weekly
+    minutes: 30
+  - title: 'Hot tub: clean/replace filter & top off water'
+    description: Rinse and change the filter cartridge.
+    frequency: monthly
+    minutes: 60
+  - title: 'Hot tub: drain & refill'
+    description: Fully drain, clean, and refill the hot tub.
+    frequency: yearly
+    minutes: 480
+    first_period_starts: 01-01
+  - title: 'Hot tub: keep site clean'
+    description: Keep the hot tub area tidy.
+    frequency: weekly
+    minutes: 15
+  - title: 'Hot tub: annual chemical budget'
+    description: Estimate and submit the annual chemicals budget.
+    frequency: yearly
+    minutes: 60
+    first_period_starts: 01-01
+  - title: 'Fountain: add water'
+    description: Top up the fountain from the Common House spigot.
+    frequency: biweekly
+    minutes: 10
+  also:
+  - 'Fire pit: restock supplies (as needed): Keep the bin stocked with firewood, kindling, paper, and a lighter.'
+  - 'Fire pit: remove ashes (as needed): Clear ashes from the fire pit as needed.'
+  - 'Fire pit: maintain chairs & area (seasonal): Maintain the blue chairs and the wood chip area.'
+  - 'Fountain: clean guard & pump (as needed): Keep the fir-needle guard clear and clean the pump pipe.'
+  - 'Fountain: winterize (seasonal (freezes)): Unplug before freezing temps and replug after; watch the water level.'
+  time_commitment: "~4-6 hrs/month"
+- name: Vendor Coordinator
+  type: permanent
+  description: Finds, hires, and manages outside contractors for shared-space maintenance and keeps a trusted-vendor list.
+  owners:
+  - Lisa
+  priority: important
+  also:
+  - 'Maintain vendor list (ongoing): Keep an up-to-date list of trusted vendors and contractors.'
+  - 'Coordinate maintenance jobs (as needed): Arrange vendors for shared-space work and see projects through.'
+  - 'Vendor communication & billing (as needed): Handle all contact and billing with vendors; submit costs to the budget.'
+  - 'Contractor liaison (as needed): Be the main contact for the general contractor (Andy).'
+  - 'Homeowner referral list (ongoing): Keep a shared list of vendors individual homeowners can use.'
+  time_commitment: Varies; minimal so far
+- name: IT Manager
+  type: permanent
+  description: Looks after the community's tech - software subscriptions, the website, WiFi, and support.
+  owners:
+  - Ian
+  priority: important
+  recurring_tasks:
+  - title: Manage software subscriptions
+    description: Track and pay for Google Workspace, domain, and email; watch renewal dates.
+    frequency: monthly
+    minutes: 30
+  - title: Security coordination
+    description: Work with the Data Protection Officer on security basics.
+    frequency: quarterly
+    minutes: 5
+  also:
+  - 'Support community software (Conduit) (ongoing): Coordinate with the app owner so chat, meals, and events work.'
+  - 'Maintain website (as needed): Publish the Ambassador''s content and keep the site working and secure.'
+  - 'Tech support (as needed): Help members with Google Drive and shared tools.'
+  - 'Maintain Common House WiFi (as needed): Keep the Common House WiFi working; troubleshoot issues.'
+  time_commitment: Currently ~10-20 hrs/mo (mostly Conduit)
+- name: Crow Woods Ambassador
+  type: permanent
+  description: Handles outreach - the public inbox, social media, and website content.
+  owners:
+  - Jane
+  priority: nice_to_have
+  recurring_tasks:
+  - title: Monitor the inbox
+    description: Watch the Crow Woods email inbox and route or answer messages.
+    frequency: weekly
+    minutes: 60
+  also:
+  - 'Handle inquiries (as needed): Respond to prospective buyers, media, and other communities.'
+  - 'Manage social media (ongoing): Manage the Instagram account and posts.'
+  - 'Website content (as needed): Write and gather photos/content for the website.'
+  - 'Marketing & PR (as needed): General outreach and public relations.'
+  time_commitment: "~5-18 hrs/month"
+- name: High water bills
+  type: ad_hoc
+  description: Investigate unusually high water bills and make sense of the existing bills.
+  owners:
+  - Rachel
+  priority: essential
+- name: Storage task force
+  type: ad_hoc
+  description: Organize and plan the common storage space.
+  owners:
+  - Lisa
+  - Carrie
+  priority: important
+- name: Front yard project
+  type: ad_hoc
+  description: Bench, plant ID signs, wildflower seeds, educational sign.
+  owners:
+  - Nina
+  - Rachel
+  priority: important
+- name: Fence lights
+  type: ad_hoc
+  description: Design, source, and install fence deterrent lighting.
+  owners:
+  - Jane
+  priority: important
+- name: Driveway seeding
+  type: ad_hoc
+  description: 'Seed research, ordering, and coordination for the driveway. Season-sensitive: seeding needs to happen in Oct/Nov.'
+  owners:
+  - Nina
+  priority: important
+- name: EV charging rebate
+  type: ad_hoc
+  description: Research EV charger options and Seattle City Light rebates.
+  owners:
+  - Eric
+  priority: nice_to_have
+- name: Replace driveway grid pavers
+  type: ad_hoc
+  description: Identify cracked grid pavers and coordinate with constractor to schedule the replacement
+  owners:
+  - Jane
+  priority: important
+- name: Security Camera
+  type: ad_hoc
+  description: Research security camera providers, define security camera policy (including data retention), determine security camera locations, coordinate with vendor for installation
+  owners:
+  - Carrie
+  - Ian
+  priority: nice_to_have

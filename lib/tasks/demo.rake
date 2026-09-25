@@ -151,6 +151,7 @@ namespace :demo do
       # with_discarded, not unscoped: unscoped would drop the tenant scope too
       Task.with_discarded.delete_all
       RecurringTask.with_discarded.delete_all
+      WorkstreamOwner.delete_all
       Workstream.delete_all
 
       puts "  Deleting users..."
