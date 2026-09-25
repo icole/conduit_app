@@ -2,7 +2,9 @@
 # community: its workstreams, recurring and one-off tasks, a handful of sample
 # neighbours in five households, and a few months of completed work so the
 # Contribution tab has something to show. +viewer+ gets the prototype's
-# "My Tasks". Safe to run more than once.
+# "My Tasks". With people: false it loads only the workstreams and tasks,
+# unowned and unassigned, for a real community to fill in. Safe to run more
+# than once.
 class TaskSampleData
   class Refused < StandardError; end
 
@@ -21,27 +23,32 @@ class TaskSampleData
 
   HISTORY_WEEKS = 16
 
-  def initialize(community, viewer: nil)
+  def initialize(community, viewer: nil, people: true)
     @community = community
     @viewer = viewer
+    @people = people
   end
 
   def load!
-    if Rails.env.production? && !@community.slug.include?("demo")
+    if @people && Rails.env.production? && !@community.slug.include?("demo")
       raise Refused, "Sample neighbours only go into demo communities in production (#{@community.slug} isn't one)."
     end
 
     ActsAsTenant.with_tenant(@community) do
       ApplicationRecord.transaction do
         @today = Time.current.in_time_zone(@community.time_zone).to_date
-        people = create_people
+        people = @people ? create_people : {}
         @viewer ||= User.where(admin: true).order(:id).first || people.fetch("Sam Santos")
         workstreams = create_workstreams(people)
         recurring = create_recurring_tasks(workstreams, people)
         create_one_off_tasks(workstreams)
-        complete_history(recurring, people)
-        RecurringTask.generate_instances!(@today)
-        release_this_week(recurring.fetch("Water the greenhouse"), people.fetch("Dana Okafor"))
+        if @people
+          complete_history(recurring, people)
+          RecurringTask.generate_instances!(@today)
+          release_this_week(recurring.fetch("Water the greenhouse"), people.fetch("Dana Okafor"))
+        else
+          RecurringTask.generate_instances!(@today)
+        end
       end
     end
   end
@@ -97,7 +104,7 @@ class TaskSampleData
   end
 
   def create_recurring_tasks(workstreams, people)
-    viewer = @viewer
+    viewer = @viewer if @people
     [
       [ "Garbage & Recycling Coordinator", "Take out garbage & recycling", "weekly", 15, nil, viewer ],
       [ "Common House Wrangler", "Clean shared kitchen", "weekly", 45, "essential", nil ],
@@ -117,7 +124,7 @@ class TaskSampleData
         r.estimated_minutes = minutes
         r.priority = priority
         r.default_responsible_user = person
-        r.created_by = viewer
+        r.created_by = @viewer
         r.starts_on = @today - HISTORY_WEEKS.weeks
       end
       [ title, recurring ]
@@ -131,7 +138,7 @@ class TaskSampleData
     ].each do |title, workstream_name, minutes, due_in|
       workstreams.fetch(workstream_name).tasks.find_or_create_by!(title: title) do |task|
         task.user = @viewer
-        task.assigned_to_user = @viewer
+        task.assigned_to_user = @viewer if @people
         task.estimated_minutes = minutes
         task.due_date = @today + due_in
       end

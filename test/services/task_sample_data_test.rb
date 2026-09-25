@@ -67,4 +67,26 @@ class TaskSampleDataTest < ActiveSupport::TestCase
       assert_raises(TaskSampleData::Refused) { TaskSampleData.new(@community, viewer: @viewer).load! }
     end
   end
+
+  test "without people it loads only the structure, with nobody owning or holding anything" do
+    counts = [ User.count, Household.count ]
+    travel_to(Date.new(2026, 3, 4)) { TaskSampleData.new(@community, people: false).load! }
+
+    assert_equal counts, [ User.count, Household.count ]
+    sample = Workstream.where(name: [ "Garden Health", "Groundskeeper", "High water bills" ])
+    assert_equal 3, sample.count
+    assert sample.all? { |w| w.owner.nil? }
+    assert RecurringTask.where(title: [ "Mow common lawn", "Water the greenhouse" ]).all? { |r| r.default_responsible_user.nil? }
+    assert_nil Task.find_by!(title: "Buy supplies for work party").assigned_to_user
+    assert_not Task.completed.where(recurring_task: RecurringTask.where(title: "Mow common lawn")).exists?
+    travel_to(Date.new(2026, 3, 4)) do
+      assert Task.available_queue.any? { |t| t.title == "Mow common lawn" }
+    end
+  end
+
+  test "without people it's allowed in a real community in production" do
+    Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
+      assert_nothing_raised { TaskSampleData.new(@community, people: false).load! }
+    end
+  end
 end

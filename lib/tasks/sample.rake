@@ -2,7 +2,8 @@
 
 namespace :sample do
   desc "Load the task management prototype's workstreams, tasks and sample neighbours. " \
-       "SLUG=<community slug> (optional when there's only one), VIEWER=<email> gets the sample My Tasks"
+       "SLUG=<community slug> (optional when there's only one), VIEWER=<email> gets the sample My Tasks, " \
+       "PEOPLE=false loads only the workstreams and tasks, unowned and unassigned"
   task tasks: :environment do
     community = ActsAsTenant.without_tenant do
       if ENV["SLUG"].present?
@@ -15,7 +16,8 @@ namespace :sample do
     end
 
     viewer = ENV["VIEWER"].presence && ActsAsTenant.with_tenant(community) { User.find_by!(email: ENV["VIEWER"]) }
-    TaskSampleData.new(community, viewer: viewer).load!
+    people = ENV["PEOPLE"] != "false"
+    TaskSampleData.new(community, viewer: viewer, people: people).load!
 
     ActsAsTenant.with_tenant(community) do
       puts "Loaded sample task data into #{community.name}: #{Workstream.count} workstreams, " \
