@@ -124,6 +124,8 @@ class Task < ApplicationRecord
   # Callback to auto-set status and priority for new tasks
   def auto_set_status_and_priority
     # If task has assignment or due date, make it active
+    return if completed?
+
     if assigned_to_user_id.present? || due_date.present?
       self.status = "active"
       self.priority_order = next_priority_order if priority_order.blank?

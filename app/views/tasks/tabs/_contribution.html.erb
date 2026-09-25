@@ -1,0 +1,130 @@
+<% households = @summary.households %>
+<% fair_share = @summary.fair_share_minutes %>
+<% scale = ([ fair_share ] + households.map { |h| @summary.minutes_for(h) }).max %>
+<% coverage = @summary.essential_coverage_percent %>
+<% period_link_data = { turbo_frame: "tasks_content" } %>
+<% period_link_data[:turbo_action] = "advance" unless hotwire_native_app? %>
+
+<div id="contribution-period" class="flex flex-wrap items-center gap-2 mb-4 text-sm text-base-content/70">
+  <span>Contribution <%= @period.current? ? "this period" : "for" %></span>
+  <span class="badge badge-ghost"><%= @period.label %></span>
+  <span class="ml-auto inline-flex items-center gap-1">
+    <%= link_to tasks_path(tab: "contribution", period: @period.previous.start_date.iso8601), class: "btn btn-ghost btn-xs", data: period_link_data, aria: { label: "Previous period" } do %>
+      ← <%= @period.previous.label %>
+    <% end %>
+    <% unless @period.current? %>
+      <%= link_to tasks_path(tab: "contribution", period: @period.next.start_date.iso8601), class: "btn btn-ghost btn-xs", data: period_link_data, aria: { label: "Next period" } do %>
+        <%= @period.next.label %> →
+      <% end %>
+    <% end %>
+  </span>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+  <div id="essential-coverage" class="card bg-base-100 border border-base-200">
+    <div class="card-body p-4 gap-1">
+      <p class="text-xs text-base-content/60">Essential work done</p>
+      <% if coverage %>
+        <p class="text-3xl font-bold <%= coverage >= 90 ? 'text-success' : 'text-base-content' %>"><%= coverage %>%</p>
+        <p class="text-xs text-base-content/60">of essential tasks due <%= @period.current? ? "so far this period" : "in this period" %></p>
+      <% else %>
+        <p class="text-3xl font-bold text-base-content/40">—</p>
+        <p class="text-xs text-base-content/60">nothing essential due yet</p>
+      <% end %>
+    </div>
+  </div>
+
+  <div id="fair-share" class="card bg-base-100 border border-base-200">
+    <div class="card-body p-4 gap-1">
+      <p class="text-xs text-base-content/60">Fair share per household</p>
+      <p class="text-3xl font-bold">~<%= hours(fair_share) %></p>
+      <p class="text-xs text-base-content/60"><%= hours(@summary.total_minutes) %> contributed by <%= pluralize(households.size, "household") %></p>
+    </div>
+  </div>
+</div>
+
+<section class="card bg-base-100 border border-base-200 mb-4">
+  <div class="card-body p-4 gap-3">
+    <div>
+      <h2 class="font-semibold">Each household relative to fair share</h2>
+      <p class="text-xs text-base-content/60 mt-1">Bars show agreed time for completed work against the fair-share line. This isn't a ranking: capacity varies by season and circumstance, and the period average smooths that out.</p>
+    </div>
+
+    <% if households.any? %>
+      <div class="space-y-3">
+        <% households.each do |household| %>
+          <% minutes = @summary.minutes_for(household) %>
+          <div data-household="<%= household.name %>">
+            <div class="flex justify-between text-sm mb-1">
+              <span class="font-medium"><%= household.name %></span>
+              <span class="text-base-content/60"><%= hours(minutes) %></span>
+            </div>
+            <div class="relative h-2.5 rounded-full bg-base-200" role="img" aria-label="<%= household.name %>: <%= hours(minutes) %> against a fair share of <%= hours(fair_share) %>">
+              <div class="absolute inset-y-0 left-0 rounded-full bg-primary/70" style="width: <%= scale.positive? ? (minutes * 100.0 / scale).round(1) : 0 %>%"></div>
+              <% if scale.positive? %>
+                <div class="absolute -inset-y-0.5 w-0.5 bg-base-content/60" style="left: <%= (fair_share * 100.0 / scale).round(1) %>%"></div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      <p class="text-xs text-base-content/50">The vertical line marks the fair-share reference.
+        <% if @summary.unaffiliated_minutes.positive? %>
+          Members not yet in a household also put in <%= hours(@summary.unaffiliated_minutes) %>.
+        <% end %>
+      </p>
+    <% else %>
+      <p class="text-sm text-base-content/60">
+        Contribution is counted by household, and nobody has been added to one yet.
+        <% if current_user.admin? %>
+          <%= link_to "Set up households", households_path, class: "link link-primary", data: { turbo_frame: "_top" } %>
+        <% end %>
+      </p>
+    <% end %>
+  </div>
+</section>
+
+<section id="areas-needing-help" class="card bg-base-100 border border-base-200 mb-4">
+  <div class="card-body p-4 gap-3">
+    <h2 class="font-semibold">Areas needing help</h2>
+    <% areas = @summary.areas_needing_help %>
+    <% if areas.any? %>
+      <ul class="space-y-2">
+        <% areas.each do |name, detail| %>
+          <li class="flex items-start gap-3">
+            <%= priority_badge("essential", size: "badge-xs") %>
+            <div class="-mt-0.5">
+              <p class="text-sm"><%= name %></p>
+              <p class="text-xs text-base-content/60"><%= detail %></p>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-sm text-base-content/60">Every essential area has someone holding it.</p>
+    <% end %>
+  </div>
+</section>
+
+<section id="recently-completed" class="card bg-base-100 border border-base-200 mb-4">
+  <div class="card-body p-4 gap-3">
+    <h2 class="font-semibold">Recently completed</h2>
+    <% recent = @summary.recently_completed %>
+    <% if recent.any? %>
+      <ul class="space-y-2">
+        <% recent.each do |task| %>
+          <li class="flex items-center gap-3 rounded-lg bg-base-200/60 px-3 py-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-success shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm truncate"><%= task.title %></p>
+              <p class="text-xs text-base-content/60 truncate"><%= [ task.completed_by&.name&.split(" ")&.first, task.workstream.name ].compact.join(" · ") %></p>
+            </div>
+            <span class="text-xs text-base-content/60 whitespace-nowrap"><%= [ RecurringTask.effort_bucket(task.estimated_minutes), task.completed_at.in_time_zone(current_community.time_zone).strftime("%b %-d") ].compact.join(" · ") %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-sm text-base-content/60">Nothing completed in this period yet.</p>
+    <% end %>
+  </div>
+</section>

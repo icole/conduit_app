@@ -203,4 +203,16 @@ class TasksTest < ApplicationSystemTestCase
     assert_no_selector "#recurring-responsibilities", text: "Take out garbage"
     assert Task.find_by(title: "Take out garbage & recycling").completed?
   end
+
+  test "contribution shows the period's picture and steps back a period" do
+    visit tasks_url
+    click_link "Contribution"
+    period = ContributionPeriod.containing(Date.current, "semi_annual")
+    within("#contribution-period") { assert_text period.label }
+    assert_text "Each household relative to fair share"
+    within("#areas-needing-help") { assert_text "Common House Wrangler" }
+
+    click_link period.previous.label
+    within("#contribution-period") { assert_text period.previous.label }
+  end
 end

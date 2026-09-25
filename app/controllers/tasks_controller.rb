@@ -4,7 +4,7 @@ class TasksController < ApplicationController
   before_action :set_discarded_task, only: [ :restore ]
   before_action :set_users, only: [ :index, :new, :edit, :create, :update ]
 
-  TAB_LABELS = { "my" => "My Tasks", "available" => "Available", "coverage" => "Coverage" }.freeze
+  TAB_LABELS = { "my" => "My Tasks", "available" => "Available", "coverage" => "Coverage", "contribution" => "Contribution" }.freeze
   TABS = TAB_LABELS.keys.freeze
 
   def index
@@ -20,6 +20,7 @@ class TasksController < ApplicationController
       case @tab
       when "available" then load_available_tab
       when "coverage" then load_coverage_tab
+      when "contribution" then load_contribution_tab
       else load_my_tab
       end
     end
@@ -174,6 +175,19 @@ class TasksController < ApplicationController
     @ongoing = workstreams.open.ongoing
     @projects = workstreams.open.projects
     @closed_projects = workstreams.projects.where(status: "closed")
+  end
+
+  # A per-period meeting artifact: the current period unless an earlier one
+  # is asked for.
+  def load_contribution_tab
+    today = Time.current.in_time_zone(current_community.time_zone).to_date
+    requested = begin
+      Date.iso8601(params[:period].to_s)
+    rescue Date::Error
+      today
+    end
+    @period = ContributionPeriod.containing([ requested, today ].min, current_community.contribution_period_type)
+    @summary = ContributionSummary.new(@period, current_community)
   end
 
   def load_board

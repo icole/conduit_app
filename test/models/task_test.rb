@@ -243,4 +243,9 @@ class TaskTest < ActiveSupport::TestCase
     assert_not_includes queue, tasks(:completed_task)
     assert_operator queue.index(essential), :<, queue.index(nice)
   end
+
+  test "a task created as completed stays completed even with a due date" do
+    task = Task.create!(title: "Already done", user: @user, workstream: @workstream, due_date: Date.current, status: "completed")
+    assert task.completed?
+  end
 end

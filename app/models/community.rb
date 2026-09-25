@@ -92,6 +92,15 @@ class Community < ApplicationRecord
     settings&.dig("coverage_chat_channel").presence || "chores"
   end
 
+  # How often the community reviews contribution: "quarterly" or "semi_annual".
+  def contribution_period_type
+    settings&.dig("contribution_period_type").presence_in(ContributionPeriod::TYPES.keys) || "semi_annual"
+  end
+
+  def contribution_period_type=(value)
+    self.settings = (settings || {}).merge("contribution_period_type" => value)
+  end
+
   def dues_tracking_enabled?
     monthly_dues_amount.present? && monthly_dues_amount > 0
   end

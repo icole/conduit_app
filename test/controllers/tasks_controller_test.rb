@@ -322,4 +322,39 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select "#recurring-responsibilities", text: /Take out garbage/, count: 0
     assert_select "#assigned-to-you", text: /Covering for Jane/
   end
+
+  test "the page has four tabs" do
+    get tasks_url
+    assert_select "nav[aria-label='Task views'] a", count: 4
+    assert_select "nav[aria-label='Task views'] a", text: "Contribution"
+  end
+
+  test "Contribution leads with the collective picture for the current period" do
+    users(:one).update!(household: households(:smith_household))
+    users(:two).update!(household: households(:jones_household))
+    Task.create!(title: "Mow common lawn", user: @user, workstream: workstreams(:garbage), estimated_minutes: 90,
+                 status: "completed", completed_by: @user, completed_at: Time.current)
+
+    get tasks_url(tab: "contribution")
+    assert_response :success
+    period = ContributionPeriod.containing(Date.current, "semi_annual")
+    assert_select "#contribution-period", text: /#{period.label}/
+    assert_select "#fair-share", text: /0.8 hrs/
+    household_names = css_select("[data-household]").map { |h| h["data-household"] }
+    assert_equal [ "Jones Unit", "The Smith Family" ], household_names
+    assert_select "#areas-needing-help", text: /Common House Wrangler/
+    assert_select "#recently-completed", text: /Mow common lawn/
+  end
+
+  test "Contribution can step back to an earlier period" do
+    period = ContributionPeriod.containing(Date.current, "semi_annual").previous
+    get tasks_url(tab: "contribution", period: period.start_date.iso8601)
+    assert_select "#contribution-period", text: /#{period.label}/
+    assert_select "a[href='#{tasks_path(tab: "contribution", period: period.next.start_date.iso8601)}']"
+  end
+
+  test "My Tasks has no completed-work record" do
+    get tasks_url
+    assert_select "#recently-completed", count: 0
+  end
 end

@@ -41,4 +41,9 @@ module TasksHelper
     options = Workstream::PRIORITY_LABELS.map { |value, label| [ label, value ] }
     include_inherit ? [ [ "Same as workstream", "" ] ] + options : options
   end
+
+  # 585 -> "9.8 hrs"
+  def hours(minutes)
+    format("%.1f hrs", minutes / 60.0)
+  end
 end
