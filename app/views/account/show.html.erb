@@ -33,7 +33,7 @@
         <!-- Dietary Needs -->
         <div class="border-t border-base-200 pt-4">
           <h3 class="font-medium text-sm text-base-content/70 mb-2">Dietary Needs</h3>
-          <p class="text-xs text-base-content/50 mb-3">Help cooks plan meals by sharing any dietary restrictions, allergies, or preferences.</p>
+          <p class="text-xs text-base-content/65 mb-3">Help cooks plan meals by sharing any dietary restrictions, allergies, or preferences.</p>
 
           <%= form_with model: @user, url: profile_path, method: :patch do |f| %>
             <%= f.hidden_field :name, value: @user.name %>
@@ -70,7 +70,7 @@
       <% else %>
         <div class="mt-4">
           <div class="flex items-start gap-3 p-4 bg-warning/10 rounded-lg mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-warning shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-warning-ink shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <div>
@@ -117,7 +117,7 @@
                 <%= f.label :new_password, "New Password", class: "label" %>
                 <%= f.password_field :new_password, class: "input input-bordered w-full", required: true, minlength: 8, data: { password_change_target: "newPassword" } %>
                 <label class="label">
-                  <span class="label-text-alt text-base-content/50">Minimum 8 characters</span>
+                  <span class="label-text-alt text-base-content/65">Minimum 8 characters</span>
                 </label>
               </div>
 
@@ -152,7 +152,7 @@
                 <%= f.label :new_password, "New Password", class: "label" %>
                 <%= f.password_field :new_password, class: "input input-bordered w-full", required: true, minlength: 8, data: { password_change_target: "newPassword" } %>
                 <label class="label">
-                  <span class="label-text-alt text-base-content/50">Minimum 8 characters</span>
+                  <span class="label-text-alt text-base-content/65">Minimum 8 characters</span>
                 </label>
               </div>
 
@@ -206,12 +206,12 @@
             </tr>
             <tr>
               <td>Google Calendar Sync</td>
-              <td class="text-center text-base-content/30">—</td>
+              <td class="text-center text-base-content/65">—</td>
               <td class="text-center text-success">✓</td>
             </tr>
             <tr>
               <td>Google Drive Access</td>
-              <td class="text-center text-base-content/30">—</td>
+              <td class="text-center text-base-content/65">—</td>
               <td class="text-center text-success">✓</td>
             </tr>
           </tbody>

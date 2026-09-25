@@ -24,7 +24,7 @@
 <% if native_app %>
   <%= link_to meal_path(meal), id: "meal_#{meal.id}", class: "block px-3 py-2.5 hover:bg-base-200/50" do %>
     <div class="flex items-center gap-3">
-      <div class="text-center min-w-10 <%= needs_cook ? 'text-warning' : (is_today ? 'text-primary' : '') %>">
+      <div class="text-center min-w-10 <%= needs_cook ? 'text-warning-ink' : (is_today ? 'text-primary-ink' : '') %>">
         <div class="text-lg font-bold"><%= meal.scheduled_at.day %></div>
         <div class="text-xs text-base-content/60 uppercase"><%= meal.scheduled_at.strftime("%b") %></div>
       </div>
@@ -40,7 +40,7 @@
           <% if head_cook %>
             Cook: <%= head_cook.user.name.split.first %>
           <% elsif needs_cook %>
-            <span class="text-warning">Needs cook!</span>
+            <span class="text-warning-ink">Needs cook!</span>
           <% end %>
           <% if meal.menu.present? %>
             · <%= truncate(meal.menu.to_plain_text, length: 30) %>
@@ -61,8 +61,8 @@
         <% elsif user_declined %>
           <span class="badge badge-ghost badge-xs opacity-60">Declined</span>
         <% end %>
-        <span class="text-xs text-base-content/50">
-          <%= meal.total_attendees %><% if meal.guests_count > 0 %><span class="text-base-content/40"> (+<%= meal.guests_count %>)</span><% end %>
+        <span class="text-xs text-base-content/65">
+          <%= meal.total_attendees %><% if meal.guests_count > 0 %><span class="text-base-content/65"> (+<%= meal.guests_count %>)</span><% end %>
         </span>
         <% if meal.late_plate_count > 0 %>
           <span class="badge badge-secondary badge-xs"><%= meal.late_plate_count %> late</span>
@@ -77,7 +77,7 @@
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-3">
         <div class="text-center min-w-12">
-          <div class="text-2xl font-bold <%= is_today ? 'text-primary' : '' %>"><%= meal.scheduled_at.day %></div>
+          <div class="text-2xl font-bold <%= is_today ? 'text-primary-ink' : '' %>"><%= meal.scheduled_at.day %></div>
           <div class="text-xs text-base-content/60 uppercase"><%= meal.scheduled_at.strftime("%b") %></div>
         </div>
         <div>
@@ -120,13 +120,13 @@
       <% if head_cook %>
         <span><span class="text-base-content/60">Cook:</span> <%= head_cook.user.name.split.first %></span>
       <% elsif needs_cook %>
-        <span class="text-warning">Needs cook!</span>
+        <span class="text-warning-ink">Needs cook!</span>
       <% end %>
       <% if helpers.any? %>
         <span><span class="text-base-content/60">Helpers:</span> <%= helpers.map { |mc| mc.user.name.split.first }.join(', ') %></span>
       <% end %>
       <% if meal.cooks.empty? %>
-        <span class="text-warning">Needs volunteers!</span>
+        <span class="text-warning-ink">Needs volunteers!</span>
       <% end %>
     </div>
 
@@ -140,10 +140,10 @@
     <!-- Footer: Attendees count and actions -->
     <div class="flex items-center justify-between mt-3 pt-3 border-t border-base-200">
       <div class="text-sm text-base-content/60">
-        <span class="font-medium text-base-content"><%= meal.total_attendees %></span> attending<% if meal.guests_count > 0 %><span class="text-base-content/50"> (+<%= meal.guests_count %> guests)</span><% end %><% if meal.late_plate_count > 0 %><span class="badge badge-secondary badge-sm ml-2"><%= meal.late_plate_count %> late</span><% end %>
+        <span class="font-medium text-base-content"><%= meal.total_attendees %></span> attending<% if meal.guests_count > 0 %><span class="text-base-content/65"> (+<%= meal.guests_count %> guests)</span><% end %><% if meal.late_plate_count > 0 %><span class="badge badge-secondary badge-sm ml-2"><%= meal.late_plate_count %> late</span><% end %>
       </div>
       <% if !meal.cancelled? && rsvps_open && !user_is_cook && !user_attending && !user_maybe && !user_late_plate && !user_declined %>
-        <span class="text-primary text-sm font-medium">RSVP →</span>
+        <span class="text-primary-ink text-sm font-medium">RSVP →</span>
       <% end %>
     </div>
   </div>

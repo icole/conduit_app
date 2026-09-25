@@ -60,10 +60,10 @@
                     <% elsif user.last_active_at > 7.days.ago %>
                       <span class="text-base-content/70"><%= time_ago %> ago</span>
                     <% else %>
-                      <span class="text-base-content/50"><%= user.last_active_at.strftime("%b %d, %Y") %></span>
+                      <span class="text-base-content/65"><%= user.last_active_at.strftime("%b %d, %Y") %></span>
                     <% end %>
                   <% else %>
-                    <span class="text-base-content/50">Never</span>
+                    <span class="text-base-content/65">Never</span>
                   <% end %>
                 </td>
                 <td class="flex gap-1">

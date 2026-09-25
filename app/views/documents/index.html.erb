@@ -101,11 +101,11 @@
               <tr class="hover:bg-base-200">
                 <td colspan="1" class="sm:!border-b-0">
                   <%= link_to documents_path(folder_id: folder.id), class: "flex items-center gap-2 min-w-0" do %>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-warning shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-warning-ink shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z" />
                     </svg>
                     <span class="font-medium truncate"><%= folder.name %></span>
-                    <span class="text-xs text-base-content/50 sm:hidden shrink-0"><%= time_ago_in_words(folder.updated_at) %> ago</span>
+                    <span class="text-xs text-base-content/65 sm:hidden shrink-0"><%= time_ago_in_words(folder.updated_at) %> ago</span>
                   <% end %>
                 </td>
                 <td class="hidden sm:table-cell">
@@ -168,16 +168,16 @@
                   <% doc_target = document.uploaded? ? "_blank" : nil %>
                   <%= link_to doc_url, target: doc_target, class: "flex items-center gap-2 min-w-0" do %>
                     <% if document.uploaded? %>
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-secondary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-secondary-ink shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                       </svg>
                     <% else %>
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-ink shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     <% end %>
                     <span class="font-medium truncate"><%= document.title %></span>
-                    <span class="text-xs text-base-content/50 sm:hidden shrink-0"><%= time_ago_in_words(document.updated_at) %> ago</span>
+                    <span class="text-xs text-base-content/65 sm:hidden shrink-0"><%= time_ago_in_words(document.updated_at) %> ago</span>
                   <% end %>
                 </td>
                 <td class="hidden sm:table-cell">
@@ -229,7 +229,7 @@
                       <% @all_folders.each do |folder| %>
                         <label class="flex items-center gap-3 py-3 cursor-pointer border-b border-base-200" style="padding-left: calc(0.25rem + <%= folder.depth * 1.5 %>rem)" data-folder-filter-target="option">
                           <%= f.radio_button :document_folder_id, folder.id, checked: document.document_folder_id == folder.id, class: "radio radio-primary shrink-0" %>
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-warning shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z" /></svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-warning-ink shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z" /></svg>
                           <span><%= folder.name %></span>
                           <% if document.document_folder_id == folder.id %>
                             <span class="badge badge-sm badge-primary ml-auto shrink-0">current</span>
@@ -252,7 +252,7 @@
               <tr class="hover:bg-base-200">
                 <td colspan="1" class="sm:!border-b-0">
                   <%= link_to documents_path(folder_id: "drive:#{drive_folder[:id]}", name: drive_folder[:name]), class: "flex items-center gap-2 min-w-0" do %>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-warning shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-warning-ink shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z" />
                     </svg>
                     <span class="font-medium truncate"><%= drive_folder[:name] %></span>
@@ -306,7 +306,7 @@
       </div>
     </div>
   <% else %>
-    <div class="text-center py-12 px-4 text-base-content/50">
+    <div class="text-center py-12 px-4 text-base-content/65">
       <% if @browsing_drive %>
         <p class="text-sm mb-1">This Drive folder is empty.</p>
         <div class="flex gap-2 justify-center mt-4">

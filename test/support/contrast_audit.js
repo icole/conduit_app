@@ -14,9 +14,10 @@
   const ratio = (a, b) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05) }
   const out = []
   for (const el of document.querySelectorAll(`${rootSelector} *`)) {
-    const own = Array.from(el.childNodes).filter((n) => n.nodeType === 3).map((n) => n.textContent.trim()).join(" ").trim()
+    const own = Array.from(el.childNodes).filter((n) => n.nodeType === 3).map((n) => n.textContent).join(" ").replace(/\s+/g, " ").trim()
     if (!own || !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue
     if (el.closest("[aria-hidden='true']")) continue // decorative, e.g. "•" separators
+    if (el.closest(".str-chat")) continue // Stream's chat widget styles itself
     const chain = []; for (let n = el; n; n = n.parentElement) chain.unshift(n)
     const layers = chain.map((n) => { const s = getComputedStyle(n); return [s.backgroundColor, parseFloat(s.opacity)] })
       .filter(([c]) => c && c !== "rgba(0, 0, 0, 0)" && c !== "transparent")

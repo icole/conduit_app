@@ -56,7 +56,7 @@
         <!-- Date Column -->
         <div class="flex-shrink-0 w-12 text-center">
           <div class="text-xs text-base-content/60 uppercase"><%= date.strftime("%a") %></div>
-          <div class="text-xl font-bold <%= is_today ? 'text-primary' : '' %>"><%= date.day %></div>
+          <div class="text-xl font-bold <%= is_today ? 'text-primary-ink' : '' %>"><%= date.day %></div>
         </div>
 
         <!-- Meals Column -->
@@ -74,7 +74,7 @@
               <% end %>
             </div>
           <% else %>
-            <div class="text-sm text-base-content/40 py-1">No meals</div>
+            <div class="text-sm text-base-content/65 py-1">No meals</div>
           <% end %>
         </div>
       </div>
@@ -97,14 +97,14 @@
       <% day_meals = @meals_by_date[date] || [] %>
 
       <div class="min-h-24 p-1 rounded-lg border <%= is_today ? 'bg-primary/10 border-primary border-2' : (is_current_month ? 'bg-base-100 border-base-300' : 'bg-base-200/50 border-base-300') %>">
-        <div class="text-xs font-medium <%= is_today ? 'text-primary' : (is_current_month ? 'text-base-content' : 'text-base-content/40') %> mb-1 px-1">
+        <div class="text-xs font-medium <%= is_today ? 'text-primary-ink' : (is_current_month ? 'text-base-content' : 'text-base-content/65') %> mb-1 px-1">
           <%= date.day %>
         </div>
 
         <div class="space-y-0.5 overflow-y-auto max-h-20">
           <% day_meals.each do |meal| %>
             <%= link_to meal_path(meal), class: "block p-1 rounded bg-#{is_current_month ? 'base-200' : 'base-300/50'} hover:bg-base-300 transition-colors text-xs" do %>
-              <div class="font-medium truncate <%= is_current_month ? '' : 'text-base-content/50' %>"><%= meal.display_title %></div>
+              <div class="font-medium truncate <%= is_current_month ? '' : 'text-base-content/65' %>"><%= meal.display_title %></div>
               <% if meal.needs_head_cook? %>
                 <div class="badge badge-warning badge-xs">Needs cook</div>
               <% end %>

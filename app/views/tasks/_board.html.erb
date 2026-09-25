@@ -112,8 +112,8 @@
           <div class="card-body text-center py-8 px-4">
             <div class="text-3xl mb-2">🎯</div>
             <p class="font-medium text-base-content/70">No active tasks</p>
-            <p class="text-sm text-base-content/50">
-              <%= link_to "Browse backlog", tasks_path(view: "backlog"), class: "link link-primary", data: { turbo_frame: "tasks_content" } %> to prioritize tasks
+            <p class="text-sm text-base-content/65">
+              <%= link_to "Browse backlog", tasks_path(view: "backlog"), class: "link text-primary-ink", data: { turbo_frame: "tasks_content" } %> to prioritize tasks
             </p>
           </div>
         </div>
@@ -146,7 +146,7 @@
           <div class="card-body text-center py-8 px-4">
             <div class="text-3xl mb-2">📋</div>
             <p class="font-medium text-base-content/70">No tasks in backlog</p>
-            <p class="text-sm text-base-content/50">All tasks have been prioritized!</p>
+            <p class="text-sm text-base-content/65">All tasks have been prioritized!</p>
           </div>
         </div>
       <% end %>
@@ -168,7 +168,7 @@
         <div class="card-body text-center py-8 px-4">
           <div class="text-3xl mb-2">🗑️</div>
           <p class="font-medium text-base-content/70">No deleted tasks</p>
-          <p class="text-sm text-base-content/50">Deleted tasks will appear here for 30 days</p>
+          <p class="text-sm text-base-content/65">Deleted tasks will appear here for 30 days</p>
         </div>
       </div>
     <% end %>
@@ -197,7 +197,7 @@
               No tasks found
             <% end %>
           </p>
-          <p class="text-sm text-base-content/50">
+          <p class="text-sm text-base-content/65">
             <% if @current_view == "completed" %>
               Tasks you complete will appear here
             <% elsif @current_view == "overdue" %>

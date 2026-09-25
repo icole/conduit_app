@@ -21,7 +21,7 @@
     <% if @assigned_tasks.empty? %>
       <p class="text-sm text-base-content/65 px-3 py-3 sm:p-0">
         Nothing assigned right now.
-        <%= link_to "See what's open", tasks_path(tab: "available"), class: "link link-primary", data: { turbo_frame: "tasks_content" } %>
+        <%= link_to "See what's open", tasks_path(tab: "available"), class: "link text-primary-ink", data: { turbo_frame: "tasks_content" } %>
       </p>
     <% end %>
   </div>

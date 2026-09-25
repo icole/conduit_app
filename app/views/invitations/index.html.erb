@@ -32,7 +32,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div class="stat bg-primary/10 rounded-lg">
                 <div class="stat-title">Users registered</div>
-                <div class="stat-value text-primary"><%= @active_invitation.users.count %></div>
+                <div class="stat-value text-primary-ink"><%= @active_invitation.users.count %></div>
               </div>
               <div class="stat bg-success/10 rounded-lg">
                 <div class="stat-title">Created on</div>
@@ -40,7 +40,7 @@
               </div>
               <div class="stat bg-secondary/10 rounded-lg">
                 <div class="stat-title">Days remaining</div>
-                <div class="stat-value text-secondary"><%= ((@active_invitation.expires_at - Time.current) / 1.day).to_i %></div>
+                <div class="stat-value text-secondary-ink"><%= ((@active_invitation.expires_at - Time.current) / 1.day).to_i %></div>
               </div>
             </div>
           </div>

@@ -28,7 +28,7 @@
         <p class="text-3xl font-bold <%= coverage >= 90 ? 'text-success-ink' : 'text-base-content' %>"><%= coverage %>%</p>
         <p class="text-xs text-base-content/70">of essential tasks due <%= @period.current? ? "so far this period" : "in this period" %></p>
       <% else %>
-        <p class="text-3xl font-bold text-base-content/40">—</p>
+        <p class="text-3xl font-bold text-base-content/65">—</p>
         <p class="text-xs text-base-content/70">nothing essential due yet</p>
       <% end %>
     </div>
@@ -77,7 +77,7 @@
       <p class="text-sm text-base-content/70">
         Contribution is counted by household, and nobody has been added to one yet.
         <% if current_user.admin? %>
-          <%= link_to "Set up households", households_path, class: "link link-primary", data: { turbo_frame: "_top" } %>
+          <%= link_to "Set up households", households_path, class: "link text-primary-ink", data: { turbo_frame: "_top" } %>
         <% end %>
       </p>
     <% end %>

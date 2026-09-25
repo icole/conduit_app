@@ -7,14 +7,14 @@
     <div class="min-w-0 flex-1">
       <div class="flex items-center justify-between mb-3 px-1">
         <h2 class="text-lg font-semibold flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-ink" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           What's Coming Up
         </h2>
         <div class="flex items-center gap-2">
           <%= render "shared/calendar_subscribe_button", button_class: "btn btn-ghost btn-xs", disabled_class: "btn btn-ghost btn-xs btn-disabled opacity-50" %>
-          <%= link_to calendar_index_path, class: "text-sm text-primary font-medium" do %>
+          <%= link_to calendar_index_path, class: "text-sm text-primary-ink font-medium" do %>
             View all →
           <% end %>
         </div>
@@ -24,7 +24,7 @@
         <div class="space-y-2">
           <% @timeline_items.group_by { |item| item[:start_time].to_date }.each do |date, items| %>
             <%# Day group header %>
-            <div class="text-xs font-semibold text-base-content/50 uppercase tracking-wide mt-4 first:mt-0 mb-1 px-1 pb-1 border-b border-base-200">
+            <div class="text-xs font-semibold text-base-content/65 uppercase tracking-wide mt-4 first:mt-0 mb-1 px-1 pb-1 border-b border-base-200">
               <% if date == Date.current %>
                 Today — <%= date.strftime("%A, %b %-d") %>
               <% elsif date == Date.current + 1 %>
@@ -44,8 +44,8 @@
           <% end %>
         </div>
       <% else %>
-        <div class="text-center py-12 text-base-content/50">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="text-center py-12 text-base-content/65">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-base-content/65" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           <p class="text-sm">No upcoming events or meals</p>
@@ -60,12 +60,12 @@
       <section>
         <div class="flex items-center justify-between mb-2 px-1">
           <h3 class="text-base font-semibold flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary-ink" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
             My Tasks
           </h3>
-          <%= link_to tasks_path, class: "text-sm text-primary font-medium" do %>
+          <%= link_to tasks_path, class: "text-sm text-primary-ink font-medium" do %>
             View all →
           <% end %>
         </div>
@@ -77,17 +77,17 @@
         <section>
           <div class="flex items-center justify-between mb-2 px-1">
             <h3 class="text-base font-semibold flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary-ink" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               Documents
             </h3>
-            <%= link_to documents_path, class: "text-sm text-primary font-medium", data: { turbo_frame: "_top" } do %>
+            <%= link_to documents_path, class: "text-sm text-primary-ink font-medium", data: { turbo_frame: "_top" } do %>
               View all →
             <% end %>
           </div>
           <div class="bg-base-100 rounded-lg border border-base-200 flex justify-center py-4">
-            <span class="loading loading-spinner loading-md text-primary"></span>
+            <span class="loading loading-spinner loading-md text-primary-ink"></span>
           </div>
         </section>
       <% end %>

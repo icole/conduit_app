@@ -16,7 +16,7 @@
       <% users_with_dietary_needs = (attending_rsvps + maybe_rsvps + late_plate_rsvps).map(&:user).select { |u| u.dietary_needs.present? } %>
       <% if users_with_dietary_needs.any? %>
         <div class="mt-4 p-4 bg-warning/10 rounded-lg">
-          <h4 class="text-sm font-medium text-warning mb-3 flex items-center gap-2">
+          <h4 class="text-sm font-medium text-warning-ink mb-3 flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
@@ -49,11 +49,11 @@
               <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium truncate"><%= mc.user.name %></div>
                 <% if mc.guests_count > 0 %>
-                  <div class="text-xs text-base-content/50"><%= mc.guests_display %></div>
+                  <div class="text-xs text-base-content/65"><%= mc.guests_display %></div>
                 <% end %>
               </div>
               <% if mc.head_cook? %>
-                <svg class="w-4 h-4 text-warning" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-4 h-4 text-warning-ink" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                 </svg>
               <% end %>
@@ -83,14 +83,14 @@
           <% attending_rsvps.each do |rsvp| %>
             <div class="flex items-center gap-2">
               <div class="avatar placeholder">
-                <div class="bg-success/20 text-success rounded-full w-8">
+                <div class="bg-success/20 text-success-ink rounded-full w-8">
                   <span class="text-xs"><%= rsvp.user.name.first(2).upcase %></span>
                 </div>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium truncate"><%= rsvp.user.name %></div>
                 <% if rsvp.guests_count > 0 %>
-                  <div class="text-xs text-base-content/50"><%= rsvp.guests_display %></div>
+                  <div class="text-xs text-base-content/65"><%= rsvp.guests_display %></div>
                 <% end %>
                 <% if rsvp.notes.present? %>
                   <div class="text-xs text-warning/80 truncate"><%= rsvp.notes %></div>
@@ -122,7 +122,7 @@
           <% maybe_rsvps.each do |rsvp| %>
             <div class="flex items-center gap-2 opacity-70">
               <div class="avatar placeholder">
-                <div class="bg-warning/20 text-warning rounded-full w-8">
+                <div class="bg-warning/20 text-warning-ink rounded-full w-8">
                   <span class="text-xs"><%= rsvp.user.name.first(2).upcase %></span>
                 </div>
               </div>
@@ -155,14 +155,14 @@
           <% late_plate_rsvps.each do |rsvp| %>
             <div class="flex items-center gap-2">
               <div class="avatar placeholder">
-                <div class="bg-secondary/20 text-secondary rounded-full w-8">
+                <div class="bg-secondary/20 text-secondary-ink rounded-full w-8">
                   <span class="text-xs"><%= rsvp.user.name.first(2).upcase %></span>
                 </div>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="text-sm truncate"><%= rsvp.user.name %></div>
                 <% if rsvp.guests_count > 0 %>
-                  <div class="text-xs text-base-content/50"><%= rsvp.guests_display %></div>
+                  <div class="text-xs text-base-content/65"><%= rsvp.guests_display %></div>
                 <% end %>
                 <% if rsvp.notes.present? %>
                   <div class="text-xs text-warning/80 truncate"><%= rsvp.notes %></div>
@@ -194,7 +194,7 @@
           <% declined_rsvps.each do |rsvp| %>
             <div class="flex items-center gap-2 opacity-50">
               <div class="avatar placeholder">
-                <div class="bg-base-300 text-base-content/50 rounded-full w-8">
+                <div class="bg-base-300 text-base-content/65 rounded-full w-8">
                   <span class="text-xs"><%= rsvp.user.name.first(2).upcase %></span>
                 </div>
               </div>
@@ -209,7 +209,7 @@
 
     <!-- Empty State -->
     <% if meal.cooks.empty? && attending_rsvps.empty? && maybe_rsvps.empty? && late_plate_rsvps.empty? %>
-      <div class="text-center py-4 text-base-content/50">
+      <div class="text-center py-4 text-base-content/65">
         <p>No RSVPs yet</p>
       </div>
     <% end %>

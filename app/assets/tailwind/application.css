@@ -3,13 +3,38 @@
 @plugin "daisyui" {
   themes: cupcake;
 }
+
+/* Cupcake, adjusted so text meets WCAG AA (4.5:1):
+   - base-content is darker, so the 60%-faded greys DaisyUI uses for labels,
+     hints and table headers (and our text-base-content/60) pass;
+   - error and success are deeper with white labels, so they read as text on
+     the page and as button/badge fills with a label on them. */
+@plugin "daisyui/theme" {
+  name: "cupcake";
+  default: true;
+  --color-base-content: oklch(15% 0.05 313.189);
+  --color-primary-content: oklch(35% 0.078 188.216);
+  --color-error: oklch(53% 0.22 20);
+  --color-error-content: oklch(100% 0 0);
+  --color-success: oklch(47% 0.13 162);
+  --color-success-content: oklch(100% 0 0);
+}
 /* The cupcake theme's warning/info/success/error colours are fine as fills but
    too light to read as text on the page (yellow is 1.8:1). These darker shades
    pass WCAG AA (4.5:1) on the page, grey rows and their own light tints. */
 @theme {
   --color-warning-ink: oklch(47% 0.12 65);
   --color-info-ink: oklch(46% 0.13 245);
-  --color-success-ink: oklch(46% 0.11 162);
+  --color-success-ink: oklch(40% 0.1 162);
   --color-error-ink: oklch(50% 0.19 22);
-  --color-on-error: oklch(16% 0.05 12);
+  --color-on-error: oklch(100% 0 0);
+  /* Brand teal and pink are fills; as text they need darker shades. */
+  --color-primary-ink: oklch(47% 0.09 183);
+  --color-secondary-ink: oklch(47% 0.16 355);
+}
+
+/* DaisyUI fades inactive tabs to 50% (3.7:1); 70% matches our other secondary
+   text and passes. Unlayered, so it wins over DaisyUI's component styles. */
+.tabs > .tab:not(.tab-active, [aria-selected="true"], [aria-current="true"], [aria-current="page"]) {
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
 }

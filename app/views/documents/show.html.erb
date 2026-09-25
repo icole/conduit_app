@@ -53,11 +53,11 @@
       </div>
     </div>
   <% else %>
-    <div class="text-center py-12 text-base-content/50">
+    <div class="text-center py-12 text-base-content/65">
       <p class="text-sm">This document is empty.</p>
       <% if @document.native? %>
         <p class="text-xs mt-1">
-          <%= link_to "Start editing", edit_document_path(@document), class: "link link-primary" %>
+          <%= link_to "Start editing", edit_document_path(@document), class: "link text-primary-ink" %>
         </p>
       <% end %>
     </div>

@@ -6,7 +6,7 @@
       data: { turbo_frame: "tasks_content" } do %>
     <span>Active</span>
     <% if active_count > 0 %>
-      <span class="<%= @current_view == 'active' ? 'badge badge-xs bg-white text-primary border-0 font-semibold' : 'badge badge-xs badge-primary' %>"><%= active_count %></span>
+      <span class="<%= @current_view == 'active' ? 'badge badge-xs bg-white text-primary-ink border-0 font-semibold' : 'badge badge-xs badge-primary' %>"><%= active_count %></span>
     <% end %>
   <% end %>
   <%= link_to tasks_path(view: "backlog", assigned_to: params[:assigned_to]),
@@ -14,7 +14,7 @@
       data: { turbo_frame: "tasks_content" } do %>
     <span>Backlog</span>
     <% if backlog_count > 0 %>
-      <span class="<%= @current_view == 'backlog' ? 'badge badge-xs bg-white text-primary border-0 font-semibold' : 'badge badge-xs badge-primary' %>"><%= backlog_count %></span>
+      <span class="<%= @current_view == 'backlog' ? 'badge badge-xs bg-white text-primary-ink border-0 font-semibold' : 'badge badge-xs badge-primary' %>"><%= backlog_count %></span>
     <% end %>
   <% end %>
   <%= link_to tasks_path(view: "completed", assigned_to: params[:assigned_to]),

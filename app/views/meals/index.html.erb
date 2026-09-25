@@ -38,7 +38,7 @@
             class: "btn btn-sm h-8 min-h-0 px-2 gap-1 #{@current_view == 'needs_cooks' ? 'btn-primary' : 'btn-ghost'}" do %>
           <span>Need Cooks</span>
           <% if @needs_cooks_count > 0 %>
-            <span class="<%= @current_view == 'needs_cooks' ? 'badge badge-xs bg-white text-primary border-0 font-semibold' : 'badge badge-xs badge-primary' %>"><%= @needs_cooks_count %></span>
+            <span class="<%= @current_view == 'needs_cooks' ? 'badge badge-xs bg-white text-primary-ink border-0 font-semibold' : 'badge badge-xs badge-primary' %>"><%= @needs_cooks_count %></span>
           <% end %>
         <% end %>
         <%= link_to meals_path(view: "past"),
