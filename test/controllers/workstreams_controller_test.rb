@@ -35,25 +35,25 @@ class WorkstreamsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_difference("Workstream.count") do
-      post workstreams_url, params: { workstream: { name: "Vendor Coordinator", description: "Finds contractors", workstream_type: "permanent", priority: "important", owner_id: users(:two).id } }
+      post workstreams_url, params: { workstream: { name: "Vendor Coordinator", description: "Finds contractors", workstream_type: "permanent", priority: "important", owner_ids: [ "", users(:two).id ] } }
     end
-    workstream = Workstream.order(:created_at).last
-    assert_equal users(:two), workstream.owner
+    workstream = Workstream.find_by!(name: "Vendor Coordinator")
+    assert_equal [ users(:two) ], workstream.owners.to_a
     assert_redirected_to workstream_url(workstream)
   end
 
   test "members cannot change a workstream's owner" do
     sign_in users(:two)
-    patch workstream_url(workstreams(:garbage)), params: { workstream: { owner_id: users(:two).id } }
+    patch workstream_url(workstreams(:garbage)), params: { workstream: { owner_ids: [ users(:two).id ] } }
     assert_redirected_to root_url
-    assert_equal users(:one), workstreams(:garbage).reload.owner
+    assert_equal [ users(:one) ], workstreams(:garbage).reload.owners.to_a
   end
 
   test "admins update workstreams" do
     sign_in users(:admin_user)
-    patch workstream_url(workstreams(:common_house)), params: { workstream: { owner_id: users(:three).id, priority: "important" } }
+    patch workstream_url(workstreams(:common_house)), params: { workstream: { owner_ids: [ "", users(:three).id, users(:two).id ], priority: "important" } }
     assert_redirected_to workstream_url(workstreams(:common_house))
-    assert_equal users(:three), workstreams(:common_house).reload.owner
+    assert_equal [ users(:three), users(:two) ].sort_by(&:id), workstreams(:common_house).reload.owners.sort_by(&:id)
   end
 
   test "the owner can close a one-time project" do
@@ -103,5 +103,36 @@ class WorkstreamsControllerTest < ActionDispatch::IntegrationTest
     get workstream_url(workstreams(:common_house))
     task = Task.find_by!(recurring_task: recurring_tasks(:pantry_restock))
     assert_select "#task_#{task.id}", text: /Restock common house pantry/
+  end
+
+  test "any of a project's owners can close it" do
+    workstreams(:front_yard).owners << users(:three)
+    sign_in users(:three)
+    patch close_workstream_url(workstreams(:front_yard))
+    assert workstreams(:front_yard).reload.closed?
+  end
+
+  test "admins can clear every owner, which leaves the workstream needing one" do
+    sign_in users(:admin_user)
+    patch workstream_url(workstreams(:garbage)), params: { workstream: { owner_ids: [ "" ] } }
+    assert_empty workstreams(:garbage).reload.owners
+    assert_not workstreams(:garbage).covered?
+  end
+
+  test "the page lists every owner" do
+    workstreams(:front_yard).owners << users(:three)
+    sign_in users(:one)
+    get workstream_url(workstreams(:front_yard))
+    assert_match "Owners:", response.body
+    assert_match "Alice Johnson &amp; Mike Davis", response.body
+  end
+
+  test "the workstream page keeps the description's paragraphs and list" do
+    workstreams(:garbage).update!(description: "Rolls the bins out.\n\nTime commitment: ~15 min/week\n\nAlso, as needed or seasonally:\n• Break down boxes (as needed): Flatten cardboard.")
+    sign_in users(:one)
+    get workstream_url(workstreams(:garbage))
+    assert_select "[data-workstream-description] p", minimum: 3
+    assert_select "[data-workstream-description] p", text: /Time commitment: ~15 min\/week/
+    assert_select "[data-workstream-description] br"
   end
 end

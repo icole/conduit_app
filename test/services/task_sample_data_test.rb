@@ -20,9 +20,9 @@ class TaskSampleDataTest < ActiveSupport::TestCase
       "Common House Wrangler", "Community Meal Supporter", "Amenities (Hot Tub, Fire Pit, Fountain)",
       "Vendor Coordinator", "Crow Woods Ambassador" ].each { |name| assert_includes names, name }
     assert_equal [ "Front yard project", "High water bills" ], Workstream.projects.where(name: [ "Front yard project", "High water bills" ]).order(:name).pluck(:name)
-    assert_nil Workstream.find_by(name: "Common House Wrangler").owner
-    assert_nil Workstream.find_by(name: "Crow Woods Ambassador").owner
-    assert_equal "Priya Goldberg", Workstream.find_by(name: "Garden Health").owner.name
+    assert_empty Workstream.find_by(name: "Common House Wrangler").owners
+    assert_empty Workstream.find_by(name: "Crow Woods Ambassador").owners
+    assert_equal "Priya Goldberg", Workstream.find_by(name: "Garden Health").owner_names
   end
 
   test "gives the viewer the prototype's My Tasks" do
@@ -75,7 +75,7 @@ class TaskSampleDataTest < ActiveSupport::TestCase
     assert_equal counts, [ User.count, Household.count ]
     sample = Workstream.where(name: [ "Garden Health", "Groundskeeper", "High water bills" ])
     assert_equal 3, sample.count
-    assert sample.all? { |w| w.owner.nil? }
+    assert sample.all? { |w| w.owners.empty? }
     assert RecurringTask.where(title: [ "Mow common lawn", "Water the greenhouse" ]).all? { |r| r.default_responsible_user.nil? }
     assert_nil Task.find_by!(title: "Buy supplies for work party").assigned_to_user
     assert_not Task.completed.where(recurring_task: RecurringTask.where(title: "Mow common lawn")).exists?

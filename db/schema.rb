@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_24_000200) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_25_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -417,19 +417,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_24_000200) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
+  create_table "workstream_owners", force: :cascade do |t|
+    t.bigint "community_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.bigint "workstream_id", null: false
+    t.index ["community_id"], name: "index_workstream_owners_on_community_id"
+    t.index ["user_id"], name: "index_workstream_owners_on_user_id"
+    t.index ["workstream_id", "user_id"], name: "index_workstream_owners_on_workstream_id_and_user_id", unique: true
+    t.index ["workstream_id"], name: "index_workstream_owners_on_workstream_id"
+  end
+
   create_table "workstreams", force: :cascade do |t|
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
     t.text "description"
     t.string "name", null: false
-    t.bigint "owner_id"
     t.string "priority", default: "important", null: false
     t.string "status", default: "active", null: false
     t.datetime "updated_at", null: false
     t.string "workstream_type", default: "permanent", null: false
     t.index ["community_id", "status"], name: "index_workstreams_on_community_id_and_status"
     t.index ["community_id"], name: "index_workstreams_on_community_id"
-    t.index ["owner_id"], name: "index_workstreams_on_owner_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -484,6 +494,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_24_000200) do
   add_foreign_key "users", "communities"
   add_foreign_key "users", "households"
   add_foreign_key "users", "invitations"
+  add_foreign_key "workstream_owners", "communities"
+  add_foreign_key "workstream_owners", "users"
+  add_foreign_key "workstream_owners", "workstreams"
   add_foreign_key "workstreams", "communities"
-  add_foreign_key "workstreams", "users", column: "owner_id"
 end

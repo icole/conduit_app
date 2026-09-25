@@ -96,7 +96,7 @@ class TaskSampleData
       workstream = Workstream.find_or_create_by!(name: name) do |w|
         w.workstream_type = type
         w.priority = priority
-        w.owner = people[owner]
+        w.owners = [ people[owner] ].compact
         w.description = description
       end
       [ name, workstream ]

@@ -11,6 +11,7 @@ class TasksContrastTest < ApplicationSystemTestCase
     ActsAsTenant.with_tenant(communities(:crow_woods)) do
       Task.delete_all
       RecurringTask.with_discarded.delete_all
+      WorkstreamOwner.delete_all
       Workstream.delete_all
       TaskSampleData.new(communities(:crow_woods), viewer: users(:admin_user)).load!
       # someone covering for someone else, so that label is on the page too

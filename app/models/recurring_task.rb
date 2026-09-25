@@ -5,7 +5,10 @@ class RecurringTask < ApplicationRecord
 
   acts_as_tenant :community
 
-  FREQUENCIES = { "weekly" => "Weekly", "biweekly" => "Every two weeks", "monthly" => "Monthly" }.freeze
+  FREQUENCIES = {
+    "weekly" => "Weekly", "biweekly" => "Every two weeks", "monthly" => "Monthly",
+    "quarterly" => "Quarterly", "yearly" => "Yearly"
+  }.freeze
   EFFORT_PRESETS = { "Small" => 15, "Medium" => 45, "Large" => 90 }.freeze
 
   belongs_to :workstream
@@ -80,6 +83,15 @@ class RecurringTask < ApplicationRecord
     case frequency
     when "monthly"
       date.beginning_of_month..date.end_of_month
+    when "quarterly"
+      date.beginning_of_quarter..date.end_of_quarter
+    when "yearly"
+      # Anchored on starts_on, so a yearly job falls due in its season: a
+      # period starting Nov 1 is due Oct 31.
+      years = date.year - starts_on.year
+      start = starts_on >> (12 * years)
+      start = starts_on >> (12 * (years - 1)) if start > date
+      start..((start >> 12) - 1)
     when "biweekly"
       anchor = starts_on.beginning_of_week
       offset = ((date.beginning_of_week - anchor).to_i / 7).floor

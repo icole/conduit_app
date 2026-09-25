@@ -11,6 +11,7 @@ class WorkstreamsController < ApplicationController
 
   def show
     @recurring_tasks = @workstream.recurring_tasks.includes(:default_responsible_user).order(:title)
+    @owners = @workstream.owners.to_a
     unless @workstream.closed?
       today = Time.current.in_time_zone(current_community.time_zone).to_date
       @recurring_tasks.each { |recurring| recurring.instance_for(today) }
@@ -63,10 +64,10 @@ class WorkstreamsController < ApplicationController
   def authorize_owner_or_admin!
     return if current_user.admin? || @workstream.owned_by?(current_user)
 
-    redirect_to @workstream, alert: "Only the owner or an admin can do that."
+    redirect_to @workstream, alert: "Only an owner or an admin can do that."
   end
 
   def workstream_params
-    params.require(:workstream).permit(:name, :description, :workstream_type, :priority, :owner_id)
+    params.require(:workstream).permit(:name, :description, :workstream_type, :priority, owner_ids: [])
   end
 end

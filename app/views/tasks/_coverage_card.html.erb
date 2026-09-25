@@ -14,7 +14,7 @@
     </div>
     <% if workstream.description.present? %>
       <%# Phones get the gist; the workstream page has the rest %>
-      <p class="text-sm text-base-content/70 line-clamp-2 sm:line-clamp-none"><%= workstream.description %></p>
+      <p class="text-sm text-base-content/70 line-clamp-2 sm:line-clamp-none"><%= workstream.summary %></p>
     <% end %>
     <% if gaps.positive? %>
       <p class="text-xs text-base-content/70"><%= pluralize(gaps, "recurring task") %> without a responsible person</p>
@@ -25,8 +25,8 @@
       <%# On phones the section heading and coloured edge already say the type %>
       <span data-coverage-type class="hidden sm:inline"><%= workstream_type_badge(workstream) %></span>
       <span class="hidden sm:inline text-base-content/65" aria-hidden="true">•</span>
-      <% if workstream.owner %>
-        <span data-coverage-owner class="text-base-content/70">Owner: <%= workstream.owner.name %></span>
+      <% if workstream.owners.any? %>
+        <span data-coverage-owner class="text-base-content/70"><%= "Owner".pluralize(workstream.owners.size) %>: <%= workstream.owner_names %></span>
       <% else %>
         <span data-coverage-owner class="text-error-ink">No owner assigned</span>
       <% end %>
