@@ -13,16 +13,19 @@
     <% if workstream.description.present? %>
       <p class="text-sm text-base-content/70"><%= workstream.description %></p>
     <% end %>
-    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm mt-auto pt-1">
-      <%= workstream_type_badge(workstream) %>
-      <% if workstream.owner %>
-        <span class="text-base-content/60">Owner: <%= workstream.owner.name %></span>
-      <% else %>
-        <span class="text-error">No owner assigned</span>
-      <% end %>
-    </div>
     <% if gaps.positive? %>
       <p class="text-xs text-base-content/60"><%= pluralize(gaps, "recurring task") %> without a responsible person</p>
     <% end %>
+    <%# Always the card's last line, so it lines up across the grid. Stacked on
+        phones, one line with a separator on wider screens, whatever the length. %>
+    <div class="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2 text-sm mt-auto pt-1">
+      <span data-coverage-type><%= workstream_type_badge(workstream) %></span>
+      <span class="hidden sm:inline text-base-content/30" aria-hidden="true">•</span>
+      <% if workstream.owner %>
+        <span data-coverage-owner class="text-base-content/60">Owner: <%= workstream.owner.name %></span>
+      <% else %>
+        <span data-coverage-owner class="text-error">No owner assigned</span>
+      <% end %>
+    </div>
   </div>
 <% end %>

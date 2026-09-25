@@ -234,4 +234,39 @@ class TasksTest < ApplicationSystemTestCase
   ensure
     page.driver.browser.manage.window.resize_to(1400, 1400)
   end
+
+  test "coverage cards lay out the owner line the same way whether or not there's an owner" do
+    covered = "#workstream_#{workstreams(:garbage).id}"
+    uncovered = "#workstream_#{workstreams(:common_house).id}"
+    owner_below_badge = lambda do |card|
+      badge = find("#{card} [data-coverage-type]")
+      owner = find("#{card} [data-coverage-owner]")
+      owner.rect.y >= badge.rect.y + badge.rect.height - 1
+    end
+
+    page.driver.browser.manage.window.resize_to(375, 1400)
+    visit tasks_url(tab: "coverage")
+    assert owner_below_badge.call(covered), "phone: owner goes under the type"
+    assert owner_below_badge.call(uncovered), "phone: 'No owner assigned' goes under the type too"
+
+    page.driver.browser.manage.window.resize_to(1400, 1400)
+    visit tasks_url(tab: "coverage")
+    assert_not owner_below_badge.call(covered), "wide: owner sits beside the type"
+    assert_not owner_below_badge.call(uncovered), "wide: 'No owner assigned' sits beside the type"
+  ensure
+    page.driver.browser.manage.window.resize_to(1400, 1400)
+  end
+
+  test "owner lines line up across a row of coverage cards" do
+    RecurringTask.create!(workstream: workstreams(:general), title: "Unheld chore", frequency: "weekly",
+                          estimated_minutes: 20, created_by: users(:admin_user))
+    visit tasks_url(tab: "coverage")
+    assert_selector "#ongoing-operations [data-coverage-owner]", minimum: 2
+    rows = all("#ongoing-operations [data-coverage-owner]").group_by { |el| el.find(:xpath, "ancestor::a[1]").rect.y.round }
+    mixed = rows.values.select { |owners| owners.map { |o| o.find(:xpath, "ancestor::a[1]").text.include?("without a responsible person") }.uniq.size == 2 }
+    assert mixed.any?, "expected a row pairing a card with a gap note and one without"
+    rows.each_value do |owners|
+      assert_equal 1, owners.map { |o| o.rect.y.round }.uniq.size, "owner lines in a row should align"
+    end
+  end
 end
