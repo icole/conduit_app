@@ -17,6 +17,9 @@ class ChatController < ApplicationController
   # so re-run the suspension check after it.
   before_action :enforce_community_status, only: MOBILE_API_ACTIONS
 
+  # Whether the community may use chat at all comes first: "wait for approval"
+  # is a better answer than "Stream isn't configured".
+  before_action :ensure_community_chat_available, only: :index
   before_action :ensure_stream_configured, except: [ :token ]
 
   # Skip CSRF for API endpoints called from mobile apps
@@ -24,12 +27,6 @@ class ChatController < ApplicationController
 
   # GET /chat
   def index
-    if (reason = current_community.chat_unavailable_reason)
-      message = reason == "chat_disabled" ? "Chat isn't enabled for your community." : "Chat will be available once your community is approved."
-      redirect_to root_path, alert: message
-      return
-    end
-
     if turbo_native_app?
       # For iOS app, show a page that will trigger native chat
       render :native_prompt, layout: "turbo_native"
@@ -280,6 +277,13 @@ class ChatController < ApplicationController
   end
 
   private
+
+  def ensure_community_chat_available
+    return unless (reason = current_community.chat_unavailable_reason)
+
+    message = reason == "chat_disabled" ? "Chat isn't enabled for your community." : "Chat will be available once your community is approved."
+    redirect_to root_path, alert: message
+  end
 
   def generate_stream_token(user = nil)
     user ||= current_user

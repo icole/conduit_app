@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "minitest/mock"
 
 # What members of a pending or suspended community can and cannot do.
 class CommunityStatusEnforcementTest < ActionDispatch::IntegrationTest
@@ -24,6 +25,16 @@ class CommunityStatusEnforcementTest < ActionDispatch::IntegrationTest
     sign_in users(:pending_admin), host: "pending.test"
 
     get chat_index_url
+    assert_redirected_to root_path
+    assert_match(/approved/i, flash[:alert])
+  end
+
+  test "the approval explanation wins even when Stream isn't configured" do
+    sign_in users(:pending_admin), host: "pending.test"
+
+    StreamChatClient.stub(:configured?, false) do
+      get chat_index_url
+    end
     assert_redirected_to root_path
     assert_match(/approved/i, flash[:alert])
   end
