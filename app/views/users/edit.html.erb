@@ -65,8 +65,8 @@
         <p class="text-base-content/70 mb-4">Be careful with these actions, they cannot be undone.</p>
         
         <% if !@user.admin? %>
-          <%= button_to "Delete User", user_path(@user), method: :delete, 
-              data: { confirm: "Are you sure you want to delete this user? This action cannot be undone and will remove all associated data." }, 
+          <%= button_to "Delete User", user_path(@user), method: :delete,
+              form: { data: { turbo_confirm: "Are you sure you want to delete this user? This action cannot be undone and will remove all associated data." } },
               class: "btn btn-error" %>
         <% else %>
           <p class="text-base-content/50">Admin users cannot be deleted through this interface.</p>
