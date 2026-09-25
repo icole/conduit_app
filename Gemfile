@@ -25,7 +25,7 @@ gem "jbuilder"
 gem "bcrypt", "~> 3.1.22"
 
 # Multi-tenancy support [https://github.com/ErwinM/acts_as_tenant]
-gem "acts_as_tenant", "~> 1.0"
+gem "acts_as_tenant", "~> 2.0"
 
 # Soft delete for content models [https://github.com/jhawthorn/discard]
 gem "discard", "~> 1.3"
