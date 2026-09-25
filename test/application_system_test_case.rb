@@ -5,6 +5,18 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 
   OmniAuth.config.test_mode = true
 
+  setup { before_each_system_test }
+
+  # Start every test signed out. Capybara's reset between tests clears cookies
+  # and only then navigates away, so a background request finishing in between
+  # (the dashboard lazy-loads frames) can set a fresh session cookie. The next
+  # test's Google sign-in would then link accounts instead of switching users
+  # and run as the wrong person. Nothing is loaded yet here, so this is final.
+  def before_each_system_test
+    browser = page.driver.browser
+    browser.execute_cdp("Network.clearBrowserCookies") if browser.respond_to?(:execute_cdp)
+  end
+
   def sign_in_user(user_attrs = {})
     default_attrs = {
       provider: "google_oauth2",
