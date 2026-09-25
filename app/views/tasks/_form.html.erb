@@ -1,4 +1,4 @@
-<%= form_with(model: task, id: dom_id(task, "form"), data: { turbo: false }) do |form| %>
+<%= form_with(model: task, id: dom_id(task, "form"), data: { turbo: false, controller: "task-repeat" }) do |form| %>
   <% if task.errors.any? %>
     <div class="alert alert-error mb-4">
       <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -20,8 +20,27 @@
 
   <%= render "tasks/workstream_fields", form: form, task: task %>
 
+  <%# Admins can make a new task repeat; members add one-off tasks %>
+  <% if current_user.admin? && task.new_record? %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+      <div class="form-control w-full mb-4">
+        <%= label_tag "task_repeats", "Repeats", class: "label" %>
+        <%= select_tag "task[repeats]", options_for_select([ [ "Doesn't repeat", "" ] ] + RecurringTask::FREQUENCIES.map { |value, label| [ label, value ] }, @repeats),
+              id: "task_repeats", class: "select select-bordered w-full",
+              data: { task_repeat_target: "repeats", action: "change->task-repeat#toggle" } %>
+      </div>
+      <div class="form-control w-full mb-4" data-task-repeat-target="recurring" <%= "hidden" if @repeats.blank? %>>
+        <%= label_tag "task_priority", "Priority", class: "label" %>
+        <%= select_tag "task[priority]", options_for_select(priority_options(include_inherit: true), params.dig(:task, :priority)),
+              id: "task_priority", class: "select select-bordered w-full" %>
+      </div>
+    </div>
+    <p class="text-xs text-base-content/60 -mt-2 mb-4" data-task-repeat-target="recurring" <%= "hidden" if @repeats.blank? %>>
+      Each period gets its own task, pre-assigned to the person responsible. They can release a single period if they're away.
+    </p>
+  <% end %>
 
-  <div class="form-control w-full mb-4" data-controller="date-field">
+  <div class="form-control w-full mb-4" data-controller="date-field" data-task-repeat-target="once">
     <%= form.label :due_date, "Due Date (optional)", class: "label" %>
     <%= form.date_field :due_date, class: "input input-bordered w-full cursor-pointer", data: { date_field_target: "input", action: "click->date-field#openDatePicker" } %>
   </div>

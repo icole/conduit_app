@@ -3,3 +3,6 @@
 <%= turbo_stream.update "undo-notification-container", partial: "layouts/undo_notification" %>
 <%= turbo_stream.update "deleted-filter", partial: "tasks/deleted_filter" %>
 <%= turbo_stream.update "status-filters", partial: "tasks/status_filters" %>
+<% if @task.workstream %>
+  <%= turbo_stream.update "open-work-count", @task.workstream.tasks.open.count.to_s %>
+<% end %>

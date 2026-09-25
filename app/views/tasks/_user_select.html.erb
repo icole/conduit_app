@@ -1,5 +1,5 @@
 <div data-controller="user-select" class="form-control w-full mb-4">
-  <%= form.label :assigned_to_user_id, "Assign to", class: "label" %>
+  <%= form.label :assigned_to_user_id, (@repeats.present? ? "Responsible each period" : "Assign to"), class: "label", data: { task_repeat_target: "assigneeLabel" } %>
 
   <%# Native <select> for web — hidden when bridge is active %>
   <div data-user-select-target="webSelect">

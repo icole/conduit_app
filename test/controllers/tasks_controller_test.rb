@@ -363,4 +363,62 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match %(<turbo-stream action="remove" target="task_#{@task.id}">), response.body
   end
+
+  test "undo after deleting from a workstream page goes back to that workstream" do
+    delete task_url(@task), headers: { "HTTP_REFERER" => workstream_url(@task.workstream) }
+    post restore_task_url(@task), headers: { "HTTP_REFERER" => workstream_url(@task.workstream) }
+    assert_redirected_to workstream_url(@task.workstream)
+    assert_not @task.reload.discarded?
+  end
+
+  test "deleting open work updates the workstream's open-work count in place" do
+    remaining = @task.workstream.tasks.open.count - 1
+    delete task_url(@task), as: :turbo_stream
+    assert_match %r{<turbo-stream action="update" target="open-work-count"><template>#{remaining}</template>}, response.body
+  end
+
+  def sign_in_as_admin
+    delete logout_path
+    admin = users(:admin_user)
+    sign_in_user({ uid: admin.uid, name: admin.name, email: admin.email })
+  end
+
+  test "admins can make a new task repeat, which sets up a recurring task" do
+    sign_in_as_admin
+    workstream = workstreams(:common_house)
+    assert_difference("RecurringTask.count") do
+      post tasks_url, params: { task: { title: "Clean shared kitchen", workstream_id: workstream.id, repeats: "weekly",
+                                        estimated_minutes: 45, assigned_to_user_id: users(:two).id, priority: "essential" } }
+    end
+    recurring = RecurringTask.find_by!(title: "Clean shared kitchen")
+    assert_equal [ "weekly", 45, "essential", users(:two), users(:admin_user) ],
+                 [ recurring.frequency, recurring.estimated_minutes, recurring.priority, recurring.default_responsible_user, recurring.created_by ]
+    assert recurring.instance_for.persisted?, "this period's task is ready straight away"
+    assert_redirected_to workstream_url(workstream)
+  end
+
+  test "a repeating task needs an effort estimate" do
+    sign_in_as_admin
+    assert_no_difference([ "RecurringTask.count", "Task.count" ]) do
+      post tasks_url, params: { task: { title: "Sweep", workstream_id: workstreams(:general).id, repeats: "weekly" } }
+    end
+    assert_response :unprocessable_entity
+    assert_match(/Estimated effort can.{1,6}t be blank/, response.body)
+  end
+
+  test "members can't make a task repeat" do
+    assert_no_difference([ "RecurringTask.count", "Task.count" ]) do
+      post tasks_url, params: { task: { title: "Sweep", workstream_id: workstreams(:general).id, repeats: "weekly", estimated_minutes: 15 } }
+    end
+    assert_response :unprocessable_entity
+  end
+
+  test "only admins see the Repeats choice on the task form" do
+    get new_task_url
+    assert_select "select[name='task[repeats]']", count: 0
+
+    sign_in_as_admin
+    get new_task_url
+    assert_select "select[name='task[repeats]'] option", text: "Weekly"
+  end
 end

@@ -90,4 +90,18 @@ class WorkstreamsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#task_#{task.id}"
     assert_select "#task_#{task.id} form[action='#{task_path(task)}']", count: 0
   end
+
+  test "the workstream page has one Add task, with no separate recurring-task button" do
+    sign_in users(:admin_user)
+    get workstream_url(workstreams(:common_house))
+    assert_select "a[href='#{new_task_path(workstream_id: workstreams(:common_house).id)}']", text: /Add task/
+    assert_select "a", text: /Recurring task/, count: 0
+  end
+
+  test "the workstream page shows this period's recurring work even before anyone opens Tasks" do
+    sign_in users(:one)
+    get workstream_url(workstreams(:common_house))
+    task = Task.find_by!(recurring_task: recurring_tasks(:pantry_restock))
+    assert_select "#task_#{task.id}", text: /Restock common house pantry/
+  end
 end

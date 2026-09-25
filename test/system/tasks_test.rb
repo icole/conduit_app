@@ -277,4 +277,43 @@ class TasksTest < ApplicationSystemTestCase
       assert_equal 1, owners.map { |o| o.rect.y.round }.uniq.size, "owner lines in a row should align"
     end
   end
+
+  test "admins make a task repeat from the one Add task form" do
+    Capybara.reset_sessions!
+    sign_in_as(users(:admin_user))
+    visit workstream_url(workstreams(:common_house))
+    click_link "+ Add task"
+
+    assert_field "Due Date (optional)"
+    assert_no_field "Priority"
+    select "Weekly", from: "Repeats"
+    assert_no_field "Due Date (optional)"
+    assert_field "Priority"
+    assert_selector "label", text: "Responsible each period"
+
+    fill_in "Title", with: "Clean shared kitchen"
+    select "Medium · ~45 min", from: "Estimated effort"
+    select "Essential", from: "Priority"
+    click_button "Create Task"
+
+    assert_text "“Clean shared kitchen” repeats weekly"
+    assert_selector "[id^='recurring_task_']", text: "Clean shared kitchen"
+    assert RecurringTask.exists?(title: "Clean shared kitchen", frequency: "weekly", priority: "essential")
+  end
+
+  test "deleting open work updates the count, and Undo comes back to the workstream" do
+    Capybara.reset_sessions!
+    sign_in_as(users(:admin_user))
+    task = Task.create!(title: "Fix the gate", user: users(:admin_user), workstream: workstreams(:common_house))
+    visit workstream_url(workstreams(:common_house))
+    before = find("#open-work-count").text.to_i
+
+    within("#task_#{task.id}") { accept_confirm { click_button "Delete" } }
+    assert_no_selector "#task_#{task.id}"
+    assert_selector "#open-work-count", text: (before - 1).to_s
+
+    click_button "Undo"
+    assert_current_path workstream_path(workstreams(:common_house))
+    assert_selector "#task_#{task.id}"
+  end
 end

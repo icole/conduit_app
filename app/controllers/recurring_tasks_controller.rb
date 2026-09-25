@@ -1,23 +1,10 @@
-# Recurring tasks are pre-loaded by admins; members never set them up.
+# Recurring tasks are pre-loaded by admins (from the Add task form's
+# "Repeats" choice); members never set them up.
 class RecurringTasksController < ApplicationController
   before_action :authenticate_user!
   before_action :authorize_admin!
   before_action :set_workstream
   before_action :set_recurring_task, only: [ :edit, :update, :destroy ]
-
-  def new
-    @recurring_task = @workstream.recurring_tasks.build(frequency: "weekly", estimated_minutes: 30)
-  end
-
-  def create
-    @recurring_task = @workstream.recurring_tasks.build(recurring_task_params.merge(created_by: current_user))
-
-    if @recurring_task.save
-      redirect_to @workstream, notice: "Recurring task added."
-    else
-      render :new, status: :unprocessable_entity
-    end
-  end
 
   def edit
   end

@@ -53,7 +53,6 @@ class TasksNativeTest < ActionDispatch::IntegrationTest
 
   test "modal forms submit as full page loads and leave closing to the native Close button" do
     [ new_workstream_url, edit_workstream_url(workstreams(:garbage)),
-      new_workstream_recurring_task_url(workstreams(:garbage)),
       edit_workstream_recurring_task_url(workstreams(:garbage), recurring_tasks(:garbage_night)) ].each do |url|
       get url, headers: NATIVE
       assert_select "form[data-turbo='false']", 1, url

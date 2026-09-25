@@ -9,30 +9,11 @@ class RecurringTasksControllerTest < ActionDispatch::IntegrationTest
     @workstream = workstreams(:common_house)
   end
 
-  test "members cannot add recurring tasks" do
+  test "members cannot edit recurring tasks" do
     sign_in users(:one)
-    assert_no_difference("RecurringTask.count") do
-      post workstream_recurring_tasks_url(@workstream), params: { recurring_task: { title: "Sweep", frequency: "weekly", estimated_minutes: 20 } }
-    end
+    patch workstream_recurring_task_url(@workstream, recurring_tasks(:pantry_restock)), params: { recurring_task: { title: "Mine now" } }
     assert_redirected_to root_url
-  end
-
-  test "admins add recurring tasks with a default responsible person" do
-    sign_in users(:admin_user)
-    get new_workstream_recurring_task_url(@workstream)
-    assert_response :success
-
-    assert_difference("RecurringTask.count") do
-      post workstream_recurring_tasks_url(@workstream), params: { recurring_task: {
-        title: "Clean shared kitchen", frequency: "weekly", estimated_minutes: 45,
-        priority: "essential", default_responsible_user_id: users(:two).id
-      } }
-    end
-    recurring = RecurringTask.order(:created_at).last
-    assert_equal @workstream, recurring.workstream
-    assert_equal users(:two), recurring.default_responsible_user
-    assert_equal users(:admin_user), recurring.created_by
-    assert_redirected_to workstream_url(@workstream)
+    assert_equal "Restock common house pantry", recurring_tasks(:pantry_restock).reload.title
   end
 
   test "admins edit and remove recurring tasks" do

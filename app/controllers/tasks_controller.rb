@@ -32,6 +32,8 @@ class TasksController < ApplicationController
   end
 
   def create
+    return create_recurring if params.dig(:task, :repeats).present?
+
     @task = current_user.tasks.build(task_params)
 
     respond_to do |format|
@@ -79,8 +81,8 @@ class TasksController < ApplicationController
 
   def restore
     @task.undiscard
-    redirect_path = request.referer&.include?("tasks") ? tasks_path : dashboard_index_path
-    redirect_to redirect_path, notice: "Task restored."
+    # Back to wherever the Undo was tapped: a Tasks tab, a workstream, the dashboard
+    redirect_back_or_to dashboard_index_path, notice: "Task restored."
   end
 
   def release
@@ -158,6 +160,42 @@ class TasksController < ApplicationController
   end
 
   private
+
+  RECURRING_ERROR_LABELS = { estimated_minutes: "Estimated effort", frequency: "Repeats", workstream: "Workstream", title: "Title" }.freeze
+
+  # "Repeats" on the Add task form sets up a recurring task instead. Only
+  # admins pre-load recurring work; members add one-off tasks.
+  def create_recurring
+    @task = current_user.tasks.build(task_params)
+    @repeats = params[:task][:repeats]
+
+    unless current_user.admin?
+      @task.errors.add(:base, "Only admins can set up repeating tasks")
+      return render :new, status: :unprocessable_entity
+    end
+
+    recurring = RecurringTask.new(
+      title: task_params[:title],
+      description: task_params[:description],
+      workstream_id: task_params[:workstream_id],
+      frequency: @repeats,
+      priority: params[:task][:priority],
+      estimated_minutes: task_params[:estimated_minutes],
+      default_responsible_user_id: task_params[:assigned_to_user_id].presence,
+      created_by: current_user
+    )
+
+    if recurring.save
+      recurring.instance_for
+      redirect_to workstream_path(recurring.workstream),
+                  notice: "“#{recurring.title}” repeats #{recurring.frequency_label.downcase}. This period's task is ready."
+    else
+      recurring.errors.each do |error|
+        @task.errors.add(:base, "#{RECURRING_ERROR_LABELS.fetch(error.attribute, error.attribute.to_s.humanize)} #{error.message}")
+      end
+      render :new, status: :unprocessable_entity
+    end
+  end
 
   # The apps switch tabs inside a frame, so the screen's URL stays /tasks and
   # pull-to-refresh would otherwise snap back to My Tasks.

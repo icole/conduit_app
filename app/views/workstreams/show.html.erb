@@ -62,9 +62,6 @@
     <section>
       <div class="flex items-center justify-between mb-2">
         <h2 class="font-semibold">Recurring tasks <span class="text-base-content/50 text-sm font-normal"><%= @recurring_tasks.size %></span></h2>
-        <% if current_user.admin? %>
-          <%= link_to "+ Recurring task", new_workstream_recurring_task_path(@workstream), class: "btn btn-ghost btn-xs" %>
-        <% end %>
       </div>
       <div class="space-y-2">
         <% @recurring_tasks.each do |recurring| %>
@@ -95,14 +92,14 @@
           </div>
         <% end %>
         <% if @recurring_tasks.empty? %>
-          <p class="text-sm text-base-content/50">No recurring tasks yet.</p>
+          <p class="text-sm text-base-content/50">No recurring tasks yet.<% if current_user.admin? %> Use Add task and choose how often it repeats.<% end %></p>
         <% end %>
       </div>
     </section>
   <% end %>
 
   <section>
-    <h2 class="font-semibold mb-2">Open work <span class="text-base-content/50 text-sm font-normal"><%= @open_tasks.size %></span></h2>
+    <h2 class="font-semibold mb-2">Open work <span id="open-work-count" class="text-base-content/50 text-sm font-normal"><%= @open_tasks.size %></span></h2>
     <div class="space-y-2">
       <% @open_tasks.each do |task| %>
         <div id="<%= dom_id task %>" class="card bg-base-100 border border-base-200">
