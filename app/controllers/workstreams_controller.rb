@@ -42,7 +42,7 @@ class WorkstreamsController < ApplicationController
 
   def close
     @workstream.close!
-    redirect_to tasks_path(tab: "coverage"), notice: "#{@workstream.name} closed."
+    redirect_to @workstream, notice: "#{@workstream.name} closed."
   end
 
   def reopen

@@ -116,10 +116,13 @@
           <li class="flex items-center gap-3 rounded-lg bg-base-200/60 px-3 py-2.5">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-success shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
             <div class="min-w-0 flex-1">
-              <p class="text-sm truncate"><%= task.title %></p>
-              <p class="text-xs text-base-content/60 truncate"><%= [ task.completed_by&.name&.split(" ")&.first, task.workstream.name ].compact.join(" · ") %></p>
+              <p class="text-sm"><%= task.title %></p>
+              <p class="text-xs text-base-content/60"><%= [ task.completed_by&.name&.split(" ")&.first, task.workstream.name ].compact.join(" · ") %></p>
             </div>
-            <span class="text-xs text-base-content/60 whitespace-nowrap"><%= [ RecurringTask.effort_bucket(task.estimated_minutes), task.completed_at.in_time_zone(current_community.time_zone).strftime("%b %-d") ].compact.join(" · ") %></span>
+            <div class="text-xs text-base-content/60 text-right whitespace-nowrap flex flex-col sm:flex-row sm:gap-1">
+              <% if (bucket = RecurringTask.effort_bucket(task.estimated_minutes)) %><span><%= bucket %><span class="hidden sm:inline"> ·</span></span><% end %>
+              <span><%= task.completed_at.in_time_zone(current_community.time_zone).strftime("%b %-d") %></span>
+            </div>
           </li>
         <% end %>
       </ul>

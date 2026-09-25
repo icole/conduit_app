@@ -15,7 +15,8 @@ class TasksController < ApplicationController
       @tab = "my"
       load_board
     else
-      @tab = params[:tab].presence_in(TABS) || "my"
+      @tab = params[:tab].presence_in(TABS) || remembered_tab || "my"
+      session[:tasks_tab] = @tab if hotwire_native_app?
       RecurringTask.generate_instances!(Time.current.in_time_zone(current_community.time_zone).to_date)
       case @tab
       when "available" then load_available_tab
@@ -157,6 +158,12 @@ class TasksController < ApplicationController
   end
 
   private
+
+  # The apps switch tabs inside a frame, so the screen's URL stays /tasks and
+  # pull-to-refresh would otherwise snap back to My Tasks.
+  def remembered_tab
+    session[:tasks_tab].presence_in(TABS) if hotwire_native_app?
+  end
 
   def load_my_tab
     mine = Task.open.where(assigned_to_user: current_user)

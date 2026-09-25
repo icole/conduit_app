@@ -41,6 +41,11 @@
   <div class="flex justify-end gap-2 mt-6">
     <% if task.persisted? %>
       <%= link_to "Cancel", dashboard_index_path, class: "btn btn-ghost" %>
+    <% elsif action_name.in?(%w[new create]) %>
+      <%# Its own screen (a modal with a Close button in the apps) %>
+      <% unless hotwire_native_app? %>
+        <%= link_to "Cancel", task.workstream ? workstream_path(task.workstream) : tasks_path, class: "btn btn-ghost" %>
+      <% end %>
     <% else %>
       <button type="button" class="btn btn-ghost" data-action="click->tasks#hideForm">Cancel</button>
     <% end %>

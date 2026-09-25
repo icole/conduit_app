@@ -215,4 +215,23 @@ class TasksTest < ApplicationSystemTestCase
     click_link period.previous.label
     within("#contribution-period") { assert_text period.previous.label }
   end
+
+  test "on a phone, card actions sit under the details instead of squeezing them" do
+    page.driver.browser.manage.window.resize_to(375, 1400)
+    Task.create!(title: "Swept the porch", user: @user_one, workstream: workstreams(:general), estimated_minutes: 20,
+                 status: "completed", completed_by: @user_one, completed_at: Time.current)
+
+    visit tasks_url
+    card = find("#recurring-responsibilities .card", text: "Take out garbage & recycling")
+    badges = card.find("[data-task-details]")
+    release = card.find_button("Can't do it →")
+    assert_operator release.rect.y, :>, badges.rect.y + badges.rect.height - 1
+    assert_operator card.find("p", text: "Take out garbage & recycling").rect.width, :>, 220
+
+    click_link "Contribution"
+    title = find("#recently-completed p", text: "Swept the porch")
+    assert title.evaluate_script("this.scrollWidth <= this.clientWidth"), "completed titles shouldn't be cut off"
+  ensure
+    page.driver.browser.manage.window.resize_to(1400, 1400)
+  end
 end

@@ -15,16 +15,14 @@
     <% end %>
     <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm mt-auto pt-1">
       <%= workstream_type_badge(workstream) %>
-      <span class="text-base-content/30">•</span>
       <% if workstream.owner %>
         <span class="text-base-content/60">Owner: <%= workstream.owner.name %></span>
       <% else %>
         <span class="text-error">No owner assigned</span>
       <% end %>
-      <% if gaps.positive? %>
-        <span class="text-base-content/30">•</span>
-        <span class="text-base-content/70"><%= pluralize(gaps, "recurring task") %> without a responsible person</span>
-      <% end %>
     </div>
+    <% if gaps.positive? %>
+      <p class="text-xs text-base-content/60"><%= pluralize(gaps, "recurring task") %> without a responsible person</p>
+    <% end %>
   </div>
 <% end %>

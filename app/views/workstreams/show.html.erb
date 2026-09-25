@@ -2,9 +2,12 @@
 <% can_manage = current_user.admin? || @workstream.owned_by?(current_user) %>
 
 <div class="max-w-3xl mx-auto space-y-4">
-  <%= link_to tasks_path(tab: "coverage"), class: "inline-flex items-center gap-1 text-sm text-base-content/60 hover:text-base-content" do %>
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-    Coverage
+  <%# The apps have a native back button %>
+  <% unless hotwire_native_app? %>
+    <%= link_to tasks_path(tab: "coverage"), class: "inline-flex items-center gap-1 text-sm text-base-content/60 hover:text-base-content" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+      Coverage
+    <% end %>
   <% end %>
 
   <div class="card bg-base-100 border border-base-200 border-l-4 <%= workstream_accent_class(@workstream) %>">
@@ -46,9 +49,9 @@
         <% end %>
         <% if can_manage && @workstream.project? %>
           <% if @workstream.closed? %>
-            <%= button_to "Reopen project", reopen_workstream_path(@workstream), method: :patch, class: "btn btn-ghost btn-sm" %>
+            <%= button_to "Reopen project", reopen_workstream_path(@workstream), method: :patch, class: "btn btn-ghost btn-sm", form: { data: { turbo_action: "replace" } } %>
           <% else %>
-            <%= button_to "Close project", close_workstream_path(@workstream), method: :patch, class: "btn btn-ghost btn-sm", form: { data: { turbo_confirm: "Close this project? Its open tasks stay visible here." } } %>
+            <%= button_to "Close project", close_workstream_path(@workstream), method: :patch, class: "btn btn-ghost btn-sm", form: { data: { turbo_confirm: "Close this project? Its open tasks stay visible here.", turbo_action: "replace" } } %>
           <% end %>
         <% end %>
       </div>
@@ -85,7 +88,7 @@
               <% if current_user.admin? %>
                 <div class="flex gap-1 shrink-0">
                   <%= link_to "Edit", edit_workstream_recurring_task_path(@workstream, recurring), class: "btn btn-ghost btn-xs" %>
-                  <%= button_to "Remove", workstream_recurring_task_path(@workstream, recurring), method: :delete, class: "btn btn-ghost btn-xs text-error", form: { data: { turbo_confirm: "Remove this recurring task? Past instances are kept." } } %>
+                  <%= button_to "Remove", workstream_recurring_task_path(@workstream, recurring), method: :delete, class: "btn btn-ghost btn-xs text-error", form: { data: { turbo_confirm: "Remove this recurring task? Past instances are kept.", turbo_action: "replace" } } %>
                 </div>
               <% end %>
             </div>
@@ -120,7 +123,7 @@
               <% if task.due_date %><span class="badge badge-sm badge-ghost">Due <%= task.due_date.strftime("%b %-d") %></span><% end %>
             </div>
             <% if can_manage && task.assigned_to_user.nil? %>
-              <%= form_with model: task, url: task_path(task, return_to: workstream_path(@workstream)), method: :patch, class: "flex gap-2 items-center", data: { turbo: false } do |form| %>
+              <%= form_with model: task, url: task_path(task, return_to: workstream_path(@workstream)), method: :patch, class: "flex gap-2 items-center", data: { turbo_action: "replace" } do |form| %>
                 <%= form.select :assigned_to_user_id, @users.map { |u| [ u.name, u.id ] }, { prompt: "Assign to…" }, class: "select select-bordered select-sm flex-1 min-w-0", required: true, aria: { label: "Assign #{task.title} to" } %>
                 <%= form.submit "Assign", class: "btn btn-sm" %>
               <% end %>
