@@ -69,18 +69,8 @@ namespace :demo do
       end
       puts "  Created sample meals"
 
-      # Sample tasks
-      3.times do |i|
-        Task.find_or_create_by!(
-          title: "Sample Task #{i + 1}",
-          community: community
-        ) do |task|
-          task.description = "This is a sample task for demonstration"
-          task.due_date = Date.today + (i + 1).weeks
-          task.user = user
-          task.status = "backlog"
-        end
-      end
+      # Workstreams, recurring and one-off tasks, neighbours and history
+      TaskSampleData.new(community, viewer: user).load!
       puts "  Created sample tasks"
     end
 
@@ -158,10 +148,14 @@ namespace :demo do
       Meal.destroy_all
 
       puts "  Deleting tasks..."
-      Task.destroy_all
+      # with_discarded, not unscoped: unscoped would drop the tenant scope too
+      Task.with_discarded.delete_all
+      RecurringTask.with_discarded.delete_all
+      Workstream.delete_all
 
       puts "  Deleting users..."
       User.destroy_all
+      Household.delete_all
     end
 
     # Delete the community itself (outside tenant scope)
