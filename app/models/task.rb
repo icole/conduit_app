@@ -30,17 +30,20 @@ class Task < ApplicationRecord
   scope :open, -> { where.not(status: "completed") }
   scope :prioritized, -> { where(status: "active").order(:priority_order, :created_at) }
   scope :with_due_date, -> { where.not(due_date: nil) }
-  scope :overdue, -> { where("due_date < ? AND status != 'completed'", Date.current) }
-  scope :due_soon, -> { where("due_date >= ? AND due_date <= ? AND status != 'completed'", Date.current, 7.days.from_now) }
+  scope :overdue, -> { where("tasks.due_date < ? AND tasks.status != 'completed'", Date.current) }
+  scope :due_soon, -> { where("tasks.due_date >= ? AND tasks.due_date <= ? AND tasks.status != 'completed'", Date.current, 7.days.from_now) }
+
+  # Open, unclaimed work in open workstreams: the Available queue.
+  scope :available, -> { open.where(assigned_to_user_id: nil).joins(:workstream).merge(Workstream.open) }
 
   # Order tasks by priority for active, creation date for others
   scope :ordered, -> {
     case_sql = <<~SQL
       CASE#{' '}
-        WHEN status = 'active' THEN priority_order
+        WHEN tasks.status = 'active' THEN tasks.priority_order
         ELSE 999999
       END ASC,
-      created_at DESC
+      tasks.created_at DESC
     SQL
     order(Arel.sql(case_sql))
   }
@@ -57,6 +60,32 @@ class Task < ApplicationRecord
   # Move task back to backlog
   def move_to_backlog!
     update!(status: "backlog", priority_order: nil)
+  end
+
+  # The Available queue, essential work first, then soonest due.
+  def self.available_queue
+    available.includes(:workstream, :recurring_task, :released_by).sort_by do |task|
+      [ Workstream.priority_rank(task.effective_priority), task.due_date || Date.new(9999), task.created_at ]
+    end
+  end
+
+  # The assignee can't do it this time: back to the queue, and a note to the
+  # community's coverage chat channel. The recurring default is untouched.
+  def release!(by)
+    return false unless assigned_to_user_id == by.id && !completed?
+
+    update!(assigned_to_user: nil, released_by: by, released_at: Time.current)
+    CoverageBroadcastJob.perform_later(community_id, id)
+    true
+  end
+
+  def claim!(user)
+    with_lock do
+      return false if assigned_to_user_id.present? || completed?
+
+      update!(assigned_to_user: user, status: "active")
+    end
+    true
   end
 
   def effective_priority

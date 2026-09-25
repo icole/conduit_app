@@ -240,4 +240,86 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       assert_select "[data-name='#{users(:two).name}']", count: 0
     end
   end
+
+  test "My Tasks splits recurring responsibilities from one-off assignments" do
+    get tasks_url
+    assert_response :success
+    assert_select "nav[aria-label='Task views'] a[aria-current='page']", text: "My Tasks"
+    assert_select "#recurring-responsibilities", text: /Take out garbage & recycling/
+    assert_select "#assigned-to-you", text: /Setup Development Environment/
+    assert_select "#assigned-to-you", text: /Review Pull Request/, count: 0
+    assert_no_match "Refactor Authentication System", response.body # completed work lives in Contribution
+    assert_select "form[action='#{release_task_path(Task.find_by!(recurring_task: recurring_tasks(:garbage_night)))}']"
+  end
+
+  test "Available lists open work essential first with a claim action" do
+    recurring_tasks(:pantry_restock).update!(priority: "essential")
+    get tasks_url(tab: "available")
+    assert_response :success
+    groups = css_select("[data-priority-group]").map { |g| g["data-priority-group"] }
+    assert_equal %w[essential important], groups
+    assert_select "[data-priority-group='essential']", text: /Restock common house pantry/
+    assert_select "[data-priority-group='important']", text: /Complete Project Documentation/
+    assert_select "form[action='#{claim_task_path(tasks(:one))}']"
+  end
+
+  test "Coverage shows every open workstream grouped by type with its status" do
+    get tasks_url(tab: "coverage")
+    assert_response :success
+    assert_select "#ongoing-operations #workstream_#{workstreams(:garbage).id}", text: /Covered/
+    assert_select "#ongoing-operations #workstream_#{workstreams(:common_house).id}", text: /Needs owner/
+    assert_select "#one-time-projects #workstream_#{workstreams(:front_yard).id}", text: /Mike Davis/
+    assert_select "a[href='#{new_workstream_path}']", count: 0
+  end
+
+  test "admins can start a workstream from Coverage" do
+    delete logout_path
+    admin = users(:admin_user)
+    sign_in_user({ uid: admin.uid, name: admin.name, email: admin.email })
+    get tasks_url(tab: "coverage")
+    assert_select "a[href='#{new_workstream_path}']"
+  end
+
+  test "the backlog and priority board is still reachable from My Tasks" do
+    get tasks_url
+    assert_select "a[href='#{tasks_path(view: "active")}']"
+    get tasks_url(view: "backlog")
+    assert_response :success
+    assert_match "Complete Project Documentation", response.body
+  end
+
+  test "releasing your instance sends it to the queue and broadcasts it" do
+    task = recurring_tasks(:garbage_night).instance_for
+    assert_enqueued_with(job: CoverageBroadcastJob) do
+      patch release_task_url(task)
+    end
+    assert_redirected_to tasks_url(tab: "my")
+    assert_nil task.reload.assigned_to_user
+    assert_equal @user, task.released_by
+  end
+
+  test "you can't release someone else's task" do
+    patch release_task_url(tasks(:assigned_task))
+    assert_redirected_to tasks_url(tab: "my")
+    assert_equal users(:two), tasks(:assigned_task).reload.assigned_to_user
+  end
+
+  test "claiming open work assigns it to you" do
+    patch claim_task_url(tasks(:one))
+    assert_redirected_to tasks_url(tab: "available")
+    assert_equal @user, tasks(:one).reload.assigned_to_user
+  end
+
+  test "an instance you picked up for someone else shows as assigned, covering for them" do
+    task = recurring_tasks(:garbage_night).instance_for
+    task.release!(@user)
+    delete logout_path
+    member = users(:three)
+    sign_in_user({ uid: member.uid, name: member.name, email: member.email })
+    task.claim!(member)
+
+    get tasks_url
+    assert_select "#recurring-responsibilities", text: /Take out garbage/, count: 0
+    assert_select "#assigned-to-you", text: /Covering for Jane/
+  end
 end

@@ -195,4 +195,52 @@ class TaskTest < ActiveSupport::TestCase
     assert_includes Task.open, tasks(:one)
     assert_not_includes Task.open, tasks(:completed_task)
   end
+
+  test "release! hands one instance back to the queue without touching the default person" do
+    recurring = recurring_tasks(:garbage_night)
+    task = recurring.instance_for(Date.new(2026, 3, 5))
+
+    assert task.release!(users(:one))
+    task.reload
+    assert_nil task.assigned_to_user
+    assert_equal users(:one), task.released_by
+    assert_not_nil task.released_at
+    assert_equal users(:one), recurring.reload.default_responsible_user
+    assert_includes Task.available, task
+  end
+
+  test "only the assignee can release a task" do
+    task = tasks(:assigned_task) # assigned to two
+    assert_not task.release!(users(:one))
+    assert_equal users(:two), task.reload.assigned_to_user
+  end
+
+  test "claim! assigns open, unassigned work to the claimer" do
+    task = tasks(:one)
+    assert task.claim!(users(:three))
+    assert_equal users(:three), task.reload.assigned_to_user
+    assert_equal "active", task.status
+  end
+
+  test "claimed work can't be claimed again" do
+    task = tasks(:assigned_task)
+    assert_not task.claim!(users(:three))
+    assert_equal users(:two), task.reload.assigned_to_user
+  end
+
+  test "available is open, unassigned work in open workstreams, essential first" do
+    nice = Task.create!(title: "Nice", user: @user, workstream: @workstream, due_date: Date.current)
+    Workstream.where(id: @workstream.id).update_all(priority: "nice_to_have")
+    essential = Task.create!(title: "Essential", user: @user, workstream: workstreams(:garbage))
+    closed = Task.create!(title: "In closed project", user: @user, workstream: workstreams(:front_yard))
+    workstreams(:front_yard).close!
+
+    queue = Task.available_queue
+    assert_equal "Essential", queue.first.title
+    assert_includes queue, nice
+    assert_not_includes queue, closed
+    assert_not_includes queue, tasks(:assigned_task)
+    assert_not_includes queue, tasks(:completed_task)
+    assert_operator queue.index(essential), :<, queue.index(nice)
+  end
 end

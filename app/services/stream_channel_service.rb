@@ -5,7 +5,8 @@ class StreamChannelService
     { id: "general", name: "General Discussion", description: "General community discussions" },
     { id: "announcements", name: "Announcements", description: "Important HOA announcements" },
     { id: "maintenance", name: "Maintenance", description: "Building maintenance and issues" },
-    { id: "events", name: "Events", description: "Community events and gatherings" }
+    { id: "events", name: "Events", description: "Community events and gatherings" },
+    { id: "chores", name: "Chores & Coverage", description: "Tasks someone can't get to this time. Grab one from the Available queue." }
   ].freeze
 
   # Every channel we create or update goes through this so it always carries

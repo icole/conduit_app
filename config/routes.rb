@@ -101,6 +101,8 @@ Rails.application.routes.draw do
       patch :prioritize
       patch :move_to_backlog
       patch :reorder
+      patch :release
+      patch :claim
       post :restore
     end
   end

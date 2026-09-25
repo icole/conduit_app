@@ -26,6 +26,7 @@ class TasksTest < ApplicationSystemTestCase
 
   test "viewing tasks index shows all tasks with assignments" do
     visit tasks_url
+    click_link "All tasks: backlog & priority order"
 
     # Check backlog tasks
     click_link "Backlog"
@@ -119,7 +120,8 @@ class TasksTest < ApplicationSystemTestCase
     # Should be redirected back to the tasks list
     assert_text "Task was successfully updated"
 
-    # The task should appear in the list - it might take a moment to load
+    # It's Mike's now, so it shows on the full board rather than My Tasks
+    visit tasks_path(view: "active")
     assert_selector "#task_#{@task.id}"
 
     # Now verify that the task shows the new assignment (first name only)
@@ -153,5 +155,52 @@ class TasksTest < ApplicationSystemTestCase
     visit dashboard_index_url
     assert_text "Review Pull Request #42"  # Use the full title with #42
     assert_no_text @received_task.title
+  end
+
+  test "switching tabs keeps the page and updates the address" do
+    visit tasks_url
+    assert_selector "nav[aria-label='Task views'] a[aria-current='page']", text: "My Tasks"
+
+    click_link "Coverage"
+    assert_selector "#ongoing-operations", text: "Garbage & Recycling Coordinator"
+    assert_current_path tasks_path(tab: "coverage")
+
+    click_link "Available"
+    assert_selector "[data-priority-group='important']", text: "Restock common house pantry"
+  end
+
+  test "releasing a recurring duty and a neighbour claiming it" do
+    visit tasks_url
+    within "#recurring-responsibilities" do
+      assert_text "Take out garbage & recycling"
+      accept_confirm { click_button "Can't do it →" }
+    end
+    assert_text "Released to the queue"
+    assert_no_selector "#recurring-responsibilities", text: "Take out garbage"
+
+    Capybara.reset_sessions!
+    sign_in_as(@user_two)
+    visit tasks_url(tab: "available")
+    card = find("[data-priority-group='essential'] .card", text: "Take out garbage & recycling")
+    within(card) do
+      assert_text "Released by Jane"
+      click_button "Claim"
+    end
+    assert_text "It's yours"
+
+    click_link "My Tasks"
+    within "#assigned-to-you" do
+      assert_text "Take out garbage & recycling"
+      assert_text "Covering for Jane"
+    end
+  end
+
+  test "marking a responsibility done removes it from My Tasks" do
+    visit tasks_url
+    within "#recurring-responsibilities" do
+      find("button[aria-label='Mark “Take out garbage & recycling” done']").click
+    end
+    assert_no_selector "#recurring-responsibilities", text: "Take out garbage"
+    assert Task.find_by(title: "Take out garbage & recycling").completed?
   end
 end

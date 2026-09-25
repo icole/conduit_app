@@ -24,6 +24,11 @@ production:
     schedule: every day at 7am
     queue: default
 
+  generate_task_instances:
+    class: GenerateTaskInstancesJob
+    schedule: every day at 5am
+    queue: default
+
 development:
   generate_weekly_meals:
     class: GenerateWeeklyMealsJob

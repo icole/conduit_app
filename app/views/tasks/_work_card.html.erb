@@ -1,0 +1,71 @@
+<%# One piece of work on the My Tasks and Available tabs.
+    locals: task, action (:release, :claim or nil), return_tab, show_priority (default true) %>
+<% show_priority = local_assigns.fetch(:show_priority, true) %>
+<% priority = task.effective_priority %>
+<% border = if action == :claim
+     { "essential" => "border-error/50", "important" => "border-warning/60" }.fetch(priority, "border-base-200")
+   else
+     "border-base-200"
+   end %>
+<div id="<%= dom_id task %>" class="card bg-base-100 border <%= border %> <%= 'border-2' if action == :claim && priority == 'essential' %>">
+  <div class="card-body p-3 sm:p-4 flex-row items-start gap-3">
+    <% if action != :claim %>
+      <%= form_with model: task, url: task_path(task, return_to: tasks_path(tab: return_tab)), method: :patch, class: "flex pt-0.5" do |form| %>
+        <%= form.hidden_field :status, value: "completed" %>
+        <button type="submit" class="group" title="Mark done" aria-label="Mark “<%= task.title %>” done">
+          <span class="block w-6 h-6 border-2 border-base-300 rounded-full group-hover:border-primary transition-colors"></span>
+        </button>
+      <% end %>
+    <% end %>
+
+    <div class="flex-1 min-w-0">
+      <p class="font-medium leading-6"><%= task.title %></p>
+      <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+        <%= priority_badge(priority) if show_priority %>
+        <%= workstream_tag(task.workstream) %>
+        <% if task.recurring_task %>
+          <span class="badge badge-sm badge-ghost whitespace-nowrap"><%= task.recurring_task.frequency_label %></span>
+        <% end %>
+        <%= effort_badge(task.estimated_minutes) %>
+        <% if task.due_date %>
+          <span class="badge badge-sm whitespace-nowrap <%= task.overdue? ? 'badge-error badge-soft' : 'badge-ghost' %>">Due <%= task.due_date.strftime("%b %-d") %></span>
+        <% end %>
+        <% if task.released_by %>
+          <% if action == :claim %>
+            <span class="badge badge-sm badge-info whitespace-nowrap">Released by <%= task.released_by.name.split(" ").first %></span>
+          <% elsif task.assigned_to_user_id != task.released_by_id %>
+            <span class="badge badge-sm badge-info badge-soft whitespace-nowrap">Covering for <%= task.released_by.name.split(" ").first %></span>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1 shrink-0">
+      <% case action %>
+      <% when :release %>
+        <%= button_to release_task_path(task), method: :patch, class: "btn btn-ghost btn-sm whitespace-nowrap",
+              form: { data: { turbo_confirm: "Release this one to the queue? You stay responsible for future #{task.recurring_task&.frequency_label&.downcase || 'periods'}; we'll post it in chat so someone can pick it up." } } do %>
+          Can't do it →
+        <% end %>
+      <% when :claim %>
+        <%= button_to "Claim", claim_task_path(task), method: :patch, class: "btn btn-primary btn-sm" %>
+      <% end %>
+
+      <% if action != :claim %>
+        <div class="dropdown dropdown-end">
+          <div tabindex="0" role="button" class="btn btn-ghost btn-xs btn-circle" aria-label="More actions">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+            </svg>
+          </div>
+          <ul tabindex="0" class="dropdown-content z-50 p-2 shadow-lg bg-base-100 text-base-content rounded-box w-44">
+            <li><%= link_to "Edit", edit_task_path(task), data: { turbo_frame: "_top" }, class: "block px-3 py-2 rounded-lg hover:bg-base-200" %></li>
+            <% unless task.recurring? %>
+              <li><%= link_to "Delete", task_path(task), data: { turbo_method: :delete, turbo_confirm: "Delete this task?" }, class: "block px-3 py-2 rounded-lg text-error hover:bg-base-200" %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

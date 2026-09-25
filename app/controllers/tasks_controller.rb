@@ -1,46 +1,28 @@
 class TasksController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_task, only: [ :edit, :update, :destroy, :prioritize, :move_to_backlog, :reorder ]
+  before_action :set_task, only: [ :edit, :update, :destroy, :prioritize, :move_to_backlog, :reorder, :release, :claim ]
   before_action :set_discarded_task, only: [ :restore ]
   before_action :set_users, only: [ :index, :new, :edit, :create, :update ]
 
+  TAB_LABELS = { "my" => "My Tasks", "available" => "Available", "coverage" => "Coverage" }.freeze
+  TABS = TAB_LABELS.keys.freeze
+
   def index
-    @current_view = params[:view] || "active"
-
-    # Build base query with assignment filter
-    base_query = Task.all
-    if params[:assigned_to].present?
-      if params[:assigned_to] == "unassigned"
-        base_query = base_query.where(assigned_to_user_id: nil)
-      else
-        base_query = base_query.where(assigned_to_user_id: params[:assigned_to])
-      end
-    end
-
-    @tasks = case @current_view
-    when "backlog"
-      base_query.backlog
-    when "active"
-      base_query.prioritized
-    when "completed"
-      base_query.completed
-    when "overdue"
-      base_query.overdue
-    when "due_soon"
-      base_query.due_soon
-    when "deleted"
-      Task.only_discarded.order(discarded_at: :desc)
-    else
-      base_query.active
-    end
-
     @task = Task.new
 
-    # Separate tasks by status for the view (also apply assignment filter)
-    @backlog_tasks = base_query.backlog.limit(10)
-    @active_tasks = base_query.prioritized
-    @completed_tasks = base_query.completed.limit(10)
-    @deleted_count = Task.only_discarded.count
+    # The backlog / priority board, reached from My Tasks
+    if params[:view].present?
+      @tab = "my"
+      load_board
+    else
+      @tab = params[:tab].presence_in(TABS) || "my"
+      RecurringTask.generate_instances!(Time.current.in_time_zone(current_community.time_zone).to_date)
+      case @tab
+      when "available" then load_available_tab
+      when "coverage" then load_coverage_tab
+      else load_my_tab
+      end
+    end
   end
 
   def new
@@ -97,6 +79,22 @@ class TasksController < ApplicationController
     @task.undiscard
     redirect_path = request.referer&.include?("tasks") ? tasks_path : dashboard_index_path
     redirect_to redirect_path, notice: "Task restored."
+  end
+
+  def release
+    if @task.release!(current_user)
+      redirect_to tasks_path(tab: "my"), notice: "Released to the queue. We let the community know in chat."
+    else
+      redirect_to tasks_path(tab: "my"), alert: "Only the person it's assigned to can release a task."
+    end
+  end
+
+  def claim
+    if @task.claim!(current_user)
+      redirect_to tasks_path(tab: "available"), notice: "It's yours. Find it under My Tasks."
+    else
+      redirect_to tasks_path(tab: "available"), alert: "Someone already picked that one up."
+    end
   end
 
   def prioritize
@@ -158,6 +156,62 @@ class TasksController < ApplicationController
   end
 
   private
+
+  def load_my_tab
+    mine = Task.open.where(assigned_to_user: current_user)
+      .includes(:workstream, :recurring_task, :released_by).reorder(Arel.sql("tasks.due_date IS NULL, tasks.due_date, tasks.created_at"))
+    # Recurring responsibilities are the instances you're the default person
+    # for; an instance you picked up for someone else is just assigned to you.
+    @recurring_tasks, @assigned_tasks = mine.partition { |task| task.recurring_task&.default_responsible_user_id == current_user.id }
+  end
+
+  def load_available_tab
+    @queue = Task.available_queue.group_by(&:effective_priority)
+  end
+
+  def load_coverage_tab
+    workstreams = Workstream.includes(:owner, :recurring_tasks).order(:name)
+    @ongoing = workstreams.open.ongoing
+    @projects = workstreams.open.projects
+    @closed_projects = workstreams.projects.where(status: "closed")
+  end
+
+  def load_board
+    @current_view = params[:view]
+
+    # Build base query with assignment filter
+    base_query = Task.all
+    if params[:assigned_to].present?
+      if params[:assigned_to] == "unassigned"
+        base_query = base_query.where(assigned_to_user_id: nil)
+      else
+        base_query = base_query.where(assigned_to_user_id: params[:assigned_to])
+      end
+    end
+
+    @tasks = case @current_view
+    when "backlog"
+      base_query.backlog
+    when "active"
+      base_query.prioritized
+    when "completed"
+      base_query.completed
+    when "overdue"
+      base_query.overdue
+    when "due_soon"
+      base_query.due_soon
+    when "deleted"
+      Task.only_discarded.order(discarded_at: :desc)
+    else
+      base_query.active
+    end
+
+    # Separate tasks by status for the view (also apply assignment filter)
+    @backlog_tasks = base_query.backlog.limit(10)
+    @active_tasks = base_query.prioritized
+    @completed_tasks = base_query.completed.limit(10)
+    @deleted_count = Task.only_discarded.count
+  end
 
   def set_task
     @task = Task.find(params[:id])

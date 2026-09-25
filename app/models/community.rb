@@ -86,6 +86,12 @@ class Community < ApplicationRecord
     nil
   end
 
+  # The chat channel (base id, before the community prefix) that coverage
+  # requests are posted to when someone releases a task.
+  def coverage_chat_channel
+    settings&.dig("coverage_chat_channel").presence || "chores"
+  end
+
   def dues_tracking_enabled?
     monthly_dues_amount.present? && monthly_dues_amount > 0
   end

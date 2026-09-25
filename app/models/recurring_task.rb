@@ -43,6 +43,30 @@ class RecurringTask < ApplicationRecord
   def frequency_label = FREQUENCIES[frequency]
   def covered? = default_responsible_user_id.present?
 
+  # Makes sure every recurring task in an open workstream has its instance for
+  # the period containing +date+.
+  def self.generate_instances!(date = Date.current)
+    joins(:workstream).merge(Workstream.open).find_each { |recurring| recurring.instance_for(date) }
+  end
+
+  # This period's Task, created (pre-assigned to the default responsible
+  # person) the first time it's asked for.
+  def instance_for(date = Date.current)
+    period = period_for(date)
+    instances.find_or_create_by!(period_start: period.begin) do |task|
+      task.title = title
+      task.description = description
+      task.workstream = workstream
+      task.user = created_by
+      task.assigned_to_user = default_responsible_user
+      task.estimated_minutes = estimated_minutes
+      task.due_date = period.end
+      task.status = "active"
+    end
+  rescue ActiveRecord::RecordNotUnique
+    instances.find_by!(period_start: period.begin)
+  end
+
   # The date range of the period containing +date+.
   def period_for(date)
     case frequency

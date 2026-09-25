@@ -1,0 +1,15 @@
+<%# Frame navigation keeps the native apps from pushing a new screen per tab;
+    on the web the URL follows along so a reload stays on the same tab. %>
+<% link_data = { turbo_frame: "tasks_content" } %>
+<% link_data[:turbo_action] = "advance" unless hotwire_native_app? %>
+<nav aria-label="Task views" class="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0 mb-4">
+  <div class="inline-flex rounded-lg border border-base-300 p-0.5 bg-base-100">
+    <% TasksController::TAB_LABELS.each do |tab, label| %>
+      <% current = @tab == tab %>
+      <%= link_to label, tasks_path(tab: tab),
+            class: "btn btn-sm h-8 min-h-0 px-3 whitespace-nowrap #{current ? 'btn-primary' : 'btn-ghost'}",
+            aria: { current: (current ? "page" : nil) },
+            data: link_data %>
+    <% end %>
+  </div>
+</nav>

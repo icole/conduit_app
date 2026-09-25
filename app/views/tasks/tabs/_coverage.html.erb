@@ -1,0 +1,39 @@
+<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+  <p class="text-sm text-base-content/70 flex flex-wrap items-center gap-x-3 gap-y-1">
+    <span>Every workstream and what it covers.</span>
+    <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-info"></span>Ongoing Operations</span>
+    <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-warning"></span>One-Time Projects</span>
+  </p>
+  <% if current_user.admin? %>
+    <%= link_to "+ Workstream", new_workstream_path, class: "btn btn-ghost btn-sm", data: { turbo_frame: "_top" } %>
+  <% end %>
+</div>
+
+<% [ [ "ongoing-operations", "Ongoing Operations", "bg-info", @ongoing ], [ "one-time-projects", "One-Time Projects", "bg-warning", @projects ] ].each do |id, label, swatch, workstreams| %>
+  <section id="<%= id %>" class="mb-6">
+    <h2 class="font-semibold mb-2 flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-sm <%= swatch %>"></span><%= label %>
+      <span class="text-base-content/50 text-sm font-normal"><%= workstreams.size %></span>
+    </h2>
+    <% if workstreams.any? %>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <% workstreams.each do |workstream| %>
+          <%= render "tasks/coverage_card", workstream: workstream %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-sm text-base-content/50">None yet.</p>
+    <% end %>
+  </section>
+<% end %>
+
+<% if @closed_projects.any? %>
+  <details class="mb-6">
+    <summary class="text-sm text-base-content/60 cursor-pointer">Closed projects (<%= @closed_projects.size %>)</summary>
+    <ul class="mt-2 space-y-1 text-sm">
+      <% @closed_projects.each do |workstream| %>
+        <li><%= link_to workstream.name, workstream_path(workstream), class: "link link-hover", data: { turbo_frame: "_top" } %></li>
+      <% end %>
+    </ul>
+  </details>
+<% end %>

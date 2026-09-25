@@ -57,4 +57,48 @@ class RecurringTaskTest < ActiveSupport::TestCase
     assert_equal "Large", RecurringTask.effort_bucket(90)
     assert_nil RecurringTask.effort_bucket(nil)
   end
+
+  test "instance_for creates this period's task pre-assigned to the default person" do
+    date = Date.new(2026, 3, 5)
+    task = @recurring.instance_for(date)
+
+    assert task.persisted?
+    assert_equal @recurring, task.recurring_task
+    assert_equal @recurring.title, task.title
+    assert_equal @recurring.workstream, task.workstream
+    assert_equal users(:one), task.assigned_to_user
+    assert_equal 15, task.estimated_minutes
+    assert_equal Date.new(2026, 3, 2), task.period_start
+    assert_equal Date.new(2026, 3, 8), task.due_date
+    assert_equal "active", task.status
+  end
+
+  test "instance_for is idempotent within a period" do
+    first = @recurring.instance_for(Date.new(2026, 3, 3))
+    assert_no_difference("Task.count") do
+      assert_equal first, @recurring.instance_for(Date.new(2026, 3, 6))
+    end
+  end
+
+  test "an instance with nobody responsible is unassigned open work" do
+    task = recurring_tasks(:pantry_restock).instance_for(Date.new(2026, 3, 5))
+    assert_nil task.assigned_to_user
+    assert_includes Task.available, task
+  end
+
+  test "generate_instances! creates the current period for every recurring task in an open workstream" do
+    workstreams(:common_house).close!
+    assert_difference("Task.count", 1) do
+      RecurringTask.generate_instances!(Date.new(2026, 3, 5))
+    end
+    assert_no_difference("Task.count") do
+      RecurringTask.generate_instances!(Date.new(2026, 3, 5))
+    end
+  end
+
+  test "removed recurring tasks stop generating" do
+    @recurring.discard
+    recurring_tasks(:pantry_restock).discard
+    assert_no_difference("Task.count") { RecurringTask.generate_instances!(Date.new(2026, 3, 5)) }
+  end
 end
