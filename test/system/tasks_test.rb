@@ -181,7 +181,7 @@ class TasksTest < ApplicationSystemTestCase
     Capybara.reset_sessions!
     sign_in_as(@user_two)
     visit tasks_url(tab: "available")
-    card = find("[data-priority-group='essential'] .card", text: "Take out garbage & recycling")
+    card = find("[data-priority-group='essential'] [id^='task_']", text: "Take out garbage & recycling")
     within(card) do
       assert_text "Released by Jane"
       click_button "Claim"
@@ -222,7 +222,7 @@ class TasksTest < ApplicationSystemTestCase
                  status: "completed", completed_by: @user_one, completed_at: Time.current)
 
     visit tasks_url
-    card = find("#recurring-responsibilities .card", text: "Take out garbage & recycling")
+    card = find("#recurring-responsibilities [id^='task_']", text: "Take out garbage & recycling")
     badges = card.find("[data-task-details]")
     release = card.find_button("Can't do it →")
     assert_operator release.rect.y, :>, badges.rect.y + badges.rect.height - 1
@@ -235,9 +235,10 @@ class TasksTest < ApplicationSystemTestCase
     page.driver.browser.manage.window.resize_to(1400, 1400)
   end
 
-  test "coverage cards lay out the owner line the same way whether or not there's an owner" do
+  test "coverage is a plain grouped list on phones and coloured cards on wider screens" do
     covered = "#workstream_#{workstreams(:garbage).id}"
     uncovered = "#workstream_#{workstreams(:common_house).id}"
+    left_border = ->(card) { find(card).evaluate_script("getComputedStyle(this).borderLeftWidth") }
     owner_below_badge = lambda do |card|
       badge = find("#{card} [data-coverage-type]")
       owner = find("#{card} [data-coverage-owner]")
@@ -246,13 +247,20 @@ class TasksTest < ApplicationSystemTestCase
 
     page.driver.browser.manage.window.resize_to(375, 1400)
     visit tasks_url(tab: "coverage")
-    assert owner_below_badge.call(covered), "phone: owner goes under the type"
-    assert owner_below_badge.call(uncovered), "phone: 'No owner assigned' goes under the type too"
+    [ covered, uncovered ].each do |card|
+      assert_equal "0px", left_border.call(card), "phone: no coloured edge on #{card}"
+      assert_no_selector "#{card} [data-coverage-type]", visible: true
+      assert_selector "#{card} [data-coverage-owner]"
+    end
+    list = find("#ongoing-operations [data-coverage-list]")
+    assert_equal "1px", list.evaluate_script("getComputedStyle(this).borderTopWidth"), "phone: one bordered list per section"
 
     page.driver.browser.manage.window.resize_to(1400, 1400)
     visit tasks_url(tab: "coverage")
-    assert_not owner_below_badge.call(covered), "wide: owner sits beside the type"
-    assert_not owner_below_badge.call(uncovered), "wide: 'No owner assigned' sits beside the type"
+    [ covered, uncovered ].each do |card|
+      assert_equal "4px", left_border.call(card), "wide: coloured edge on #{card}"
+      assert_not owner_below_badge.call(card), "wide: owner sits beside the type on #{card}"
+    end
   ensure
     page.driver.browser.manage.window.resize_to(1400, 1400)
   end

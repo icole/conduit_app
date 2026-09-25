@@ -8,7 +8,7 @@
       <%= priority_badge(priority, size: "badge-md") %>
       <span class="text-sm text-base-content/50"><%= pluralize(tasks.size, "item") %></span>
     </div>
-    <div class="space-y-2">
+    <div class="<%= task_list_classes(priority: priority) %>">
       <% tasks.each do |task| %>
         <%= render "tasks/work_card", task: task, action: :claim, return_tab: "available", show_priority: false %>
       <% end %>

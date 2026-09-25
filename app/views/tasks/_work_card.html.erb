@@ -3,9 +3,9 @@
 <% show_priority = local_assigns.fetch(:show_priority, true) %>
 <% priority = task.effective_priority %>
 <% border = if action == :claim
-     { "essential" => "border-error/50", "important" => "border-warning/60" }.fetch(priority, "border-base-200")
+     { "essential" => "sm:border-error/50", "important" => "sm:border-warning/60" }.fetch(priority, "sm:border-base-200")
    else
-     "border-base-200"
+     "sm:border-base-200"
    end %>
 <% release_button = capture do %>
   <%= button_to release_task_path(task), method: :patch, class: "btn btn-ghost btn-sm whitespace-nowrap",
@@ -13,12 +13,13 @@
     Can't do it →
   <% end %>
 <% end if action == :release %>
-<div id="<%= dom_id task %>" class="card bg-base-100 border <%= border %> <%= 'border-2' if action == :claim && priority == 'essential' %>">
-  <div class="card-body p-3 sm:p-4 flex-row items-start gap-3">
+<%# A row in a grouped list on phones; a card of its own from sm up %>
+<div id="<%= dom_id task %>" class="sm:rounded-box sm:bg-base-100 sm:border <%= border %> <%= 'sm:border-2' if action == :claim && priority == 'essential' %>">
+  <div class="flex items-start gap-3 px-3 py-3 sm:p-4">
     <% if action != :claim %>
       <%= form_with model: task, url: task_path(task, return_to: tasks_path(tab: return_tab)), method: :patch, class: "flex pt-0.5" do |form| %>
         <%= form.hidden_field :status, value: "completed" %>
-        <button type="submit" class="group p-2 -m-2" title="Mark done" aria-label="Mark “<%= task.title %>” done">
+        <button type="submit" class="group p-2.5 -m-2.5" title="Mark done" aria-label="Mark “<%= task.title %>” done">
           <span class="block w-6 h-6 border-2 border-base-300 rounded-full group-hover:border-primary transition-colors"></span>
         </button>
       <% end %>
@@ -26,7 +27,26 @@
 
     <div class="flex-1 min-w-0">
       <p class="font-medium leading-6"><%= task.title %></p>
-      <div data-task-details class="flex flex-wrap items-center gap-1.5 mt-1.5">
+
+      <%# Phones: two short lines of plain text instead of a wall of badges %>
+      <div data-task-details class="sm:hidden mt-0.5 space-y-0.5 text-xs text-base-content/60">
+        <p class="truncate"><%= task.workstream.name %></p>
+        <p class="flex flex-wrap items-center gap-x-1.5">
+          <% bits = [] %>
+          <% bits << priority_dot(priority) if show_priority %>
+          <% bits << task.recurring_task.frequency_label if task.recurring_task %>
+          <% bits << "~#{task.estimated_minutes} min" if task.estimated_minutes %>
+          <% bits << tag.span(due_label(task.due_date), class: ("text-error" if task.overdue?)) if task.due_date %>
+          <% if task.released_by && action == :claim %>
+            <% bits << tag.span("Released by #{task.released_by.name.split(' ').first}", class: "text-info") %>
+          <% elsif task.released_by && task.assigned_to_user_id != task.released_by_id %>
+            <% bits << tag.span("Covering for #{task.released_by.name.split(' ').first}", class: "text-info") %>
+          <% end %>
+          <%= safe_join(bits.map { |bit| tag.span(bit, class: "inline-flex items-center gap-1 whitespace-nowrap") }, tag.span("·", aria: { hidden: true })) %>
+        </p>
+      </div>
+
+      <div class="hidden sm:flex flex-wrap items-center gap-1.5 mt-1.5">
         <%= priority_badge(priority) if show_priority %>
         <%= workstream_tag(task.workstream) %>
         <% if task.recurring_task %>
@@ -46,7 +66,7 @@
       </div>
       <% if action == :release %>
         <%# On a phone the action goes under the details so the title keeps its width %>
-        <div class="sm:hidden mt-2 -ml-3"><%= release_button %></div>
+        <div class="sm:hidden mt-1 -ml-3"><%= release_button %></div>
       <% end %>
     </div>
 
@@ -59,7 +79,7 @@
 
       <% if action != :claim %>
         <div class="dropdown dropdown-end">
-          <div tabindex="0" role="button" class="btn btn-ghost btn-xs btn-circle" aria-label="More actions">
+          <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle -mr-2 sm:mr-0" aria-label="More actions">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
             </svg>

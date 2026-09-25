@@ -1,7 +1,9 @@
 <% gaps = workstream.recurring_tasks.count { |r| !r.covered? } %>
+<%# A row in the section's list on phones; a card with a coloured edge from sm up %>
 <%= link_to workstream_path(workstream), id: dom_id(workstream), data: { turbo_frame: "_top" },
-      class: "card bg-base-100 border border-base-200 border-l-4 #{workstream_accent_class(workstream)} hover:border-base-300 transition-colors" do %>
-  <div class="card-body p-4 gap-2">
+      class: "flex flex-col active:bg-base-200 sm:active:bg-base-100 sm:rounded-box sm:bg-base-100 sm:border sm:border-base-200 " \
+             "sm:border-l-4 #{workstream_accent_class_from_sm(workstream)} sm:hover:border-base-300 transition-colors" do %>
+  <div class="flex flex-col flex-1 gap-1.5 sm:gap-2 px-4 py-3 sm:p-4">
     <div class="flex items-start justify-between gap-2">
       <h3 class="font-semibold"><%= workstream.name %></h3>
       <% if workstream.covered? %>
@@ -11,7 +13,8 @@
       <% end %>
     </div>
     <% if workstream.description.present? %>
-      <p class="text-sm text-base-content/70"><%= workstream.description %></p>
+      <%# Phones get the gist; the workstream page has the rest %>
+      <p class="text-sm text-base-content/70 line-clamp-2 sm:line-clamp-none"><%= workstream.description %></p>
     <% end %>
     <% if gaps.positive? %>
       <p class="text-xs text-base-content/60"><%= pluralize(gaps, "recurring task") %> without a responsible person</p>
@@ -19,7 +22,8 @@
     <%# Always the card's last line, so it lines up across the grid. Stacked on
         phones, one line with a separator on wider screens, whatever the length. %>
     <div class="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2 text-sm mt-auto pt-1">
-      <span data-coverage-type><%= workstream_type_badge(workstream) %></span>
+      <%# On phones the section heading and coloured edge already say the type %>
+      <span data-coverage-type class="hidden sm:inline"><%= workstream_type_badge(workstream) %></span>
       <span class="hidden sm:inline text-base-content/30" aria-hidden="true">•</span>
       <% if workstream.owner %>
         <span data-coverage-owner class="text-base-content/60">Owner: <%= workstream.owner.name %></span>

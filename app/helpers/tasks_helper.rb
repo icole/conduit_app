@@ -27,6 +27,11 @@ module TasksHelper
     workstream.ongoing? ? "border-l-info" : "border-l-warning"
   end
 
+  # The coloured edge only from sm up; on phones the section heading carries it.
+  def workstream_accent_class_from_sm(workstream)
+    workstream.ongoing? ? "sm:border-l-info" : "sm:border-l-warning"
+  end
+
   def effort_badge(minutes)
     return if minutes.blank?
 
@@ -45,5 +50,31 @@ module TasksHelper
   # 585 -> "9.8 hrs"
   def hours(minutes)
     format("%.1f hrs", minutes / 60.0)
+  end
+
+  PRIORITY_DOT_CLASSES = { "essential" => "bg-error", "important" => "bg-warning", "nice_to_have" => "bg-base-300" }.freeze
+
+  # A coloured dot and the level's name, for compact rows on phones.
+  def priority_dot(priority)
+    safe_join([
+      tag.span(class: "inline-block w-2 h-2 rounded-full #{PRIORITY_DOT_CLASSES[priority]}", aria: { hidden: true }),
+      Workstream.priority_label(priority)
+    ], " ")
+  end
+
+  # "Due Sat" this week, "Due Oct 2" further out, "Overdue · Sep 20" past.
+  def due_label(date, today: Date.current)
+    return if date.blank?
+    return "Overdue · #{date.strftime('%b %-d')}" if date < today
+    return "Due today" if date == today
+
+    date <= today + 6 ? "Due #{date.strftime('%a')}" : "Due #{date.strftime('%b %-d')}"
+  end
+
+  # One grouped list on phones (rows split by hairlines), separate cards from sm up.
+  def task_list_classes(priority: nil)
+    border = priority == "essential" ? "border-error/50" : "border-base-200"
+    "rounded-box border #{border} bg-base-100 divide-y divide-base-200 " \
+      "sm:rounded-none sm:border-0 sm:bg-transparent sm:divide-y-0 sm:space-y-2"
   end
 end
