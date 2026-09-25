@@ -7,7 +7,7 @@
     <% TasksController::TAB_LABELS.each do |tab, label| %>
       <% current = @tab == tab %>
       <%= link_to label, tasks_path(tab: tab),
-            class: "btn btn-sm h-8 min-h-0 flex-1 sm:flex-none px-1 sm:px-3 whitespace-nowrap #{current ? 'btn-primary' : 'btn-ghost'}",
+            class: "btn btn-sm h-8 min-h-0 flex-1 sm:flex-none px-1 sm:px-3 whitespace-nowrap #{current ? 'btn-primary text-base-content' : 'btn-ghost'}",
             aria: { current: (current ? "page" : nil) },
             data: link_data %>
     <% end %>

@@ -1,6 +1,6 @@
 module TasksHelper
   PRIORITY_BADGE_CLASSES = {
-    "essential" => "badge-error",
+    "essential" => "badge-error text-on-error",
     "important" => "badge-warning",
     "nice_to_have" => "badge-ghost"
   }.freeze
@@ -12,9 +12,15 @@ module TasksHelper
   # Ongoing Operations are blue, One-Time Projects amber, wherever they appear.
   # Class names are spelled out in full so Tailwind can find them.
   def workstream_tag(workstream, size: "badge-sm")
-    color = workstream.ongoing? ? "badge-info" : "badge-warning"
+    # Tinted fill with a dark label: the theme's yellow and blue are too light
+    # to read as text on the page.
+    color = if workstream.ongoing?
+      "border-info/50 bg-info/10 text-info-ink hover:bg-info/20"
+    else
+      "border-warning/70 bg-warning/15 text-warning-ink hover:bg-warning/25"
+    end
     link_to workstream.name, workstream_path(workstream),
-            class: "badge #{size} badge-outline #{color} whitespace-nowrap hover:badge-soft",
+            class: "badge #{size} #{color} whitespace-nowrap",
             data: { turbo_frame: "_top" }
   end
 

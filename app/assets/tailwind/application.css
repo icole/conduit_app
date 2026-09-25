@@ -3,3 +3,13 @@
 @plugin "daisyui" {
   themes: cupcake;
 }
+/* The cupcake theme's warning/info/success/error colours are fine as fills but
+   too light to read as text on the page (yellow is 1.8:1). These darker shades
+   pass WCAG AA (4.5:1) on the page, grey rows and their own light tints. */
+@theme {
+  --color-warning-ink: oklch(47% 0.12 65);
+  --color-info-ink: oklch(46% 0.13 245);
+  --color-success-ink: oklch(46% 0.11 162);
+  --color-error-ink: oklch(50% 0.19 22);
+  --color-on-error: oklch(16% 0.05 12);
+}

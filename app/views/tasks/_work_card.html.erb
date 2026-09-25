@@ -29,18 +29,18 @@
       <p class="font-medium leading-6"><%= task.title %></p>
 
       <%# Phones: two short lines of plain text instead of a wall of badges %>
-      <div data-task-details class="sm:hidden mt-0.5 space-y-0.5 text-xs text-base-content/60">
+      <div data-task-details class="sm:hidden mt-0.5 space-y-0.5 text-xs text-base-content/70">
         <p class="truncate"><%= task.workstream.name %></p>
         <p class="flex flex-wrap items-center gap-x-1.5">
           <% bits = [] %>
           <% bits << priority_dot(priority) if show_priority %>
           <% bits << task.recurring_task.frequency_label if task.recurring_task %>
           <% bits << "~#{task.estimated_minutes} min" if task.estimated_minutes %>
-          <% bits << tag.span(due_label(task.due_date), class: ("text-error" if task.overdue?)) if task.due_date %>
+          <% bits << tag.span(due_label(task.due_date), class: ("text-error-ink" if task.overdue?)) if task.due_date %>
           <% if task.released_by && action == :claim %>
-            <% bits << tag.span("Released by #{task.released_by.name.split(' ').first}", class: "text-info") %>
+            <% bits << tag.span("Released by #{task.released_by.name.split(' ').first}", class: "text-info-ink") %>
           <% elsif task.released_by && task.assigned_to_user_id != task.released_by_id %>
-            <% bits << tag.span("Covering for #{task.released_by.name.split(' ').first}", class: "text-info") %>
+            <% bits << tag.span("Covering for #{task.released_by.name.split(' ').first}", class: "text-info-ink") %>
           <% end %>
           <%= safe_join(bits.map { |bit| tag.span(bit, class: "inline-flex items-center gap-1 whitespace-nowrap") }, tag.span("·", aria: { hidden: true })) %>
         </p>
@@ -54,13 +54,13 @@
         <% end %>
         <%= effort_badge(task.estimated_minutes) %>
         <% if task.due_date %>
-          <span class="badge badge-sm whitespace-nowrap <%= task.overdue? ? 'badge-error badge-soft' : 'badge-ghost' %>">Due <%= task.due_date.strftime("%b %-d") %></span>
+          <span class="badge badge-sm whitespace-nowrap <%= task.overdue? ? 'border-error/40 bg-error/10 text-error-ink' : 'badge-ghost' %>">Due <%= task.due_date.strftime("%b %-d") %></span>
         <% end %>
         <% if task.released_by %>
           <% if action == :claim %>
             <span class="badge badge-sm badge-info whitespace-nowrap">Released by <%= task.released_by.name.split(" ").first %></span>
           <% elsif task.assigned_to_user_id != task.released_by_id %>
-            <span class="badge badge-sm badge-info badge-soft whitespace-nowrap">Covering for <%= task.released_by.name.split(" ").first %></span>
+            <span class="badge badge-sm border-info/40 bg-info/10 text-info-ink whitespace-nowrap">Covering for <%= task.released_by.name.split(" ").first %></span>
           <% end %>
         <% end %>
       </div>
@@ -87,7 +87,7 @@
           <ul tabindex="0" class="dropdown-content z-50 p-2 shadow-lg bg-base-100 text-base-content rounded-box w-44">
             <li><%= link_to "Edit", edit_task_path(task), data: { turbo_frame: "_top" }, class: "block px-3 py-2 rounded-lg hover:bg-base-200" %></li>
             <% unless task.recurring? %>
-              <li><%= link_to "Delete", task_path(task), data: { turbo_method: :delete, turbo_confirm: "Delete this task?" }, class: "block px-3 py-2 rounded-lg text-error hover:bg-base-200" %></li>
+              <li><%= link_to "Delete", task_path(task), data: { turbo_method: :delete, turbo_confirm: "Delete this task?" }, class: "block px-3 py-2 rounded-lg text-error-ink hover:bg-base-200" %></li>
             <% end %>
           </ul>
         </div>

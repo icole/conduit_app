@@ -13,7 +13,7 @@
   <section id="<%= id %>" class="mb-6">
     <h2 class="font-semibold mb-2 flex items-center gap-2">
       <span class="w-2.5 h-2.5 rounded-sm <%= swatch %>"></span><%= label %>
-      <span class="text-base-content/50 text-sm font-normal"><%= workstreams.size %></span>
+      <span class="text-base-content/65 text-sm font-normal"><%= workstreams.size %></span>
     </h2>
     <% if workstreams.any? %>
       <div data-coverage-list class="rounded-box border border-base-200 bg-base-100 divide-y divide-base-200 sm:rounded-none sm:border-0 sm:bg-transparent sm:divide-y-0 sm:grid sm:grid-cols-1 md:grid-cols-2 sm:gap-3">
@@ -22,14 +22,14 @@
         <% end %>
       </div>
     <% else %>
-      <p class="text-sm text-base-content/50">None yet.</p>
+      <p class="text-sm text-base-content/65">None yet.</p>
     <% end %>
   </section>
 <% end %>
 
 <% if @closed_projects.any? %>
   <details class="mb-6">
-    <summary class="text-sm text-base-content/60 cursor-pointer">Closed projects (<%= @closed_projects.size %>)</summary>
+    <summary class="text-sm text-base-content/70 cursor-pointer">Closed projects (<%= @closed_projects.size %>)</summary>
     <ul class="mt-2 space-y-1 text-sm">
       <% @closed_projects.each do |workstream| %>
         <li><%= link_to workstream.name, workstream_path(workstream), class: "link link-hover", data: { turbo_frame: "_top" } %></li>

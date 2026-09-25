@@ -22,7 +22,7 @@
   <div class="form-control">
     <%= form.label :default_responsible_user_id, "Default responsible person", class: "label" %>
     <%= form.select :default_responsible_user_id, [ [ "Nobody yet (coverage gap)", "" ] ] + User.order(:name).map { |u| [ u.name, u.id ] }, {}, class: "select select-bordered w-full" %>
-    <p class="text-xs text-base-content/60 mt-1">Each period's instance is pre-assigned to this person. They can release a single period if they're away.</p>
+    <p class="text-xs text-base-content/70 mt-1">Each period's instance is pre-assigned to this person. They can release a single period if they're away.</p>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -41,7 +41,7 @@
     <div class="form-control">
       <%= form.label :estimated_minutes, "Agreed time (minutes)", class: "label" %>
       <%= form.number_field :estimated_minutes, min: 1, step: 1, class: "input input-bordered w-full", required: true %>
-      <p class="text-xs text-base-content/60 mt-1">The time the group agrees this takes. It's what counts toward contribution, however long it actually takes.</p>
+      <p class="text-xs text-base-content/70 mt-1">The time the group agrees this takes. It's what counts toward contribution, however long it actually takes.</p>
     </div>
 
     <div class="form-control">

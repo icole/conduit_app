@@ -1,25 +1,25 @@
 <p class="text-sm text-base-content/70 mb-4">Everything you're responsible for this period: your recurring duties and one-off assignments.</p>
 
 <section id="recurring-responsibilities" class="mb-6">
-  <h2 class="font-semibold mb-2">Your recurring responsibilities <span class="text-base-content/50 text-sm font-normal ml-1"><%= @recurring_tasks.size %></span></h2>
+  <h2 class="font-semibold mb-2">Your recurring responsibilities <span class="text-base-content/65 text-sm font-normal ml-1"><%= @recurring_tasks.size %></span></h2>
   <div class="<%= task_list_classes %>">
     <% @recurring_tasks.each do |task| %>
       <%= render "tasks/work_card", task: task, action: :release, return_tab: "my" %>
     <% end %>
     <% if @recurring_tasks.empty? %>
-      <p class="text-sm text-base-content/50 px-3 py-3 sm:p-0">No recurring duties this period.</p>
+      <p class="text-sm text-base-content/65 px-3 py-3 sm:p-0">No recurring duties this period.</p>
     <% end %>
   </div>
 </section>
 
 <section id="assigned-to-you" class="mb-6">
-  <h2 class="font-semibold mb-2">Assigned to you <span class="text-base-content/50 text-sm font-normal ml-1"><%= @assigned_tasks.size %></span></h2>
+  <h2 class="font-semibold mb-2">Assigned to you <span class="text-base-content/65 text-sm font-normal ml-1"><%= @assigned_tasks.size %></span></h2>
   <div class="<%= task_list_classes %>">
     <% @assigned_tasks.each do |task| %>
       <%= render "tasks/work_card", task: task, action: (task.recurring? ? :release : nil), return_tab: "my" %>
     <% end %>
     <% if @assigned_tasks.empty? %>
-      <p class="text-sm text-base-content/50 px-3 py-3 sm:p-0">
+      <p class="text-sm text-base-content/65 px-3 py-3 sm:p-0">
         Nothing assigned right now.
         <%= link_to "See what's open", tasks_path(tab: "available"), class: "link link-primary", data: { turbo_frame: "tasks_content" } %>
       </p>
@@ -27,7 +27,7 @@
   </div>
 </section>
 
-<%= link_to tasks_path(view: "active"), class: "inline-flex items-center gap-1 text-sm text-base-content/60 hover:text-base-content", data: { turbo_frame: "tasks_content" } do %>
+<%= link_to tasks_path(view: "active"), class: "inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-base-content", data: { turbo_frame: "tasks_content" } do %>
   All tasks: backlog &amp; priority order
   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
 <% end %>

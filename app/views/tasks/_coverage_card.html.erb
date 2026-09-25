@@ -7,9 +7,9 @@
     <div class="flex items-start justify-between gap-2">
       <h3 class="font-semibold"><%= workstream.name %></h3>
       <% if workstream.covered? %>
-        <span class="badge badge-sm badge-outline badge-success whitespace-nowrap">Covered</span>
+        <span class="badge badge-sm border-success text-success-ink whitespace-nowrap">Covered</span>
       <% else %>
-        <span class="badge badge-sm badge-error whitespace-nowrap">Needs owner</span>
+        <span class="badge badge-sm badge-error text-on-error whitespace-nowrap">Needs owner</span>
       <% end %>
     </div>
     <% if workstream.description.present? %>
@@ -17,7 +17,7 @@
       <p class="text-sm text-base-content/70 line-clamp-2 sm:line-clamp-none"><%= workstream.description %></p>
     <% end %>
     <% if gaps.positive? %>
-      <p class="text-xs text-base-content/60"><%= pluralize(gaps, "recurring task") %> without a responsible person</p>
+      <p class="text-xs text-base-content/70"><%= pluralize(gaps, "recurring task") %> without a responsible person</p>
     <% end %>
     <%# Always the card's last line, so it lines up across the grid. Stacked on
         phones, one line with a separator on wider screens, whatever the length. %>
@@ -26,9 +26,9 @@
       <span data-coverage-type class="hidden sm:inline"><%= workstream_type_badge(workstream) %></span>
       <span class="hidden sm:inline text-base-content/30" aria-hidden="true">•</span>
       <% if workstream.owner %>
-        <span data-coverage-owner class="text-base-content/60">Owner: <%= workstream.owner.name %></span>
+        <span data-coverage-owner class="text-base-content/70">Owner: <%= workstream.owner.name %></span>
       <% else %>
-        <span data-coverage-owner class="text-error">No owner assigned</span>
+        <span data-coverage-owner class="text-error-ink">No owner assigned</span>
       <% end %>
     </div>
   </div>

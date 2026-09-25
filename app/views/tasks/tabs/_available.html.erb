@@ -6,7 +6,7 @@
   <section data-priority-group="<%= priority %>" class="mb-6">
     <div class="flex items-center gap-2 mb-2">
       <%= priority_badge(priority, size: "badge-md") %>
-      <span class="text-sm text-base-content/50"><%= pluralize(tasks.size, "item") %></span>
+      <span class="text-sm text-base-content/65"><%= pluralize(tasks.size, "item") %></span>
     </div>
     <div class="<%= task_list_classes(priority: priority) %>">
       <% tasks.each do |task| %>
@@ -20,7 +20,7 @@
   <div class="card bg-base-100 border border-base-200">
     <div class="card-body text-center py-8 px-4">
       <p class="font-medium text-base-content/70">Nothing in the queue</p>
-      <p class="text-sm text-base-content/50">Every open task has someone on it.</p>
+      <p class="text-sm text-base-content/65">Every open task has someone on it.</p>
     </div>
   </div>
 <% end %>
