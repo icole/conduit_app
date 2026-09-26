@@ -57,6 +57,6 @@ enum AppConfig {
     }
 
     static var userAgent: String {
-        return "Conduit iOS (Turbo Native)"
+        return "Conduit iOS/2 (Turbo Native)"
     }
 }
