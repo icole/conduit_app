@@ -121,6 +121,19 @@ class WorkstreamImportTest < ActiveSupport::TestCase
     assert_equal users(:three), RecurringTask.find_by!(title: "Record meeting minutes").default_responsible_user
   end
 
+  test "a governance role can be reclassified as ongoing work, keeping its tasks" do
+    role = { "name" => "Data Protection Officer", "type" => "governance", "owners" => [ "Alice" ],
+             "recurring_tasks" => [ { "title" => "Audit Drive permissions", "frequency" => "quarterly", "minutes" => 60 } ] }
+    import({ "workstreams" => [ role ] })
+    audit = RecurringTask.find_by!(title: "Audit Drive permissions")
+
+    import({ "workstreams" => [ role.merge("type" => "permanent", "priority" => "essential") ] })
+    officer = Workstream.find_by!(name: "Data Protection Officer")
+    assert_equal [ "permanent", "essential" ], [ officer.workstream_type, officer.priority ]
+    assert_equal officer, audit.reload.workstream
+    assert_not audit.discarded?
+  end
+
   test "a recurring task can name who's responsible instead of the first owner" do
     data = { "workstreams" => [ { "name" => "Meeting Facilitators", "type" => "governance", "description" => "Run meetings.",
                                   "owners" => [ "Mike", "Alice" ],

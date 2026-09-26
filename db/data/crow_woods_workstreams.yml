@@ -85,14 +85,6 @@ workstreams:
     description: Co-run the meeting using the sociocratic method.
     frequency: monthly
     minutes: 90
-- name: Data Protection Officer
-  type: governance
-  description: Responsible for privacy/security of sensitive data; audits Google Drive permissions quarterly.
-  recurring_tasks:
-  - title: Audit Google Drive permissions
-    description: Review who can see what in the shared Drive.
-    frequency: quarterly
-    minutes: 60
 - name: Finance Committee
   type: governance
   description: Budget planning and financial oversight support.
@@ -299,6 +291,15 @@ workstreams:
   - 'Tech support (as needed): Help members with Google Drive and shared tools.'
   - 'Maintain Common House WiFi (as needed): Keep the Common House WiFi working; troubleshoot issues.'
   time_commitment: Currently ~10-20 hrs/mo (mostly Conduit)
+- name: Data Protection Officer
+  type: permanent
+  description: Responsible for privacy/security of sensitive data; audits Google Drive permissions quarterly.
+  priority: essential
+  recurring_tasks:
+  - title: Audit Google Drive permissions
+    description: Review who can see what in the shared Drive.
+    frequency: quarterly
+    minutes: 60
 - name: Crow Woods Ambassador
   type: permanent
   description: Handles outreach - the public inbox, social media, and website content.
