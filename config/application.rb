@@ -20,6 +20,10 @@ module ConduitApp
     require_relative "../app/middleware/encoding_error_handler"
     config.middleware.insert_before 0, EncodingErrorHandler
 
+    # Discard the client-supplied Client-Ip header before RemoteIp trusts it
+    require_relative "../app/middleware/client_ip_header_stripper"
+    config.middleware.insert_before ActionDispatch::RemoteIp, ClientIpHeaderStripper
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
