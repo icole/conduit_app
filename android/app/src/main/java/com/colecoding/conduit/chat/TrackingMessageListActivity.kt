@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.View
 import com.colecoding.conduit.ui.padForSystemBars
 import io.getstream.chat.android.ui.feature.messages.MessageListActivity
+import io.getstream.chat.android.ui.feature.messages.MessageListFragment
 
 /**
  * Wrapper around Stream's MessageListActivity that tracks when user is viewing a channel
@@ -30,6 +31,15 @@ class TrackingMessageListActivity : MessageListActivity() {
     }
 
     private var channelCid: String? = null
+
+    /** Stream's message list plus a search-this-chat button in the header. */
+    override fun createMessageListFragment(cid: String, messageId: String?): MessageListFragment {
+        return MessageListFragment.newInstance(cid) {
+            setFragment(TrackingMessageListFragment())
+            showHeader(true)
+            messageId(messageId)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
