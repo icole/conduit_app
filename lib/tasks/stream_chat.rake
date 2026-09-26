@@ -624,6 +624,58 @@ namespace :stream_chat do
     end
   end
 
+  desc "Audit Stream users against Conduit accounts: orphans, missing, wrong team, elevated role."
+  task audit_users: :environment do
+    unless StreamChatClient.configured?
+      puts "Stream Chat is not configured."
+      next
+    end
+
+    print_stream_app_header(StreamTeamBackfill.new)
+    report = StreamUserAudit.new.call
+
+    puts "Stream users: #{report[:stream_count]}   Conduit users: #{report[:conduit_count]}"
+    puts ""
+
+    puts "Orphaned in Stream (no Conduit account): #{report[:orphaned].size}"
+    report[:orphaned].each do |u|
+      puts format("  %-16s role=%-13s teams=%-15s last_active=%s  %s",
+                  u[:id], u[:role], u[:teams].join(","), u[:last_active].to_s.first(10), u[:name])
+    end
+
+    puts ""
+    puts "Missing from Stream (no chat identity yet): #{report[:missing_from_stream].size}"
+    report[:missing_from_stream].each { |id| puts "  user #{id}" }
+
+    puts ""
+    puts "Wrong team: #{report[:wrong_team].size}"
+    report[:wrong_team].each { |u| puts "  #{u[:id]} expected #{u[:expected].inspect} but has #{u[:actual].inspect}" }
+
+    puts ""
+    puts "Role above \"user\": #{report[:elevated_role].size}"
+    report[:elevated_role].each { |u| puts "  #{u[:id]} role=#{u[:role]}" }
+
+    puts ""
+    if report[:ok]
+      puts "OK - every Stream user matches a Conduit account, on the right team, with role user."
+    else
+      puts "Drift found. To retire orphans (reversible, keeps their messages):"
+      puts "  bin/rails stream_chat:deactivate_stream_users IDS=a,b,c"
+      puts "Irreversible erasure instead:"
+      puts "  bin/rails stream_chat:delete_stream_users IDS=a,b,c"
+    end
+  end
+
+  desc "Deactivate orphaned Stream users by id. IDS=3,4 [APPLY=true]. Reversible; keeps their messages."
+  task deactivate_stream_users: :environment do
+    retire_stream_users(:deactivate)
+  end
+
+  desc "Delete orphaned Stream users by id. IDS=3,4 [APPLY=true]. Irreversible."
+  task delete_stream_users: :environment do
+    retire_stream_users(:delete)
+  end
+
   desc "Show the per-role permission grants for a Stream channel type. TYPE=team by default."
   task show_grants: :environment do
     unless StreamChatClient.configured?
@@ -700,4 +752,43 @@ def run_grant_change(direction)
   puts ""
   puts "Applied. #{role} now has: #{StreamChannelGrants.new(channel_type: type).for_role(role).sort.join(', ')}"
   puts "Undo: bin/rails stream_chat:#{direction == :revoke ? 'grant_permission' : 'revoke_grant'} ROLE=#{role} PERMISSION=#{permission} TYPE=#{type} APPLY=true"
+end
+
+def retire_stream_users(mode)
+  unless StreamChatClient.configured?
+    puts "Stream Chat is not configured."
+    return
+  end
+
+  ids = ENV.fetch("IDS").split(",").map(&:strip).reject(&:empty?)
+  audit = StreamUserAudit.new
+  report = audit.call
+  orphans = report[:orphaned].index_by { |u| u[:id] }
+
+  puts "#{mode == :delete ? 'DELETE (irreversible)' : 'Deactivate (reversible)'} #{ids.size} Stream user(s):"
+  ids.each do |id|
+    u = orphans[id]
+    if u
+      puts format("  %-16s role=%-13s teams=%-15s %s", id, u[:role], u[:teams].join(","), u[:name])
+    else
+      puts "  #{id}  NOT AN ORPHAN - belongs to a live Conduit account, or unknown to Stream"
+    end
+  end
+
+  unless (ids - orphans.keys).empty?
+    puts ""
+    puts "Refusing: every id must be orphaned. Run stream_chat:audit_users to see the list."
+    exit 1
+  end
+
+  unless ENV["APPLY"] == "true"
+    puts ""
+    puts "Dry run. Re-run with APPLY=true to apply."
+    return
+  end
+
+  done = mode == :delete ? audit.delete_orphans!(ids: ids) : audit.deactivate_orphans!(ids: ids)
+  puts ""
+  puts "Applied to #{done.size} user(s)."
+  puts "Reactivate with client.reactivate_user(id) if needed." if mode == :deactivate
 end
