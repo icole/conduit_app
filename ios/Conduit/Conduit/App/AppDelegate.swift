@@ -276,35 +276,17 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         let userInfo = response.notification.request.content.userInfo
         print("  → UserInfo: \(userInfo)")
 
-        // Handle Stream Chat notification tap
-        if let streamPayload = userInfo["stream"] as? [String: Any] {
-            print("  → Stream payload found: \(streamPayload)")
-
-            // Extract channel CID from notification - prefer cid field, fall back to constructing it
-            let cid: String?
-            if let directCid = streamPayload["cid"] as? String {
-                cid = directCid
-            } else if let channelId = streamPayload["channel_id"] as? String,
-                      let channelType = streamPayload["channel_type"] as? String {
-                cid = "\(channelType):\(channelId)"
+        // Handle Stream Chat notification tap. The channel is remembered until
+        // the chat screen is connected; the post switches to Chat if the main
+        // app is already showing (otherwise SceneDelegate does once it is).
+        if userInfo["stream"] != nil {
+            if let cid = ChatManager.channelCid(fromNotification: userInfo) {
+                print("  → Requesting channel: \(cid)")
+                ChatManager.shared.requestChannel(cid: cid)
             } else {
-                cid = nil
-            }
-
-            if let cid = cid {
-                print("  → Navigating to channel: \(cid)")
-
-                // Navigate to chat tab with specific channel
-                NotificationCenter.default.post(
-                    name: Notification.Name("OpenChatTab"),
-                    object: nil,
-                    userInfo: ["channelCid": cid]
-                )
-            } else {
-                // No channel info, just open chat tab
                 print("  → No channel info, opening chat tab")
-                NotificationCenter.default.post(name: Notification.Name("OpenChatTab"), object: nil)
             }
+            NotificationCenter.default.post(name: Notification.Name("OpenChatTab"), object: nil)
         } else {
             print("  → No Stream payload found")
         }

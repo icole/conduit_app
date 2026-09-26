@@ -14,6 +14,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: windowScene)
         self.window = window
 
+        // Notification taps switch to Chat. Registered once here, not on every
+        // sign-in, so one tap doesn't open the channel several times.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(openChatTab(_:)),
+            name: Notification.Name("OpenChatTab"),
+            object: nil
+        )
+
+        // Launched by tapping a chat notification: remember the channel until
+        // the main app and the chat are ready.
+        if let response = connectionOptions.notificationResponse,
+           let cid = ChatManager.channelCid(fromNotification: response.notification.request.content.userInfo) {
+            ChatManager.shared.requestChannel(cid: cid)
+        }
+
         // Check if community is selected first
         if !CommunityManager.shared.hasCommunityURL() {
             showCommunitySelectScreen()
@@ -117,19 +133,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         tabBarController.onLogout = { [weak self] in
             // Disconnect Stream Chat before logging out
             ChatManager.shared.disconnect()
+            // Forget the old tabs, so a notification tapped on the sign-in
+            // screen waits for the next sign-in instead of going to them
+            self?.tabBarController = nil
             // Use async logout to ensure all data is cleared before showing login
             AuthenticationManager.shared.logout {
                 self?.showLoginScreen()
             }
         }
-
-        // Setup notification observer for push notification taps
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(openChatTab(_:)),
-            name: Notification.Name("OpenChatTab"),
-            object: nil
-        )
 
         // Animate transition if window already has a root view controller
         if window?.rootViewController != nil {
@@ -139,20 +150,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         } else {
             window?.rootViewController = tabBarController
         }
+
+        // A notification was tapped before sign-in or while launching
+        if ChatManager.shared.hasPendingChannel {
+            tabBarController.showChatTab()
+        }
     }
 
     @objc private func openChatTab(_ notification: Notification) {
-        // Switch to chat tab (index 3)
-        tabBarController?.selectedIndex = 3
-
-        // Extract channel CID from notification if present
-        if let channelCid = notification.userInfo?["channelCid"] as? String {
-            print("SceneDelegate: Opening chat with channel: \(channelCid)")
-            // Pass the channel CID to the tab bar controller for navigation
-            tabBarController?.openChannel(cid: channelCid)
-        } else {
-            print("SceneDelegate: Opening chat tab without specific channel")
-        }
+        // Before the main app shows (launching, signing in) there's no tab bar
+        // yet; showMainApp() switches to Chat once there is.
+        tabBarController?.showChatTab()
     }
 
     // MARK: - URL Handling for Google Sign-In
