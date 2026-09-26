@@ -12,3 +12,18 @@ front_yard_two:
   community: crow_woods
   workstream: front_yard
   user: two
+
+treasurer_one:
+  community: crow_woods
+  workstream: treasurer
+  user: one
+
+facilitators_two:
+  community: crow_woods
+  workstream: facilitators
+  user: two
+
+facilitators_three:
+  community: crow_woods
+  workstream: facilitators
+  user: three

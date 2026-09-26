@@ -1,6 +1,7 @@
 <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
   <p class="text-sm text-base-content/70 flex flex-wrap items-center gap-x-3 gap-y-1">
     <span>Every workstream and what it covers.</span>
+    <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-neutral"></span>Governance</span>
     <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-info"></span>Ongoing Operations</span>
     <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-warning"></span>One-Time Projects</span>
   </p>
@@ -9,11 +10,12 @@
   <% end %>
 </div>
 
-<% [ [ "ongoing-operations", "Ongoing Operations", "bg-info", @ongoing ], [ "one-time-projects", "One-Time Projects", "bg-warning", @projects ] ].each do |id, label, swatch, workstreams| %>
+<% [ [ "governance", "Governance", "bg-neutral", @governance ], [ "ongoing-operations", "Ongoing Operations", "bg-info", @ongoing ], [ "one-time-projects", "One-Time Projects", "bg-warning", @projects ] ].each do |id, label, swatch, workstreams| %>
   <section id="<%= id %>" class="mb-6">
     <h2 class="font-semibold mb-2 flex items-center gap-2">
       <span class="w-2.5 h-2.5 rounded-sm <%= swatch %>"></span><%= label %>
       <span class="text-base-content/65 text-sm font-normal"><%= workstreams.size %></span>
+      <% if id == "governance" %><%= required_badge(size: "badge-xs") %><% end %>
     </h2>
     <% if workstreams.any? %>
       <div data-coverage-list class="rounded-box border border-base-200 bg-base-100 divide-y divide-base-200 sm:rounded-none sm:border-0 sm:bg-transparent sm:divide-y-0 sm:grid sm:grid-cols-1 md:grid-cols-2 sm:gap-3">

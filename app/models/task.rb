@@ -63,23 +63,42 @@ class Task < ApplicationRecord
   end
 
   # The Available queue, essential work first, then soonest due.
-  def self.available_queue
-    available.includes(:workstream, :recurring_task, :released_by).sort_by do |task|
+  # Governance work only shows to the role's holders.
+  def self.available_queue(user = nil)
+    tasks = available.includes(:recurring_task, :released_by, workstream: :owners).select do |task|
+      !task.workstream.governance? || task.workstream.owned_by?(user)
+    end
+    tasks.sort_by do |task|
       [ Workstream.priority_rank(task.effective_priority), task.due_date || Date.new(9999), task.created_at ]
     end
   end
 
-  # The assignee can't do it this time: back to the queue, and a note to the
+  # Assigned, open, and someone else could take it. A governance role hands
+  # off only among its holders, so a role held by one person can't.
+  def releasable?
+    return false if assigned_to_user_id.nil? || completed?
+
+    !workstream.governance? || workstream.owners.size > 1
+  end
+
+  # The assignee can't do it this time: back to the queue, and (except for
+  # governance, which stays among the role's holders) a note to the
   # community's coverage chat channel. The recurring default is untouched.
   def release!(by)
-    return false unless assigned_to_user_id == by.id && !completed?
+    return false unless assigned_to_user_id == by.id && releasable?
 
     update!(assigned_to_user: nil, released_by: by, released_at: Time.current)
-    CoverageBroadcastJob.perform_later(community_id, id)
+    CoverageBroadcastJob.perform_later(community_id, id) unless workstream.governance?
     true
   end
 
+  def claimable_by?(user)
+    !workstream.governance? || workstream.owned_by?(user)
+  end
+
   def claim!(user)
+    return false unless claimable_by?(user)
+
     with_lock do
       return false if assigned_to_user_id.present? || completed?
 

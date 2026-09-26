@@ -1,6 +1,8 @@
 <%# One piece of work on the My Tasks and Available tabs.
     locals: task, action (:release, :claim or nil), return_tab, show_priority (default true) %>
 <% show_priority = local_assigns.fetch(:show_priority, true) %>
+<%# "Can't do it" only when someone else could take it (a solo governance role can't hand off) %>
+<% action = nil if action == :release && !task.releasable? %>
 <% priority = task.effective_priority %>
 <% border = if action == :claim
      { "essential" => "sm:border-error/50", "important" => "sm:border-warning/60" }.fetch(priority, "sm:border-base-200")
@@ -33,7 +35,7 @@
         <p class="truncate"><%= task.workstream.name %></p>
         <p class="flex flex-wrap items-center gap-x-1.5">
           <% bits = [] %>
-          <% bits << priority_dot(priority) if show_priority %>
+          <% bits << (task.workstream.governance? ? "Required" : priority_dot(priority)) if show_priority %>
           <% bits << task.recurring_task.frequency_label if task.recurring_task %>
           <% bits << "~#{task.estimated_minutes} min" if task.estimated_minutes %>
           <% bits << tag.span(due_label(task.due_date), class: ("text-error-ink" if task.overdue?)) if task.due_date %>
@@ -47,7 +49,7 @@
       </div>
 
       <div class="hidden sm:flex flex-wrap items-center gap-1.5 mt-1.5">
-        <%= priority_badge(priority) if show_priority %>
+        <%= task_priority_badge(task) if show_priority %>
         <%= workstream_tag(task.workstream) %>
         <% if task.recurring_task %>
           <span class="badge badge-sm badge-ghost whitespace-nowrap"><%= task.recurring_task.frequency_label %></span>

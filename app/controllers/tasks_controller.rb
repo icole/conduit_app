@@ -94,7 +94,9 @@ class TasksController < ApplicationController
   end
 
   def claim
-    if @task.claim!(current_user)
+    if !@task.claimable_by?(current_user)
+      redirect_to tasks_path(tab: "available"), alert: "That's for the #{@task.workstream.name} to pick up."
+    elsif @task.claim!(current_user)
       redirect_to tasks_path(tab: "available"), notice: "It's yours. Find it under My Tasks."
     else
       redirect_to tasks_path(tab: "available"), alert: "Someone already picked that one up."
@@ -212,11 +214,12 @@ class TasksController < ApplicationController
   end
 
   def load_available_tab
-    @queue = Task.available_queue.group_by(&:effective_priority)
+    @queue = Task.available_queue(current_user).group_by(&:effective_priority)
   end
 
   def load_coverage_tab
     workstreams = Workstream.includes(:owners, :recurring_tasks).order(:name)
+    @governance = workstreams.open.governance
     @ongoing = workstreams.open.ongoing
     @projects = workstreams.open.projects
     @closed_projects = workstreams.projects.where(status: "closed")

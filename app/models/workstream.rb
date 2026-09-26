@@ -2,7 +2,7 @@
 class Workstream < ApplicationRecord
   acts_as_tenant :community
 
-  TYPES = { "permanent" => "Ongoing Operations", "ad_hoc" => "One-Time Project" }.freeze
+  TYPES = { "governance" => "Governance", "permanent" => "Ongoing Operations", "ad_hoc" => "One-Time Project" }.freeze
   PRIORITIES = %w[essential important nice_to_have].freeze
   PRIORITY_LABELS = { "essential" => "Essential", "important" => "Important", "nice_to_have" => "Nice to have" }.freeze
 
@@ -19,6 +19,10 @@ class Workstream < ApplicationRecord
   scope :open, -> { where(status: "active") }
   scope :ongoing, -> { where(workstream_type: "permanent") }
   scope :projects, -> { where(workstream_type: "ad_hoc") }
+  scope :governance, -> { where(workstream_type: "governance") }
+
+  # Governance roles are required, so they rank as essential.
+  before_validation { self.priority = "essential" if governance? }
   scope :by_priority, -> { in_order_of(:priority, PRIORITIES).order(:name) }
 
   def self.priority_rank(priority)
@@ -36,6 +40,7 @@ class Workstream < ApplicationRecord
   def priority_label = self.class.priority_label(priority)
   def ongoing? = workstream_type == "permanent"
   def project? = workstream_type == "ad_hoc"
+  def governance? = workstream_type == "governance"
   def closed? = status == "closed"
   def essential? = priority == "essential"
 
