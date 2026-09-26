@@ -2,7 +2,10 @@ require "test_helper"
 
 # The iOS and Android apps load these pages in Hotwire Native web views.
 class TasksNativeTest < ActionDispatch::IntegrationTest
-  NATIVE = { "User-Agent" => "Conduit iOS (Turbo Native)" }.freeze
+  # The App Store build before modals worked, the next iOS build, and Android.
+  LEGACY_IOS = { "User-Agent" => "Conduit iOS (Turbo Native)" }.freeze
+  NATIVE = { "User-Agent" => "Conduit iOS/2 (Turbo Native)" }.freeze
+  ANDROID = { "User-Agent" => "Mozilla/5.0 (Linux; Android 15) Hotwire Native Android; Turbo Native Android" }.freeze
 
   def sign_in(user)
     sign_in_user({ uid: user.uid, name: user.name, email: user.email })
@@ -10,9 +13,10 @@ class TasksNativeTest < ActionDispatch::IntegrationTest
 
   setup { sign_in users(:admin_user) }
 
-  test "the Tasks screen is titled for the native navigation bar" do
+  test "the Tasks screen keeps its own heading, since the apps hide their navigation bars" do
     get tasks_url, headers: NATIVE
     assert_select "title", "Tasks"
+    assert_select "h1", "Tasks"
   end
 
   test "tabs switch inside the frame without proposing a native visit" do
@@ -33,9 +37,11 @@ class TasksNativeTest < ActionDispatch::IntegrationTest
     assert_select "nav[aria-label='Task views'] a[aria-current='page']", text: "My Tasks"
   end
 
-  test "the workstream screen relies on the native back button" do
-    get workstream_url(workstreams(:front_yard)), headers: NATIVE
-    assert_select "a[href='#{tasks_path(tab: "coverage")}']", count: 0
+  test "the workstream screen keeps its in-page back link" do
+    [ LEGACY_IOS, NATIVE, ANDROID ].each do |agent|
+      get workstream_url(workstreams(:front_yard)), headers: agent
+      assert_select "a[href='#{tasks_path(tab: "coverage")}']", { text: /Coverage/ }, agent["User-Agent"]
+    end
   end
 
   test "workstream actions that return to the same screen replace it rather than push another" do
@@ -51,22 +57,36 @@ class TasksNativeTest < ActionDispatch::IntegrationTest
     assert_redirected_to workstream_url(workstreams(:front_yard))
   end
 
-  test "modal forms submit as full page loads and leave closing to the native Close button" do
-    [ new_workstream_url, edit_workstream_url(workstreams(:garbage)),
-      edit_workstream_recurring_task_url(workstreams(:garbage), recurring_tasks(:garbage_night)) ].each do |url|
-      get url, headers: NATIVE
-      assert_select "form[data-turbo='false']", 1, url
-      assert_select "h1", 0, url
-      assert_select "a", { text: "Cancel", count: 0 }, url
+  MODAL_FORMS = lambda do |test|
+    [ test.new_workstream_url, test.edit_workstream_url(test.workstreams(:garbage)),
+      test.edit_workstream_recurring_task_url(test.workstreams(:garbage), test.recurring_tasks(:garbage_night)) ]
+  end
+
+  test "modal forms keep their heading and Cancel link in the apps" do
+    MODAL_FORMS.call(self).each do |url|
+      [ LEGACY_IOS, NATIVE, ANDROID ].each do |agent|
+        get url, headers: agent
+        assert_select "h1", { minimum: 1 }, "#{url} #{agent['User-Agent']}"
+        assert_select "a", { text: "Cancel" }, "#{url} #{agent['User-Agent']}"
+      end
     end
   end
 
-  test "the new task screen has no dead Cancel button" do
-    get new_task_url(workstream_id: workstreams(:garbage).id), headers: NATIVE
-    assert_select "button", { text: "Cancel", count: 0 }
-    assert_select "a", { text: "Cancel", count: 0 }
+  test "modal forms submit with Turbo, so saving closes the sheet, except in the older iOS build" do
+    MODAL_FORMS.call(self).each do |url|
+      get url, headers: LEGACY_IOS
+      assert_select "form[data-turbo='false']", 1, url
 
-    get new_task_url(workstream_id: workstreams(:garbage).id)
+      [ NATIVE, ANDROID ].each do |agent|
+        get url, headers: agent
+        assert_select "form[data-turbo='false']", { count: 0 }, "#{url} #{agent['User-Agent']}"
+      end
+    end
+  end
+
+  test "the new task screen has a Cancel link back to where it came from" do
+    get new_task_url(workstream_id: workstreams(:garbage).id), headers: NATIVE
+    assert_select "h1", "New task"
     assert_select "a[href='#{workstream_path(workstreams(:garbage))}']", text: "Cancel"
   end
 end

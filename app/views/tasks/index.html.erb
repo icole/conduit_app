@@ -2,11 +2,9 @@
 <div data-controller="tasks" class="<%= hotwire_native_app? ? '' : '-mx-2 sm:mx-0 px-2 sm:px-0' %>">
   <!-- Header -->
   <div class="flex justify-between items-start gap-2 <%= hotwire_native_app? ? 'mb-2 px-1' : 'mb-4' %>">
-    <div class="<%= 'self-center' if hotwire_native_app? %>">
-      <%# The apps' navigation bar already says "Tasks" %>
-      <% unless hotwire_native_app? %>
-        <h1 class="text-xl sm:text-2xl font-bold">Tasks</h1>
-      <% end %>
+    <div>
+      <%# The apps hide their navigation bars, so the page has its own heading %>
+      <h1 class="<%= hotwire_native_app? ? 'text-lg font-semibold' : 'text-xl sm:text-2xl font-bold' %>">Tasks</h1>
       <p class="text-sm text-base-content/60"><%= current_community.name %></p>
     </div>
     <button class="<%= hotwire_native_app? ? 'btn btn-primary btn-sm gap-1' : 'btn btn-primary btn-sm sm:btn-md' %>" data-action="click->tasks#showForm" title="Add Task">

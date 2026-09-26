@@ -1,9 +1,7 @@
 <% content_for :title, "Edit recurring task" %>
 
 <div class="max-w-2xl mx-auto">
-  <% unless hotwire_native_app? %>
-    <h1 class="text-xl sm:text-2xl font-bold mb-1">Edit recurring task</h1>
-  <% end %>
+  <h1 class="text-xl sm:text-2xl font-bold mb-1">Edit recurring task</h1>
   <p class="text-sm text-base-content/60 mb-4"><%= @workstream.name %></p>
   <div class="card bg-base-100 border border-base-200">
     <div class="card-body p-4 sm:p-6">

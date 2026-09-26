@@ -1,4 +1,4 @@
-<%= form_with(model: [ workstream, recurring_task ], class: "space-y-4", data: { turbo: !hotwire_native_app? }) do |form| %>
+<%= form_with(model: [ workstream, recurring_task ], class: "space-y-4", data: { turbo: !legacy_ios_app? }) do |form| %>
   <% if recurring_task.errors.any? %>
     <div class="alert alert-error">
       <ul class="list-disc list-inside">
@@ -51,10 +51,7 @@
   </div>
 
   <div class="flex justify-end gap-2 pt-2">
-    <%# In the apps these open as modals with a native Close button %>
-    <% unless hotwire_native_app? %>
-      <%= link_to "Cancel", workstream_path(workstream), class: "btn btn-ghost" %>
-    <% end %>
+    <%= link_to "Cancel", workstream_path(workstream), class: "btn btn-ghost" %>
     <%= form.submit recurring_task.persisted? ? "Save recurring task" : "Add recurring task", class: "btn btn-primary" %>
   </div>
 <% end %>
