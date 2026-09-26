@@ -14,13 +14,24 @@ workflows:
       vars:
         PACKAGE_NAME: "com.colecoding.conduitapp"
 
-    # Manual builds only - trigger from Codemagic dashboard
-    # triggering:
-    #   events:
-    #     - push
-    #   branch_patterns:
-    #     - pattern: main
-    #       include: true
+    # Builds automatically on pushes to main that change the android/ app,
+    # then goes to Play closed testing (alpha). Codemagic skips the build when nothing under
+    # android/ changed since the last successful build, so web-only pushes
+    # don't build. Changes to codemagic.yaml always build. Manual builds from
+    # the Codemagic dashboard still work.
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    when:
+      changeset:
+        includes:
+          - 'android/'
+        excludes:
+          - '**/*.md'
 
     scripts:
       - name: Set up google-services.json
@@ -101,13 +112,24 @@ workflows:
         XCODE_SCHEME: "Conduit"
         APP_STORE_APP_ID: "6756144999"
 
-    # Manual builds only - trigger from Codemagic dashboard
-    # triggering:
-    #   events:
-    #     - push
-    #   branch_patterns:
-    #     - pattern: main
-    #       include: true
+    # Builds automatically on pushes to main that change the ios/ app,
+    # then goes to TestFlight. Codemagic skips the build when nothing under
+    # ios/ changed since the last successful build, so web-only pushes
+    # don't build. Changes to codemagic.yaml always build. Manual builds from
+    # the Codemagic dashboard still work.
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    when:
+      changeset:
+        includes:
+          - 'ios/'
+        excludes:
+          - '**/*.md'
 
     scripts:
       - name: Set up GoogleService-Info.plist
