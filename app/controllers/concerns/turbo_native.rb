@@ -10,5 +10,12 @@ module TurboNative
 
   included do
     include Turbo::Native::Navigation
+    helper_method :legacy_ios_app?
+  end
+
+  # iOS builds before "Conduit iOS/2" never open modals, and a Turbo form
+  # redirect pushes a new screen there, so forms submit as full page loads.
+  def legacy_ios_app?
+    request.user_agent.to_s.include?("Conduit iOS (")
   end
 end
