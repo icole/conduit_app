@@ -6,6 +6,8 @@ class StreamChatViewController: UIViewController {
 
     // Stream Chat components
     private var channelListController: CustomChannelListVC?
+    /// Connected and showing the list, so a requested channel can be opened.
+    private var isChannelListReady = false
 
     // User info passed from Rails
     private let userId: String
@@ -594,6 +596,8 @@ class StreamChatViewController: UIViewController {
 
             // Customize appearance - assign the types, not instances
             Components.default.channelListRouter = ConduitChannelListRouter.self
+            // Search across every chat the user is in; results open at the message
+            Components.default.channelListSearchStrategy = .messages
             // Note: Channel list item customization would require more setup with Stream Chat UI v4
             // For now, the mute indicator is shown in the channel name
 
@@ -614,10 +618,20 @@ class StreamChatViewController: UIViewController {
             ])
             channelListVC.didMove(toParent: self)
 
+            // The list is embedded, so its search bar has to go on this screen's
+            // navigation bar to show.
+            self.navigationItem.searchController = channelListVC.navigationItem.searchController
+            self.navigationItem.hidesSearchBarWhenScrolling = false
+            self.definesPresentationContext = true
+
             self.channelListController = channelListVC
 
             // Hide loading
             self.hideLoading()
+
+            // A notification may have asked for a channel while we connected
+            self.isChannelListReady = true
+            self.openPendingChannel()
         }
     }
 
@@ -658,6 +672,15 @@ class StreamChatViewController: UIViewController {
         })
 
         present(alert, animated: true)
+    }
+
+    /// Open the channel a tapped notification asked for, if there is one and
+    /// the chat is ready. Called when the list finishes loading and when a
+    /// notification is tapped while Chat is already loaded.
+    func openPendingChannel() {
+        guard isChannelListReady, ChatManager.shared.chatClient != nil,
+              let cid = ChatManager.shared.takePendingChannel() else { return }
+        navigateToChannel(cid: cid)
     }
 
     /// Navigate to a specific channel by CID
@@ -705,12 +728,15 @@ class StreamChatViewController: UIViewController {
             let channelController = client.channelController(for: channelIdObj)
 
             DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+
                 // Create and configure channel view controller
                 let channelVC = TrackingChannelVC()
                 channelVC.channelController = channelController
 
-                // Push to navigation controller
-                self?.navigationController?.pushViewController(channelVC, animated: true)
+                // Back to the list first, in case another channel is open
+                self.navigationController?.popToViewController(self, animated: false)
+                self.navigationController?.pushViewController(channelVC, animated: true)
             }
         }
     }
@@ -761,6 +787,12 @@ enum StreamChatError: LocalizedError {
 
 class ConduitChannelListRouter: ChatChannelListRouter {
     override func showChannel(for cid: ChannelId) {
+        showChannel(for: cid, at: nil)
+    }
+
+    /// Also what message search results call, with the message to jump to.
+    /// Opens our TrackingChannelVC rather than the SDK's stock channel screen.
+    override func showChannel(for cid: ChannelId, at messageId: MessageId?) {
         // Get the chat client from the root view controller's channel list
         guard let client = rootViewController.controller?.client else {
             return
@@ -768,7 +800,14 @@ class ConduitChannelListRouter: ChatChannelListRouter {
 
         // Create channel controller with the client on background queue
         DispatchQueue.global(qos: .userInitiated).async {
-            let channelController = client.channelController(for: cid)
+            let channelController: ChatChannelController
+            if let messageId = messageId {
+                channelController = client.channelController(
+                    for: ChannelQuery(cid: cid, paginationParameter: .around(messageId))
+                )
+            } else {
+                channelController = client.channelController(for: cid)
+            }
 
             DispatchQueue.main.async {
                 // Create and configure optimized channel view controller

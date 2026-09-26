@@ -8,6 +8,11 @@ class ChatManager {
     private(set) var chatClient: ChatClient?
     private var currentlyViewingChannelCid: String?
 
+    /// The channel a tapped notification asked for, kept until the chat screen
+    /// is connected and can open it: taps arrive before launch has finished,
+    /// before sign-in, or before the Chat tab has ever been shown.
+    private var pendingChannel: (cid: String, requestedAt: Date)?
+
     private init() {}
 
     func configure(with client: ChatClient) {
@@ -98,6 +103,36 @@ class ChatManager {
                 print("  ✅ Push notifications should now work!")
             }
         }
+    }
+
+    // MARK: - Opening a channel from a notification
+
+    func requestChannel(cid: String) {
+        pendingChannel = (cid: cid, requestedAt: Date())
+    }
+
+    var hasPendingChannel: Bool {
+        pendingChannel != nil
+    }
+
+    /// The requested channel, handed out once. A request older than five
+    /// minutes is dropped so a stale tap never opens a chat later on.
+    func takePendingChannel() -> String? {
+        defer { pendingChannel = nil }
+        guard let pending = pendingChannel, Date().timeIntervalSince(pending.requestedAt) < 300 else { return nil }
+        return pending.cid
+    }
+
+    /// "team:abc123" from a Stream push payload ({"stream": {"cid": ...}}).
+    static func channelCid(fromNotification userInfo: [AnyHashable: Any]) -> String? {
+        guard let stream = userInfo["stream"] as? [String: Any] else { return nil }
+        if let cid = stream["cid"] as? String, !cid.isEmpty {
+            return cid
+        }
+        if let type = stream["channel_type"] as? String, let id = stream["channel_id"] as? String, !type.isEmpty, !id.isEmpty {
+            return "\(type):\(id)"
+        }
+        return nil
     }
 
     func disconnect() {
