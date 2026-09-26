@@ -55,7 +55,7 @@ This means you need **Production APNs** configured in Stream Dashboard.
 ## 🧪 Test Procedure:
 
 ### Method 1: Test with Two Accounts
-1. **Your Phone:** Logged in as User ID: 2 (Carrie Cole)
+1. **Your Phone:** Logged in as one user (e.g., User ID: 2)
 2. **Web/Other Device:** Log in as DIFFERENT user (e.g., User ID: 1)
 3. Put app in **background** on your phone
 4. Send message from the OTHER user

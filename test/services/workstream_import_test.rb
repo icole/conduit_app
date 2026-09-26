@@ -134,6 +134,28 @@ class WorkstreamImportTest < ActiveSupport::TestCase
     assert_not audit.discarded?
   end
 
+  test "leaves owners and responsible people alone when the plan doesn't name anyone" do
+    import
+    garden = Workstream.find_by!(name: "Garden Health")
+    garden.owners = [ users(:one), users(:three) ]
+    spigots = RecurringTask.find_by!(title: "Winterize spigots")
+    spigots.update!(default_responsible_user: users(:three))
+
+    anonymous = { "workstreams" => [ { "name" => "Garden Health", "type" => "permanent", "priority" => "important",
+                                       "description" => "Keeps the landscaping healthy.",
+                                       "recurring_tasks" => [
+                                         { "title" => "Winterize spigots", "description" => "Drain the spigots.", "frequency" => "yearly",
+                                           "minutes" => 90, "first_period_starts" => "11-01" },
+                                         { "title" => "Mulch beds", "frequency" => "yearly", "minutes" => 120 }
+                                       ] } ] }
+    changes = import(anonymous)
+
+    assert_equal [ users(:three), users(:one) ].sort_by(&:id), garden.reload.owners.sort_by(&:id)
+    assert_equal users(:three), spigots.reload.default_responsible_user
+    assert_equal garden.owners.first, RecurringTask.find_by!(title: "Mulch beds").default_responsible_user
+    assert_empty changes.grep(/owners|Winterize/)
+  end
+
   test "a recurring task can name who's responsible instead of the first owner" do
     data = { "workstreams" => [ { "name" => "Meeting Facilitators", "type" => "governance", "description" => "Run meetings.",
                                   "owners" => [ "Mike", "Alice" ],

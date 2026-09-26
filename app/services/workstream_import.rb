@@ -1,8 +1,11 @@
 # Applies a workstream plan (see db/data/crow_woods_workstreams.yml) to a
 # community: renames, creates and updates workstreams (type, priority,
 # description, owners) and their recurring tasks, and removes listed leftovers.
-# Owners are matched by first name. Returns a list of the changes made; with
-# dry_run: true it reports them and rolls everything back. Safe to run again.
+# Owners are matched by first name. A workstream that lists no owners keeps the
+# ones members set in the app, and its tasks keep who's responsible, so the
+# checked-in plan doesn't need anyone's name. Returns a list of the changes
+# made; with dry_run: true it reports them and rolls everything back. Safe to
+# run again.
 class WorkstreamImport
   class Error < StandardError; end
 
@@ -35,6 +38,8 @@ class WorkstreamImport
     people = User.all.to_a
     missing = []
     owners = @data.fetch("workstreams", []).to_h do |plan|
+      next [ plan["name"], nil ] unless plan.key?("owners")
+
       users = Array(plan["owners"]).map do |first_name|
         matches = people.select { |user| user.name.to_s.split.first&.casecmp?(first_name) }
         missing << "#{first_name} (#{matches.size} matches, for #{plan['name']})" unless matches.one?
@@ -86,14 +91,15 @@ class WorkstreamImport
       workstream.save!
     end
 
-    if workstream.owners.to_a.sort_by(&:id) != owners.sort_by(&:id)
+    if owners && workstream.owners.to_a.sort_by(&:id) != owners.sort_by(&:id)
       workstream.owners = owners
       @changes << "set owners of #{workstream.name}: #{owners.map(&:name).join(', ').presence || 'none'}"
     end
 
+    current_owners = owners || workstream.owners.to_a
     Array(plan["recurring_tasks"]).each do |task_plan|
-      responsible = owners.find { |user| user.name.split.first.casecmp?(task_plan["responsible"].to_s) } || owners.first
-      apply_recurring_task(workstream, task_plan, responsible)
+      responsible = current_owners.find { |user| user.name.split.first.casecmp?(task_plan["responsible"].to_s) } || current_owners.first
+      apply_recurring_task(workstream, task_plan, responsible, keep_responsible: owners.nil?)
     end
   end
 
@@ -106,16 +112,16 @@ class WorkstreamImport
     parts.compact_blank.join("\n\n")
   end
 
-  def apply_recurring_task(workstream, plan, responsible)
+  def apply_recurring_task(workstream, plan, responsible, keep_responsible: false)
     recurring = RecurringTask.find_or_initialize_by(title: plan["title"])
     created = recurring.new_record?
     recurring.assign_attributes(
       workstream: workstream,
       description: plan["description"],
       frequency: plan["frequency"],
-      estimated_minutes: plan["minutes"],
-      default_responsible_user: responsible
+      estimated_minutes: plan["minutes"]
     )
+    recurring.default_responsible_user = responsible if created || !keep_responsible
     recurring.created_by ||= responsible || User.where(admin: true).order(:id).first
     if plan["first_period_starts"].present?
       recurring.starts_on = most_recent(plan["first_period_starts"])
