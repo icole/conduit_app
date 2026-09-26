@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentContainerView
 import com.colecoding.conduit.auth.AuthManager
 import com.colecoding.conduit.auth.CommunitySelectActivity
+import com.colecoding.conduit.chat.PendingChatChannel
 import com.colecoding.conduit.auth.LoginActivity
 import com.colecoding.conduit.config.AppConfig
 import com.colecoding.conduit.config.CommunityManager
@@ -156,6 +157,14 @@ class MainActivity : HotwireActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // A tapped chat notification: remember it before any redirect to sign-in
+        // or community selection, so the chat still opens once the user is in.
+        // Not when restoring or relaunching from Recents with the same intent.
+        val launchedFromHistory = (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0
+        if (savedInstanceState == null && !launchedFromHistory) {
+            PendingChatChannel.recordFrom(intent)
+        }
+
         // Check if community is selected first (before super.onCreate which calls setContentView)
         if (!CommunityManager.hasCommunityUrl(this)) {
             Log.d(TAG, "No community selected, redirecting to community selector")
@@ -203,8 +212,8 @@ class MainActivity : HotwireActivity() {
         // Set up bottom navigation
         setupBottomNavigation()
 
-        // Check if opened from notification with channel CID
-        handleNotificationIntent(intent)
+        // Opened from a chat notification (now, or before signing in)
+        openRequestedChat()
 
         // Sync bottom navigation with restored tab
         bottomNavigation.selectedItemId = when (activeTab) {
@@ -222,34 +231,21 @@ class MainActivity : HotwireActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleNotificationIntent(intent)
+        PendingChatChannel.recordFrom(intent)
+        openRequestedChat()
     }
 
-    private fun handleNotificationIntent(intent: Intent?) {
-        intent?.getStringExtra("channel_cid")?.let { channelCid ->
-            Log.d(TAG, "Notification tapped with channel CID: $channelCid")
-            // Switch to chat tab
-            switchToTab(Tab.CHAT)
-            bottomNavigation.selectedItemId = R.id.navigation_chat
+    /**
+     * Switch to Chat if a notification asked for it. The chat fragment opens
+     * the requested channel once Stream is connected (right away if it is).
+     */
+    private fun openRequestedChat() {
+        if (!PendingChatChannel.isRequested) return
 
-            // Wait for chat fragment to be attached, then navigate to the channel
-            // Use post to ensure the chat fragment is fully initialized
-            chatContainer.post {
-                navigateToChannel(channelCid)
-            }
-        }
-    }
-
-    private fun navigateToChannel(channelCid: String) {
-        Log.d(TAG, "Navigating to channel: $channelCid")
-
-        // Make sure chat fragment is attached
-        ensureChatFragmentAttached()
-
-        // Give the fragment a moment to fully initialize
-        chatContainer.postDelayed({
-            chatFragment?.openChannel(channelCid)
-        }, 300)
+        Log.d(TAG, "Chat notification tapped, switching to Chat")
+        switchToTab(Tab.CHAT)
+        bottomNavigation.selectedItemId = R.id.navigation_chat
+        chatFragment?.openPendingChannel()
     }
 
     private fun setupBottomNavigation() {
@@ -312,6 +308,11 @@ class MainActivity : HotwireActivity() {
     }
 
     private fun ensureChatFragmentAttached() {
+        if (chatFragment == null) {
+            // After Android recreates the activity the old fragment is already
+            // back in the FragmentManager; reuse it rather than adding a second.
+            chatFragment = supportFragmentManager.findFragmentByTag("chat") as? CustomChatFragment
+        }
         if (chatFragment == null) {
             chatFragment = CustomChatFragment()
             supportFragmentManager.beginTransaction()

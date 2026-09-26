@@ -6,10 +6,12 @@ import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.colecoding.conduit.R
 import com.colecoding.conduit.auth.AuthManager
@@ -19,7 +21,12 @@ import io.getstream.chat.android.client.extensions.currentUserUnreadCount
 import io.getstream.chat.android.models.*
 import io.getstream.chat.android.ui.feature.channels.list.ChannelListView
 import io.getstream.chat.android.ui.feature.channels.list.adapter.ChannelListItem
+import com.colecoding.conduit.chat.PendingChatChannel
 import com.colecoding.conduit.chat.TrackingMessageListActivity
+import io.getstream.chat.android.ui.feature.search.SearchInputView
+import io.getstream.chat.android.ui.feature.search.list.SearchResultListView
+import io.getstream.chat.android.ui.viewmodel.search.SearchViewModel
+import io.getstream.chat.android.ui.viewmodel.search.bindView as bindSearchView
 import io.getstream.chat.android.ui.viewmodel.channels.ChannelListViewModel
 import io.getstream.chat.android.ui.viewmodel.channels.ChannelListViewModelFactory
 import io.getstream.chat.android.ui.viewmodel.channels.bindView
@@ -37,6 +44,9 @@ class CustomChatFragment : Fragment() {
     private lateinit var channelListView: ChannelListView
     private lateinit var viewModel: ChannelListViewModel
     private var fabCreateChannel: FloatingActionButton? = null
+
+    /** Connected and showing the list, so a requested channel can be opened. */
+    private var isChannelListReady = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -127,8 +137,54 @@ class CustomChatFragment : Fragment() {
         // Note: Visual muted indicators will be shown through channel naming
         // The Stream SDK will automatically show channels with updated names
 
+        // Search every chat the user is in. While there's a query the results
+        // replace the channel list; clearing it brings the list back.
+        val searchInput = SearchInputView(requireContext())
+        val searchResults = SearchResultListView(requireContext()).apply {
+            visibility = View.GONE
+        }
+        val listArea = FrameLayout(requireContext()).apply {
+            addView(channelListView)
+            addView(searchResults, FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            ))
+        }
+        val margin = (8 * resources.displayMetrics.density).toInt()
+        val column = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(searchInput, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(margin, margin, margin, margin) })
+            addView(listArea, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+        }
+
         container.removeAllViews()
-        container.addView(channelListView)
+        container.addView(column)
+
+        val searchViewModel = ViewModelProvider(this)[SearchViewModel::class.java]
+        searchViewModel.bindSearchView(searchResults, viewLifecycleOwner)
+        searchInput.setDebouncedInputChangedListener { query ->
+            if (query.isBlank()) {
+                searchResults.visibility = View.GONE
+                channelListView.visibility = View.VISIBLE
+            } else {
+                searchViewModel.setQuery(query)
+                searchResults.visibility = View.VISIBLE
+                channelListView.visibility = View.GONE
+            }
+        }
+        searchInput.setSearchStartedListener { query ->
+            searchViewModel.setQuery(query)
+            searchResults.visibility = View.VISIBLE
+            channelListView.visibility = View.GONE
+        }
+        searchResults.setLoadMoreListener { searchViewModel.loadMore() }
+        searchResults.setSearchResultSelectedListener { message ->
+            // Open the chat scrolled to the message that matched
+            startActivity(TrackingMessageListActivity.createIntent(requireContext(), message.cid, message.id))
+        }
 
         // Setup the channel list - filter by membership
         // This is more reliable than filtering by community_slug extraData
@@ -156,6 +212,10 @@ class CustomChatFragment : Fragment() {
 
         // Show FAB for channel creation
         fabCreateChannel?.visibility = View.VISIBLE
+
+        // A notification may have asked for a channel while we connected
+        isChannelListReady = true
+        openPendingChannel()
     }
 
     private fun setupChannelInteractions() {
@@ -551,28 +611,16 @@ class CustomChatFragment : Fragment() {
     }
 
     /**
-     * Open a specific channel by CID (called from notification tap)
+     * Open the channel a tapped notification asked for (PendingChatChannel),
+     * if the chat is connected. Called once the list is set up, and by
+     * MainActivity when a notification is tapped while Chat is already loaded.
      */
-    fun openChannel(channelCid: String) {
+    fun openPendingChannel() {
+        if (!isChannelListReady || !isAdded || ChatClient.instance().getCurrentUser() == null) return
+        val channelCid = PendingChatChannel.take() ?: return
+
         Log.d(TAG, "Opening channel from notification: $channelCid")
-
-        // Check if the chat client is connected
-        val client = ChatClient.instance()
-        if (client.getCurrentUser() == null) {
-            Log.w(TAG, "Chat client not connected yet, waiting...")
-            // If not connected, retry after a delay
-            view?.postDelayed({
-                openChannel(channelCid)
-            }, 500)
-            return
-        }
-
-        // Open the channel in TrackingMessageListActivity
-        val intent = TrackingMessageListActivity.createIntent(
-            context = requireContext(),
-            cid = channelCid
-        )
-        startActivity(intent)
+        startActivity(TrackingMessageListActivity.createIntent(requireContext(), channelCid))
     }
 
 }
