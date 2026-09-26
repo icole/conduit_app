@@ -623,4 +623,81 @@ namespace :stream_chat do
       puts "CLEAN - no user token could see or read another community's channels."
     end
   end
+
+  desc "Show the per-role permission grants for a Stream channel type. TYPE=team by default."
+  task show_grants: :environment do
+    unless StreamChatClient.configured?
+      puts "Stream Chat is not configured."
+      next
+    end
+
+    type = ENV.fetch("TYPE", StreamChannelGrants::DEFAULT_CHANNEL_TYPE)
+    grants = StreamChannelGrants.new(channel_type: type)
+    print_stream_app_header(StreamTeamBackfill.new)
+
+    puts "Channel type: #{type}"
+    grants.roles.each do |role|
+      puts "\n  #{role} (#{grants.for_role(role).size} permissions)"
+      grants.for_role(role).sort.each_slice(3) { |slice| puts "    #{slice.join('  ')}" }
+    end
+  end
+
+  desc "Revoke a permission from a role on a channel type. ROLE=user PERMISSION=create-channel [TYPE=team] [APPLY=true]"
+  task revoke_grant: :environment do
+    run_grant_change(:revoke)
+  end
+
+  desc "Grant a permission back to a role (undo a revoke). ROLE=user PERMISSION=create-channel [TYPE=team] [APPLY=true]"
+  task grant_permission: :environment do
+    run_grant_change(:grant)
+  end
+end
+
+def run_grant_change(direction)
+  unless StreamChatClient.configured?
+    puts "Stream Chat is not configured."
+    return
+  end
+
+  type = ENV.fetch("TYPE", StreamChannelGrants::DEFAULT_CHANNEL_TYPE)
+  role = ENV.fetch("ROLE")
+  permission = ENV.fetch("PERMISSION")
+
+  grants = StreamChannelGrants.new(channel_type: type)
+  print_stream_app_header(StreamTeamBackfill.new)
+
+  plan = begin
+    grants.public_send("plan_#{direction}", role: role, permission: permission)
+  rescue StreamChannelGrants::UnknownRole => e
+    puts e.message
+    exit 1
+  end
+
+  puts "Channel type: #{type}   role: #{role}   #{direction}: #{permission}"
+  puts ""
+
+  unless plan[:changed]
+    verb = direction == :revoke ? "not granted" : "already granted"
+    puts "No change needed - #{permission} is #{verb} for #{role}."
+    puts "Currently granted: #{plan[:before].sort.join(', ')}"
+    return
+  end
+
+  removed = plan[:before] - plan[:after]
+  added = plan[:after] - plan[:before]
+  removed.each { |p| puts "  - #{p}" }
+  added.each { |p| puts "  + #{p}" }
+  puts ""
+  puts "#{role} would keep #{plan[:after].size} permissions (was #{plan[:before].size})."
+
+  unless ENV["APPLY"] == "true"
+    puts ""
+    puts "Dry run. Re-run with APPLY=true to write."
+    return
+  end
+
+  grants.public_send("#{direction}!", role: role, permission: permission)
+  puts ""
+  puts "Applied. #{role} now has: #{StreamChannelGrants.new(channel_type: type).for_role(role).sort.join(', ')}"
+  puts "Undo: bin/rails stream_chat:#{direction == :revoke ? 'grant_permission' : 'revoke_grant'} ROLE=#{role} PERMISSION=#{permission} TYPE=#{type} APPLY=true"
 end
