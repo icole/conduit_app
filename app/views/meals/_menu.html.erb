@@ -1,4 +1,4 @@
-<div id="meal_menu" class="card bg-base-100 shadow-xl">
+<div id="meal_menu" class="card bg-base-100 shadow-xl" data-controller="toggle">
   <div class="card-body">
     <div class="flex items-center justify-between">
       <h3 class="card-title text-lg">
@@ -8,7 +8,7 @@
         What's for Dinner
       </h3>
       <% if meal.user_is_cook?(current_user) && !meal.cancelled? && !meal.completed? %>
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('menu_edit_form').classList.toggle('hidden'); document.getElementById('menu_display').classList.toggle('hidden');">
+        <button class="btn btn-ghost btn-sm" data-action="toggle#toggle">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
           </svg>
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Display Mode -->
-    <div id="menu_display">
+    <div id="menu_display" data-toggle-target="display">
       <% if meal.menu.present? %>
         <div class="prose prose-base max-w-none mt-3">
           <%= meal.menu %>
@@ -44,13 +44,13 @@
 
     <!-- Edit Mode (hidden by default) -->
     <% if meal.user_is_cook?(current_user) && !meal.cancelled? && !meal.completed? %>
-      <div id="menu_edit_form" class="hidden mt-3">
+      <div id="menu_edit_form" class="hidden mt-3" data-toggle-target="form">
         <%= form_with model: meal, url: update_menu_meal_path(meal), method: :patch, class: "space-y-3" do |f| %>
           <%= f.rich_text_area :menu,
               class: "w-full",
               placeholder: "What's on the menu? Share the recipe or meal details with everyone!" %>
           <div class="flex gap-2 justify-end">
-            <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('menu_edit_form').classList.add('hidden'); document.getElementById('menu_display').classList.remove('hidden');">
+            <button type="button" class="btn btn-ghost btn-sm" data-action="toggle#hide">
               Cancel
             </button>
             <%= f.submit "Save Menu", class: "btn btn-primary btn-sm" %>

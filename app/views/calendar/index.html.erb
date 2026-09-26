@@ -20,7 +20,7 @@
               <div class="space-y-0.5 absolute inset-x-2 top-8 bottom-2 overflow-hidden">
                 <% events.each_with_index do |event, index| %>
                   <% event_id = "event_#{event.google_event_id&.gsub(/[^a-zA-Z0-9]/, '_') || "#{date.strftime('%Y%m%d')}_#{index}"}" %>
-                  <button onclick="document.getElementById('<%= event_id %>_modal').showModal()"
+                  <button data-controller="dialog" data-dialog-id-value="<%= event_id %>_modal" data-action="dialog#open"
                           class="<%= event.respond_to?(:all_day) && event.all_day ? 'bg-info/20 hover:bg-info/30 border-info' : 'bg-success/20 hover:bg-success/30 border-success' %> rounded-sm px-1 py-0.5 text-xs border-l-2 transition-colors block w-full text-left cursor-pointer">
                     <div class="font-medium overflow-hidden">
                       <div class="flex items-center gap-0.5 w-full">

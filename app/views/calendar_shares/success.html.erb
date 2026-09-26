@@ -20,10 +20,10 @@
     <a href="<%= root_path %>" class="btn btn-outline">Return to Dashboard</a>
   </div>
 </div>
-<script>
+<%= javascript_tag nonce: true do %>
   document.addEventListener("DOMContentLoaded", function() {
     setTimeout(function() {
       window.open('https://calendar.google.com/calendar/render?cid=<%= CGI.escape(@calendar_id) %>', '_blank');
     }, 1000);
   });
-</script>
+<% end %>

@@ -89,16 +89,17 @@
             <label class="label">
               <span class="label-text font-medium">Bringing guests?</span>
             </label>
-            <div class="flex items-center gap-3">
-              <button type="button" class="btn btn-circle btn-outline btn-sm" onclick="const i=document.getElementById('cook_guests_count'); i.value=Math.max(0,parseInt(i.value||0)-1)">
+            <div class="flex items-center gap-3" data-controller="stepper">
+              <button type="button" class="btn btn-circle btn-outline btn-sm" data-action="stepper#decrement">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
                 </svg>
               </button>
               <input type="text" inputmode="numeric" pattern="[0-9]*" name="meal_cook[guests_count]" id="cook_guests_count"
+                     data-stepper-target="count"
                      value="<%= my_cook_signup.guests_count %>"
                      class="input input-bordered w-16 text-lg font-semibold text-center">
-              <button type="button" class="btn btn-circle btn-outline btn-sm" onclick="const i=document.getElementById('cook_guests_count'); i.value=Math.min(10,parseInt(i.value||0)+1)">
+              <button type="button" class="btn btn-circle btn-outline btn-sm" data-action="stepper#increment">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>

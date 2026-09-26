@@ -23,7 +23,7 @@
   </div>
 </div>
 
-<script>
+<%= javascript_tag nonce: true do %>
   // Disable Turbo to prevent any background navigation
   if (window.Turbo) {
     window.Turbo.session.drive = false;
@@ -47,4 +47,4 @@
     e.preventDefault();
     e.returnValue = '';
   });
-</script>
+<% end %>

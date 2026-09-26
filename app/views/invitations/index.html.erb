@@ -13,11 +13,12 @@
               Share this link with people you want to invite to Conduit. Anyone with this link can sign up.
             </p>
 
-            <div class="join w-full mb-2">
+            <div class="join w-full mb-2" data-controller="clipboard"
+                 data-clipboard-text-value="<%= accept_invitation_url(@active_invitation.token) %>">
               <input type="text" value="<%= accept_invitation_url(@active_invitation.token) %>"
                      readonly class="input input-bordered join-item flex-1"
                      id="invitation-link" />
-              <button onclick="copyToClipboard('invitation-link')"
+              <button data-action="clipboard#copy" data-clipboard-target="label"
                       class="btn btn-primary join-item" id="copy-button">
                 Copy
               </button>
@@ -69,24 +70,3 @@
     </div>
   <% end %>
 </div>
-
-<script>
-function copyToClipboard(elementId) {
-  var copyText = document.getElementById(elementId);
-  copyText.select();
-  document.execCommand("copy");
-
-  // Show feedback with DaisyUI classes
-  var button = document.getElementById("copy-button");
-  var originalText = button.innerText;
-  button.innerText = "Copied!";
-  button.classList.remove("btn-primary");
-  button.classList.add("btn-success");
-
-  setTimeout(function() {
-    button.innerText = originalText;
-    button.classList.remove("btn-success");
-    button.classList.add("btn-primary");
-  }, 2000);
-}
-</script>
