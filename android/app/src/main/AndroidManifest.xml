@@ -59,6 +59,12 @@
             android:exported="false"
             android:theme="@style/StreamChatTheme" />
 
+        <activity
+            android:name=".chat.ChannelSearchActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateVisible|adjustResize"
+            android:theme="@style/StreamChatTheme" />
+
         <!-- Firebase Messaging Service -->
         <service
             android:name=".services.PushNotificationService"
