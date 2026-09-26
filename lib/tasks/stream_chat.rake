@@ -787,7 +787,17 @@ def retire_stream_users(mode)
     return
   end
 
-  done = mode == :delete ? audit.delete_orphans!(ids: ids) : audit.deactivate_orphans!(ids: ids)
+  done = begin
+    if mode == :delete
+      audit.delete_orphans!(ids: ids, force: ENV["FORCE"] == "true")
+    else
+      audit.deactivate_orphans!(ids: ids, force: ENV["FORCE"] == "true")
+    end
+  rescue StreamUserAudit::SuspectedMismatch => e
+    puts ""
+    puts "Refusing: #{e.message}"
+    exit 1
+  end
   puts ""
   puts "Applied to #{done.size} user(s)."
   puts "Reactivate with client.reactivate_user(id) if needed." if mode == :deactivate

@@ -8,6 +8,13 @@
 # (a dashboard demo account, for instance) - so the caller names the ids.
 class StreamUserAudit
   class NotOrphaned < StandardError; end
+  class SuspectedMismatch < StandardError; end
+
+  # If this much of the Stream app has no matching Conduit account, the two
+  # sides are probably not the same environment - a local database compared
+  # against the production Stream app, most likely - and "orphan" means
+  # nothing. Refuse rather than retire real members' chat accounts.
+  MAX_ORPHAN_RATIO = 0.3
 
   PAGE_SIZE = 100
 
@@ -49,20 +56,38 @@ class StreamUserAudit
 
   # Deactivated users can't connect, send or receive, and it's reversible with
   # reactivate_user. Preferred over deletion: the community keeps the history.
-  def deactivate_orphans!(ids:)
-    verify_orphaned!(ids)
+  def deactivate_orphans!(ids:, force: false)
+    verify_safe_to_retire!(ids, force)
     ids.each { |id| @client.deactivate_user(id) }
     ids
   end
 
   # Irreversible. Only for genuine erasure.
-  def delete_orphans!(ids:)
-    verify_orphaned!(ids)
+  def delete_orphans!(ids:, force: false)
+    verify_safe_to_retire!(ids, force)
     ids.each { |id| @client.delete_user(id) }
     ids
   end
 
   private
+
+  def verify_safe_to_retire!(ids, force)
+    verify_environment_matches! unless force
+    verify_orphaned!(ids)
+  end
+
+  def verify_environment_matches!
+    return if stream_users.empty?
+
+    ratio = orphaned_ids.size.to_f / stream_users.size
+    return if ratio <= MAX_ORPHAN_RATIO
+
+    raise SuspectedMismatch,
+      "#{orphaned_ids.size} of #{stream_users.size} Stream users have no Conduit account " \
+      "(#{(ratio * 100).round}%). This usually means the database and the Stream app are " \
+      "different environments - check which database this is running against. " \
+      "Pass force: true only if the list really is that stale."
+  end
 
   def verify_orphaned!(ids)
     known = orphaned_ids

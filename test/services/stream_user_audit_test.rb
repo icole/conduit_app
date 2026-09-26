@@ -93,7 +93,9 @@ class StreamUserAuditTest < ActiveSupport::TestCase
   # Deliberately an explicit id list: some orphans are kept on purpose.
   test "removes only the ids it is given, and refuses ids that are not orphaned" do
     mine = ours.first
-    client = FakeClient.new([ stream_user(mine.id, teams: [ mine.community.slug ]), stream_user("999") ])
+    # A realistic list: every real member plus one orphan, so the
+    # environment-mismatch guard stays quiet.
+    client = FakeClient.new(ours.map { |u| stream_user(u.id, teams: [ u.community.slug ]) } + [ stream_user("999") ])
     audit = StreamUserAudit.new(client: client)
 
     assert_raises StreamUserAudit::NotOrphaned do
@@ -105,8 +107,38 @@ class StreamUserAuditTest < ActiveSupport::TestCase
     assert_empty client.deleted
   end
 
+  # Running this with the wrong database (local dev against the production
+  # Stream app, say) makes live members look orphaned. Refuse rather than
+  # retire people's chat accounts on a bad comparison.
+  test "refuses to retire when most Stream users look orphaned" do
+    client = FakeClient.new((1..10).map { |n| stream_user("90#{n}") })
+    audit = StreamUserAudit.new(client: client)
+
+    error = assert_raises StreamUserAudit::SuspectedMismatch do
+      audit.deactivate_orphans!(ids: [ "901" ])
+    end
+    assert_match(/database/i, error.message)
+    assert_empty client.deactivated
+  end
+
+  test "the mismatch guard can be overridden deliberately" do
+    client = FakeClient.new((1..10).map { |n| stream_user("90#{n}") })
+    audit = StreamUserAudit.new(client: client)
+
+    audit.deactivate_orphans!(ids: [ "901" ], force: true)
+
+    assert_equal [ "901" ], client.deactivated
+  end
+
+  test "the guard does not fire when only a few users are orphaned" do
+    client = FakeClient.new(ours.map { |u| stream_user(u.id, teams: [ u.community.slug ]) } + [ stream_user("999") ])
+    audit = StreamUserAudit.new(client: client)
+
+    assert_equal [ "999" ], audit.deactivate_orphans!(ids: [ "999" ])
+  end
+
   test "can hard delete when explicitly asked" do
-    client = FakeClient.new([ stream_user("999") ])
+    client = FakeClient.new(ours.map { |u| stream_user(u.id, teams: [ u.community.slug ]) } + [ stream_user("999") ])
 
     StreamUserAudit.new(client: client).delete_orphans!(ids: [ "999" ])
 
