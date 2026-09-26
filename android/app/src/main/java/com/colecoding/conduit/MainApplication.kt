@@ -15,6 +15,8 @@ import dev.hotwire.navigation.config.defaultFragmentDestination
 import dev.hotwire.navigation.config.registerBridgeComponents
 import dev.hotwire.navigation.config.registerFragmentDestinations
 import com.colecoding.conduit.bridge.MenuComponent
+import com.colecoding.conduit.chat.ChannelHashAvatar
+import io.getstream.chat.android.ui.ChatUI
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.logger.ChatLogLevel
 import io.getstream.chat.android.offline.plugin.factory.StreamOfflinePluginFactory
@@ -118,6 +120,9 @@ class MainApplication : Application() {
                 .withPlugins(offlinePlugin, statePlugin)
                 .logLevel(if (BuildConfig.DEBUG) ChatLogLevel.ALL else ChatLogLevel.NOTHING)
                 .build()
+
+            // "#" instead of a collage of member photos, in the list and chat header
+            ChatUI.channelAvatarRenderer = ChannelHashAvatar.renderer
 
             Log.d(TAG, "Stream Chat initialized successfully")
         } catch (e: Exception) {

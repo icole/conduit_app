@@ -598,8 +598,8 @@ class StreamChatViewController: UIViewController {
             Components.default.channelListRouter = ConduitChannelListRouter.self
             // Search across every chat the user is in; results open at the message
             Components.default.channelListSearchStrategy = .messages
-            // Note: Channel list item customization would require more setup with Stream Chat UI v4
-            // For now, the mute indicator is shown in the channel name
+            // "#" instead of a collage of member photos, in the list and chat header
+            Components.default.channelAvatarView = ChannelHashAvatarView.self
 
             // Create custom channel list view controller with channel creation support
             let channelListVC = CustomChannelListVC()
