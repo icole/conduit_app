@@ -39,8 +39,15 @@ class Navigator: UINavigationController {
     }
 
     /// A second web view sharing the tab's cookies and user agent.
+    ///
+    /// Its configuration has to be new. `webView.configuration` is a copy that
+    /// still shares the user content controller, and Hotwire registers a
+    /// "turbo" script message handler on it for each Session, so reusing it
+    /// throws "handler already exists" and crashed the app at launch.
     private static func makeModalSession(matching session: Session) -> Session {
-        let modalSession = Session(webViewConfiguration: session.webView.configuration)
+        let configuration = WKWebViewConfiguration()
+        configuration.websiteDataStore = session.webView.configuration.websiteDataStore
+        let modalSession = Session(webViewConfiguration: configuration)
         modalSession.webView.customUserAgent = session.webView.customUserAgent
         return modalSession
     }
