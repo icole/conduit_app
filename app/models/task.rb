@@ -1,6 +1,10 @@
 class Task < ApplicationRecord
   include Discardable
 
+  # Audited: who created a task, who reassigned it, and what it said before.
+  # Soft deletes are updates, so discarding is recorded too.
+  has_paper_trail
+
   acts_as_tenant :community
 
   belongs_to :user

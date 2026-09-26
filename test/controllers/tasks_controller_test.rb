@@ -465,4 +465,14 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_nil task.reload.assigned_to_user
     assert_equal "That's for the Meeting Facilitators to pick up.", flash[:alert]
   end
+
+  test "creating a task through the web records who did it" do
+    post tasks_url,
+         params: { task: { title: "Audited Task", workstream_id: workstreams(:general).id } },
+         headers: { "HTTP_REFERER" => tasks_url }
+
+    version = PaperTrail::Version.where(item_type: "Task").order(:id).last
+    assert_equal "create", version.event
+    assert_equal session[:user_id].to_s, version.whodunnit
+  end
 end
