@@ -109,4 +109,34 @@ class WorkstreamImportTest < ActiveSupport::TestCase
     data["workstreams"][2]["owners"] = [ "Email" ] # Email User, Email User Two, ...
     assert_raises(WorkstreamImport::Error) { import(data) }
   end
+
+  test "imports governance roles, which are always essential" do
+    data = { "workstreams" => [ { "name" => "HOA Secretary", "type" => "governance", "description" => "Records minutes.",
+                                  "owners" => [ "Alice" ],
+                                  "recurring_tasks" => [ { "title" => "Record meeting minutes", "description" => "Take and share the minutes.",
+                                                           "frequency" => "monthly", "minutes" => 60 } ] } ] }
+    import(data)
+    secretary = Workstream.find_by!(name: "HOA Secretary")
+    assert_equal [ "governance", "essential", [ users(:three) ] ], [ secretary.workstream_type, secretary.priority, secretary.owners.to_a ]
+    assert_equal users(:three), RecurringTask.find_by!(title: "Record meeting minutes").default_responsible_user
+  end
+
+  test "a recurring task can name who's responsible instead of the first owner" do
+    data = { "workstreams" => [ { "name" => "Meeting Facilitators", "type" => "governance", "description" => "Run meetings.",
+                                  "owners" => [ "Mike", "Alice" ],
+                                  "recurring_tasks" => [
+                                    { "title" => "Build the agenda", "frequency" => "monthly", "minutes" => 45 },
+                                    { "title" => "Facilitate the meeting", "frequency" => "monthly", "minutes" => 90, "responsible" => "Alice" }
+                                  ] } ] }
+    import(data)
+    assert_equal users(:two), RecurringTask.find_by!(title: "Build the agenda").default_responsible_user
+    assert_equal users(:three), RecurringTask.find_by!(title: "Facilitate the meeting").default_responsible_user
+  end
+
+  test "a named responsible person has to be one of the owners" do
+    data = { "workstreams" => [ { "name" => "Meeting Facilitators", "type" => "governance", "owners" => [ "Mike" ],
+                                  "recurring_tasks" => [ { "title" => "Facilitate", "frequency" => "monthly", "minutes" => 90, "responsible" => "Jane" } ] } ] }
+    error = assert_raises(WorkstreamImport::Error) { import(data) }
+    assert_match "Jane", error.message
+  end
 end

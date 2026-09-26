@@ -231,7 +231,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "members who own nothing can only assign tasks to themselves" do
-    member = users(:three)
+    member = users(:four) # owns no workstream
     delete logout_path
     sign_in_user({ uid: member.uid, name: member.name, email: member.email })
     get new_task_url
@@ -435,5 +435,34 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     get tasks_url(tab: "coverage")
     assert_select "#workstream_#{workstreams(:garbage).id}", text: /Rolls the bins out\./
     assert_select "#workstream_#{workstreams(:garbage).id}", text: /Break down boxes/, count: 0
+  end
+
+  test "Coverage lists governance roles first, as required, with no priority badge" do
+    get tasks_url(tab: "coverage")
+    sections = css_select("section[id]").map { |s| s["id"] }
+    assert_equal "governance", sections.first
+    assert_select "#governance #workstream_#{workstreams(:treasurer).id}", text: /Jane Smith/
+    assert_select "#governance h2", text: /Required/
+    assert_select "#governance #workstream_#{workstreams(:treasurer).id} .badge", text: "Essential", count: 0
+  end
+
+  test "My Tasks offers Can't do it on a governance task only when someone shares the role" do
+    solo = Task.create!(title: "Monthly bookkeeping", user: @user, workstream: workstreams(:treasurer), assigned_to_user: @user)
+    workstreams(:facilitators).owners << @user
+    shared = Task.create!(title: "Build the agenda", user: @user, workstream: workstreams(:facilitators), assigned_to_user: @user,
+                          recurring_task: RecurringTask.create!(workstream: workstreams(:facilitators), title: "Build the agenda", frequency: "monthly",
+                                                                estimated_minutes: 30, created_by: @user, default_responsible_user: @user))
+    solo.update!(recurring_task: RecurringTask.create!(workstream: workstreams(:treasurer), title: "Monthly bookkeeping", frequency: "monthly",
+                                                      estimated_minutes: 120, created_by: @user, default_responsible_user: @user))
+    get tasks_url
+    assert_select "form[action='#{release_task_path(solo)}']", count: 0
+    assert_select "form[action='#{release_task_path(shared)}']"
+  end
+
+  test "someone outside a governance role can't claim its work" do
+    task = Task.create!(title: "Build the agenda", user: users(:two), workstream: workstreams(:facilitators))
+    patch claim_task_url(task)
+    assert_nil task.reload.assigned_to_user
+    assert_equal "That's for the Meeting Facilitators to pick up.", flash[:alert]
   end
 end

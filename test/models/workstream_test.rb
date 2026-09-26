@@ -71,4 +71,13 @@ class WorkstreamTest < ActiveSupport::TestCase
   test "a person owns a workstream only once" do
     assert_raises(ActiveRecord::RecordInvalid) { WorkstreamOwner.create!(workstream: workstreams(:garbage), user: users(:one)) }
   end
+
+  test "governance roles are their own type, always required" do
+    role = Workstream.create!(name: "HOA Secretary", workstream_type: "governance", priority: "nice_to_have")
+    assert_equal "Governance", role.type_label
+    assert role.governance?
+    assert_equal "essential", role.priority, "a required role is essential, whatever was asked"
+    assert_includes Workstream.governance, role
+    assert_not_includes Workstream.ongoing, role
+  end
 end

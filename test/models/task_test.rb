@@ -1,6 +1,7 @@
 require "test_helper"
 
 class TaskTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
   def setup
     @user = users(:one)
     @workstream = workstreams(:general)
@@ -247,5 +248,30 @@ class TaskTest < ActiveSupport::TestCase
   test "a task created as completed stays completed even with a due date" do
     task = Task.create!(title: "Already done", user: @user, workstream: @workstream, due_date: Date.current, status: "completed")
     assert task.completed?
+  end
+
+  test "a governance task with a single holder can't be released to the queue" do
+    task = Task.create!(title: "Monthly bookkeeping", user: @user, workstream: workstreams(:treasurer), assigned_to_user: users(:one))
+    assert_not task.releasable?
+    assert_not task.release!(users(:one))
+    assert_equal users(:one), task.reload.assigned_to_user
+  end
+
+  test "a co-held governance task can be released, without posting to the community chat" do
+    task = Task.create!(title: "Build the agenda", user: @user, workstream: workstreams(:facilitators), assigned_to_user: users(:two))
+    assert task.releasable?
+    assert_no_enqueued_jobs(only: CoverageBroadcastJob) { assert task.release!(users(:two)) }
+    assert_nil task.reload.assigned_to_user
+  end
+
+  test "released governance work is in the queue only for the role's holders, and only they can claim it" do
+    task = Task.create!(title: "Build the agenda", user: @user, workstream: workstreams(:facilitators))
+
+    assert_includes Task.available_queue(users(:three)), task
+    assert_not_includes Task.available_queue(users(:one)), task
+    assert_not_includes Task.available_queue, task
+
+    assert_not task.claim!(users(:one))
+    assert task.claim!(users(:three))
   end
 end

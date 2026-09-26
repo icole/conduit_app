@@ -16,6 +16,11 @@ class TasksContrastTest < ApplicationSystemTestCase
       TaskSampleData.new(communities(:crow_woods), viewer: users(:admin_user)).load!
       # someone covering for someone else, so that label is on the page too
       Task.find_by!(title: "Water the greenhouse").claim!(users(:admin_user))
+      # and a governance role, with its Required badge and grey tag
+      treasurer = Workstream.create!(name: "HOA Treasurer", workstream_type: "governance", description: "Bookkeeping and dues.",
+                                     owners: [ users(:admin_user), users(:two) ])
+      RecurringTask.create!(workstream: treasurer, title: "Bookkeeping", frequency: "monthly", estimated_minutes: 120,
+                            created_by: users(:admin_user), default_responsible_user: users(:admin_user))
     end
     sign_in_as(users(:admin_user))
   end

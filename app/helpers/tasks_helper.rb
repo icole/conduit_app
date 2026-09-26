@@ -9,12 +9,15 @@ module TasksHelper
     tag.span Workstream.priority_label(priority), class: "badge #{size} #{PRIORITY_BADGE_CLASSES[priority]} whitespace-nowrap"
   end
 
-  # Ongoing Operations are blue, One-Time Projects amber, wherever they appear.
-  # Class names are spelled out in full so Tailwind can find them.
+  # Governance is neutral grey, Ongoing Operations blue, One-Time Projects
+  # amber, wherever they appear. Class names are spelled out in full so
+  # Tailwind can find them.
   def workstream_tag(workstream, size: "badge-sm")
     # Tinted fill with a dark label: the theme's yellow and blue are too light
     # to read as text on the page.
-    color = if workstream.ongoing?
+    color = if workstream.governance?
+      "border-neutral/40 bg-neutral/10 text-base-content hover:bg-neutral/20"
+    elsif workstream.ongoing?
       "border-info/50 bg-info/10 text-info-ink hover:bg-info/20"
     else
       "border-warning/70 bg-warning/15 text-warning-ink hover:bg-warning/25"
@@ -25,17 +28,39 @@ module TasksHelper
   end
 
   def workstream_type_badge(workstream, size: "badge-sm")
-    color = workstream.ongoing? ? "badge-info" : "badge-warning"
+    color = if workstream.governance? then "badge-neutral"
+    elsif workstream.ongoing? then "badge-info"
+    else "badge-warning"
+    end
     tag.span workstream.type_label, class: "badge #{size} #{color} whitespace-nowrap"
   end
 
   def workstream_accent_class(workstream)
-    workstream.ongoing? ? "border-l-info" : "border-l-warning"
+    if workstream.governance? then "border-l-neutral"
+    elsif workstream.ongoing? then "border-l-info"
+    else "border-l-warning"
+    end
   end
 
   # The coloured edge only from sm up; on phones the section heading carries it.
   def workstream_accent_class_from_sm(workstream)
-    workstream.ongoing? ? "sm:border-l-info" : "sm:border-l-warning"
+    if workstream.governance? then "sm:border-l-neutral"
+    elsif workstream.ongoing? then "sm:border-l-info"
+    else "sm:border-l-warning"
+    end
+  end
+
+  # Governance roles are required rather than ranked.
+  def required_badge(size: "badge-sm")
+    tag.span "Required", class: "badge #{size} badge-neutral whitespace-nowrap"
+  end
+
+  def workstream_priority_badge(workstream, size: "badge-sm")
+    workstream.governance? ? required_badge(size: size) : priority_badge(workstream.priority, size: size)
+  end
+
+  def task_priority_badge(task, size: "badge-sm")
+    task.workstream.governance? ? required_badge(size: size) : priority_badge(task.effective_priority, size: size)
   end
 
   def effort_badge(minutes)

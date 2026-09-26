@@ -1,5 +1,6 @@
 # Crow Woods workstreams and recurring tasks, from Crow-Woods-Workstream-Prioritization.xlsx.
 # Priority: the members' 1-5 vote average, rounded (>=4.5 essential, 2.5-4.49 important, <2.5 nice to have).
+# Governance duties and times are a first guess for the community to correct.
 # Owners are first names. Apply with: bin/rails workstreams:import SLUG=crow-woods FILE=db/data/crow_woods_workstreams.yml
 ---
 rename_workstreams:
@@ -21,6 +22,110 @@ remove_unstarted_tasks:
 - Buy supplies for work party
 - Draft quarterly budget note
 workstreams:
+- name: HOA President
+  type: governance
+  owners:
+  - Lisa
+  description: Big-picture leadership, liaison to the state and outside entities, sets meeting topics, handles crises.
+  recurring_tasks:
+  - title: Set meeting topics
+    description: Decide what the monthly meeting needs to cover.
+    frequency: monthly
+    minutes: 30
+  also:
+  - Liaison with the state and outside entities (as needed)
+  - Handle crises (as needed)
+- name: President Elect
+  type: governance
+  owners:
+  - Liz
+  description: 'Shadows and supports the president to take over next year; manages home sale/purchase transitions. Term: from June 2026.'
+  also:
+  - 'Home sale/purchase transitions (as needed): Guide sellers and new owners through the handover.'
+- name: HOA Secretary
+  type: governance
+  owners:
+  - Lee
+  description: Records meeting minutes, maintains the decision log and Google Drive, official correspondence.
+  recurring_tasks:
+  - title: Record and share meeting minutes
+    description: Take the minutes at the monthly meeting and share them.
+    frequency: monthly
+    minutes: 60
+  - title: Update the decision log & Drive
+    description: Log decisions and file documents in Google Drive.
+    frequency: monthly
+    minutes: 30
+  also:
+  - Official correspondence (as needed)
+- name: HOA Treasurer
+  type: governance
+  owners:
+  - Ian
+  description: Bookkeeping, dues collection, fund and reserve management, vendor payments, taxes.
+  recurring_tasks:
+  - title: Bookkeeping & vendor payments
+    description: Record transactions and pay vendors.
+    frequency: monthly
+    minutes: 120
+  - title: Collect dues
+    description: Check dues came in and follow up on any missing.
+    frequency: monthly
+    minutes: 30
+  - title: Review funds & reserves
+    description: Check the operating fund and reserves against the budget.
+    frequency: quarterly
+    minutes: 60
+  - title: File taxes
+    description: Prepare and file the HOA tax return.
+    frequency: yearly
+    minutes: 180
+    first_period_starts: 04-16
+- name: Meeting Facilitators
+  type: governance
+  owners:
+  - Kat
+  - Rachel
+  description: A pair who build the agenda and co-run monthly meetings using the sociocratic method.
+  recurring_tasks:
+  - title: Build the meeting agenda
+    description: Gather items and draft the monthly agenda.
+    frequency: monthly
+    minutes: 45
+  - title: Facilitate the monthly meeting
+    description: Co-run the meeting using the sociocratic method.
+    frequency: monthly
+    minutes: 90
+    responsible: Rachel
+- name: Data Protection Officer
+  type: governance
+  owners:
+  - Ian
+  description: Responsible for privacy/security of sensitive data; audits Google Drive permissions quarterly.
+  recurring_tasks:
+  - title: Audit Google Drive permissions
+    description: Review who can see what in the shared Drive.
+    frequency: quarterly
+    minutes: 60
+- name: Finance Committee
+  type: governance
+  owners:
+  - Kat
+  - Lee
+  - Eric
+  description: Budget planning and financial oversight support.
+  recurring_tasks:
+  - title: Plan the annual budget
+    description: Draft next year's budget with the committee.
+    frequency: yearly
+    minutes: 180
+    first_period_starts: 01-01
+    responsible: Lee
+  - title: Financial oversight check-in
+    description: Review the books with the Treasurer.
+    frequency: quarterly
+    minutes: 60
+    responsible: Eric
 - name: Garbage & Recycling Coordinator
   type: permanent
   description: Rolls the community's trash, recycling, and yard-waste bins to the curb for weekly pickup and brings them back.

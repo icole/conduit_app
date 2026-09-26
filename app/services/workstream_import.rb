@@ -42,6 +42,13 @@ class WorkstreamImport
       end
       [ plan["name"], users ]
     end
+    Array(@data["workstreams"]).each do |plan|
+      Array(plan["recurring_tasks"]).each do |task|
+        next if task["responsible"].blank? || Array(plan["owners"]).any? { |name| name.casecmp?(task["responsible"]) }
+
+        missing << "#{task['responsible']} is responsible for #{task['title']} but isn't an owner of #{plan['name']}"
+      end
+    end
     raise Error, "Can't match owners: #{missing.join('; ')}" if missing.any?
 
     owners
@@ -71,7 +78,7 @@ class WorkstreamImport
     created = workstream.new_record?
     workstream.assign_attributes(
       workstream_type: plan["type"],
-      priority: plan["priority"],
+      priority: plan["priority"] || (plan["type"] == "governance" ? "essential" : "important"),
       description: compose_description(plan)
     )
     if created || workstream.changed?
@@ -84,7 +91,10 @@ class WorkstreamImport
       @changes << "set owners of #{workstream.name}: #{owners.map(&:name).join(', ').presence || 'none'}"
     end
 
-    Array(plan["recurring_tasks"]).each { |task_plan| apply_recurring_task(workstream, task_plan, owners.first) }
+    Array(plan["recurring_tasks"]).each do |task_plan|
+      responsible = owners.find { |user| user.name.split.first.casecmp?(task_plan["responsible"].to_s) } || owners.first
+      apply_recurring_task(workstream, task_plan, responsible)
+    end
   end
 
   def compose_description(plan)

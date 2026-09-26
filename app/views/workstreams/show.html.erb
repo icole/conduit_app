@@ -17,7 +17,7 @@
           <h1 class="text-xl sm:text-2xl font-bold"><%= @workstream.name %></h1>
           <div class="flex flex-wrap items-center gap-1.5 mt-2">
             <%= workstream_type_badge(@workstream) %>
-            <%= priority_badge(@workstream.priority) %>
+            <%= workstream_priority_badge(@workstream) %>
             <% if @workstream.closed? %><span class="badge badge-sm badge-neutral">Closed</span><% end %>
           </div>
         </div>
@@ -72,7 +72,7 @@
               <div class="min-w-0">
                 <p class="font-medium"><%= recurring.title %></p>
                 <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
-                  <%= priority_badge(recurring.effective_priority) %>
+                  <%= @workstream.governance? ? required_badge : priority_badge(recurring.effective_priority) %>
                   <span class="badge badge-sm badge-ghost"><%= recurring.frequency_label %></span>
                   <%= effort_badge(recurring.estimated_minutes) %>
                 </div>
@@ -117,7 +117,7 @@
               <% end %>
             </div>
             <div class="flex flex-wrap items-center gap-1.5">
-              <%= priority_badge(task.effective_priority) %>
+              <%= task_priority_badge(task) %>
               <%= effort_badge(task.estimated_minutes) %>
               <% if task.due_date %><span class="badge badge-sm badge-ghost">Due <%= task.due_date.strftime("%b %-d") %></span><% end %>
               <% if can_manage || task.user_id == current_user.id %>

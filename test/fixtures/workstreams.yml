@@ -36,3 +36,19 @@ other_general:
   workstream_type: permanent
   status: active
   priority: important
+
+treasurer:
+  community: crow_woods
+  name: HOA Treasurer
+  description: Bookkeeping, dues collection, fund and reserve management.
+  workstream_type: governance
+  status: active
+  priority: essential
+
+facilitators:
+  community: crow_woods
+  name: Meeting Facilitators
+  description: Build the agenda and co-run monthly meetings.
+  workstream_type: governance
+  status: active
+  priority: essential
