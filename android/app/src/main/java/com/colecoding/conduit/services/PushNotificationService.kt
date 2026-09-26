@@ -11,6 +11,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.colecoding.conduit.auth.AuthManager
 import com.colecoding.conduit.MainActivity
+import com.colecoding.conduit.chat.PendingChatChannel
 import com.colecoding.conduit.R
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.models.Device
@@ -99,17 +100,14 @@ class PushNotificationService : FirebaseMessagingService() {
         val title = data["title"] ?: "New Message"
         val body = data["body"] ?: ""
 
-        // Use cid directly if available, otherwise construct from channel_type:channel_id
-        val cid = data["cid"] ?: run {
-            val channelId = data["channel_id"] ?: ""
-            val channelType = data["channel_type"] ?: "messaging"
-            "$channelType:$channelId"
-        }
+        // cid, or channel_type:channel_id; null if neither is there (the tap
+        // then just opens Chat rather than a channel that doesn't exist)
+        val cid = PendingChatChannel.cidFrom(data)
 
         Log.d(TAG, "Stream notification - channel: $cid, title: $title, body: $body, data: $data")
 
         // Check if user is currently viewing this channel
-        if (com.colecoding.conduit.chat.ChatViewTracker.isCurrentlyViewingChannel(cid)) {
+        if (cid != null && com.colecoding.conduit.chat.ChatViewTracker.isCurrentlyViewingChannel(cid)) {
             Log.d(TAG, "✅ User is viewing this channel - suppressing notification")
             return
         }
@@ -122,12 +120,16 @@ class PushNotificationService : FirebaseMessagingService() {
         // Create intent to open app when notification is tapped
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("channel_cid", cid)
+            putExtra(PendingChatChannel.EXTRA_OPEN_CHAT, true)
+            cid?.let { putExtra(PendingChatChannel.EXTRA_CHANNEL_CID, it) }
         }
 
+        // One PendingIntent per channel: with a shared request code every new
+        // notification rewrote the extras of the earlier ones, so tapping an
+        // older notification opened the newest one's channel.
         val pendingIntent = PendingIntent.getActivity(
             this,
-            0,
+            (cid ?: "chat").hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

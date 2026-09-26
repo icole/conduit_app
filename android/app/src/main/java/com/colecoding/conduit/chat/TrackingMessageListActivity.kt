@@ -18,11 +18,14 @@ class TrackingMessageListActivity : MessageListActivity() {
         private const val TAG = "TrackingMessageListActivity"
         private const val EXTRA_CID = "extra_cid"
 
-        fun createIntent(context: Context, cid: String): Intent {
-            // Use Stream's public createIntent and change the target class
-            return MessageListActivity.createIntent(context, cid).apply {
-                setClass(context, TrackingMessageListActivity::class.java)
-            }
+        /** [messageId] opens the channel scrolled to that message (search results). */
+        fun createIntent(context: Context, cid: String, messageId: String? = null): Intent {
+            return MessageListActivity.createIntent(
+                context,
+                cid,
+                messageId,
+                TrackingMessageListActivity::class.java,
+            )
         }
     }
 
