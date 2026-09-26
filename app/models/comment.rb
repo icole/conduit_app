@@ -1,6 +1,9 @@
 class Comment < ApplicationRecord
   include Discardable
 
+  # Audited, so an edited or deleted comment can still be accounted for.
+  has_paper_trail
+
   belongs_to :user
   belongs_to :commentable, polymorphic: true
   belongs_to :post, optional: true # Keep for backward compatibility during transition

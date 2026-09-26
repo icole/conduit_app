@@ -1,6 +1,15 @@
 class Document < ApplicationRecord
   include Discardable
 
+  # Audited for metadata only. `content` is skipped deliberately: the editor
+  # autosaves it and production bodies exceed 600 KB, so versioning it would
+  # copy the whole document on every save. Collaborative documents already have
+  # their own history in Liveblocks.
+  #
+  # Because content is skipped, a reified version has a nil body - never save
+  # one back over a live document.
+  has_paper_trail skip: [ :content ]
+
   acts_as_tenant :community
 
   belongs_to :document_folder, optional: true

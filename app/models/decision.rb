@@ -1,6 +1,10 @@
 class Decision < ApplicationRecord
   include Discardable
 
+  # Audited: community decisions are exactly the kind of record people need to
+  # be able to trace back.
+  has_paper_trail
+
   acts_as_tenant :community
 
   belongs_to :document, optional: true

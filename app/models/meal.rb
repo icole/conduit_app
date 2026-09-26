@@ -1,6 +1,9 @@
 class Meal < ApplicationRecord
   include Discardable
 
+  # Audited: who scheduled or cancelled a meal, and what it said before.
+  has_paper_trail
+
   acts_as_tenant :community
   has_rich_text :menu
 
