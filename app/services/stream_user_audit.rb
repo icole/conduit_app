@@ -10,10 +10,10 @@ class StreamUserAudit
   class NotOrphaned < StandardError; end
   class SuspectedMismatch < StandardError; end
 
-  # If this much of the Stream app has no matching Conduit account, the two
-  # sides are probably not the same environment - a local database compared
-  # against the production Stream app, most likely - and "orphan" means
-  # nothing. Refuse rather than retire real members' chat accounts.
+  # A wrong database shows up two ways at once: lots of Stream users with no
+  # Conduit account, *and* Conduit members Stream has never heard of. Either
+  # alone is normal - an app accumulates stale users, and a new member has no
+  # chat identity until they open chat - so both are required before refusing.
   MAX_ORPHAN_RATIO = 0.3
 
   PAGE_SIZE = 100
@@ -82,10 +82,16 @@ class StreamUserAudit
     ratio = orphaned_ids.size.to_f / stream_users.size
     return if ratio <= MAX_ORPHAN_RATIO
 
+    # Every one of our members present in Stream means the comparison is sound,
+    # however many extra Stream users there are.
+    missing = conduit_by_id.keys - stream_users.map { |u| u["id"] }
+    return if missing.empty?
+
     raise SuspectedMismatch,
       "#{orphaned_ids.size} of #{stream_users.size} Stream users have no Conduit account " \
-      "(#{(ratio * 100).round}%). This usually means the database and the Stream app are " \
-      "different environments - check which database this is running against. " \
+      "(#{(ratio * 100).round}%), and #{missing.size} Conduit user(s) are missing from Stream. " \
+      "That combination usually means the database and the Stream app are different " \
+      "environments - check which database this is running against. " \
       "Pass force: true only if the list really is that stale."
   end
 

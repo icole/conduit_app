@@ -121,6 +121,19 @@ class StreamUserAuditTest < ActiveSupport::TestCase
     assert_empty client.deactivated
   end
 
+  # A high orphan count on its own is not evidence of the wrong database: an
+  # app can accumulate stale Stream users legitimately. What distinguishes a
+  # mismatch is that our own members are also missing from Stream.
+  test "the guard stays quiet when every Conduit user is present in Stream" do
+    mine = ours.map { |u| stream_user(u.id, teams: [ u.community.slug ]) }
+    stale = (1..20).map { |n| stream_user("90#{n}") }
+    client = FakeClient.new(mine + stale)
+    audit = StreamUserAudit.new(client: client)
+
+    assert audit.call[:orphaned].size > mine.size, "this fixture should look orphan-heavy"
+    assert_equal [ "901" ], audit.deactivate_orphans!(ids: [ "901" ])
+  end
+
   test "the mismatch guard can be overridden deliberately" do
     client = FakeClient.new((1..10).map { |n| stream_user("90#{n}") })
     audit = StreamUserAudit.new(client: client)
