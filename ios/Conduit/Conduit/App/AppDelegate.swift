@@ -61,7 +61,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         Hotwire.config.makeCustomWebView = { (configuration: WKWebViewConfiguration) -> WKWebView in
             // Use different user agents for different purposes
             // Rails pages need "Turbo Native", Element needs desktop Safari
-            configuration.applicationNameForUserAgent = "Conduit iOS (Turbo Native)"
+            configuration.applicationNameForUserAgent = "Conduit iOS/2 (Turbo Native)"
 
             let webView = WKWebView(frame: .zero, configuration: configuration)
 
