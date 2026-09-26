@@ -422,6 +422,32 @@ class MealsTest < ApplicationSystemTestCase
 
   private
 
+  test "meal admin controls start collapsed and open on click" do
+    sign_in_as_user(:admin_user)
+
+    visit meal_path(@meal)
+
+    # The section is there, but its forms are tucked away by default so they
+    # don't dominate the page for the admins who see every meal.
+    assert_text "Admin Controls"
+    assert_no_selector "select[name='meal_cook[user_id]']"
+    assert_no_selector "select[name='meal_rsvp[user_id]']"
+
+    # A <summary> is neither a link nor a button, so click the element itself
+    find("summary", text: "Admin Controls").click
+
+    assert_selector "select[name='meal_cook[user_id]']"
+    assert_selector "select[name='meal_rsvp[user_id]']"
+  end
+
+  test "non-admins see no admin controls at all" do
+    sign_in_as_user(:one)
+
+    visit meal_path(@meal)
+
+    assert_no_text "Admin Controls"
+  end
+
   def sign_in_as_user(user_fixture)
     user = users(user_fixture)
 
