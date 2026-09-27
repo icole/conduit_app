@@ -39,9 +39,9 @@
 
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div class="form-control">
-      <%= form.label :estimated_minutes, "Agreed time (minutes)", class: "label" %>
-      <%= form.number_field :estimated_minutes, min: 1, step: 1, class: "input input-bordered w-full", required: true %>
-      <p class="text-xs text-base-content/70 mt-1">The time the group agrees this takes. It's what counts toward contribution, however long it actually takes.</p>
+      <%= form.label :effort, "Estimated effort", class: "label" %>
+      <%= form.select :effort, EstimatedEffort::SIZES.keys, {}, class: "select select-bordered w-full", required: true %>
+      <p class="text-xs text-base-content/70 mt-1">The size the group agrees this job is. It's what counts toward contribution, however long it actually takes.</p>
     </div>
 
     <div class="form-control">

@@ -1,5 +1,6 @@
 class Task < ApplicationRecord
   include Discardable
+  include EstimatedEffort
 
   # Audited: who created a task, who reassigned it, and what it said before.
   # Soft deletes are updates, so discarding is recorded too.

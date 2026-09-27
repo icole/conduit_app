@@ -66,11 +66,7 @@ module TasksHelper
   def effort_badge(minutes)
     return if minutes.blank?
 
-    tag.span RecurringTask.effort_label(minutes), class: "badge badge-sm badge-ghost whitespace-nowrap"
-  end
-
-  def effort_options
-    RecurringTask::EFFORT_PRESETS.map { |bucket, minutes| [ "#{bucket} · ~#{minutes} min", minutes ] }
+    tag.span EstimatedEffort.size_for(minutes), class: "badge badge-sm badge-ghost whitespace-nowrap"
   end
 
   def priority_options(include_inherit: false)

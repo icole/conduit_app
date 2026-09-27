@@ -53,17 +53,15 @@ class TasksController < ApplicationController
   end
 
   def edit
+    @return_to = return_to_path
   end
 
   def update
-    # Get the return_to path from params or default to tasks_path
-    return_to = params[:return_to] || tasks_path
-
+    @return_to = return_to_path
     @task.assign_attributes(task_params)
 
     if assignment_allowed?(@task) && @task.save
-      # Explicitly redirect to the return_to path
-      redirect_to return_to, notice: "Task was successfully updated."
+      redirect_to @return_to, notice: "Task was successfully updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -182,7 +180,7 @@ class TasksController < ApplicationController
       workstream_id: task_params[:workstream_id],
       frequency: @repeats,
       priority: params[:task][:priority],
-      estimated_minutes: task_params[:estimated_minutes],
+      effort: task_params[:effort],
       default_responsible_user_id: task_params[:assigned_to_user_id].presence,
       created_by: current_user
     )
@@ -317,7 +315,12 @@ class TasksController < ApplicationController
   end
 
   def task_params
-    params.require(:task).permit(:title, :description, :status, :assigned_to_user_id, :due_date, :workstream_id, :estimated_minutes)
+    params.require(:task).permit(:title, :description, :status, :assigned_to_user_id, :due_date, :workstream_id, :effort)
+  end
+
+  # The page the edit came from (e.g. a workstream), if it's on this site.
+  def return_to_path
+    url_from(params[:return_to]) || tasks_path
   end
 
   def reorder_pending_tasks

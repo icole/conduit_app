@@ -14,9 +14,7 @@
   </div>
 
   <div class="form-control w-full mb-4">
-    <%= form.label :estimated_minutes, "Estimated effort", class: "label" %>
-    <% options = effort_options %>
-    <% options << [ RecurringTask.effort_label(task.estimated_minutes), task.estimated_minutes ] if task.estimated_minutes && options.none? { |_, m| m == task.estimated_minutes } %>
-    <%= form.select :estimated_minutes, options, { include_blank: "Not estimated" }, class: "select select-bordered w-full" %>
+    <%= form.label :effort, "Estimated effort", class: "label" %>
+    <%= form.select :effort, EstimatedEffort::SIZES.keys, { include_blank: "Not estimated" }, class: "select select-bordered w-full" %>
   </div>
 </div>

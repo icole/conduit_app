@@ -120,7 +120,7 @@
               <p class="text-xs text-base-content/70"><%= [ task.completed_by&.name&.split(" ")&.first, task.workstream.name ].compact.join(" · ") %></p>
             </div>
             <div class="text-xs text-base-content/70 text-right whitespace-nowrap flex flex-col sm:flex-row sm:gap-1">
-              <% if (bucket = RecurringTask.effort_bucket(task.estimated_minutes)) %><span><%= bucket %><span class="hidden sm:inline"> ·</span></span><% end %>
+              <% if (bucket = task.effort) %><span><%= bucket %><span class="hidden sm:inline"> ·</span></span><% end %>
               <span><%= task.completed_at.in_time_zone(current_community.time_zone).strftime("%b %-d") %></span>
             </div>
           </li>

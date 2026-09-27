@@ -52,10 +52,10 @@ class RecurringTaskTest < ActiveSupport::TestCase
   end
 
   test "effort bucket is Small, Medium or Large" do
-    assert_equal "Small", RecurringTask.effort_bucket(15)
-    assert_equal "Medium", RecurringTask.effort_bucket(45)
-    assert_equal "Large", RecurringTask.effort_bucket(90)
-    assert_nil RecurringTask.effort_bucket(nil)
+    assert_equal "Small", EstimatedEffort.size_for(15)
+    assert_equal "Medium", EstimatedEffort.size_for(45)
+    assert_equal "Large", EstimatedEffort.size_for(90)
+    assert_nil EstimatedEffort.size_for(nil)
   end
 
   test "instance_for creates this period's task pre-assigned to the default person" do

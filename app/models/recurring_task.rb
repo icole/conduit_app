@@ -2,6 +2,7 @@
 # Task (an "instance") pre-assigned to its default responsible person.
 class RecurringTask < ApplicationRecord
   include Discard::Model
+  include EstimatedEffort
 
   acts_as_tenant :community
 
@@ -9,7 +10,6 @@ class RecurringTask < ApplicationRecord
     "weekly" => "Weekly", "biweekly" => "Every two weeks", "monthly" => "Monthly",
     "quarterly" => "Quarterly", "yearly" => "Yearly"
   }.freeze
-  EFFORT_PRESETS = { "Small" => 15, "Medium" => 45, "Large" => 90 }.freeze
 
   belongs_to :workstream
   belongs_to :default_responsible_user, class_name: "User", optional: true
@@ -28,22 +28,6 @@ class RecurringTask < ApplicationRecord
 
   before_validation { self.starts_on ||= Date.current }
   before_validation { self.priority = nil if priority.blank? }
-
-  def self.effort_bucket(minutes)
-    return if minutes.blank?
-
-    if minutes < 30 then "Small"
-    elsif minutes < 60 then "Medium"
-    else "Large"
-    end
-  end
-
-  # "Small · ~15 min"
-  def self.effort_label(minutes)
-    return if minutes.blank?
-
-    "#{effort_bucket(minutes)} · ~#{minutes} min"
-  end
 
   def effective_priority = priority.presence || workstream.priority
   def frequency_label = FREQUENCIES[frequency]

@@ -292,7 +292,7 @@ class TasksTest < ApplicationSystemTestCase
     assert_selector "label", text: "Responsible each period"
 
     fill_in "Title", with: "Clean shared kitchen"
-    select "Medium · ~45 min", from: "Estimated effort"
+    select "Medium", from: "Estimated effort"
     select "Essential", from: "Priority"
     click_button "Create Task"
 
@@ -315,5 +315,23 @@ class TasksTest < ApplicationSystemTestCase
     click_button "Undo"
     assert_current_path workstream_path(workstreams(:common_house))
     assert_selector "#task_#{task.id}"
+  end
+
+  test "this period's recurring task can be edited from its workstream, and saving comes back there" do
+    Capybara.reset_sessions!
+    sign_in_as(users(:one)) # owns Garbage & Recycling
+    visit workstream_url(workstreams(:garbage))
+    task = Task.find_by!(recurring_task: recurring_tasks(:garbage_night))
+    new_date = task.due_date + 3.days
+
+    within("#task_#{task.id}") { click_link "Edit" }
+    fill_in "Due Date (optional)", with: new_date
+    select "Large", from: "Estimated effort"
+    click_button "Update Task"
+
+    assert_current_path workstream_path(workstreams(:garbage))
+    assert_selector "#task_#{task.id}", text: "Due #{new_date.strftime('%b %-d')}"
+    assert_selector "#task_#{task.id} .badge", text: "Large"
+    assert_equal 90, task.reload.estimated_minutes
   end
 end

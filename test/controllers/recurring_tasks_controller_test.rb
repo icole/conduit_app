@@ -27,4 +27,19 @@ class RecurringTasksControllerTest < ActionDispatch::IntegrationTest
     delete workstream_recurring_task_url(@workstream, recurring)
     assert recurring.reload.discarded?
   end
+
+  test "the recurring task form sizes effort as Small, Medium or Large instead of minutes" do
+    sign_in users(:admin_user)
+    recurring = recurring_tasks(:pantry_restock) # 40 min: Medium
+
+    get edit_workstream_recurring_task_url(@workstream, recurring)
+    assert_select "select[name='recurring_task[effort]'] option[selected]", text: "Medium"
+    assert_select "[name='recurring_task[estimated_minutes]']", count: 0
+
+    patch workstream_recurring_task_url(@workstream, recurring), params: { recurring_task: { effort: "Medium", title: "Restock the pantry" } }
+    assert_equal 40, recurring.reload.estimated_minutes
+
+    patch workstream_recurring_task_url(@workstream, recurring), params: { recurring_task: { effort: "Large" } }
+    assert_equal 90, recurring.reload.estimated_minutes
+  end
 end

@@ -33,7 +33,7 @@ class CoverageBroadcast
   def message_text
     details = [
       (@task.due_date && "due #{@task.due_date.strftime('%a %b %-d')}"),
-      RecurringTask.effort_label(@task.estimated_minutes)
+      (@task.effort && "#{@task.effort.downcase} job")
     ].compact.join(", ")
 
     "#{@releaser.name.split.first} can't do \"#{@task.title}\" this time" \

@@ -37,7 +37,7 @@
           <% bits = [] %>
           <% bits << (task.workstream.governance? ? "Required" : priority_dot(priority)) if show_priority %>
           <% bits << task.recurring_task.frequency_label if task.recurring_task %>
-          <% bits << "~#{task.estimated_minutes} min" if task.estimated_minutes %>
+          <% bits << task.effort if task.effort %>
           <% bits << tag.span(due_label(task.due_date), class: ("text-error-ink" if task.overdue?)) if task.due_date %>
           <% if task.released_by && action == :claim %>
             <% bits << tag.span("Released by #{task.released_by.name.split(' ').first}", class: "text-info-ink") %>

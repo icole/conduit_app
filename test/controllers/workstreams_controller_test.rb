@@ -91,6 +91,28 @@ class WorkstreamsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#task_#{task.id} form[action='#{task_path(task)}']", count: 0
   end
 
+  test "this period's recurring task can be edited from the workstream page, coming back to it" do
+    sign_in users(:one) # owns Garbage & Recycling
+    get workstream_url(workstreams(:garbage))
+    task = Task.find_by!(recurring_task: recurring_tasks(:garbage_night))
+    assert_select "#task_#{task.id} a[href='#{edit_task_path(task, return_to: workstream_path(workstreams(:garbage)))}']", text: "Edit"
+  end
+
+  test "other members can't edit someone else's open work from the workstream page" do
+    sign_in users(:three)
+    get workstream_url(workstreams(:garbage))
+    task = Task.find_by!(recurring_task: recurring_tasks(:garbage_night))
+    assert_select "#task_#{task.id}"
+    assert_select "#task_#{task.id} a", text: "Edit", count: 0
+  end
+
+  test "effort shows as a size, not minutes" do
+    sign_in users(:admin_user)
+    get workstream_url(workstreams(:common_house))
+    assert_select "#recurring_task_#{recurring_tasks(:pantry_restock).id} .badge", text: "Medium"
+    assert_select ".badge", text: /min/, count: 0
+  end
+
   test "the workstream page has one Add task, with no separate recurring-task button" do
     sign_in users(:admin_user)
     get workstream_url(workstreams(:common_house))

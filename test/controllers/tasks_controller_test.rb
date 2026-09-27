@@ -190,7 +190,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
 
   test "creating a task assigned to yourself lands on My Tasks" do
     post tasks_url,
-         params: { task: { title: "Mine", workstream_id: workstreams(:general).id, assigned_to_user_id: @user.id, estimated_minutes: 45 } },
+         params: { task: { title: "Mine", workstream_id: workstreams(:general).id, assigned_to_user_id: @user.id, effort: "Medium" } },
          headers: { "HTTP_REFERER" => tasks_url }
     task = Task.find_by!(title: "Mine")
     assert_equal @user, task.assigned_to_user
@@ -227,7 +227,52 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       assert_select "option[selected][value='#{workstreams(:garbage).id}']"
       assert_select "option[value='#{workstreams(:front_yard).id}']", count: 0
     end
-    assert_select "select[name='task[estimated_minutes]']"
+    assert_select "select[name='task[effort]']" do
+      assert_select "option", text: "Small"
+      assert_select "option", text: "Medium"
+      assert_select "option", text: "Large"
+      assert_select "option", text: /min/, count: 0
+    end
+    assert_select "[name='task[estimated_minutes]']", count: 0
+  end
+
+  test "re-saving a task at the same size keeps its agreed minutes; a new size sets that size's time" do
+    task = Task.create!(title: "Deep clean", user: @user, workstream: workstreams(:general), estimated_minutes: 150)
+    patch task_url(task), params: { task: { effort: "Large", title: "Deep clean the kitchen" } }
+    assert_equal 150, task.reload.estimated_minutes
+
+    patch task_url(task), params: { task: { effort: "Small" } }
+    assert_equal 15, task.reload.estimated_minutes
+
+    patch task_url(task), params: { task: { effort: "" } }
+    assert_nil task.reload.estimated_minutes
+  end
+
+  test "task lists show effort as a size" do
+    Task.create!(title: "Sweep the porch", user: @user, assigned_to_user: @user, workstream: workstreams(:general), estimated_minutes: 20)
+    get tasks_url(tab: "my")
+    assert_select "[data-task-details]", text: /Small/
+    assert_select "[data-task-details]", text: /\d+ min/, count: 0
+    assert_select ".badge", text: /\d+ min/, count: 0
+  end
+
+  test "this period's recurring task can be edited, including its due date, and saving goes back to where it came from" do
+    task = recurring_tasks(:garbage_night).instance_for
+    back = workstream_path(task.workstream)
+
+    get edit_task_url(task, return_to: back)
+    assert_response :success
+    assert_select "input[type=hidden][name=return_to][value='#{back}']"
+    assert_select "a[href='#{back}']", text: "Cancel"
+
+    patch task_url(task), params: { task: { due_date: "2026-10-09" }, return_to: back }
+    assert_redirected_to back
+    assert_equal Date.new(2026, 10, 9), task.reload.due_date
+  end
+
+  test "saving a task ignores a return address on another site" do
+    patch task_url(@task), params: { task: { title: "Renamed" }, return_to: "https://evil.example/phish" }
+    assert_redirected_to tasks_url
   end
 
   test "members who own nothing can only assign tasks to themselves" do
@@ -388,7 +433,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     workstream = workstreams(:common_house)
     assert_difference("RecurringTask.count") do
       post tasks_url, params: { task: { title: "Clean shared kitchen", workstream_id: workstream.id, repeats: "weekly",
-                                        estimated_minutes: 45, assigned_to_user_id: users(:two).id, priority: "essential" } }
+                                        effort: "Medium", assigned_to_user_id: users(:two).id, priority: "essential" } }
     end
     recurring = RecurringTask.find_by!(title: "Clean shared kitchen")
     assert_equal [ "weekly", 45, "essential", users(:two), users(:admin_user) ],
@@ -408,7 +453,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
 
   test "members can't make a task repeat" do
     assert_no_difference([ "RecurringTask.count", "Task.count" ]) do
-      post tasks_url, params: { task: { title: "Sweep", workstream_id: workstreams(:general).id, repeats: "weekly", estimated_minutes: 15 } }
+      post tasks_url, params: { task: { title: "Sweep", workstream_id: workstreams(:general).id, repeats: "weekly", effort: "Small" } }
     end
     assert_response :unprocessable_entity
   end

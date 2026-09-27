@@ -117,9 +117,14 @@
               <%= task_priority_badge(task) %>
               <%= effort_badge(task.estimated_minutes) %>
               <% if task.due_date %><span class="badge badge-sm badge-ghost">Due <%= task.due_date.strftime("%b %-d") %></span><% end %>
-              <% if can_manage || task.user_id == current_user.id %>
-                <%= button_to "Delete", task_path(task), method: :delete, class: "btn btn-ghost btn-xs text-error-ink ml-auto",
-                      form: { class: "ml-auto", data: { turbo_confirm: task.recurring? ? "Delete this period's “#{task.title}”? The recurring task carries on." : "Delete “#{task.title}”?" } } %>
+              <% if can_manage || task.user_id == current_user.id || task.assigned_to_user_id == current_user.id %>
+                <div class="ml-auto flex items-center gap-1">
+                  <%= link_to "Edit", edit_task_path(task, return_to: workstream_path(@workstream)), class: "btn btn-ghost btn-xs" %>
+                  <% if can_manage || task.user_id == current_user.id %>
+                    <%= button_to "Delete", task_path(task), method: :delete, class: "btn btn-ghost btn-xs text-error-ink",
+                          form: { data: { turbo_confirm: task.recurring? ? "Delete this period's “#{task.title}”? The recurring task carries on." : "Delete “#{task.title}”?" } } %>
+                  <% end %>
+                </div>
               <% end %>
             </div>
             <% if can_manage && task.assigned_to_user.nil? %>
