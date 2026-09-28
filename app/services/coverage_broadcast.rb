@@ -18,10 +18,15 @@ class CoverageBroadcast
     return unless @releaser && @community.chat_available? && StreamChatClient.configured?
 
     client = StreamChatClient.client
-    client.upsert_user(@releaser.stream_user_data)
+    # Members only join the default channels when their app fetches a chat
+    # token, so anyone who hasn't opened chat since this channel appeared
+    # wouldn't see the post. Everyone in the community gets it.
+    members = User.where(community: @community).to_a
+    client.upsert_users(members.map(&:stream_user_data))
     channel = client.channel("team", channel_id: self.class.channel_id(@community),
       data: StreamChannelService.channel_data(@community, name: CHANNEL_NAME, created_by_id: @releaser.id.to_s))
     channel.query(user_id: @releaser.id.to_s)
+    channel.add_members(members.map(&:stream_user_id))
     channel.send_message({ text: message_text }, @releaser.id.to_s)
   rescue StreamChat::StreamAPIException => e
     Rails.logger.error "[CoverageBroadcast] Task #{@task.id}: #{e.message}"

@@ -10,12 +10,15 @@ class CoverageBroadcastTest < ActiveSupport::TestCase
 
   test "posts the release to the community's chores channel, linking to the queue" do
     sent = nil
+    added = nil
+    upserted = nil
     channel = Object.new
     channel.define_singleton_method(:query) { |**| {} }
+    channel.define_singleton_method(:add_members) { |ids| added = ids }
     channel.define_singleton_method(:send_message) { |message, user_id| sent = [ message, user_id ] }
 
     client = Minitest::Mock.new
-    client.expect :upsert_user, true, [ Hash ]
+    client.expect(:upsert_users, true) { |users| upserted = users; true }
     client.expect :channel, channel, [ "team" ], channel_id: "crow-woods-chores",
       data: StreamChannelService.channel_data(@community, name: "Chores & Coverage", created_by_id: users(:one).id.to_s)
 
@@ -26,6 +29,11 @@ class CoverageBroadcastTest < ActiveSupport::TestCase
     end
 
     client.verify
+    # Everyone in the community is in the channel, even if they've never opened chat
+    community_ids = User.where(community: @community).pluck(:id).map(&:to_s).sort
+    assert_equal community_ids, upserted.map { |user| user[:id] }.sort
+    assert_equal community_ids, added.sort
+
     message, user_id = sent
     assert_equal users(:one).id.to_s, user_id
     assert_includes message[:text], "Take out garbage & recycling"
