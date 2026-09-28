@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentContainerView
 import com.colecoding.conduit.auth.AuthManager
 import com.colecoding.conduit.auth.CommunitySelectActivity
+import com.colecoding.conduit.chat.ConduitLinks
 import com.colecoding.conduit.chat.PendingChatChannel
 import com.colecoding.conduit.auth.LoginActivity
 import com.colecoding.conduit.config.AppConfig
@@ -24,6 +25,8 @@ import com.colecoding.conduit.fragments.CustomChatFragment
 import com.colecoding.conduit.ui.Edge
 import com.colecoding.conduit.ui.padForSystemBars
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import dev.hotwire.core.turbo.visit.VisitAction
+import dev.hotwire.core.turbo.visit.VisitOptions
 import dev.hotwire.navigation.activities.HotwireActivity
 import dev.hotwire.navigation.navigator.NavigatorConfiguration
 import java.net.URLEncoder
@@ -224,6 +227,9 @@ class MainActivity : HotwireActivity() {
             Tab.ACCOUNT -> R.id.navigation_account
         }
 
+        // A Conduit link tapped in chat before the app was running
+        openRequestedPath()
+
         // Request notification permission for Android 13+
         requestNotificationPermission()
     }
@@ -233,6 +239,30 @@ class MainActivity : HotwireActivity() {
         setIntent(intent)
         PendingChatChannel.recordFrom(intent)
         openRequestedChat()
+        openRequestedPath()
+    }
+
+    /**
+     * A Conduit link tapped in a chat message (ConduitLinks): switch to the
+     * tab it belongs to and open it there, from that tab's first screen.
+     */
+    private fun openRequestedPath() {
+        val path = intent.getStringExtra(ConduitLinks.EXTRA_OPEN_PATH) ?: return
+        intent.removeExtra(ConduitLinks.EXTRA_OPEN_PATH)
+
+        val (tabItem, host) = when (ConduitLinks.tabFor(path)) {
+            ConduitLinks.Tab.TASKS -> R.id.navigation_tasks to tasksNavigatorHost
+            ConduitLinks.Tab.MEALS -> R.id.navigation_meals to mealsNavigatorHost
+            ConduitLinks.Tab.HOME -> R.id.navigation_home to homeNavigatorHost
+        }
+        Log.d(TAG, "Opening $path from chat")
+        bottomNavigation.selectedItemId = tabItem // switches tabs via the listener
+
+        val url = AppConfig.getBaseUrl(this).trimEnd('/') + path
+        host.post {
+            val navigator = delegate.currentNavigator ?: return@post
+            navigator.clearAll { navigator.route(url, VisitOptions(action = VisitAction.REPLACE)) }
+        }
     }
 
     /**

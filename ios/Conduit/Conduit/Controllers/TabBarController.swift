@@ -21,6 +21,25 @@ class TabBarController: UITabBarController {
         setupTabs()
         configureAppearance()
         self.delegate = self
+
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(openConduitLink(_:)), name: ConduitLink.openNotification, object: nil
+        )
+    }
+
+    /// A Conduit link tapped in a chat message: switch to the tab it belongs
+    /// to and open it there, from that tab's first screen.
+    @objc private func openConduitLink(_ notification: Notification) {
+        guard let url = notification.userInfo?["url"] as? URL else { return }
+
+        let index: Int
+        switch ConduitLink.tab(for: url.path) {
+        case .home: index = 0
+        case .tasks: index = 1
+        case .meals: index = 2
+        }
+        selectedIndex = index
+        (viewControllers?[index] as? Navigator)?.openLink(url)
     }
 
     private func setupTabs() {

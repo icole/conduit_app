@@ -600,6 +600,9 @@ class StreamChatViewController: UIViewController {
             Components.default.channelListSearchStrategy = .messages
             // "#" instead of a collage of member photos, in the list and chat header
             Components.default.channelAvatarView = ChannelHashAvatarView.self
+            // Conduit links in messages open in the app's tabs, not Safari
+            Components.default.messageContentView = ConduitMessageContentView.self
+            Components.default.messageListRouter = ConduitMessageListRouter.self
 
             // Create custom channel list view controller with channel creation support
             let channelListVC = CustomChannelListVC()

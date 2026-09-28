@@ -86,6 +86,18 @@ class Navigator: UINavigationController {
         route(url: url, options: VisitOptions(), properties: properties)
     }
 
+    /// Opens a link from elsewhere in the app (a Conduit link tapped in chat):
+    /// back to this tab's first screen, then the link in its place, so the
+    /// tab doesn't grow a stack of screens.
+    func openLink(_ url: URL) {
+        if isShowingModal {
+            dismiss(animated: false)
+        }
+        popToRootViewController(animated: false)
+        let properties = session.pathConfiguration?.properties(for: url) ?? PathProperties()
+        route(url: url, options: VisitOptions(action: .replace), properties: properties)
+    }
+
     private func route(url: URL, options: VisitOptions, properties: PathProperties) {
         let viewController = makeViewController(for: url, properties: properties)
 
