@@ -72,8 +72,10 @@ class PasswordChangeTest < ApplicationSystemTestCase
       click_button "Update Password"
     end
 
-    # Should see error message
-    assert_text "Current password is incorrect"
+    # Should see error message. Checking the password (bcrypt) and redirecting
+    # can take over the default 2s on CI, and the flash hides itself after 3s.
+    assert_text "Current password is incorrect", wait: 5
+    assert @email_user_two.reload.authenticate("testpassword123"), "the password should be unchanged"
   end
 
   test "password change validates new password requirements" do
