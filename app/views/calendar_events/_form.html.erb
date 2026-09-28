@@ -1,12 +1,67 @@
+<%# iOS draws date/time inputs centred and wider than their column; keep them left-aligned and in bounds %>
+<% datetime_input = "input input-bordered w-full min-w-0 [&::-webkit-date-and-time-value]:text-left" %>
+<% multi_day = event.start_time && event.end_time && event.end_time.to_date != event.start_time.to_date %>
 <div class="card bg-base-100 shadow-xl">
   <div class="card-body">
     <% form_url = event.google_event_id ? calendar_event_path(google_event_id: event.google_event_id) : calendar_events_path %>
     <% form_method = event.google_event_id ? :patch : :post %>
-    <%= form_with(url: form_url, method: form_method, data: { turbo: false }) do |form| %>
-
+    <%= form_with(url: form_url, method: form_method, data: { turbo: !legacy_ios_app? }) do |form| %>
       <div class="form-control w-full mb-4">
         <%= form.label :title, "Event Title *", class: "label label-text font-medium" %>
         <%= form.text_field :title, name: "calendar_event[title]", value: event.title, class: "input input-bordered w-full", required: true, placeholder: "Enter event title" %>
+      </div>
+
+      <div data-controller="event-time" class="mb-4">
+        <div class="form-control w-full mb-3">
+          <label class="label label-text font-medium" for="calendar_event_start_date"><span data-event-time-target="startDateLabel"><%= multi_day ? "Starts on *" : "Date *" %></span></label>
+          <input type="date" id="calendar_event_start_date" name="calendar_event[start_date]"
+                 value="<%= event.start_time&.strftime('%Y-%m-%d') %>"
+                 class="<%= datetime_input %>" required
+                 data-event-time-target="startDate"
+                 data-action="change->event-time#startDateChanged" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <div class="form-control min-w-0">
+            <label class="label label-text font-medium" for="calendar_event_start_time_of_day">Starts *</label>
+            <input type="time" id="calendar_event_start_time_of_day" name="calendar_event[start_time_of_day]"
+                   value="<%= event.start_time&.strftime('%H:%M') %>" step="900"
+                   class="<%= datetime_input %>" required
+                   data-event-time-target="startTime"
+                   data-action="change->event-time#startTimeChanged" />
+          </div>
+          <div class="form-control min-w-0">
+            <label class="label label-text font-medium" for="calendar_event_end_time_of_day">Ends *</label>
+            <input type="time" id="calendar_event_end_time_of_day" name="calendar_event[end_time_of_day]"
+                   value="<%= event.end_time&.strftime('%H:%M') %>" step="900"
+                   class="<%= datetime_input %>" required
+                   data-event-time-target="endTime"
+                   data-action="change->event-time#endChanged" />
+          </div>
+        </div>
+
+        <label class="label cursor-pointer justify-start gap-2 py-1">
+          <input type="checkbox" name="calendar_event[multi_day]" value="1" class="checkbox checkbox-sm" <%= "checked" if multi_day %>
+                 data-event-time-target="multiDay" data-action="change->event-time#multiDayChanged" />
+          <span class="label-text">Ends on a different day</span>
+        </label>
+
+        <%# Disabled (so not sent) for one-day events: the server ends them on the start date %>
+        <div class="form-control w-full mt-2" data-event-time-target="endDateField" <%= "hidden" unless multi_day %>>
+          <label class="label label-text font-medium" for="calendar_event_end_date">Ends on *</label>
+          <input type="date" id="calendar_event_end_date" name="calendar_event[end_date]"
+                 value="<%= event.end_time&.strftime('%Y-%m-%d') %>"
+                 class="<%= datetime_input %>" required <%= "disabled" unless multi_day %>
+                 data-event-time-target="endDate"
+                 data-action="change->event-time#endChanged" />
+        </div>
+
+        <p class="text-xs text-base-content/70 mt-2">Times are Pacific Time.</p>
+      </div>
+
+      <div class="form-control w-full mb-4">
+        <%= form.label :location, "Location", class: "label label-text font-medium" %>
+        <%= form.text_field :location, name: "calendar_event[location]", value: event.location, class: "input input-bordered w-full", placeholder: "Event location" %>
       </div>
 
       <div class="form-control w-full mb-4">
@@ -16,54 +71,8 @@
         <% end %>
       </div>
 
-      <div class="form-control w-full mb-4">
-        <%= form.label :location, "Location", class: "label label-text font-medium" %>
-        <%= form.text_field :location, name: "calendar_event[location]", value: event.location, class: "input input-bordered w-full", placeholder: "Event location" %>
-      </div>
-
-      <div data-controller="event-time">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-          <div class="form-control w-full">
-            <label class="label label-text font-medium">Start *</label>
-            <div class="flex gap-2">
-              <input type="date" name="calendar_event[start_date]"
-                     value="<%= event.start_time&.strftime('%Y-%m-%d') %>"
-                     class="input input-bordered flex-1"
-                     required
-                     data-event-time-target="startDate"
-                     data-action="change->event-time#startChanged" />
-              <input type="time" name="calendar_event[start_time_of_day]"
-                     value="<%= event.start_time&.strftime('%H:%M') %>"
-                     class="input input-bordered w-32"
-                     required
-                     data-event-time-target="startTime"
-                     data-action="change->event-time#startChanged" />
-            </div>
-          </div>
-
-          <div class="form-control w-full">
-            <label class="label label-text font-medium">End *</label>
-            <div class="flex gap-2">
-              <input type="date" name="calendar_event[end_date]"
-                     value="<%= event.end_time&.strftime('%Y-%m-%d') %>"
-                     class="input input-bordered flex-1"
-                     required
-                     data-event-time-target="endDate" />
-              <input type="time" name="calendar_event[end_time_of_day]"
-                     value="<%= event.end_time&.strftime('%H:%M') %>"
-                     class="input input-bordered w-32"
-                     required
-                     data-event-time-target="endTime" />
-            </div>
-          </div>
-        </div>
-        <div class="label">
-          <span class="label-text-alt text-base-content/60">Times in Pacific Time (PT)</span>
-        </div>
-      </div>
-
       <div class="flex justify-end gap-3 mt-6">
-        <%= link_to 'Cancel', calendar_index_path, class: "btn btn-ghost" %>
+        <%= link_to "Cancel", calendar_index_path, class: "btn btn-ghost" %>
         <%= form.submit(event.google_event_id ? "Update Event" : "Create Event", class: "btn btn-primary") %>
       </div>
     <% end %>

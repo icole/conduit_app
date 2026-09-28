@@ -98,10 +98,11 @@ class CalendarController < ApplicationController
       obj.define_singleton_method(:start_time) { start_time }
       obj.define_singleton_method(:end_time) { end_time }
       obj.define_singleton_method(:location) { event[:location] }
+      obj.define_singleton_method(:description) { event[:description] }
       obj.define_singleton_method(:google_event) { true }
       obj.define_singleton_method(:google_event_id) { event[:id] }
       obj.define_singleton_method(:all_day) { event[:all_day] }
-      obj.define_singleton_method(:respond_to?) { |method| [ :title, :start_time, :end_time, :location, :google_event, :google_event_id, :all_day ].include?(method.to_sym) }
+      obj.define_singleton_method(:respond_to?) { |method| [ :title, :start_time, :end_time, :location, :description, :google_event, :google_event_id, :all_day ].include?(method.to_sym) }
       obj.define_singleton_method(:time_range) do
         if event[:all_day]
           "#{start_time.strftime('%b %d, %Y')} • All Day"

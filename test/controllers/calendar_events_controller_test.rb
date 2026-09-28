@@ -56,8 +56,63 @@ class CalendarEventsControllerTest < ActionDispatch::IntegrationTest
       }
     end
 
-    assert_redirected_to calendar_event_url(google_event_id: "new_event_123")
+    # Back to the calendar, at the event's month, with its popup open
+    assert_redirected_to calendar_index_url(start_date: @start_date)
+    assert_equal "new_event_123", flash[:open_event_modal]
     @mock_service.verify
+  end
+
+  test "a one-day event ends on the day it starts, so the form only asks for one date" do
+    @mock_service.expect(:create_event, { status: :success, event_id: "new_event_123" },
+      calendar_id: ENV["GOOGLE_CALENDAR_ID"],
+      title: "Potluck",
+      start_time: ->(t) { t == Time.zone.parse("#{@start_date} 18:00") },
+      end_time: ->(t) { t == Time.zone.parse("#{@start_date} 20:30") },
+      description: "",
+      location: "")
+
+    GoogleCalendarApiService.stub(:from_service_account_with_acl_scope, @mock_service) do
+      post calendar_events_url, params: { calendar_event: { title: "Potluck", start_date: @start_date,
+                                                            start_time_of_day: "18:00", end_time_of_day: "20:30" } }
+    end
+
+    assert_redirected_to calendar_index_url(start_date: @start_date)
+    @mock_service.verify
+  end
+
+  test "an end before the start is refused without calling Google" do
+    GoogleCalendarApiService.stub(:from_service_account_with_acl_scope, @mock_service) do
+      post calendar_events_url, params: { calendar_event: { title: "Backwards", start_date: @start_date,
+                                                            start_time_of_day: "19:00", end_time_of_day: "18:00" } }
+    end
+
+    assert_response :unprocessable_entity
+    assert_match "The end needs to be after the start", response.body
+    @mock_service.verify
+  end
+
+  test "a new event starts at the next full hour today, an hour long, on one day" do
+    travel_to Time.zone.local(2026, 10, 1, 14, 20) do
+      get new_calendar_event_url
+    end
+
+    assert_select "input[name='calendar_event[start_date]'][value='2026-10-01']"
+    assert_select "input[name='calendar_event[start_time_of_day]'][value='15:00']"
+    assert_select "input[name='calendar_event[end_time_of_day]'][value='16:00']"
+    assert_select "input[type=checkbox][name='calendar_event[multi_day]']:not([checked])"
+    assert_select "input[name='calendar_event[end_date]'][disabled]"
+  end
+
+  test "editing an event that runs over several days shows its end date" do
+    @mock_event[:end_time] = 3.days.from_now.change(hour: 11, min: 0)
+    @mock_service.expect(:get_event, @mock_event, [ ENV["GOOGLE_CALENDAR_ID"], "test_event_abc123" ])
+
+    GoogleCalendarApiService.stub(:from_service_account_with_acl_scope, @mock_service) do
+      get edit_calendar_event_url(google_event_id: "test_event_abc123")
+    end
+
+    assert_select "input[type=checkbox][name='calendar_event[multi_day]'][checked]"
+    assert_select "input[name='calendar_event[end_date]'][value='#{3.days.from_now.strftime('%Y-%m-%d')}']:not([disabled])"
   end
 
   test "create shows error when google api fails" do
@@ -101,15 +156,15 @@ class CalendarEventsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
-  test "should show event from google calendar" do
+  test "an event's own page is gone: its link opens the event's popup on the calendar" do
     @mock_service.expect(:get_event, @mock_event, [ ENV["GOOGLE_CALENDAR_ID"], "test_event_abc123" ])
 
     GoogleCalendarApiService.stub(:from_service_account_with_acl_scope, @mock_service) do
       get calendar_event_url(google_event_id: "test_event_abc123")
     end
 
-    assert_response :success
-    assert_select "h1", "Community Meeting"
+    assert_redirected_to calendar_index_url(start_date: @mock_event[:start_time].to_date.to_s)
+    assert_equal "test_event_abc123", flash[:open_event_modal]
     @mock_service.verify
   end
 
@@ -159,7 +214,8 @@ class CalendarEventsControllerTest < ActionDispatch::IntegrationTest
       }
     end
 
-    assert_redirected_to calendar_event_url(google_event_id: "test_event_abc123")
+    assert_redirected_to calendar_index_url(start_date: @start_date)
+    assert_equal "test_event_abc123", flash[:open_event_modal]
     @mock_service.verify
   end
 
