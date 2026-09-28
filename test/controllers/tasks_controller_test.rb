@@ -451,19 +451,36 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_match(/Estimated effort can.{1,6}t be blank/, response.body)
   end
 
-  test "members can't make a task repeat" do
+  test "any member can make a task repeat, with themselves responsible" do
+    assert_difference("RecurringTask.count") do
+      post tasks_url, params: { task: { title: "Sweep the porch", workstream_id: workstreams(:general).id, repeats: "weekly",
+                                        effort: "Small", assigned_to_user_id: @user.id } }
+    end
+    recurring = RecurringTask.find_by!(title: "Sweep the porch")
+    assert_equal [ @user, @user ], [ recurring.default_responsible_user, recurring.created_by ]
+    assert_redirected_to workstream_url(workstreams(:general))
+  end
+
+  test "a member can't make someone else responsible for a repeating task in a workstream they don't own" do
     assert_no_difference([ "RecurringTask.count", "Task.count" ]) do
-      post tasks_url, params: { task: { title: "Sweep", workstream_id: workstreams(:general).id, repeats: "weekly", effort: "Small" } }
+      post tasks_url, params: { task: { title: "Sweep the porch", workstream_id: workstreams(:general).id, repeats: "weekly",
+                                        effort: "Small", assigned_to_user_id: users(:two).id } }
     end
     assert_response :unprocessable_entity
   end
 
-  test "only admins see the Repeats choice on the task form" do
-    get new_task_url
-    assert_select "select[name='task[repeats]']", count: 0
+  test "a workstream owner can make someone else responsible for a repeating task" do
+    assert_difference("RecurringTask.count") do
+      post tasks_url, params: { task: { title: "Rinse the bins", workstream_id: workstreams(:garbage).id, repeats: "monthly",
+                                        effort: "Medium", assigned_to_user_id: users(:two).id } }
+    end
+    assert_equal users(:two), RecurringTask.find_by!(title: "Rinse the bins").default_responsible_user
+  end
 
-    sign_in_as_admin
+  test "everyone gets the Repeats choice on the task form" do
     get new_task_url
+    assert_select "select[name='task[repeats]'] option", text: "Weekly"
+    get tasks_url
     assert_select "select[name='task[repeats]'] option", text: "Weekly"
   end
 

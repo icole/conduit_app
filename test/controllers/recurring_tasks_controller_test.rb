@@ -9,6 +9,31 @@ class RecurringTasksControllerTest < ActionDispatch::IntegrationTest
     @workstream = workstreams(:common_house)
   end
 
+  test "a workstream's owners edit and remove its recurring tasks" do
+    sign_in users(:one) # owns Garbage & Recycling
+    recurring = recurring_tasks(:garbage_night)
+    patch workstream_recurring_task_url(workstreams(:garbage), recurring), params: { recurring_task: { title: "Bins out" } }
+    assert_redirected_to workstream_url(workstreams(:garbage))
+    assert_equal "Bins out", recurring.reload.title
+
+    delete workstream_recurring_task_url(workstreams(:garbage), recurring)
+    assert recurring.reload.discarded?
+  end
+
+  test "whoever set up a repeating task can change it, but only owners make someone else responsible" do
+    recurring = RecurringTask.create!(workstream: @workstream, title: "Water the plants", frequency: "weekly", estimated_minutes: 15,
+                                      created_by: users(:three), default_responsible_user: users(:three))
+    sign_in users(:three) # doesn't own Common House
+
+    patch workstream_recurring_task_url(@workstream, recurring), params: { recurring_task: { title: "Water the houseplants" } }
+    assert_redirected_to workstream_url(@workstream)
+    assert_equal "Water the houseplants", recurring.reload.title
+
+    patch workstream_recurring_task_url(@workstream, recurring), params: { recurring_task: { default_responsible_user_id: users(:two).id } }
+    assert_response :unprocessable_entity
+    assert_equal users(:three), recurring.reload.default_responsible_user
+  end
+
   test "members cannot edit recurring tasks" do
     sign_in users(:one)
     patch workstream_recurring_task_url(@workstream, recurring_tasks(:pantry_restock)), params: { recurring_task: { title: "Mine now" } }

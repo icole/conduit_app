@@ -81,7 +81,7 @@
                   <% end %>
                 </p>
               </div>
-              <% if current_user.admin? %>
+              <% if recurring.manageable_by?(current_user) %>
                 <div class="flex gap-1 shrink-0">
                   <%= link_to "Edit", edit_workstream_recurring_task_path(@workstream, recurring), class: "btn btn-ghost btn-xs" %>
                   <%= button_to "Remove", workstream_recurring_task_path(@workstream, recurring), method: :delete, class: "btn btn-ghost btn-xs text-error-ink", form: { data: { turbo_confirm: "Remove this recurring task? Past instances are kept.", turbo_action: "replace" } } %>
@@ -91,7 +91,7 @@
           </div>
         <% end %>
         <% if @recurring_tasks.empty? %>
-          <p class="text-sm text-base-content/65">No recurring tasks yet.<% if current_user.admin? %> Use Add task and choose how often it repeats.<% end %></p>
+          <p class="text-sm text-base-content/65">No recurring tasks yet. Use Add task and choose how often it repeats.</p>
         <% end %>
       </div>
     </section>

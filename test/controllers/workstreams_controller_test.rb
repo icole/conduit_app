@@ -113,6 +113,19 @@ class WorkstreamsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".badge", text: /min/, count: 0
   end
 
+  test "a workstream's owners get Edit and Remove on its recurring tasks; other members don't" do
+    recurring = recurring_tasks(:garbage_night)
+    sign_in users(:one) # owns Garbage & Recycling
+    get workstream_url(workstreams(:garbage))
+    assert_select "#recurring_task_#{recurring.id} a[href='#{edit_workstream_recurring_task_path(workstreams(:garbage), recurring)}']", text: "Edit"
+    assert_select "#recurring_task_#{recurring.id} button", text: "Remove"
+
+    delete logout_path
+    sign_in users(:three)
+    get workstream_url(workstreams(:garbage))
+    assert_select "#recurring_task_#{recurring.id} a", text: "Edit", count: 0
+  end
+
   test "the workstream page has one Add task, with no separate recurring-task button" do
     sign_in users(:admin_user)
     get workstream_url(workstreams(:common_house))

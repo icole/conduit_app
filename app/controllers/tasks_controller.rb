@@ -163,14 +163,16 @@ class TasksController < ApplicationController
 
   RECURRING_ERROR_LABELS = { estimated_minutes: "Estimated effort", frequency: "Repeats", workstream: "Workstream", title: "Title" }.freeze
 
-  # "Repeats" on the Add task form sets up a recurring task instead. Only
-  # admins pre-load recurring work; members add one-off tasks.
+  # "Repeats" on the Add task form sets up a recurring task instead. Anyone
+  # can; like assigning a task, only the workstream's owners (or an admin)
+  # can make someone else responsible for it.
   def create_recurring
     @task = current_user.tasks.build(task_params)
     @repeats = params[:task][:repeats]
 
-    unless current_user.admin?
-      @task.errors.add(:base, "Only admins can set up repeating tasks")
+    responsible_id = task_params[:assigned_to_user_id].presence
+    if responsible_id && responsible_id.to_i != current_user.id && !can_assign_others?(@task.workstream)
+      @task.errors.add(:base, "Only the workstream's owners can make someone else responsible")
       return render :new, status: :unprocessable_entity
     end
 
@@ -181,7 +183,7 @@ class TasksController < ApplicationController
       frequency: @repeats,
       priority: params[:task][:priority],
       effort: task_params[:effort],
-      default_responsible_user_id: task_params[:assigned_to_user_id].presence,
+      default_responsible_user_id: responsible_id,
       created_by: current_user
     )
 

@@ -29,6 +29,9 @@ class RecurringTask < ApplicationRecord
   before_validation { self.starts_on ||= Date.current }
   before_validation { self.priority = nil if priority.blank? }
 
+  # Admins, the workstream's owners, and whoever set it up can change it.
+  def manageable_by?(user) = user.admin? || workstream.owned_by?(user) || created_by_id == user.id
+
   def effective_priority = priority.presence || workstream.priority
   def frequency_label = FREQUENCIES[frequency]
   def covered? = default_responsible_user_id.present?

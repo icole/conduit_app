@@ -21,7 +21,7 @@
 
   <div class="form-control">
     <%= form.label :default_responsible_user_id, "Default responsible person", class: "label" %>
-    <%= form.select :default_responsible_user_id, [ [ "Nobody yet (coverage gap)", "" ] ] + User.order(:name).map { |u| [ u.name, u.id ] }, {}, class: "select select-bordered w-full" %>
+    <%= form.select :default_responsible_user_id, [ [ "Nobody yet (coverage gap)", "" ] ] + @responsible_choices.map { |u| [ u.name, u.id ] }, {}, class: "select select-bordered w-full" %>
     <p class="text-xs text-base-content/70 mt-1">Each period's instance is pre-assigned to this person. They can release a single period if they're away.</p>
   </div>
 

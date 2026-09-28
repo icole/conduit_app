@@ -84,7 +84,7 @@ class TasksNativeTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "admins can make a task repeat from the apps, the same as on the web" do
+  test "a task can be made to repeat from the apps, the same as on the web" do
     [ LEGACY_IOS, NATIVE, ANDROID ].each do |agent|
       [ tasks_url, new_task_url(workstream_id: workstreams(:garbage).id) ].each do |url|
         get url, headers: agent

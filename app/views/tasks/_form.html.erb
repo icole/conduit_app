@@ -20,8 +20,8 @@
 
   <%= render "tasks/workstream_fields", form: form, task: task %>
 
-  <%# Admins can make a new task repeat; members add one-off tasks %>
-  <% if current_user.admin? && task.new_record? %>
+  <%# Any new task can repeat %>
+  <% if task.new_record? %>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
       <div class="form-control w-full mb-4">
         <%= label_tag "task_repeats", "Repeats", class: "label" %>
