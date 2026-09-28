@@ -3,6 +3,11 @@ require "test_helper"
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
 
+  # CI machines are slower than a laptop: a form that checks a password or
+  # deletes a user can take over Capybara's default 2s to land, and flash
+  # messages hide themselves after 3s, so waiting 2s made those tests flaky.
+  Capybara.default_max_wait_time = 5
+
   # The Content-Security-Policy is enforced outside production, and a blocked
   # script fails silently — the page just quietly does nothing, which is how a
   # CSP rollout breaks a feature without anyone noticing. So every system test

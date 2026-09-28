@@ -18,6 +18,7 @@ class UserDeletionTest < ApplicationSystemTestCase
     visit edit_user_url(@member)
     accept_confirm(/delete this user/) { click_button "Delete User" }
 
+    assert_current_path users_path
     assert_text "User was successfully deleted."
     assert_not User.exists?(@member.id)
   end
