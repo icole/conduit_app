@@ -224,7 +224,6 @@ class TasksController < ApplicationController
       frequency: @repeats,
       priority: params[:task][:priority],
       effort: task_params[:effort],
-      people_needed: task_params[:people_needed].presence || 1,
       responsibles: User.where(id: responsible_ids),
       created_by: current_user
     )
@@ -350,25 +349,22 @@ class TasksController < ApplicationController
     false
   end
 
-  # The people picked on a form (one picker per spot). Older forms send a
-  # single assigned_to_user_id. nil when the form didn't include anyone.
+  # The people picked on a form (one picker per spot); nil when the form
+  # didn't include the pickers.
   def assignee_ids_param
-    task = params[:task] || {}
-    ids = if task.key?(:assignee_ids) then Array(task[:assignee_ids])
-    elsif task.key?(:assigned_to_user_id) then [ task[:assigned_to_user_id] ]
-    end
-    ids&.compact_blank&.map(&:to_i)&.uniq
+    ids = params.dig(:task, :assignee_ids)
+    ids && Array(ids).compact_blank.map(&:to_i).uniq
   end
 
   def tasks_path_for(task)
     if task.assigned_to?(current_user) then tasks_path(tab: "my")
-    elsif task.open_spots.positive? then tasks_path(tab: "available")
+    elsif task.assignees.empty? then tasks_path(tab: "available")
     else workstream_path(task.workstream)
     end
   end
 
   def task_params
-    params.require(:task).permit(:title, :description, :status, :due_date, :workstream_id, :effort, :people_needed)
+    params.require(:task).permit(:title, :description, :status, :due_date, :workstream_id, :effort)
   end
 
   # The page the edit came from (e.g. a workstream), if it's on this site.

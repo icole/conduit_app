@@ -1,6 +1,14 @@
 require "application_system_test_case"
 
 class TasksTest < ApplicationSystemTestCase
+  # Opens the people dropdown, ticks these names, and closes it again
+  def pick_people(*names, close: true)
+    summary = find("summary[aria-labelledby$='_label']")
+    summary.click
+    names.each { |name| check name }
+    summary.click if close
+  end
+
   setup do
     @user_one = users(:one)
     @user_two = users(:two)
@@ -85,8 +93,7 @@ class TasksTest < ApplicationSystemTestCase
       # user one owns this workstream, so may assign to others
       select workstreams(:garbage).name, from: "task[workstream_id]"
 
-      # Use native select for user assignment
-      select @user_two.name, from: "task_assignee_ids_0"
+      pick_people @user_two.name
 
       # Submit the form
       click_on "Create Task"
@@ -111,8 +118,7 @@ class TasksTest < ApplicationSystemTestCase
     # Check that we are on the edit page
     assert_text "Edit Task"
 
-    # Use native select for user assignment
-    select @user_two.name, from: "task_assignee_ids_0"
+    pick_people @user_two.name
 
     # Submit the form - use the button text instead of input value
     click_button "Update Task"
@@ -289,7 +295,7 @@ class TasksTest < ApplicationSystemTestCase
     select "Weekly", from: "Repeats"
     assert_no_field "Due Date (optional)"
     assert_field "Priority"
-    assert_selector "label", text: "Responsible each period"
+    assert_selector ".label", text: "Responsible each period"
 
     fill_in "Title", with: "Clean shared kitchen"
     select "Medium", from: "Estimated effort"
@@ -358,26 +364,22 @@ class TasksTest < ApplicationSystemTestCase
     assert_no_selector "#recently-completed #task_#{task.id}"
   end
 
-  test "People needed shows a picker per person, and taking a spot away clears it" do
+  test "the people dropdown shows who's picked, and a task can go to several people" do
     Capybara.reset_sessions!
     sign_in_as(users(:one)) # owns Garbage & Recycling
     visit new_task_url(workstream_id: workstreams(:garbage).id)
 
-    assert_selector "#task_assignee_ids_1", visible: :hidden
-    select "2 people", from: "People needed"
-    select users(:two).name, from: "Second person"
-    select "1 person", from: "People needed"
-    assert_selector "#task_assignee_ids_1", visible: :hidden
-    select "2 people", from: "People needed"
-    assert_equal "", find("#task_assignee_ids_1").value
+    assert_selector "#task_assignee_ids", text: "Unassigned"
+    pick_people users(:one).name, users(:two).name, close: false
+    assert_selector "#task_assignee_ids", text: "#{users(:one).name}, #{users(:two).name}"
+
+    find_field("Title").click # tapping elsewhere closes the list
+    assert_no_selector "input[type=checkbox][data-name='#{users(:two).name}']", visible: true
 
     fill_in "Title", with: "Deep clean the bins"
-    select users(:one).name, from: "Assign to"
-    select users(:two).name, from: "Second person"
     click_button "Create Task"
 
     assert_text "Task was successfully created."
-    task = Task.find_by!(title: "Deep clean the bins")
-    assert_equal [ 2, [ users(:one), users(:two) ].sort_by(&:name) ], [ task.people_needed, task.assignees.to_a ]
+    assert_equal [ users(:one), users(:two) ].sort_by(&:name), Task.find_by!(title: "Deep clean the bins").assignees.to_a
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_010000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -356,7 +356,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_000000) do
     t.bigint "community_id", null: false
     t.datetime "created_at", null: false
     t.bigint "created_by_id", null: false
-    t.bigint "default_responsible_user_id"
     t.text "description"
     t.datetime "discarded_at"
     t.integer "estimated_minutes", null: false
@@ -369,7 +368,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_000000) do
     t.bigint "workstream_id", null: false
     t.index ["community_id"], name: "index_recurring_tasks_on_community_id"
     t.index ["created_by_id"], name: "index_recurring_tasks_on_created_by_id"
-    t.index ["default_responsible_user_id"], name: "index_recurring_tasks_on_default_responsible_user_id"
     t.index ["discarded_at"], name: "index_recurring_tasks_on_discarded_at"
     t.index ["workstream_id"], name: "index_recurring_tasks_on_workstream_id"
   end
@@ -430,7 +428,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_000000) do
   end
 
   create_table "tasks", force: :cascade do |t|
-    t.integer "assigned_to_user_id"
     t.bigint "community_id", null: false
     t.datetime "completed_at"
     t.bigint "completed_by_id"
@@ -453,7 +450,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_000000) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.bigint "workstream_id", null: false
-    t.index ["assigned_to_user_id"], name: "index_tasks_on_assigned_to_user_id"
     t.index ["community_id"], name: "index_tasks_on_community_id"
     t.index ["completed_at"], name: "index_tasks_on_completed_at"
     t.index ["completed_by_id"], name: "index_tasks_on_completed_by_id"
@@ -610,7 +606,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_000000) do
   add_foreign_key "recurring_task_templates", "roles"
   add_foreign_key "recurring_tasks", "communities"
   add_foreign_key "recurring_tasks", "users", column: "created_by_id"
-  add_foreign_key "recurring_tasks", "users", column: "default_responsible_user_id"
   add_foreign_key "recurring_tasks", "workstreams"
   add_foreign_key "role_assignments", "roles"
   add_foreign_key "role_assignments", "users"
@@ -625,7 +620,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_000000) do
   add_foreign_key "tasks", "recurring_tasks"
   add_foreign_key "tasks", "roles"
   add_foreign_key "tasks", "users"
-  add_foreign_key "tasks", "users", column: "assigned_to_user_id"
   add_foreign_key "tasks", "users", column: "completed_by_id"
   add_foreign_key "tasks", "users", column: "created_by_id"
   add_foreign_key "tasks", "users", column: "deleted_by_id"

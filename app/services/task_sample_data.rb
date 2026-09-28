@@ -180,7 +180,7 @@ class TaskSampleData
   # Released straight onto the record: sample data shouldn't post to chat.
   def release_this_week(recurring, person)
     task = recurring.instance_for(@today)
-    return unless task && task.assigned_to_user_id == person.id
+    return unless task && task.assigned_to?(person)
 
     task.update!(assigned_to_user: nil, released_by: person, released_at: Time.current)
   end

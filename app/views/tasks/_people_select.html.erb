@@ -1,0 +1,34 @@
+<%# Pick one or more people. A dropdown that reads out who's chosen; opening it
+    shows everyone with a tick box. The blank hidden field lets unticking
+    everyone clear the list.
+    locals: name (e.g. "task[assignee_ids][]"), id, label, selected (users), users,
+            empty_label, label_data (e.g. for task-repeat's relabelling) %>
+<% chosen_ids = selected.map(&:id) %>
+<% empty_label = local_assigns.fetch(:empty_label, "Unassigned") %>
+<div class="form-control w-full mb-4" data-controller="people-select" data-people-select-empty-value="<%= empty_label %>">
+  <%= tag.span label, class: "label", id: "#{id}_label", data: local_assigns.fetch(:label_data, {}) %>
+  <%= hidden_field_tag name, "", id: nil %>
+  <details class="dropdown w-full" data-people-select-target="dropdown">
+    <summary id="<%= id %>" aria-labelledby="<%= id %>_label"
+             class="input input-bordered w-full flex items-center justify-between gap-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+      <span class="truncate" data-people-select-target="summary"><%= selected.map(&:name).join(", ").presence || empty_label %></span>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-50 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+      </svg>
+    </summary>
+    <ul class="dropdown-content menu flex-nowrap bg-base-100 rounded-box border border-base-300 shadow-lg z-20 w-full max-h-64 overflow-y-auto p-1 mt-1">
+      <% users.sort_by(&:name).each do |user| %>
+        <li>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <%= check_box_tag name, user.id, chosen_ids.include?(user.id), id: "#{id}_#{user.id}", class: "peer checkbox checkbox-sm checkbox-primary",
+                  data: { name: user.name, action: "change->people-select#update" } %>
+            <span class="flex-1 peer-checked:font-semibold"><%= user.name %></span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary-ink hidden peer-checked:block" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+          </label>
+        </li>
+      <% end %>
+    </ul>
+  </details>
+</div>

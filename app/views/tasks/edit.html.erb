@@ -47,8 +47,8 @@
           </div>
 
           <%# Show user assignment on the edit page %>
-          <%= render "tasks/people_fields", scope: "task", ids_field: "assignee_ids", people_needed: @task.people_needed,
-                     selected: @task.assignees.to_a, users: @users, first_label: "Assign to" %>
+          <%= render "tasks/people_select", name: "task[assignee_ids][]", id: "task_assignee_ids",
+                     selected: @task.assignees.to_a, users: @users, label: "Assign to" %>
 
           <div class="form-control w-full mb-4">
             <%= form.label :status, class: "label" %>

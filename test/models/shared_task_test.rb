@@ -1,6 +1,6 @@
 require "test_helper"
 
-# Tasks that need more than one person, like meeting facilitation.
+# Tasks several people share, like meeting facilitation.
 class SharedTaskTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
@@ -8,46 +8,44 @@ class SharedTaskTest < ActiveSupport::TestCase
     @one, @two, @three = users(:one), users(:two), users(:three)
   end
 
-  def shared_task(people: [ @one, @two ], needed: 2, workstream: workstreams(:general))
-    Task.create!(title: "Facilitate the meeting", user: @one, workstream: workstream, people_needed: needed, assignees: people)
+  def shared_task(people: [ @one, @two ], workstream: workstreams(:general))
+    Task.create!(title: "Facilitate the meeting", user: @one, workstream: workstream, assignees: people)
   end
 
-  test "a task can need two people and have both on it" do
+  test "a task can have several people on it" do
     task = shared_task
     assert_equal [ @one, @two ].sort_by(&:name), task.assignees.to_a
-    assert_equal 0, task.open_spots
     assert task.assigned_to?(@one)
     assert_not task.assigned_to?(@three)
-    assert_not_includes Task.available, task
     assert_includes Task.assigned_to(@two), task
   end
 
-  test "with a spot open it's in the Available queue for everyone not already on it" do
-    task = shared_task(people: [ @one ])
-    assert_equal 1, task.open_spots
-    assert_includes Task.available, task
-    assert_includes Task.available_queue(@three), task
-    assert_not_includes Task.available_queue(@one), task
+  test "only tasks nobody is on are in the Available queue" do
+    shared = shared_task
+    nobody = Task.create!(title: "Unclaimed", user: @one, workstream: workstreams(:general))
+    assert_not_includes Task.available, shared
+    assert_includes Task.available, nobody
   end
 
-  test "claiming takes the open spot; a full task can't be claimed, nor claimed twice by the same person" do
-    task = shared_task(people: [ @one ])
-    assert_not task.claim!(@one)
-    assert task.claim!(@three)
-    assert_equal [ @one, @three ].sort_by(&:name), task.reload.assignees.to_a
-    assert_not task.claim!(users(:four))
-  end
-
-  test "releasing takes only your spot, and whoever claims it is covering for you" do
+  test "leaving a shared task keeps it with the others, off the queue and out of chat" do
     task = shared_task
-    perform_enqueued_jobs(only: []) { assert task.release!(@one) }
+    assert_no_enqueued_jobs(only: CoverageBroadcastJob) { assert task.release!(@one) }
     task.reload
     assert_equal [ @two ], task.assignees.to_a
-    assert_equal [ @one, 1 ], [ task.released_by, task.open_spots ]
+    assert_nil task.released_by
+    assert_not_includes Task.available, task
+  end
 
-    task.claim!(@three)
+  test "the last person releasing it sends it to the queue, and whoever claims it covers for them" do
+    task = shared_task(people: [ @one ])
+    assert_enqueued_jobs(1, only: CoverageBroadcastJob) { assert task.release!(@one) }
+    assert_equal @one, task.reload.released_by
+    assert_includes Task.available, task
+
+    assert task.claim!(@three)
+    assert_equal [ @three ], task.reload.assignees.to_a
     assert_equal @one, task.task_assignments.find_by!(user: @three).covering_for
-    assert_nil task.task_assignments.find_by!(user: @two).covering_for
+    assert_not task.claim!(@two), "someone's on it now"
   end
 
   test "you can only release a task you're on" do
@@ -56,22 +54,13 @@ class SharedTaskTest < ActiveSupport::TestCase
     assert_equal 2, task.reload.assignees.size
   end
 
-  test "a governance task both holders are on can't be released: nobody else could take the spot" do
-    task = shared_task(people: [ @two, @three ], workstream: workstreams(:facilitators)) # held by two and three
-    assert_not task.releasable?
-    assert_not task.release!(@two)
-  end
+  test "a governance task shared by two holders can be left by one; a single holder can't hand it off" do
+    shared = shared_task(people: [ @two, @three ], workstream: workstreams(:facilitators)) # held by two and three
+    assert shared.release!(@two)
+    assert_equal [ @three ], shared.reload.assignees.to_a
 
-  test "people needed is at least one" do
-    task = Task.new(title: "T", user: @one, workstream: workstreams(:general), people_needed: 0)
-    assert_not task.valid?
-    assert task.errors[:people_needed].any?
-  end
-
-  test "can't have more people on it than it needs" do
-    task = Task.new(title: "T", user: @one, workstream: workstreams(:general), people_needed: 1, assignees: [ @one, @two ])
-    assert_not task.valid?
-    assert task.errors[:assignees].any?
+    alone = shared_task(people: [ @one ], workstream: workstreams(:treasurer)) # held by one alone
+    assert_not alone.releasable?
   end
 
   test "assigned_to_user is shorthand for just one person" do
@@ -83,20 +72,17 @@ class SharedTaskTest < ActiveSupport::TestCase
     assert_empty task.reload.assignees
   end
 
-  test "a recurring task can have two people responsible, and each period's task goes to both" do
+  test "a recurring task can have several people, and each period's task goes to all of them" do
     recurring = RecurringTask.create!(workstream: workstreams(:facilitators), title: "Facilitate the monthly meeting", frequency: "monthly",
-                                      estimated_minutes: 90, created_by: users(:admin_user), people_needed: 2, responsibles: [ @two, @three ])
+                                      estimated_minutes: 90, created_by: users(:admin_user), responsibles: [ @two, @three ])
     assert recurring.covered?
-
-    task = recurring.instance_for.reload
-    assert_equal [ 2, [ @two, @three ].sort_by(&:name) ], [ task.people_needed, task.assignees.to_a ]
+    assert_equal [ @two, @three ].sort_by(&:name), recurring.instance_for.reload.assignees.to_a
   end
 
-  test "a recurring task with fewer people than it needs isn't covered" do
+  test "a recurring task with nobody responsible isn't covered" do
     recurring = RecurringTask.create!(workstream: workstreams(:facilitators), title: "Facilitate", frequency: "monthly",
-                                      estimated_minutes: 90, created_by: users(:admin_user), people_needed: 2, responsibles: [ @two ])
+                                      estimated_minutes: 90, created_by: users(:admin_user))
     assert_not recurring.covered?
-    assert_equal 1, recurring.instance_for.open_spots
   end
 
   test "each person on a finished shared task gets its full time toward contribution" do
@@ -119,5 +105,10 @@ class SharedTaskTest < ActiveSupport::TestCase
 
     assert_difference("TaskAssignment.count", -1) { member.destroy! }
     assert_not Task.unscoped.exists?(task.id)
+  end
+
+  test "the one-person columns are gone; people live only in the join tables" do
+    assert_not_includes ActiveRecord::Base.connection.columns(:tasks).map(&:name), "assigned_to_user_id"
+    assert_not_includes ActiveRecord::Base.connection.columns(:recurring_tasks).map(&:name), "default_responsible_user_id"
   end
 end

@@ -47,9 +47,9 @@
 
   <%# Only show user assignment on tasks page, not on dashboard %>
   <% if controller_name == 'tasks' %>
-    <%= render "tasks/people_fields", scope: "task", ids_field: "assignee_ids", people_needed: task.people_needed,
-               selected: task.assignees.to_a, users: @users, label_target: true,
-               first_label: @repeats.present? ? "Responsible each period" : "Assign to" %>
+    <%= render "tasks/people_select", name: "task[assignee_ids][]", id: "task_assignee_ids",
+               selected: task.assignees.to_a, users: @users, label_data: { task_repeat_target: "assigneeLabel" },
+               label: @repeats.present? ? "Responsible each period" : "Assign to" %>
   <% end %>
 
   <% if task.persisted? %>

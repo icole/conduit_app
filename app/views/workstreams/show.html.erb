@@ -76,9 +76,6 @@
                 <p class="text-xs mt-2">
                   <% if recurring.responsibles.any? %>
                     <span class="text-base-content/70">Responsible:</span> <%= recurring.responsibles.map(&:name).to_sentence %>
-                    <% unless recurring.covered? %>
-                      <span class="<%= recurring.effective_priority == 'essential' ? 'text-error-ink' : 'text-warning-ink' %>">· needs <%= recurring.open_spots %> more</span>
-                    <% end %>
                   <% else %>
                     <span class="<%= recurring.effective_priority == 'essential' ? 'text-error-ink' : 'text-base-content/70' %>">Nobody responsible yet</span>
                   <% end %>
@@ -120,9 +117,6 @@
               <%= task_priority_badge(task) %>
               <%= effort_badge(task.estimated_minutes) %>
               <% if task.due_date %><span class="badge badge-sm badge-ghost">Due <%= task.due_date.strftime("%b %-d") %></span><% end %>
-              <% if task.people_needed > 1 && task.open_spots.positive? %>
-                <span class="badge badge-sm border-warning/60 bg-warning/10 text-warning-ink">Needs <%= task.open_spots %> more</span>
-              <% end %>
               <% if can_manage || task.user_id == current_user.id || task.assigned_to?(current_user) %>
                 <div class="ml-auto flex items-center gap-1">
                   <%= link_to "Edit", edit_task_path(task, return_to: workstream_path(@workstream)), class: "btn btn-ghost btn-xs" %>
@@ -133,13 +127,9 @@
                 </div>
               <% end %>
             </div>
-            <% if can_manage && task.open_spots.positive? %>
-              <%# Adds one person; the people already on it come along in hidden fields %>
+            <% if can_manage && task.assignees.empty? %>
               <%= form_with model: task, url: task_path(task, return_to: workstream_path(@workstream)), method: :patch, class: "flex gap-2 items-center", data: { turbo_action: "replace" } do |form| %>
-                <% task.assignees.each do |person| %>
-                  <%= hidden_field_tag "task[assignee_ids][]", person.id, id: nil %>
-                <% end %>
-                <%= select_tag "task[assignee_ids][]", options_for_select(@users.reject { |u| task.assigned_to?(u) }.map { |u| [ u.name, u.id ] }),
+                <%= select_tag "task[assignee_ids][]", options_for_select(@users.map { |u| [ u.name, u.id ] }),
                       prompt: "Assign to…", id: "assign_#{task.id}", class: "select select-bordered select-sm flex-1 min-w-0", required: true,
                       aria: { label: "Assign #{task.title} to" } %>
                 <%= form.submit "Assign", class: "btn btn-sm" %>

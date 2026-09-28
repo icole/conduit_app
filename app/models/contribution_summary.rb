@@ -45,13 +45,9 @@ class ContributionSummary
       [ workstream.name, "No owner assigned" ]
     end
 
-    unheld = RecurringTask.joins(:workstream).merge(Workstream.open)
-      .includes(:workstream, :responsibles).order(:title)
-      .select { |recurring| !recurring.covered? && recurring.effective_priority == "essential" }
-      .map do |recurring|
-        gap = recurring.responsibles.empty? ? "Nobody responsible" : "Needs #{recurring.open_spots} more"
-        [ recurring.title, "#{gap} · #{recurring.workstream.name}" ]
-      end
+    unheld = RecurringTask.joins(:workstream).merge(Workstream.open).where.missing(:recurring_task_responsibles)
+      .includes(:workstream).order(:title).select { |recurring| recurring.effective_priority == "essential" }
+      .map { |recurring| [ recurring.title, "Nobody responsible · #{recurring.workstream.name}" ] }
 
     unowned + unheld
   end

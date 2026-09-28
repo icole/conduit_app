@@ -100,12 +100,12 @@ class WorkstreamImport
 
     current_owners = owners || workstream.owners.to_a
     Array(plan["recurring_tasks"]).each do |task_plan|
-      # Named people (one or a list), or else as many owners as it needs
+      # Named people (one or a list), or else the first owner
       named = Array(task_plan["responsible"])
       responsibles = if named.any?
         named.filter_map { |name| current_owners.find { |user| user.name.split.first.casecmp?(name) } }
       else
-        current_owners.first(task_plan["people_needed"] || 1)
+        current_owners.first(1)
       end
       apply_recurring_task(workstream, task_plan, responsibles, keep_responsible: owners.nil?)
     end
@@ -129,7 +129,6 @@ class WorkstreamImport
       frequency: plan["frequency"],
       estimated_minutes: plan["minutes"]
     )
-    recurring.people_needed = plan["people_needed"] if plan["people_needed"]
     new_people = (created || !keep_responsible) && recurring.responsible_ids.sort != responsibles.map(&:id).sort
     recurring.created_by ||= responsibles.first || User.where(admin: true).order(:id).first
     if plan["first_period_starts"].present?
@@ -160,10 +159,7 @@ class WorkstreamImport
       task.title = recurring.title
       task.description = recurring.description
       task.estimated_minutes = recurring.estimated_minutes
-      if task.assignees.empty? && !task.released_by_id
-        task.people_needed = recurring.people_needed
-        task.assignees = recurring.responsibles.to_a
-      end
+      task.assignees = recurring.responsibles.to_a if task.assignees.empty? && !task.released_by_id
       task.save! if task.changed?
     end
   end

@@ -11,9 +11,9 @@ class Task < ApplicationRecord
   belongs_to :user
   belongs_to :workstream
   belongs_to :recurring_task, optional: true
-  # Who's doing it now lives in task_assignments (a task can need several
-  # people); this column is left over until a later migration drops it.
-  self.ignored_columns += [ "assigned_to_user_id" ]
+  # Who's doing it: one person, or several sharing it (meeting facilitation).
+  # people_needed is left over from a first version and dropped next release.
+  self.ignored_columns += [ "people_needed" ]
   has_many :task_assignments, dependent: :destroy
   # dependent: :destroy so taking someone off runs the assignment's audit trail
   has_many :assignees, -> { order(:name) }, through: :task_assignments, source: :user, dependent: :destroy
@@ -24,8 +24,6 @@ class Task < ApplicationRecord
   validates :title, presence: true
   validates :status, presence: true, inclusion: { in: %w[backlog active completed] }
   validates :estimated_minutes, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
-  validates :people_needed, numericality: { only_integer: true, greater_than: 0 }
-  validate :not_more_people_than_needed
   validate :workstream_must_be_open, if: -> { workstream && (new_record? || workstream_id_changed?) }
 
   before_save :auto_set_status_and_priority, if: :new_record?
@@ -47,12 +45,10 @@ class Task < ApplicationRecord
   scope :due_soon, -> { where("tasks.due_date >= ? AND tasks.due_date <= ? AND tasks.status != 'completed'", Date.current, 7.days.from_now) }
 
   scope :assigned_to, ->(user) { where(id: TaskAssignment.where(user_id: user).select(:task_id)) }
-  scope :with_open_spots, -> {
-    where("tasks.people_needed > (SELECT COUNT(*) FROM task_assignments WHERE task_assignments.task_id = tasks.id)")
-  }
+  scope :unassigned, -> { where.not(id: TaskAssignment.select(:task_id)) }
 
-  # Open work in open workstreams that still needs someone: the Available queue.
-  scope :available, -> { open.with_open_spots.joins(:workstream).merge(Workstream.open) }
+  # Open work nobody is on, in open workstreams: the Available queue.
+  scope :available, -> { open.unassigned.joins(:workstream).merge(Workstream.open) }
 
   # Order tasks by priority for active, creation date for others
   scope :ordered, -> {
@@ -80,11 +76,10 @@ class Task < ApplicationRecord
     update!(status: "backlog", priority_order: nil)
   end
 
-  # The Available queue, essential work first, then soonest due. Governance
-  # work only shows to the role's holders; nobody sees work they're already on.
+  # The Available queue, essential work first, then soonest due.
+  # Governance work only shows to the role's holders.
   def self.available_queue(user = nil)
-    scope = user ? available.where.not(id: assigned_to(user)) : available
-    tasks = scope.includes(:recurring_task, :released_by, :assignees, workstream: :owners).select do |task|
+    tasks = available.includes(:recurring_task, :released_by, workstream: :owners).select do |task|
       !task.workstream.governance? || task.workstream.owned_by?(user)
     end
     tasks.sort_by do |task|
@@ -92,28 +87,29 @@ class Task < ApplicationRecord
     end
   end
 
-  # Someone's on it, it's open, and someone else could take a spot. A
-  # governance role hands off only among its holders, so it needs a holder
-  # who isn't already on it.
+  # Someone's on it, it's open, and letting go leaves it with someone who can
+  # do it: another person already on it, or the queue. A governance role
+  # hands off only among its holders, so one held by one person can't go.
   def releasable?
     return false if completed? || assignees.empty?
 
-    !workstream.governance? || workstream.owners.size > assignees.size
+    assignees.size > 1 || !workstream.governance? || workstream.owners.size > 1
   end
 
-  # One person can't do it this time: their spot goes back to the queue (the
-  # others stay on), and (except for governance, which stays among the role's
-  # holders) a note goes to the community's coverage chat channel. The
-  # recurring task's people are untouched.
+  # One person can't do it this time. If others are on it, it stays with
+  # them. If they were the last, it goes back to the queue and (except for
+  # governance, which stays among the role's holders) a note goes to the
+  # community's coverage chat channel. The recurring task's people are untouched.
   def release!(by)
     assignment = task_assignments.find_by(user_id: by.id)
     return false unless assignment && releasable?
 
+    to_queue = assignees.size == 1
     transaction do
       assignment.destroy!
-      update!(released_by: by, released_at: Time.current)
+      update!(released_by: by, released_at: Time.current) if to_queue
     end
-    CoverageBroadcastJob.perform_later(community_id, id) unless workstream.governance?
+    CoverageBroadcastJob.perform_later(community_id, id) if to_queue && !workstream.governance?
     true
   end
 
@@ -125,16 +121,14 @@ class Task < ApplicationRecord
     return false unless claimable_by?(user)
 
     with_lock do
-      return false if completed? || open_spots.zero? || assigned_to?(user)
+      return false if completed? || assignees.any?
 
-      covering = released_by if released_by && !assigned_to?(released_by)
-      task_assignments.create!(user: user, covering_for: covering)
+      task_assignments.create!(user: user, covering_for: released_by)
       update!(status: "active")
     end
     true
   end
 
-  def open_spots = [ people_needed.to_i - assignees.size, 0 ].max
   def assigned_to?(user) = user.present? && assignees.include?(user)
 
   # Shorthand for a one-person task: its first assignee, or assign just this one
@@ -142,7 +136,6 @@ class Task < ApplicationRecord
   def assigned_to_user=(user)
     self.assignees = Array(user)
   end
-  def assigned_to_user_id = assigned_to_user&.id
 
   def effective_priority
     recurring_task&.effective_priority || workstream.priority
@@ -186,12 +179,6 @@ class Task < ApplicationRecord
       self.status = "active"
       self.priority_order = next_priority_order if priority_order.blank?
     end
-  end
-
-  def not_more_people_than_needed
-    return unless people_needed.to_i.positive? && assignees.size > people_needed
-
-    errors.add(:assignees, "are more than the #{people_needed} #{'person'.pluralize(people_needed)} it needs")
   end
 
   def workstream_must_be_open

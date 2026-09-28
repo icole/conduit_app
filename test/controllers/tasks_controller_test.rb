@@ -54,10 +54,9 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     get edit_task_url(@task)
     assert_response :success
     assert_select "input[name='task[assignee_ids][]'][type='hidden']"
-    assert_select "[data-controller='user-select']" do
-      assert_select "[data-name='#{@user.name}']"
-      assert_select "[data-name='#{other_user.name}']"
-      assert_select "[data-name='Unassigned']"
+    assert_select "[data-controller='people-select']" do
+      assert_select "input[type=checkbox][data-name='#{@user.name}']"
+      assert_select "input[type=checkbox][data-name='#{other_user.name}']"
     end
   end
 
@@ -66,10 +65,9 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     get tasks_url
     assert_response :success
     assert_select "input[name='task[assignee_ids][]'][type='hidden']"
-    assert_select "[data-controller='user-select']" do
-      assert_select "[data-name='#{@user.name}']"
-      assert_select "[data-name='#{other_user.name}']"
-      assert_select "[data-name='Unassigned']"
+    assert_select "[data-controller='people-select']" do
+      assert_select "input[type=checkbox][data-name='#{@user.name}']"
+      assert_select "input[type=checkbox][data-name='#{other_user.name}']"
     end
   end
 
@@ -190,7 +188,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
 
   test "creating a task assigned to yourself lands on My Tasks" do
     post tasks_url,
-         params: { task: { title: "Mine", workstream_id: workstreams(:general).id, assigned_to_user_id: @user.id, effort: "Medium" } },
+         params: { task: { title: "Mine", workstream_id: workstreams(:general).id, assignee_ids: [ @user.id ], effort: "Medium" } },
          headers: { "HTTP_REFERER" => tasks_url }
     task = Task.find_by!(title: "Mine")
     assert_equal @user, task.assigned_to_user
@@ -200,21 +198,21 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
 
   test "a member who doesn't own the workstream cannot assign a task to someone else" do
     assert_no_difference("Task.count") do
-      post tasks_url, params: { task: { title: "For Mike", workstream_id: workstreams(:front_yard).id, assigned_to_user_id: users(:two).id } }
+      post tasks_url, params: { task: { title: "For Mike", workstream_id: workstreams(:front_yard).id, assignee_ids: [ users(:two).id ] } }
     end
     assert_response :unprocessable_entity
   end
 
   test "the workstream owner can assign a task to someone else" do
     assert_difference("Task.count") do
-      post tasks_url, params: { task: { title: "For Mike", workstream_id: workstreams(:garbage).id, assigned_to_user_id: users(:two).id } }
+      post tasks_url, params: { task: { title: "For Mike", workstream_id: workstreams(:garbage).id, assignee_ids: [ users(:two).id ] } }
     end
     assert_equal users(:two), Task.find_by!(title: "For Mike").assigned_to_user
   end
 
   test "a member cannot reassign someone else's task to a third person" do
     task = tasks(:assigned_task) # assigned to two, in General (owned by admin)
-    patch task_url(task), params: { task: { assigned_to_user_id: users(:three).id } }
+    patch task_url(task), params: { task: { assignee_ids: [ users(:three).id ] } }
     assert_response :unprocessable_entity
     assert_equal users(:two), task.reload.assigned_to_user
   end
@@ -280,7 +278,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     delete logout_path
     sign_in_user({ uid: member.uid, name: member.name, email: member.email })
     get new_task_url
-    assert_select "[data-controller='user-select']" do
+    assert_select "[data-controller='people-select']" do
       assert_select "[data-name='#{member.name}']"
       assert_select "[data-name='#{users(:two).name}']", count: 0
     end
@@ -434,7 +432,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     workstream = workstreams(:common_house)
     assert_difference("RecurringTask.count") do
       post tasks_url, params: { task: { title: "Clean shared kitchen", workstream_id: workstream.id, repeats: "weekly",
-                                        effort: "Medium", assigned_to_user_id: users(:two).id, priority: "essential" } }
+                                        effort: "Medium", assignee_ids: [ users(:two).id ], priority: "essential" } }
     end
     recurring = RecurringTask.find_by!(title: "Clean shared kitchen")
     assert_equal [ "weekly", 45, "essential", users(:two), users(:admin_user) ],
@@ -455,7 +453,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   test "any member can make a task repeat, with themselves responsible" do
     assert_difference("RecurringTask.count") do
       post tasks_url, params: { task: { title: "Sweep the porch", workstream_id: workstreams(:general).id, repeats: "weekly",
-                                        effort: "Small", assigned_to_user_id: @user.id } }
+                                        effort: "Small", assignee_ids: [ @user.id ] } }
     end
     recurring = RecurringTask.find_by!(title: "Sweep the porch")
     assert_equal [ @user, @user ], [ recurring.default_responsible_user, recurring.created_by ]
@@ -465,7 +463,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   test "a member can't make someone else responsible for a repeating task in a workstream they don't own" do
     assert_no_difference([ "RecurringTask.count", "Task.count" ]) do
       post tasks_url, params: { task: { title: "Sweep the porch", workstream_id: workstreams(:general).id, repeats: "weekly",
-                                        effort: "Small", assigned_to_user_id: users(:two).id } }
+                                        effort: "Small", assignee_ids: [ users(:two).id ] } }
     end
     assert_response :unprocessable_entity
   end
@@ -473,7 +471,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   test "a workstream owner can make someone else responsible for a repeating task" do
     assert_difference("RecurringTask.count") do
       post tasks_url, params: { task: { title: "Rinse the bins", workstream_id: workstreams(:garbage).id, repeats: "monthly",
-                                        effort: "Medium", assigned_to_user_id: users(:two).id } }
+                                        effort: "Medium", assignee_ids: [ users(:two).id ] } }
     end
     assert_equal users(:two), RecurringTask.find_by!(title: "Rinse the bins").default_responsible_user
   end
@@ -488,7 +486,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   test "a co-owner can assign a task to someone else" do
     workstreams(:front_yard).owners << @user
     assert_difference("Task.count") do
-      post tasks_url, params: { task: { title: "Dig the beds", workstream_id: workstreams(:front_yard).id, assigned_to_user_id: users(:two).id } }
+      post tasks_url, params: { task: { title: "Dig the beds", workstream_id: workstreams(:front_yard).id, assignee_ids: [ users(:two).id ] } }
     end
     assert_equal users(:two), Task.find_by!(title: "Dig the beds").assigned_to_user
   end

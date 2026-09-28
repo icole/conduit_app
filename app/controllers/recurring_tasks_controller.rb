@@ -13,13 +13,12 @@ class RecurringTasksController < ApplicationController
   def update
     old_ids = @recurring_task.responsible_ids
     new_ids = responsible_ids_param || old_ids
-    old_needed = @recurring_task.people_needed
     @recurring_task.assign_attributes(recurring_task_params)
 
     saved = responsible_allowed?(old_ids, new_ids) && RecurringTask.transaction do
       @recurring_task.responsibles = User.where(id: new_ids) unless new_ids.sort == old_ids.sort
       @recurring_task.save || raise(ActiveRecord::Rollback)
-      follow_in_open_instances(old_ids, old_needed)
+      follow_in_open_instances(old_ids)
       true
     end
 
@@ -73,15 +72,15 @@ class RecurringTasksController < ApplicationController
 
   # This period's task takes the new people, unless someone already changed
   # who's on it (a release, a claim, a reassignment).
-  def follow_in_open_instances(old_ids, old_needed)
+  def follow_in_open_instances(old_ids)
     @recurring_task.instances.open.includes(:assignees).find_each do |task|
-      next if task.released_by_id || task.assignee_ids.sort != old_ids.sort || task.people_needed != old_needed
+      next if task.released_by_id || task.assignee_ids.sort != old_ids.sort
 
-      task.update!(people_needed: @recurring_task.people_needed, assignees: @recurring_task.responsibles.to_a)
+      task.update!(assignees: @recurring_task.responsibles.to_a)
     end
   end
 
   def recurring_task_params
-    params.require(:recurring_task).permit(:title, :description, :frequency, :priority, :effort, :people_needed, :starts_on)
+    params.require(:recurring_task).permit(:title, :description, :frequency, :priority, :effort, :starts_on)
   end
 end

@@ -20,10 +20,10 @@
   </div>
 
   <div class="form-control">
-    <%= render "tasks/people_fields", scope: "recurring_task", ids_field: "responsible_ids", people_needed: recurring_task.people_needed,
+    <%= render "tasks/people_select", name: "recurring_task[responsible_ids][]", id: "recurring_task_responsible_ids",
                selected: recurring_task.responsibles.to_a, users: @responsible_choices,
-               first_label: "Responsible each period", blank_label: "Nobody yet (coverage gap)" %>
-    <p class="text-xs text-base-content/70 -mt-2">Each period's task goes to these people. Any of them can release their spot for one period if they're away.</p>
+               label: "Responsible each period", empty_label: "Nobody yet (coverage gap)" %>
+    <p class="text-xs text-base-content/70 -mt-2">Each period's task goes to everyone picked. Anyone can drop out of a single period if they're away.</p>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
