@@ -84,6 +84,16 @@ class TasksNativeTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "admins can make a task repeat from the apps, the same as on the web" do
+    [ LEGACY_IOS, NATIVE, ANDROID ].each do |agent|
+      [ tasks_url, new_task_url(workstream_id: workstreams(:garbage).id) ].each do |url|
+        get url, headers: agent
+        assert_select "select[name='task[repeats]'] option", { text: "Weekly" }, "#{url} #{agent['User-Agent']}"
+        assert_select "select[name='task[effort]']", { count: 1 }, "#{url} #{agent['User-Agent']}"
+      end
+    end
+  end
+
   test "the new task screen has a Cancel link back to where it came from" do
     get new_task_url(workstream_id: workstreams(:garbage).id), headers: NATIVE
     assert_select "h1", "New task"
