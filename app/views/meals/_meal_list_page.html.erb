@@ -1,0 +1,11 @@
+<%# One page of meal cards. On Past, a frame at the end loads the next page into itself. %>
+<% @meals.each do |meal| %>
+  <%= render "meal_card", meal: meal %>
+<% end %>
+<% if @more_past_meals %>
+  <%= turbo_frame_tag "past_meals_page_#{@page + 1}", class: "contents" do %>
+    <div class="col-span-full flex justify-center <%= hotwire_native_app? ? 'py-2 border-b border-base-200' : 'pt-2' %>">
+      <%= link_to "Show older meals", meals_path(view: "past", page: @page + 1), class: "btn btn-ghost btn-sm" %>
+    </div>
+  <% end %>
+<% end %>

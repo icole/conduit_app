@@ -67,13 +67,18 @@
   <% end %>
 
   <!-- Meal Cards Grid/List -->
-  <div class="<%= hotwire_native_app? ? 'bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' %>">
+  <%# In the apps each row draws its own bottom line, since older pages of past meals arrive nested in frames %>
+  <div class="<%= hotwire_native_app? ? 'bg-base-100 rounded-lg border border-b-0 border-base-200 overflow-hidden' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' %>">
     <% if @meals.present? %>
-      <% @meals.each do |meal| %>
-        <%= render "meal_card", meal: meal %>
+      <% if @current_view == "past" && @page > 1 %>
+        <%= turbo_frame_tag "past_meals_page_#{@page}", class: "contents" do %>
+          <%= render "meals/meal_list_page" %>
+        <% end %>
+      <% else %>
+        <%= render "meals/meal_list_page" %>
       <% end %>
     <% else %>
-      <div class="col-span-full text-center p-12">
+      <div class="col-span-full text-center p-12 <%= 'border-b border-base-200' if hotwire_native_app? %>">
         <div class="text-6xl mb-4">🍽️</div>
         <h3 class="text-xl font-medium mb-2">No meals found</h3>
         <p class="text-base-content/70">

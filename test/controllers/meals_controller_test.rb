@@ -33,6 +33,37 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
     assert_includes assigns(:meals), meals(:past_meal)
   end
 
+  def create_past_meals(count)
+    count.times.map do |i|
+      at = (i + 10).days.ago.change(hour: 18)
+      Meal.create!(title: "Older meal #{i + 1}", scheduled_at: at, rsvp_deadline: at - 1.day, status: "completed")
+    end
+  end
+
+  test "past meals come 20 at a time, newest first, with a button for older ones" do
+    create_past_meals(25) # plus the past_meal fixture: 26 in all
+    get meals_url(view: "past")
+    assert_select "[id^='meal_']", 20
+    assert_select "[id='meal_#{meals(:past_meal).id}']" # 3 days ago: the newest
+    assert_select "turbo-frame#past_meals_page_2 a[href='#{meals_path(view: 'past', page: 2)}']", text: "Show older meals"
+  end
+
+  test "the next page of past meals loads into its frame, and the last page has no button" do
+    oldest = create_past_meals(25).last
+    get meals_url(view: "past", page: 2), headers: { "Turbo-Frame" => "past_meals_page_2" }
+    assert_select "turbo-frame#past_meals_page_2" do
+      assert_select "[id^='meal_']", 6
+      assert_select "[id='meal_#{oldest.id}']"
+    end
+    assert_select "turbo-frame#past_meals_page_3", count: 0
+    assert_select "a", text: "Show older meals", count: 0
+  end
+
+  test "no Show older meals button when every past meal fits on one page" do
+    get meals_url(view: "past")
+    assert_select "a", text: "Show older meals", count: 0
+  end
+
   # Show action tests
   test "should show meal" do
     get meal_url(@meal)

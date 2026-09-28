@@ -12,6 +12,8 @@ class MealsController < ApplicationController
 
   helper_method :meals_back_path
 
+  PAST_PAGE_SIZE = 20
+
   def index
     session[:meals_view] = "list"
     @current_view = params[:view] || "upcoming"
@@ -21,7 +23,11 @@ class MealsController < ApplicationController
     when "upcoming"
       @meals = Meal.upcoming.with_card_associations
     when "past"
-      @meals = Meal.past.with_card_associations.limit(20)
+      # 20 at a time, newest first; "Show older meals" loads the next page in place
+      @page = [ params[:page].to_i, 1 ].max
+      meals = Meal.past.with_card_associations.offset((@page - 1) * PAST_PAGE_SIZE).limit(PAST_PAGE_SIZE + 1).to_a
+      @more_past_meals = meals.size > PAST_PAGE_SIZE
+      @meals = meals.first(PAST_PAGE_SIZE)
     when "needs_cooks"
       @meals = Meal.needs_cooks.with_card_associations
     else
