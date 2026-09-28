@@ -1,6 +1,6 @@
 class TasksController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_task, only: [ :edit, :update, :destroy, :prioritize, :move_to_backlog, :reorder, :release, :claim ]
+  before_action :set_task, only: [ :edit, :update, :destroy, :prioritize, :move_to_backlog, :reorder, :release, :claim, :complete, :reopen ]
   before_action :set_discarded_task, only: [ :restore ]
   before_action :set_users, only: [ :index, :new, :edit, :create, :update ]
 
@@ -83,6 +83,25 @@ class TasksController < ApplicationController
     redirect_back_or_to dashboard_index_path, notice: "Task restored."
   end
 
+  # Ticking a task off. The toast's Undo reopens it.
+  def complete
+    return_to = return_to_path
+    return redirect_to(return_to, alert: COMPLETION_REFUSED) unless can_change_completion?(@task)
+
+    @task.update!(status: "completed")
+    redirect_to return_to, flash: { notice_with_undo: { message: "Marked “#{@task.title}” done.",
+                                                         undo_path: reopen_task_path(@task, return_to: return_to) } }
+  end
+
+  # Undo, or "Mark not done": back on the list, still with whoever had it.
+  def reopen
+    return_to = return_to_path
+    return redirect_to(return_to, alert: COMPLETION_REFUSED) unless can_change_completion?(@task)
+
+    @task.update!(status: "active")
+    redirect_to return_to, notice: "“#{@task.title}” is back on the list."
+  end
+
   def release
     if @task.release!(current_user)
       redirect_to tasks_path(tab: "my"), notice: "Released to the queue. We let the community know in chat."
@@ -161,6 +180,17 @@ class TasksController < ApplicationController
 
   private
 
+  COMPLETION_REFUSED = "Only the person doing it, or the workstream's owners, can change whether that's done.".freeze
+
+  # Whoever has it (or finished it, or added it for nobody in particular),
+  # plus the workstream's owners and admins.
+  def can_change_completion?(task)
+    return true if current_user.id.in?([ task.assigned_to_user_id, task.completed_by_id ].compact)
+    return true if task.assigned_to_user_id.nil? && task.user_id == current_user.id
+
+    can_assign_others?(task.workstream)
+  end
+
   RECURRING_ERROR_LABELS = { estimated_minutes: "Estimated effort", frequency: "Repeats", workstream: "Workstream", title: "Title" }.freeze
 
   # "Repeats" on the Add task form sets up a recurring task instead. Anyone
@@ -211,6 +241,9 @@ class TasksController < ApplicationController
     # Recurring responsibilities are the instances you're the default person
     # for; an instance you picked up for someone else is just assigned to you.
     @recurring_tasks, @assigned_tasks = mine.partition { |task| task.recurring_task&.default_responsible_user_id == current_user.id }
+    @completed_tasks = Task.completed.where(completed_at: 14.days.ago..)
+      .where("tasks.assigned_to_user_id = :id OR tasks.completed_by_id = :id", id: current_user.id)
+      .includes(:workstream, :recurring_task).reorder(completed_at: :desc).limit(20)
   end
 
   def load_available_tab

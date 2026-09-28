@@ -334,4 +334,27 @@ class TasksTest < ApplicationSystemTestCase
     assert_selector "#task_#{task.id} .badge", text: "Large"
     assert_equal 90, task.reload.estimated_minutes
   end
+
+  test "ticking a task done can be undone, and Recently completed can mark it not done" do
+    Capybara.reset_sessions!
+    sign_in_as(@user_one)
+    task = @received_task # assigned to user one
+    visit tasks_url(tab: "my")
+
+    within("#assigned-to-you") { find("button[aria-label='Mark “#{task.title}” done']").click }
+    assert_no_selector "#assigned-to-you #task_#{task.id}"
+    within("#undo-notification") do
+      assert_text "Marked “#{task.title}” done."
+      click_button "Undo"
+    end
+    assert_selector "#assigned-to-you #task_#{task.id}"
+    assert_not task.reload.completed?
+
+    within("#assigned-to-you") { find("button[aria-label='Mark “#{task.title}” done']").click }
+    assert_no_selector "#assigned-to-you #task_#{task.id}"
+    find("#recently-completed summary").click
+    within("#recently-completed") { find("button[aria-label='Mark “#{task.title}” not done']").click }
+    assert_selector "#assigned-to-you #task_#{task.id}"
+    assert_no_selector "#recently-completed #task_#{task.id}"
+  end
 end

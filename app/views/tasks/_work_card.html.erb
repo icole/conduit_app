@@ -19,11 +19,9 @@
 <div id="<%= dom_id task %>" class="sm:rounded-box sm:bg-base-100 sm:border <%= border %> <%= 'sm:border-2' if action == :claim && priority == 'essential' %>">
   <div class="flex items-start gap-3 px-3 py-3 sm:p-4">
     <% if action != :claim %>
-      <%= form_with model: task, url: task_path(task, return_to: tasks_path(tab: return_tab)), method: :patch, class: "flex pt-0.5" do |form| %>
-        <%= form.hidden_field :status, value: "completed" %>
-        <button type="submit" class="group p-2.5 -m-2.5" title="Mark done" aria-label="Mark “<%= task.title %>” done">
-          <span class="block w-6 h-6 border-2 border-base-300 rounded-full group-hover:border-primary transition-colors"></span>
-        </button>
+      <%= button_to complete_task_path(task, return_to: tasks_path(tab: return_tab)), method: :patch, form_class: "flex pt-0.5",
+            class: "group p-2.5 -m-2.5", title: "Mark done", aria: { label: "Mark “#{task.title}” done" } do %>
+        <span class="block w-6 h-6 border-2 border-base-300 rounded-full group-hover:border-primary transition-colors"></span>
       <% end %>
     <% end %>
 

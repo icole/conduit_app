@@ -1,0 +1,19 @@
+<%# A finished task on My Tasks. Tapping the filled circle marks it not done.
+    locals: task, return_to %>
+<div id="<%= dom_id task %>" class="sm:rounded-box sm:bg-base-100 sm:border sm:border-base-200">
+  <div class="flex items-start gap-3 px-3 py-3 sm:p-4">
+    <%= button_to reopen_task_path(task, return_to: return_to), method: :post, form_class: "flex pt-0.5",
+          class: "group p-2.5 -m-2.5", title: "Mark not done", aria: { label: "Mark “#{task.title}” not done" } do %>
+      <span class="flex items-center justify-center w-6 h-6 rounded-full bg-success text-success-content group-hover:bg-base-300 group-hover:text-base-content transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+      </span>
+    <% end %>
+
+    <div class="flex-1 min-w-0">
+      <p class="leading-6 line-through text-base-content/70"><%= task.title %></p>
+      <p class="mt-0.5 text-xs text-base-content/70">
+        <%= safe_join([ task.workstream.name, task.effort, "Done #{task.completed_at.strftime('%b %-d')}" ].compact, " · ") %>
+      </p>
+    </div>
+  </div>
+</div>

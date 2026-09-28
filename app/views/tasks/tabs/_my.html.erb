@@ -27,6 +27,19 @@
   </div>
 </section>
 
+<% if @completed_tasks.any? %>
+  <section id="recently-completed" class="mb-6">
+    <details>
+      <summary class="font-semibold mb-2 cursor-pointer">Recently completed <span class="text-base-content/65 text-sm font-normal ml-1"><%= @completed_tasks.size %></span></summary>
+      <div class="<%= task_list_classes %>">
+        <% @completed_tasks.each do |task| %>
+          <%= render "tasks/completed_row", task: task, return_to: tasks_path(tab: "my") %>
+        <% end %>
+      </div>
+    </details>
+  </section>
+<% end %>
+
 <%= link_to tasks_path(view: "active"), class: "inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-base-content", data: { turbo_frame: "tasks_content" } do %>
   All tasks: backlog &amp; priority order
   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>

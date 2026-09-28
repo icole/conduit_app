@@ -103,6 +103,8 @@ Rails.application.routes.draw do
       patch :reorder
       patch :release
       patch :claim
+      patch :complete
+      post :reopen
       post :restore
     end
   end
