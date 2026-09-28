@@ -71,7 +71,7 @@
   <div class="<%= hotwire_native_app? ? 'bg-base-100 rounded-lg border border-b-0 border-base-200 overflow-hidden' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' %>">
     <% if @meals.present? %>
       <% if @current_view == "past" && @page > 1 %>
-        <%= turbo_frame_tag "past_meals_page_#{@page}", class: "contents" do %>
+        <%= turbo_frame_tag "past_meals_page_#{@page}", class: "contents", target: "_top" do %>
           <%= render "meals/meal_list_page" %>
         <% end %>
       <% else %>

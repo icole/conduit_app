@@ -18,6 +18,17 @@ class PastMealsTest < ApplicationSystemTestCase
     assert_no_link "Show older meals"
     assert_current_path meals_path(view: "past")
   end
+
+  test "a meal from an older page opens its own page" do
+    sign_in_as(users(:one))
+    visit meals_url(view: "past")
+    click_link "Show older meals"
+    oldest = Meal.find_by!(title: "Older meal 25")
+
+    find("#meal_#{oldest.id}").click
+    assert_current_path meal_path(oldest)
+    assert_no_text "Content missing"
+  end
 end
 
 class PastMealsInAppTest < ApplicationSystemTestCase
@@ -38,5 +49,10 @@ class PastMealsInAppTest < ApplicationSystemTestCase
     click_link "Show older meals"
     assert_selector "[id^='meal_']", count: 26
     assert_no_link "Show older meals"
+
+    oldest = Meal.find_by!(title: "Older meal 25")
+    find("#meal_#{oldest.id}").click
+    assert_current_path meal_path(oldest)
+    assert_no_text "Content missing"
   end
 end
