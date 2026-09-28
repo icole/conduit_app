@@ -16,7 +16,7 @@ class DemoRakeTest < ActiveSupport::TestCase
     ActsAsTenant.with_tenant(community) do
       assert Workstream.exists?(name: "Garbage & Recycling Coordinator")
       demo_user = User.find_by!(email: "demo@conduitcoho.app")
-      assert Task.open.where(assigned_to_user: demo_user).exists?
+      assert Task.open.assigned_to(demo_user).exists?
       assert_empty Task.where(workstream_id: nil)
     end
   ensure

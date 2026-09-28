@@ -1,0 +1,14 @@
+assigned_task_two:
+  community: crow_woods
+  task: assigned_task
+  user: two
+
+received_task_one:
+  community: crow_woods
+  task: received_task
+  user: one
+
+completed_task_two:
+  community: crow_woods
+  task: completed_task
+  user: two

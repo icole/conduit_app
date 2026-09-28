@@ -45,15 +45,19 @@ class ContributionSummary
       [ workstream.name, "No owner assigned" ]
     end
 
-    unheld = RecurringTask.joins(:workstream).merge(Workstream.open).where(default_responsible_user_id: nil)
-      .includes(:workstream).order(:title).select { |recurring| recurring.effective_priority == "essential" }
-      .map { |recurring| [ recurring.title, "Nobody responsible · #{recurring.workstream.name}" ] }
+    unheld = RecurringTask.joins(:workstream).merge(Workstream.open)
+      .includes(:workstream, :responsibles).order(:title)
+      .select { |recurring| !recurring.covered? && recurring.effective_priority == "essential" }
+      .map do |recurring|
+        gap = recurring.responsibles.empty? ? "Nobody responsible" : "Needs #{recurring.open_spots} more"
+        [ recurring.title, "#{gap} · #{recurring.workstream.name}" ]
+      end
 
     unowned + unheld
   end
 
   def recently_completed(limit = 10)
-    completed_in_period.includes(:completed_by, :workstream).reorder(completed_at: :desc).limit(limit)
+    completed_in_period.includes(:completed_by, :assignees, :workstream).reorder(completed_at: :desc).limit(limit)
   end
 
   private
@@ -64,9 +68,16 @@ class ContributionSummary
     Task.completed.where(completed_at: starts...ends)
   end
 
+  # Everyone on a finished task gets its full time (two facilitators each
+  # spent the evening on it); a task nobody was on counts for whoever did it.
   def minutes_by_household
-    @minutes_by_household ||= completed_in_period.joins(:completed_by).reorder(nil)
-      .group("users.household_id").sum("COALESCE(tasks.estimated_minutes, 0)")
+    @minutes_by_household ||= begin
+      shared = completed_in_period.joins(task_assignments: :user).reorder(nil)
+        .group("users.household_id").sum("COALESCE(tasks.estimated_minutes, 0)")
+      solo = completed_in_period.where.missing(:task_assignments).joins(:completed_by).reorder(nil)
+        .group("users.household_id").sum("COALESCE(tasks.estimated_minutes, 0)")
+      shared.merge(solo) { |_household, a, b| a + b }
+    end
   end
 
   def essential_due_so_far

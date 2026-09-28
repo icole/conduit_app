@@ -10,13 +10,13 @@ class WorkstreamsController < ApplicationController
   end
 
   def show
-    @recurring_tasks = @workstream.recurring_tasks.includes(:default_responsible_user).order(:title)
+    @recurring_tasks = @workstream.recurring_tasks.includes(:responsibles).order(:title)
     @owners = @workstream.owners.to_a
     unless @workstream.closed?
       today = Time.current.in_time_zone(current_community.time_zone).to_date
       @recurring_tasks.each { |recurring| recurring.instance_for(today) }
     end
-    @open_tasks = @workstream.tasks.open.includes(:assigned_to_user, :released_by, :recurring_task).order(:due_date, :created_at)
+    @open_tasks = @workstream.tasks.open.includes(:assignees, :released_by, :recurring_task).order(:due_date, :created_at)
     @users = User.order(:name)
   end
 

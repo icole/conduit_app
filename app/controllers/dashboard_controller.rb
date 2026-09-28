@@ -2,7 +2,7 @@ class DashboardController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    @tasks = Task.where(assigned_to_user_id: current_user.id)
+    @tasks = Task.assigned_to(current_user)
                  .where(status: "active")
     @task = Task.new
 

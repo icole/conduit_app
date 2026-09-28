@@ -4,6 +4,10 @@
 <%# "Can't do it" only when someone else could take it (a solo governance role can't hand off) %>
 <% action = nil if action == :release && !task.releasable? %>
 <% priority = task.effective_priority %>
+<%# Shared tasks: who else is on it, whose released spot you took, spots still open %>
+<% covering_for = task.task_assignments.find { |assignment| assignment.user_id == current_user.id }&.covering_for %>
+<% others = task.assignees.reject { |person| person.id == current_user.id }.map { |person| person.name.split(" ").first } %>
+<% needs_more = task.people_needed > 1 && task.open_spots.positive? ? "Needs #{task.open_spots} more" : nil %>
 <% border = if action == :claim
      { "essential" => "sm:border-error/50", "important" => "sm:border-warning/60" }.fetch(priority, "sm:border-base-200")
    else
@@ -11,7 +15,7 @@
    end %>
 <% release_button = capture do %>
   <%= button_to release_task_path(task), method: :patch, class: "btn btn-ghost btn-sm whitespace-nowrap",
-        form: { data: { turbo_confirm: "Release this one to the queue? You stay responsible for future #{task.recurring_task&.frequency_label&.downcase || 'periods'}; we'll post it in chat so someone can pick it up." } } do %>
+        form: { data: { turbo_confirm: others.any? ? "Give up your spot this time? #{others.to_sentence} #{others.one? ? 'stays' : 'stay'} on it; we'll post it in chat so someone can take your place." : "Release this one to the queue? You stay responsible for future #{task.recurring_task&.frequency_label&.downcase || 'periods'}; we'll post it in chat so someone can pick it up." } } do %>
     Can't do it →
   <% end %>
 <% end if action == :release %>
@@ -39,9 +43,11 @@
           <% bits << tag.span(due_label(task.due_date), class: ("text-error-ink" if task.overdue?)) if task.due_date %>
           <% if task.released_by && action == :claim %>
             <% bits << tag.span("Released by #{task.released_by.name.split(' ').first}", class: "text-info-ink") %>
-          <% elsif task.released_by && task.assigned_to_user_id != task.released_by_id %>
-            <% bits << tag.span("Covering for #{task.released_by.name.split(' ').first}", class: "text-info-ink") %>
+          <% elsif covering_for %>
+            <% bits << tag.span("Covering for #{covering_for.name.split(' ').first}", class: "text-info-ink") %>
           <% end %>
+          <% bits << "With #{others.to_sentence}" if others.any? %>
+          <% bits << tag.span(needs_more, class: "text-warning-ink") if needs_more %>
           <%= safe_join(bits.map { |bit| tag.span(bit, class: "inline-flex items-center gap-1 whitespace-nowrap") }, tag.span("·", aria: { hidden: true })) %>
         </p>
       </div>
@@ -56,12 +62,16 @@
         <% if task.due_date %>
           <span class="badge badge-sm whitespace-nowrap <%= task.overdue? ? 'border-error/40 bg-error/10 text-error-ink' : 'badge-ghost' %>">Due <%= task.due_date.strftime("%b %-d") %></span>
         <% end %>
-        <% if task.released_by %>
-          <% if action == :claim %>
-            <span class="badge badge-sm badge-info whitespace-nowrap">Released by <%= task.released_by.name.split(" ").first %></span>
-          <% elsif task.assigned_to_user_id != task.released_by_id %>
-            <span class="badge badge-sm border-info/40 bg-info/10 text-info-ink whitespace-nowrap">Covering for <%= task.released_by.name.split(" ").first %></span>
-          <% end %>
+        <% if task.released_by && action == :claim %>
+          <span class="badge badge-sm badge-info whitespace-nowrap">Released by <%= task.released_by.name.split(" ").first %></span>
+        <% elsif covering_for %>
+          <span class="badge badge-sm border-info/40 bg-info/10 text-info-ink whitespace-nowrap">Covering for <%= covering_for.name.split(" ").first %></span>
+        <% end %>
+        <% if others.any? %>
+          <span class="badge badge-sm badge-ghost whitespace-nowrap">With <%= others.to_sentence %></span>
+        <% end %>
+        <% if needs_more %>
+          <span class="badge badge-sm border-warning/60 bg-warning/10 text-warning-ink whitespace-nowrap"><%= needs_more %></span>
         <% end %>
       </div>
       <% if action == :release %>

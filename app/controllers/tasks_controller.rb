@@ -35,9 +35,11 @@ class TasksController < ApplicationController
     return create_recurring if params.dig(:task, :repeats).present?
 
     @task = current_user.tasks.build(task_params)
+    new_ids = assignee_ids_param || []
+    @task.assignees = User.where(id: new_ids)
 
     respond_to do |format|
-      if assignment_allowed?(@task) && @task.save
+      if assignment_allowed?(@task, [], new_ids) && @task.save
         redirect_path = if request.referer&.include?("tasks")
           tasks_path_for(@task)
         else
@@ -58,11 +60,19 @@ class TasksController < ApplicationController
 
   def update
     @return_to = return_to_path
+    old_ids = @task.assignee_ids
+    new_ids = assignee_ids_param || old_ids
     @task.assign_attributes(task_params)
 
-    if assignment_allowed?(@task) && @task.save
+    saved = assignment_allowed?(@task, old_ids, new_ids) && Task.transaction do
+      @task.assignees = User.where(id: new_ids) unless new_ids.sort == old_ids.sort
+      @task.save || raise(ActiveRecord::Rollback)
+    end
+
+    if saved
       redirect_to @return_to, notice: "Task was successfully updated."
     else
+      @task.assignees.reset
       render :edit, status: :unprocessable_entity
     end
   end
@@ -185,8 +195,8 @@ class TasksController < ApplicationController
   # Whoever has it (or finished it, or added it for nobody in particular),
   # plus the workstream's owners and admins.
   def can_change_completion?(task)
-    return true if current_user.id.in?([ task.assigned_to_user_id, task.completed_by_id ].compact)
-    return true if task.assigned_to_user_id.nil? && task.user_id == current_user.id
+    return true if task.assigned_to?(current_user) || task.completed_by_id == current_user.id
+    return true if task.assignees.empty? && task.user_id == current_user.id
 
     can_assign_others?(task.workstream)
   end
@@ -200,8 +210,9 @@ class TasksController < ApplicationController
     @task = current_user.tasks.build(task_params)
     @repeats = params[:task][:repeats]
 
-    responsible_id = task_params[:assigned_to_user_id].presence
-    if responsible_id && responsible_id.to_i != current_user.id && !can_assign_others?(@task.workstream)
+    responsible_ids = assignee_ids_param || []
+    @task.assignees = User.where(id: responsible_ids)
+    if (responsible_ids - [ current_user.id ]).any? && !can_assign_others?(@task.workstream)
       @task.errors.add(:base, "Only the workstream's owners can make someone else responsible")
       return render :new, status: :unprocessable_entity
     end
@@ -213,7 +224,8 @@ class TasksController < ApplicationController
       frequency: @repeats,
       priority: params[:task][:priority],
       effort: task_params[:effort],
-      default_responsible_user_id: responsible_id,
+      people_needed: task_params[:people_needed].presence || 1,
+      responsibles: User.where(id: responsible_ids),
       created_by: current_user
     )
 
@@ -237,10 +249,10 @@ class TasksController < ApplicationController
 
   def load_my_tab
     # Recurring duties and one-off assignments in one list, soonest due first
-    @my_tasks = Task.open.where(assigned_to_user: current_user)
-      .includes(:workstream, :recurring_task, :released_by).reorder(Arel.sql("tasks.due_date IS NULL, tasks.due_date, tasks.created_at"))
+    @my_tasks = Task.open.assigned_to(current_user)
+      .includes(:workstream, :recurring_task, :released_by, :assignees, task_assignments: :covering_for).reorder(Arel.sql("tasks.due_date IS NULL, tasks.due_date, tasks.created_at"))
     @completed_tasks = Task.completed.where(completed_at: 14.days.ago..)
-      .where("tasks.assigned_to_user_id = :id OR tasks.completed_by_id = :id", id: current_user.id)
+      .where("tasks.completed_by_id = :id OR tasks.id IN (SELECT task_id FROM task_assignments WHERE user_id = :id)", id: current_user.id)
       .includes(:workstream, :recurring_task).reorder(completed_at: :desc).limit(20)
   end
 
@@ -249,7 +261,7 @@ class TasksController < ApplicationController
   end
 
   def load_coverage_tab
-    workstreams = Workstream.includes(:owners, :recurring_tasks).order(:name)
+    workstreams = Workstream.includes(:owners, recurring_tasks: :responsibles).order(:name)
     @governance = workstreams.open.governance
     @ongoing = workstreams.open.ongoing
     @projects = workstreams.open.projects
@@ -276,9 +288,9 @@ class TasksController < ApplicationController
     base_query = Task.all
     if params[:assigned_to].present?
       if params[:assigned_to] == "unassigned"
-        base_query = base_query.where(assigned_to_user_id: nil)
+        base_query = base_query.where.missing(:task_assignments)
       else
-        base_query = base_query.where(assigned_to_user_id: params[:assigned_to])
+        base_query = base_query.assigned_to(params[:assigned_to])
       end
     end
 
@@ -317,7 +329,7 @@ class TasksController < ApplicationController
   # Only a workstream's owner (or an admin) hands work to someone else; anyone
   # can take open work themselves or let go of their own.
   def set_users
-    ids = [ current_user.id, @task&.assigned_to_user_id ].compact
+    ids = [ current_user.id, *@task&.assignee_ids ]
     @users = can_assign_others? ? User.all : User.where(id: ids)
   end
 
@@ -327,28 +339,36 @@ class TasksController < ApplicationController
     workstream ? workstream.owned_by?(current_user) : WorkstreamOwner.exists?(user_id: current_user.id)
   end
 
-  def assignment_allowed?(task)
-    return true unless task.assigned_to_user_id_changed?
+  # Owners and admins put anyone on a task; everyone else can only add or
+  # take off themselves.
+  def assignment_allowed?(task, old_ids, new_ids)
+    changed = (old_ids - new_ids) + (new_ids - old_ids)
+    return true if changed.empty? || changed.all?(current_user.id)
     return true if task.workstream && can_assign_others?(task.workstream)
 
-    was, now = task.assigned_to_user_id_was, task.assigned_to_user_id
-    return true if was.nil? && now == current_user.id
-    return true if was == current_user.id && now.nil?
-
-    task.errors.add(:assigned_to_user, "can only be changed by one of the workstream's owners")
+    task.errors.add(:assignees, "can only be changed by one of the workstream's owners")
     false
   end
 
+  # The people picked on a form (one picker per spot). Older forms send a
+  # single assigned_to_user_id. nil when the form didn't include anyone.
+  def assignee_ids_param
+    task = params[:task] || {}
+    ids = if task.key?(:assignee_ids) then Array(task[:assignee_ids])
+    elsif task.key?(:assigned_to_user_id) then [ task[:assigned_to_user_id] ]
+    end
+    ids&.compact_blank&.map(&:to_i)&.uniq
+  end
+
   def tasks_path_for(task)
-    case task.assigned_to_user_id
-    when current_user.id then tasks_path(tab: "my")
-    when nil then tasks_path(tab: "available")
+    if task.assigned_to?(current_user) then tasks_path(tab: "my")
+    elsif task.open_spots.positive? then tasks_path(tab: "available")
     else workstream_path(task.workstream)
     end
   end
 
   def task_params
-    params.require(:task).permit(:title, :description, :status, :assigned_to_user_id, :due_date, :workstream_id, :effort)
+    params.require(:task).permit(:title, :description, :status, :due_date, :workstream_id, :effort, :people_needed)
   end
 
   # The page the edit came from (e.g. a workstream), if it's on this site.

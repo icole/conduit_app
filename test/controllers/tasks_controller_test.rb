@@ -53,7 +53,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     other_user = users(:two)
     get edit_task_url(@task)
     assert_response :success
-    assert_select "input[name='task[assigned_to_user_id]'][type='hidden']"
+    assert_select "input[name='task[assignee_ids][]'][type='hidden']"
     assert_select "[data-controller='user-select']" do
       assert_select "[data-name='#{@user.name}']"
       assert_select "[data-name='#{other_user.name}']"
@@ -65,7 +65,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     other_user = users(:two)
     get tasks_url
     assert_response :success
-    assert_select "input[name='task[assigned_to_user_id]'][type='hidden']"
+    assert_select "input[name='task[assignee_ids][]'][type='hidden']"
     assert_select "[data-controller='user-select']" do
       assert_select "[data-name='#{@user.name}']"
       assert_select "[data-name='#{other_user.name}']"

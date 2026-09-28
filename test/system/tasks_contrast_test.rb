@@ -9,6 +9,8 @@ class TasksContrastTest < ApplicationSystemTestCase
 
   setup do
     ActsAsTenant.with_tenant(communities(:crow_woods)) do
+      TaskAssignment.delete_all
+      RecurringTaskResponsible.delete_all
       Task.delete_all
       RecurringTask.with_discarded.delete_all
       WorkstreamOwner.delete_all
@@ -20,7 +22,7 @@ class TasksContrastTest < ApplicationSystemTestCase
       treasurer = Workstream.create!(name: "HOA Treasurer", workstream_type: "governance", description: "Bookkeeping and dues.",
                                      owners: [ users(:admin_user), users(:two) ])
       RecurringTask.create!(workstream: treasurer, title: "Bookkeeping", frequency: "monthly", estimated_minutes: 120,
-                            created_by: users(:admin_user), default_responsible_user: users(:admin_user))
+                            created_by: users(:admin_user), responsibles: [ users(:admin_user) ])
     end
     sign_in_as(users(:admin_user))
   end

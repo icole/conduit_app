@@ -86,7 +86,7 @@ class TasksTest < ApplicationSystemTestCase
       select workstreams(:garbage).name, from: "task[workstream_id]"
 
       # Use native select for user assignment
-      select @user_two.name, from: "task[assigned_to_user_id]"
+      select @user_two.name, from: "task_assignee_ids_0"
 
       # Submit the form
       click_on "Create Task"
@@ -112,7 +112,7 @@ class TasksTest < ApplicationSystemTestCase
     assert_text "Edit Task"
 
     # Use native select for user assignment
-    select @user_two.name, from: "task[assigned_to_user_id]"
+    select @user_two.name, from: "task_assignee_ids_0"
 
     # Submit the form - use the button text instead of input value
     click_button "Update Task"
@@ -356,5 +356,28 @@ class TasksTest < ApplicationSystemTestCase
     within("#recently-completed") { find("button[aria-label='Mark “#{task.title}” not done']").click }
     assert_selector "#my-work #task_#{task.id}"
     assert_no_selector "#recently-completed #task_#{task.id}"
+  end
+
+  test "People needed shows a picker per person, and taking a spot away clears it" do
+    Capybara.reset_sessions!
+    sign_in_as(users(:one)) # owns Garbage & Recycling
+    visit new_task_url(workstream_id: workstreams(:garbage).id)
+
+    assert_selector "#task_assignee_ids_1", visible: :hidden
+    select "2 people", from: "People needed"
+    select users(:two).name, from: "Second person"
+    select "1 person", from: "People needed"
+    assert_selector "#task_assignee_ids_1", visible: :hidden
+    select "2 people", from: "People needed"
+    assert_equal "", find("#task_assignee_ids_1").value
+
+    fill_in "Title", with: "Deep clean the bins"
+    select users(:one).name, from: "Assign to"
+    select users(:two).name, from: "Second person"
+    click_button "Create Task"
+
+    assert_text "Task was successfully created."
+    task = Task.find_by!(title: "Deep clean the bins")
+    assert_equal [ 2, [ users(:one), users(:two) ].sort_by(&:name) ], [ task.people_needed, task.assignees.to_a ]
   end
 end

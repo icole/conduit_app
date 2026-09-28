@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_25_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -327,6 +327,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000000) do
     t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
   end
 
+  create_table "recurring_task_responsibles", force: :cascade do |t|
+    t.bigint "community_id", null: false
+    t.bigint "recurring_task_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["community_id"], name: "index_recurring_task_responsibles_on_community_id"
+    t.index ["recurring_task_id", "user_id"], name: "idx_on_recurring_task_id_user_id_d55d1a7618", unique: true
+    t.index ["recurring_task_id"], name: "index_recurring_task_responsibles_on_recurring_task_id"
+    t.index ["user_id"], name: "index_recurring_task_responsibles_on_user_id"
+  end
+
   create_table "recurring_task_templates", force: :cascade do |t|
     t.boolean "auto_assign_to_holder", default: true, null: false
     t.datetime "created_at", null: false
@@ -349,6 +361,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000000) do
     t.datetime "discarded_at"
     t.integer "estimated_minutes", null: false
     t.string "frequency", default: "weekly", null: false
+    t.integer "people_needed", default: 1, null: false
     t.string "priority"
     t.date "starts_on", null: false
     t.string "title", null: false
@@ -402,6 +415,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000000) do
     t.index ["vacant"], name: "index_roles_on_vacant"
   end
 
+  create_table "task_assignments", force: :cascade do |t|
+    t.bigint "community_id", null: false
+    t.bigint "task_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "covering_for_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["community_id"], name: "index_task_assignments_on_community_id"
+    t.index ["covering_for_id"], name: "index_task_assignments_on_covering_for_id"
+    t.index ["task_id", "user_id"], name: "index_task_assignments_on_task_id_and_user_id", unique: true
+    t.index ["task_id"], name: "index_task_assignments_on_task_id"
+    t.index ["user_id"], name: "index_task_assignments_on_user_id"
+  end
+
   create_table "tasks", force: :cascade do |t|
     t.integer "assigned_to_user_id"
     t.bigint "community_id", null: false
@@ -414,6 +441,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000000) do
     t.datetime "discarded_at"
     t.date "due_date"
     t.integer "estimated_minutes"
+    t.integer "people_needed", default: 1, null: false
     t.date "period_start"
     t.integer "priority_order"
     t.bigint "recurring_task_id"
@@ -576,6 +604,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000000) do
   add_foreign_key "meals", "users", column: "created_by_id"
   add_foreign_key "meals", "users", column: "deleted_by_id"
   add_foreign_key "push_subscriptions", "users"
+  add_foreign_key "recurring_task_responsibles", "communities"
+  add_foreign_key "recurring_task_responsibles", "recurring_tasks"
+  add_foreign_key "recurring_task_responsibles", "users"
   add_foreign_key "recurring_task_templates", "roles"
   add_foreign_key "recurring_tasks", "communities"
   add_foreign_key "recurring_tasks", "users", column: "created_by_id"
@@ -586,6 +617,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000000) do
   add_foreign_key "roles", "communities"
   add_foreign_key "roles", "users", column: "created_by_id"
   add_foreign_key "roles", "users", column: "deleted_by_id"
+  add_foreign_key "task_assignments", "communities"
+  add_foreign_key "task_assignments", "tasks"
+  add_foreign_key "task_assignments", "users"
+  add_foreign_key "task_assignments", "users", column: "covering_for_id"
   add_foreign_key "tasks", "communities"
   add_foreign_key "tasks", "recurring_tasks"
   add_foreign_key "tasks", "roles"

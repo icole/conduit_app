@@ -11,8 +11,19 @@ class RecurringTasksController < ApplicationController
   end
 
   def update
+    old_ids = @recurring_task.responsible_ids
+    new_ids = responsible_ids_param || old_ids
+    old_needed = @recurring_task.people_needed
     @recurring_task.assign_attributes(recurring_task_params)
-    if responsible_allowed? && @recurring_task.save
+
+    saved = responsible_allowed?(old_ids, new_ids) && RecurringTask.transaction do
+      @recurring_task.responsibles = User.where(id: new_ids) unless new_ids.sort == old_ids.sort
+      @recurring_task.save || raise(ActiveRecord::Rollback)
+      follow_in_open_instances(old_ids, old_needed)
+      true
+    end
+
+    if saved
       redirect_to @workstream, notice: "Recurring task updated."
     else
       render :edit, status: :unprocessable_entity
@@ -44,18 +55,33 @@ class RecurringTasksController < ApplicationController
   def can_pick_anyone? = current_user.admin? || @workstream.owned_by?(current_user)
 
   def set_responsible_choices
-    @responsible_choices = can_pick_anyone? ? User.order(:name) : User.where(id: [ current_user.id, @recurring_task.default_responsible_user_id_was ]).order(:name)
+    @responsible_choices = can_pick_anyone? ? User.order(:name) : User.where(id: [ current_user.id, *@recurring_task.responsible_ids ]).order(:name)
   end
 
-  def responsible_allowed?
-    return true unless @recurring_task.default_responsible_user_id_changed?
-    return true if can_pick_anyone? || @recurring_task.default_responsible_user_id.in?([ nil, current_user.id ])
+  def responsible_allowed?(old_ids, new_ids)
+    changed = (old_ids - new_ids) + (new_ids - old_ids)
+    return true if changed.empty? || changed.all?(current_user.id) || can_pick_anyone?
 
-    @recurring_task.errors.add(:default_responsible_user, "can only be someone else if you own the workstream")
+    @recurring_task.errors.add(:responsibles, "can only be someone else if you own the workstream")
     false
   end
 
+  def responsible_ids_param
+    ids = params.dig(:recurring_task, :responsible_ids)
+    ids && Array(ids).compact_blank.map(&:to_i).uniq
+  end
+
+  # This period's task takes the new people, unless someone already changed
+  # who's on it (a release, a claim, a reassignment).
+  def follow_in_open_instances(old_ids, old_needed)
+    @recurring_task.instances.open.includes(:assignees).find_each do |task|
+      next if task.released_by_id || task.assignee_ids.sort != old_ids.sort || task.people_needed != old_needed
+
+      task.update!(people_needed: @recurring_task.people_needed, assignees: @recurring_task.responsibles.to_a)
+    end
+  end
+
   def recurring_task_params
-    params.require(:recurring_task).permit(:title, :description, :frequency, :priority, :effort, :default_responsible_user_id, :starts_on)
+    params.require(:recurring_task).permit(:title, :description, :frequency, :priority, :effort, :people_needed, :starts_on)
   end
 end

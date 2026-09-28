@@ -20,9 +20,10 @@
   </div>
 
   <div class="form-control">
-    <%= form.label :default_responsible_user_id, "Default responsible person", class: "label" %>
-    <%= form.select :default_responsible_user_id, [ [ "Nobody yet (coverage gap)", "" ] ] + @responsible_choices.map { |u| [ u.name, u.id ] }, {}, class: "select select-bordered w-full" %>
-    <p class="text-xs text-base-content/70 mt-1">Each period's instance is pre-assigned to this person. They can release a single period if they're away.</p>
+    <%= render "tasks/people_fields", scope: "recurring_task", ids_field: "responsible_ids", people_needed: recurring_task.people_needed,
+               selected: recurring_task.responsibles.to_a, users: @responsible_choices,
+               first_label: "Responsible each period", blank_label: "Nobody yet (coverage gap)" %>
+    <p class="text-xs text-base-content/70 -mt-2">Each period's task goes to these people. Any of them can release their spot for one period if they're away.</p>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

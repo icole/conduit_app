@@ -28,7 +28,7 @@ class TaskSampleDataTest < ActiveSupport::TestCase
   test "gives the viewer the prototype's My Tasks" do
     load!
     travel_to(Date.new(2026, 3, 4)) do
-      mine = Task.open.where(assigned_to_user: @viewer).pluck(:title)
+      mine = Task.open.assigned_to(@viewer).pluck(:title)
       assert_includes mine, "Take out garbage & recycling"
       assert_includes mine, "Restock common house pantry"
       assert_includes mine, "Buy supplies for work party"

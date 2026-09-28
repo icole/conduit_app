@@ -31,11 +31,13 @@ class TaskVersioningTest < ActiveSupport::TestCase
     assert_equal original_title, version.reify.title
   end
 
-  test "reassigning a task is recorded" do
-    @task.update!(assigned_to_user_id: users(:two).id)
+  test "adding and removing the people on a task is recorded" do
+    @task.update!(assigned_to_user: users(:two))
+    assignment = @task.task_assignments.find_by!(user: users(:two))
+    assert_equal "create", assignment.versions.last.event
 
-    assert_equal "update", @task.versions.last.event
-    assert_nil @task.versions.last.reify.assigned_to_user_id
+    @task.update!(assigned_to_user: users(:three))
+    assert PaperTrail::Version.exists?(item_type: "TaskAssignment", item_id: assignment.id, event: "destroy")
   end
 
   test "soft deleting a task is recorded rather than lost" do

@@ -1,36 +1,31 @@
+<%# One person picker: a <select> on the web, the native menu in the apps.
+    locals: name, id, label, selected (a User or nil), users, blank_label, label_data %>
+<% blank_label = local_assigns.fetch(:blank_label, "Unassigned") %>
+<% choices = users.sort_by(&:name) %>
 <div data-controller="user-select" class="form-control w-full mb-4">
-  <%= form.label :assigned_to_user_id, (@repeats.present? ? "Responsible each period" : "Assign to"), class: "label", data: { task_repeat_target: "assigneeLabel" } %>
+  <%= label_tag id, label, class: "label", data: local_assigns.fetch(:label_data, {}) %>
 
   <%# Native <select> for web — hidden when bridge is active %>
   <div data-user-select-target="webSelect">
-    <%= form.select :assigned_to_user_id,
-          [["Unassigned", ""]] + users.order(:name).map { |u| [u.name, u.id] },
-          { selected: task.assigned_to_user_id || "" },
-          class: "select select-bordered w-full",
-          data: { action: "change->user-select#webChanged" } %>
+    <%= select_tag name, options_for_select([ [ blank_label, "" ] ] + choices.map { |u| [ u.name, u.id ] }, selected&.id || ""),
+          id: id, class: "select select-bordered w-full", data: { action: "change->user-select#webChanged" } %>
   </div>
 
   <%# Custom button for native bridge — hidden by default, shown when bridge connects %>
   <div data-user-select-target="nativeSelect" class="hidden">
-    <%= form.hidden_field :assigned_to_user_id, data: { user_select_target: "input" } %>
+    <%= hidden_field_tag name, selected&.id, id: nil, data: { user_select_target: "input" } %>
     <button type="button"
             class="select select-bordered w-full text-left flex items-center justify-between"
             data-user-select-target="display"
             data-action="click->user-select#toggle">
-      <span><%= task.assigned_to_user&.name || "Unassigned" %></span>
+      <span><%= selected&.name || blank_label %></span>
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-50" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
       </svg>
     </button>
-    <% users.order(:name).each do |user| %>
-      <span class="hidden"
-            data-user-select-target="option"
-            data-value="<%= user.id %>"
-            data-name="<%= user.name %>"></span>
+    <% choices.each do |user| %>
+      <span class="hidden" data-user-select-target="option" data-value="<%= user.id %>" data-name="<%= user.name %>"></span>
     <% end %>
-    <span class="hidden"
-          data-user-select-target="option"
-          data-value=""
-          data-name="Unassigned"></span>
+    <span class="hidden" data-user-select-target="option" data-value="" data-name="<%= blank_label %>"></span>
   </div>
 </div>

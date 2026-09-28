@@ -8,7 +8,10 @@ class User < ApplicationRecord
   has_many :likes, dependent: :destroy
   has_many :comments, dependent: :destroy
   has_many :tasks, dependent: :destroy
-  has_many :assigned_tasks, class_name: "Task", foreign_key: "assigned_to_user_id", dependent: :nullify
+  has_many :task_assignments, dependent: :destroy
+  has_many :assigned_tasks, through: :task_assignments, source: :task
+  has_many :covering_assignments, class_name: "TaskAssignment", foreign_key: "covering_for_id", dependent: :nullify
+  has_many :recurring_task_responsibles, dependent: :destroy
 
   # Discardable associations - nullify created_by and deleted_by references when user is deleted
   has_many :created_tasks, class_name: "Task", foreign_key: "created_by_id", dependent: :nullify
@@ -179,7 +182,9 @@ class User < ApplicationRecord
   def cleanup_discarded_records
     # Delete discarded records that reference this user via user_id
     # These are hidden by Discardable's default_scope and missed by dependent: :destroy
-    Task.unscoped.where(user_id: id).discarded.delete_all
+    discarded_tasks = Task.unscoped.where(user_id: id).discarded
+    TaskAssignment.unscoped.where(task_id: discarded_tasks.select(:id)).delete_all
+    discarded_tasks.delete_all
     Comment.unscoped.where(user_id: id).discarded.delete_all
   end
 

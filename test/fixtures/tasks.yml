@@ -24,7 +24,6 @@ assigned_task:
   status: active
   priority_order: 1
   user: one
-  assigned_to_user: two
 
 received_task:
   community: crow_woods
@@ -34,7 +33,6 @@ received_task:
   status: active
   priority_order: 2
   user: two
-  assigned_to_user: one
 
 completed_task:
   community: crow_woods
@@ -43,4 +41,3 @@ completed_task:
   description: Improve security and user experience
   status: completed
   user: one
-  assigned_to_user: two

@@ -12,7 +12,11 @@ class RecurringTask < ApplicationRecord
   }.freeze
 
   belongs_to :workstream
-  belongs_to :default_responsible_user, class_name: "User", optional: true
+  # Its people live in recurring_task_responsibles (it can need several); this
+  # column is left over until a later migration drops it.
+  self.ignored_columns += [ "default_responsible_user_id" ]
+  has_many :recurring_task_responsibles, dependent: :destroy
+  has_many :responsibles, -> { order(:name) }, through: :recurring_task_responsibles, source: :user
   belongs_to :created_by, class_name: "User"
   has_many :instances, class_name: "Task", dependent: :nullify
 
@@ -25,6 +29,8 @@ class RecurringTask < ApplicationRecord
   validates :frequency, inclusion: { in: FREQUENCIES.keys }
   validates :priority, inclusion: { in: Workstream::PRIORITIES }, allow_nil: true
   validates :estimated_minutes, presence: true, numericality: { only_integer: true, greater_than: 0 }
+  validates :people_needed, numericality: { only_integer: true, greater_than: 0 }
+  validate :not_more_people_than_needed
 
   before_validation { self.starts_on ||= Date.current }
   before_validation { self.priority = nil if priority.blank? }
@@ -34,7 +40,14 @@ class RecurringTask < ApplicationRecord
 
   def effective_priority = priority.presence || workstream.priority
   def frequency_label = FREQUENCIES[frequency]
-  def covered? = default_responsible_user_id.present?
+  def covered? = responsibles.size >= people_needed
+  def open_spots = [ people_needed.to_i - responsibles.size, 0 ].max
+
+  # Shorthand for a one-person job: its first person, or just this one
+  def default_responsible_user = responsibles.first
+  def default_responsible_user=(user)
+    self.responsibles = Array(user)
+  end
 
   # Makes sure every recurring task in an open workstream has its instance for
   # the period containing +date+.
@@ -56,7 +69,8 @@ class RecurringTask < ApplicationRecord
       description: description,
       workstream: workstream,
       user: created_by,
-      assigned_to_user: default_responsible_user,
+      people_needed: people_needed,
+      assignees: responsibles.to_a,
       estimated_minutes: estimated_minutes,
       due_date: period.end,
       status: "active"
@@ -90,6 +104,12 @@ class RecurringTask < ApplicationRecord
   end
 
   private
+
+  def not_more_people_than_needed
+    return unless people_needed.to_i.positive? && responsibles.size > people_needed
+
+    errors.add(:responsibles, "are more than the #{people_needed} #{'person'.pluralize(people_needed)} it needs")
+  end
 
   # The period's instance, deleted or not; nil when it was deleted.
   def existing_instance(period)

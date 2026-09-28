@@ -4,7 +4,6 @@ garbage_night:
   title: Take out garbage & recycling
   frequency: weekly
   estimated_minutes: 15
-  default_responsible_user: one
   created_by: admin_user
   starts_on: 2026-01-05
 

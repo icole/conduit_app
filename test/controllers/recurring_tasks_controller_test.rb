@@ -29,7 +29,7 @@ class RecurringTasksControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to workstream_url(@workstream)
     assert_equal "Water the houseplants", recurring.reload.title
 
-    patch workstream_recurring_task_url(@workstream, recurring), params: { recurring_task: { default_responsible_user_id: users(:two).id } }
+    patch workstream_recurring_task_url(@workstream, recurring), params: { recurring_task: { responsible_ids: [ users(:two).id ] } }
     assert_response :unprocessable_entity
     assert_equal users(:three), recurring.reload.default_responsible_user
   end
@@ -45,7 +45,7 @@ class RecurringTasksControllerTest < ActionDispatch::IntegrationTest
     sign_in users(:admin_user)
     recurring = recurring_tasks(:pantry_restock)
 
-    patch workstream_recurring_task_url(@workstream, recurring), params: { recurring_task: { default_responsible_user_id: users(:one).id } }
+    patch workstream_recurring_task_url(@workstream, recurring), params: { recurring_task: { responsible_ids: [ users(:one).id ] } }
     assert_redirected_to workstream_url(@workstream)
     assert_equal users(:one), recurring.reload.default_responsible_user
 
