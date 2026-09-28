@@ -76,8 +76,12 @@ class AccountController < ApplicationController
     # Log the deletion for audit purposes
     Rails.logger.info "User #{@user.id} (#{@user.email}) requested account deletion"
 
+    stream_user_id = @user.stream_user_id
+
     # Destroy the user (associated data will be handled by dependent: :destroy)
     if @user.destroy
+      # Async so a Stream outage can never block account deletion (CON-81).
+      StreamUserRemovalJob.perform_later(stream_user_id)
       reset_session
       redirect_to root_path, notice: "Your account and all associated data have been permanently deleted."
     else

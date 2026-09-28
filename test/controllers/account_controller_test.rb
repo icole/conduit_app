@@ -64,4 +64,22 @@ class AccountControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to account_path
     assert_nil JwtService.verify_auth_token(token)
   end
+
+  test "destroy deletes the account and enqueues Stream user removal" do
+    assert_enqueued_with(job: StreamUserRemovalJob, args: [ @user.id.to_s ]) do
+      delete destroy_account_path, params: { confirmation: @user.email }
+    end
+
+    assert_redirected_to root_path
+    assert_nil User.find_by(id: @user.id)
+  end
+
+  test "destroy with wrong confirmation neither deletes nor enqueues Stream removal" do
+    assert_no_enqueued_jobs(only: StreamUserRemovalJob) do
+      delete destroy_account_path, params: { confirmation: "wrong@example.com" }
+    end
+
+    assert_redirected_to delete_account_path
+    assert User.exists?(@user.id)
+  end
 end

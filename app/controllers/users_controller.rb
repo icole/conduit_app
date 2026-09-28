@@ -30,8 +30,15 @@ class UsersController < ApplicationController
       return
     end
 
-    @user.destroy
-    redirect_to users_path, notice: "User was successfully deleted."
+    stream_user_id = @user.stream_user_id
+
+    if @user.destroy
+      # Async so a Stream outage can never block member removal (CON-81).
+      StreamUserRemovalJob.perform_later(stream_user_id)
+      redirect_to users_path, notice: "User was successfully deleted."
+    else
+      redirect_to users_path, alert: "Unable to delete user."
+    end
   end
 
   def send_password_reset
