@@ -1,34 +1,8 @@
 <p class="text-sm text-base-content/70 mb-4">Everything you're responsible for this period: your recurring duties and one-off assignments.</p>
 
-<section id="recurring-responsibilities" class="mb-6">
-  <h2 class="font-semibold mb-2">Your recurring responsibilities <span class="text-base-content/65 text-sm font-normal ml-1"><%= @recurring_tasks.size %></span></h2>
-  <div class="<%= task_list_classes %>">
-    <% @recurring_tasks.each do |task| %>
-      <%= render "tasks/work_card", task: task, action: :release, return_tab: "my" %>
-    <% end %>
-    <% if @recurring_tasks.empty? %>
-      <p class="text-sm text-base-content/65 px-3 py-3 sm:p-0">No recurring duties this period.</p>
-    <% end %>
-  </div>
-</section>
-
-<section id="assigned-to-you" class="mb-6">
-  <h2 class="font-semibold mb-2">Assigned to you <span class="text-base-content/65 text-sm font-normal ml-1"><%= @assigned_tasks.size %></span></h2>
-  <div class="<%= task_list_classes %>">
-    <% @assigned_tasks.each do |task| %>
-      <%= render "tasks/work_card", task: task, action: (task.recurring? ? :release : nil), return_tab: "my" %>
-    <% end %>
-    <% if @assigned_tasks.empty? %>
-      <p class="text-sm text-base-content/65 px-3 py-3 sm:p-0">
-        Nothing assigned right now.
-        <%= link_to "See what's open", tasks_path(tab: "available"), class: "link text-primary-ink", data: { turbo_frame: "tasks_content" } %>
-      </p>
-    <% end %>
-  </div>
-</section>
-
+<%# Up top, so a mistaken tick is easy to find and undo %>
 <% if @completed_tasks.any? %>
-  <section id="recently-completed" class="mb-6">
+  <section id="recently-completed" class="mb-4">
     <details>
       <summary class="font-semibold mb-2 cursor-pointer">Recently completed <span class="text-base-content/65 text-sm font-normal ml-1"><%= @completed_tasks.size %></span></summary>
       <div class="<%= task_list_classes %>">
@@ -39,6 +13,21 @@
     </details>
   </section>
 <% end %>
+
+<section id="my-work" class="mb-6">
+  <h2 class="font-semibold mb-2">Your tasks <span class="text-base-content/65 text-sm font-normal ml-1"><%= @my_tasks.size %></span></h2>
+  <div class="<%= task_list_classes %>">
+    <% @my_tasks.each do |task| %>
+      <%= render "tasks/work_card", task: task, action: (task.recurring? ? :release : nil), return_tab: "my" %>
+    <% end %>
+    <% if @my_tasks.empty? %>
+      <p class="text-sm text-base-content/65 px-3 py-3 sm:p-0">
+        Nothing on your list right now.
+        <%= link_to "See what's open", tasks_path(tab: "available"), class: "link text-primary-ink", data: { turbo_frame: "tasks_content" } %>
+      </p>
+    <% end %>
+  </div>
+</section>
 
 <%= link_to tasks_path(view: "active"), class: "inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-base-content", data: { turbo_frame: "tasks_content" } do %>
   All tasks: backlog &amp; priority order

@@ -49,7 +49,7 @@ class NativeConfirmTest < ApplicationSystemTestCase
     visit tasks_url
     behave_like_ios_web_view
 
-    within("#recurring-responsibilities") { click_button "Can't do it →" }
+    within("#my-work") { click_button "Can't do it →" }
     within("dialog[open]") { click_button "OK" }
 
     assert_text "Released to the queue"

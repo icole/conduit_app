@@ -171,12 +171,12 @@ class TasksTest < ApplicationSystemTestCase
 
   test "releasing a recurring duty and a neighbour claiming it" do
     visit tasks_url
-    within "#recurring-responsibilities" do
+    within "#my-work" do
       assert_text "Take out garbage & recycling"
       accept_confirm { click_button "Can't do it →" }
     end
     assert_text "Released to the queue"
-    assert_no_selector "#recurring-responsibilities", text: "Take out garbage"
+    assert_no_selector "#my-work", text: "Take out garbage"
 
     Capybara.reset_sessions!
     sign_in_as(@user_two)
@@ -189,7 +189,7 @@ class TasksTest < ApplicationSystemTestCase
     assert_text "It's yours"
 
     click_link "My Tasks"
-    within "#assigned-to-you" do
+    within "#my-work" do
       assert_text "Take out garbage & recycling"
       assert_text "Covering for Jane"
     end
@@ -197,10 +197,10 @@ class TasksTest < ApplicationSystemTestCase
 
   test "marking a responsibility done removes it from My Tasks" do
     visit tasks_url
-    within "#recurring-responsibilities" do
+    within "#my-work" do
       find("button[aria-label='Mark “Take out garbage & recycling” done']").click
     end
-    assert_no_selector "#recurring-responsibilities", text: "Take out garbage"
+    assert_no_selector "#my-work", text: "Take out garbage"
     assert Task.find_by(title: "Take out garbage & recycling").completed?
   end
 
@@ -222,7 +222,7 @@ class TasksTest < ApplicationSystemTestCase
                  status: "completed", completed_by: @user_one, completed_at: Time.current)
 
     visit tasks_url
-    card = find("#recurring-responsibilities [id^='task_']", text: "Take out garbage & recycling")
+    card = find("#my-work [id^='task_']", text: "Take out garbage & recycling")
     badges = card.find("[data-task-details]")
     release = card.find_button("Can't do it →")
     assert_operator release.rect.y, :>, badges.rect.y + badges.rect.height - 1
@@ -341,20 +341,20 @@ class TasksTest < ApplicationSystemTestCase
     task = @received_task # assigned to user one
     visit tasks_url(tab: "my")
 
-    within("#assigned-to-you") { find("button[aria-label='Mark “#{task.title}” done']").click }
-    assert_no_selector "#assigned-to-you #task_#{task.id}"
+    within("#my-work") { find("button[aria-label='Mark “#{task.title}” done']").click }
+    assert_no_selector "#my-work #task_#{task.id}"
     within("#undo-notification") do
       assert_text "Marked “#{task.title}” done."
       click_button "Undo"
     end
-    assert_selector "#assigned-to-you #task_#{task.id}"
+    assert_selector "#my-work #task_#{task.id}"
     assert_not task.reload.completed?
 
-    within("#assigned-to-you") { find("button[aria-label='Mark “#{task.title}” done']").click }
-    assert_no_selector "#assigned-to-you #task_#{task.id}"
+    within("#my-work") { find("button[aria-label='Mark “#{task.title}” done']").click }
+    assert_no_selector "#my-work #task_#{task.id}"
     find("#recently-completed summary").click
     within("#recently-completed") { find("button[aria-label='Mark “#{task.title}” not done']").click }
-    assert_selector "#assigned-to-you #task_#{task.id}"
+    assert_selector "#my-work #task_#{task.id}"
     assert_no_selector "#recently-completed #task_#{task.id}"
   end
 end

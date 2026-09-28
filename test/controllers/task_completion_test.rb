@@ -58,6 +58,12 @@ class TaskCompletionTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "Recently completed sits above the list, so nobody has to scroll to find it" do
+    Task.create!(title: "Swept the porch", user: @user, assigned_to_user: @user, workstream: workstreams(:general), status: "completed")
+    get tasks_url(tab: "my")
+    assert_operator response.body.index("id=\"recently-completed\""), :<, response.body.index("id=\"my-work\"")
+  end
+
   test "no Recently completed section when there's nothing to show" do
     get tasks_url(tab: "my")
     assert_select "#recently-completed", count: 0

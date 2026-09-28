@@ -286,13 +286,15 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "My Tasks splits recurring responsibilities from one-off assignments" do
+  test "My Tasks lists recurring duties and one-off assignments together, soonest due first" do
+    overdue = Task.create!(title: "Return the ladder", user: @user, assigned_to_user: @user, workstream: workstreams(:general), due_date: Date.current - 1)
     get tasks_url
     assert_response :success
     assert_select "nav[aria-label='Task views'] a[aria-current='page']", text: "My Tasks"
-    assert_select "#recurring-responsibilities", text: /Take out garbage & recycling/
-    assert_select "#assigned-to-you", text: /Setup Development Environment/
-    assert_select "#assigned-to-you", text: /Review Pull Request/, count: 0
+    assert_select "#recurring-responsibilities, #assigned-to-you", count: 0
+    titles = css_select("#my-work [id^='task_'] p.font-medium").map { |p| p.text.strip }
+    assert_equal [ overdue.title, "Take out garbage & recycling", "Setup Development Environment" ], titles.first(3)
+    assert_not_includes titles, "Review Pull Request #42"
     assert_no_match "Refactor Authentication System", response.body # completed work lives in Contribution
     assert_select "form[action='#{release_task_path(Task.find_by!(recurring_task: recurring_tasks(:garbage_night)))}']"
   end
@@ -364,8 +366,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     task.claim!(member)
 
     get tasks_url
-    assert_select "#recurring-responsibilities", text: /Take out garbage/, count: 0
-    assert_select "#assigned-to-you", text: /Covering for Jane/
+    assert_select "#my-work", text: /Covering for Jane/
   end
 
   test "the page has four tabs" do

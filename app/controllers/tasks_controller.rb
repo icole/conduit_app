@@ -236,11 +236,9 @@ class TasksController < ApplicationController
   end
 
   def load_my_tab
-    mine = Task.open.where(assigned_to_user: current_user)
+    # Recurring duties and one-off assignments in one list, soonest due first
+    @my_tasks = Task.open.where(assigned_to_user: current_user)
       .includes(:workstream, :recurring_task, :released_by).reorder(Arel.sql("tasks.due_date IS NULL, tasks.due_date, tasks.created_at"))
-    # Recurring responsibilities are the instances you're the default person
-    # for; an instance you picked up for someone else is just assigned to you.
-    @recurring_tasks, @assigned_tasks = mine.partition { |task| task.recurring_task&.default_responsible_user_id == current_user.id }
     @completed_tasks = Task.completed.where(completed_at: 14.days.ago..)
       .where("tasks.assigned_to_user_id = :id OR tasks.completed_by_id = :id", id: current_user.id)
       .includes(:workstream, :recurring_task).reorder(completed_at: :desc).limit(20)
