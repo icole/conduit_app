@@ -11,6 +11,13 @@
       }
     },
     {
+      "patterns": ["/calendar_events/new$", "/calendar_events/[^/]+/edit$"],
+      "properties": {
+        "uri": "hotwire://fragment/web",
+        "pull_to_refresh_enabled": false
+      }
+    },
+    {
       "patterns": ["/new$", "/edit$"],
       "properties": {
         "uri": "hotwire://fragment/web_modal",
