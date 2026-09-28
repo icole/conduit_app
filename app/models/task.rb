@@ -11,9 +11,7 @@ class Task < ApplicationRecord
   belongs_to :user
   belongs_to :workstream
   belongs_to :recurring_task, optional: true
-  # Who's doing it: one person, or several sharing it (meeting facilitation).
-  # people_needed is left over from a first version and dropped next release.
-  self.ignored_columns += [ "people_needed" ]
+  # Who's doing it: one person, or several sharing it (meeting facilitation)
   has_many :task_assignments, dependent: :destroy
   # dependent: :destroy so taking someone off runs the assignment's audit trail
   has_many :assignees, -> { order(:name) }, through: :task_assignments, source: :user, dependent: :destroy

@@ -12,9 +12,7 @@ class RecurringTask < ApplicationRecord
   }.freeze
 
   belongs_to :workstream
-  # Who each period's task goes to: one person, or several sharing it.
-  # people_needed is left over from a first version and dropped next release.
-  self.ignored_columns += [ "people_needed" ]
+  # Who each period's task goes to: one person, or several sharing it
   has_many :recurring_task_responsibles, dependent: :destroy
   has_many :responsibles, -> { order(:name) }, through: :recurring_task_responsibles, source: :user
   belongs_to :created_by, class_name: "User"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_020000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -360,7 +360,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_010000) do
     t.datetime "discarded_at"
     t.integer "estimated_minutes", null: false
     t.string "frequency", default: "weekly", null: false
-    t.integer "people_needed", default: 1, null: false
     t.string "priority"
     t.date "starts_on", null: false
     t.string "title", null: false
@@ -438,7 +437,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_010000) do
     t.datetime "discarded_at"
     t.date "due_date"
     t.integer "estimated_minutes"
-    t.integer "people_needed", default: 1, null: false
     t.date "period_start"
     t.integer "priority_order"
     t.bigint "recurring_task_id"

@@ -107,8 +107,10 @@ class SharedTaskTest < ActiveSupport::TestCase
     assert_not Task.unscoped.exists?(task.id)
   end
 
-  test "the one-person columns are gone; people live only in the join tables" do
-    assert_not_includes ActiveRecord::Base.connection.columns(:tasks).map(&:name), "assigned_to_user_id"
-    assert_not_includes ActiveRecord::Base.connection.columns(:recurring_tasks).map(&:name), "default_responsible_user_id"
+  test "the one-person and headcount columns are gone; people live only in the join tables" do
+    task_columns = ActiveRecord::Base.connection.columns(:tasks).map(&:name)
+    recurring_columns = ActiveRecord::Base.connection.columns(:recurring_tasks).map(&:name)
+    assert_empty task_columns & %w[assigned_to_user_id people_needed]
+    assert_empty recurring_columns & %w[default_responsible_user_id people_needed]
   end
 end
