@@ -42,4 +42,12 @@ class ConduitLinksTest {
         assertEquals(ConduitLinks.Tab.HOME, ConduitLinks.tabFor("/calendar"))
         assertEquals(ConduitLinks.Tab.HOME, ConduitLinks.tabFor("/taskboard"))
     }
+
+    @Test
+    fun `a notification's path opens in the app only if it's a path on our server`() {
+        assertEquals("/tasks?tab=my", ConduitLinks.notificationPath("/tasks?tab=my"))
+        assertNull(ConduitLinks.notificationPath(null))
+        assertNull(ConduitLinks.notificationPath("https://evil.example/tasks"))
+        assertNull(ConduitLinks.notificationPath("//evil.example/tasks"))
+    }
 }

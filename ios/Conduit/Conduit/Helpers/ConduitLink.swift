@@ -10,13 +10,24 @@ enum ConduitLink {
 
     enum Tab { case home, tasks, meals }
 
+    /// A link waiting for the tabs to exist: a notification tapped while the
+    /// app wasn't running arrives before TabBarController is set up.
+    private static var pendingURL: URL?
+
     /// Opens a Conduit link in the app. False for any other link, which the
     /// caller should open as it normally would.
     @discardableResult
     static func open(_ url: URL) -> Bool {
         guard let appURL = appURL(for: url) else { return false }
-        NotificationCenter.default.post(name: openNotification, object: nil, userInfo: ["url": appURL])
+        pendingURL = appURL
+        NotificationCenter.default.post(name: openNotification, object: nil)
         return true
+    }
+
+    /// The link to open, handed out once (TabBarController).
+    static func takePending() -> URL? {
+        defer { pendingURL = nil }
+        return pendingURL
     }
 
     /// The same page on the app's server, or nil if it isn't a Conduit link.

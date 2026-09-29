@@ -170,6 +170,9 @@ object AuthManager {
     fun logout(context: Context) {
         Log.d(TAG, "Logging out user - clearing all data")
 
+        // Stop the server's push notifications to this phone, while still signed in
+        com.colecoding.conduit.services.PushDeviceRegistrar.unregister(context)
+
         // Clear SharedPreferences
         getPrefs(context).edit().clear().apply()
 

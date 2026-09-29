@@ -12,6 +12,8 @@ class AuthenticationManager {
     /// Store auth token from login response
     func storeAuthToken(_ token: String, userId: Int? = nil) {
         UserDefaults.standard.set(token, forKey: authTokenKey)
+        // Now signed in: this phone can get the server's push notifications
+        defer { PushDeviceRegistrar.shared.registerWithServer() }
         if let userId = userId {
             UserDefaults.standard.set(userId, forKey: userIdKey)
         }
@@ -80,6 +82,9 @@ class AuthenticationManager {
 
     /// Clear all authentication data (synchronous version for backward compatibility)
     func logout() {
+        // Stop the server's push notifications to this phone, while still signed in
+        PushDeviceRegistrar.shared.unregisterFromServer()
+
         // Clear auth token
         UserDefaults.standard.removeObject(forKey: authTokenKey)
         UserDefaults.standard.removeObject(forKey: userIdKey)
@@ -112,6 +117,9 @@ class AuthenticationManager {
 
     /// Clear all authentication data with completion handler
     func logout(completion: @escaping () -> Void) {
+        // Stop the server's push notifications to this phone, while still signed in
+        PushDeviceRegistrar.shared.unregisterFromServer()
+
         // Clear auth token
         UserDefaults.standard.removeObject(forKey: authTokenKey)
         UserDefaults.standard.removeObject(forKey: userIdKey)

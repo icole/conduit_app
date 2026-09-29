@@ -11,6 +11,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.colecoding.conduit.auth.AuthManager
 import com.colecoding.conduit.MainActivity
+import com.colecoding.conduit.chat.ConduitLinks
 import com.colecoding.conduit.chat.PendingChatChannel
 import com.colecoding.conduit.R
 import io.getstream.chat.android.client.ChatClient
@@ -22,6 +23,7 @@ class PushNotificationService : FirebaseMessagingService() {
     companion object {
         private const val TAG = "PushNotificationService"
         private const val CHANNEL_ID = "chat_messages"
+        private const val REMINDERS_CHANNEL_ID = "task_reminders"
 
         fun registerPendingToken(context: android.content.Context) {
             val prefs = context.getSharedPreferences("push_prefs", MODE_PRIVATE)
@@ -67,6 +69,7 @@ class PushNotificationService : FirebaseMessagingService() {
         // Register token with Stream Chat if user is logged in
         if (AuthManager.isAuthenticated(this)) {
             registerTokenWithStream(token)
+            PushDeviceRegistrar.register(this, token) // and with Conduit, for task reminders
         } else {
             // Store token for later registration
             getSharedPreferences("push_prefs", MODE_PRIVATE)
@@ -207,15 +210,43 @@ class PushNotificationService : FirebaseMessagingService() {
         }
     }
 
+    /**
+     * The Conduit server's own notifications (task reminders). With the app
+     * open Android leaves showing them to us; tapping opens its page (a
+     * "path" like /tasks?tab=my) in the app. With the app closed Android
+     * shows them itself and MainActivity reads "path" from the tap.
+     */
     private fun handleCustomNotification(message: RemoteMessage) {
-        // Handle any custom notifications here
-        message.notification?.let {
-            Log.d(TAG, "Notification Title: ${it.title}")
-            Log.d(TAG, "Notification Body: ${it.body}")
-        }
+        val path = ConduitLinks.notificationPath(message.data["path"]) ?: return
+        val title = message.notification?.title ?: return
+        createReminderChannel()
 
-        message.data.isNotEmpty().let {
-            Log.d(TAG, "Message data payload: ${message.data}")
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(ConduitLinks.EXTRA_OPEN_PATH, path)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            this, path.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(this, REMINDERS_CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle(title)
+            .setContentText(message.notification?.body)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+            .notify(System.currentTimeMillis().toInt(), notification)
+    }
+
+    private fun createReminderChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(REMINDERS_CHANNEL_ID, "Task reminders", NotificationManager.IMPORTANCE_DEFAULT).apply {
+                description = "Tasks due today, overdue, or newly assigned to you"
+            }
+            (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(channel)
         }
     }
 

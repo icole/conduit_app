@@ -190,6 +190,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Register device token with Stream Chat via ChatManager
         print("📤 Sending token to ChatManager...")
         ChatManager.shared.registerDeviceToken(deviceToken)
+
+        // And with the Conduit server, for task reminders
+        PushDeviceRegistrar.shared.update(deviceToken: deviceToken)
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
@@ -287,6 +290,11 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
                 print("  → No channel info, opening chat tab")
             }
             NotificationCenter.default.post(name: Notification.Name("OpenChatTab"), object: nil)
+        } else if let path = userInfo["path"] as? String,
+                  let url = URL(string: path, relativeTo: AppConfig.baseURL)?.absoluteURL {
+            // A Conduit notification (task reminder): open its page in the app
+            print("  → Opening \(path)")
+            ConduitLink.open(url)
         } else {
             print("  → No Stream payload found")
         }

@@ -17,6 +17,7 @@ import com.colecoding.conduit.auth.AuthManager
 import com.colecoding.conduit.auth.CommunitySelectActivity
 import com.colecoding.conduit.chat.ConduitLinks
 import com.colecoding.conduit.chat.PendingChatChannel
+import com.colecoding.conduit.services.PushDeviceRegistrar
 import com.colecoding.conduit.auth.LoginActivity
 import com.colecoding.conduit.config.AppConfig
 import com.colecoding.conduit.config.CommunityManager
@@ -227,8 +228,11 @@ class MainActivity : HotwireActivity() {
             Tab.ACCOUNT -> R.id.navigation_account
         }
 
-        // A Conduit link tapped in chat before the app was running
+        // A Conduit link tapped in chat, or a reminder, before the app was running
         openRequestedPath()
+
+        // Signed in: this phone can get the server's push notifications
+        PushDeviceRegistrar.register(this)
 
         // Request notification permission for Android 13+
         requestNotificationPermission()
@@ -247,8 +251,13 @@ class MainActivity : HotwireActivity() {
      * tab it belongs to and open it there, from that tab's first screen.
      */
     private fun openRequestedPath() {
-        val path = intent.getStringExtra(ConduitLinks.EXTRA_OPEN_PATH) ?: return
+        // Ours (a chat link, or a reminder shown while the app was open), or
+        // "path" from a reminder Android showed itself while the app was closed
+        val path = intent.getStringExtra(ConduitLinks.EXTRA_OPEN_PATH)
+            ?: ConduitLinks.notificationPath(intent.getStringExtra("path"))
+            ?: return
         intent.removeExtra(ConduitLinks.EXTRA_OPEN_PATH)
+        intent.removeExtra("path")
 
         val (tabItem, host) = when (ConduitLinks.tabFor(path)) {
             ConduitLinks.Tab.TASKS -> R.id.navigation_tasks to tasksNavigatorHost

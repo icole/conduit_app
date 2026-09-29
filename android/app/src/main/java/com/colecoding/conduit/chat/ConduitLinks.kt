@@ -27,6 +27,10 @@ object ConduitLinks {
         return link.rawQuery?.let { "$path?$it" } ?: path
     }
 
+    /** A notification's "path" (task reminders), if it's a page on our server. */
+    fun notificationPath(value: String?): String? =
+        value?.takeIf { it.startsWith("/") && !it.startsWith("//") }
+
     fun tabFor(path: String): Tab = when {
         path.isUnder("/tasks") || path.isUnder("/workstreams") -> Tab.TASKS
         path.isUnder("/meals") -> Tab.MEALS

@@ -29,6 +29,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
            let cid = ChatManager.channelCid(fromNotification: response.notification.request.content.userInfo) {
             ChatManager.shared.requestChannel(cid: cid)
         }
+        // Or a Conduit notification (task reminder): its page opens once the tabs are set up
+        if let path = connectionOptions.notificationResponse?.notification.request.content.userInfo["path"] as? String,
+           let url = URL(string: path, relativeTo: AppConfig.baseURL)?.absoluteURL {
+            ConduitLink.open(url)
+        }
 
         // Check if community is selected first
         if !CommunityManager.shared.hasCommunityURL() {
