@@ -5,9 +5,10 @@ shared:
   apple:
     # APNs token auth: an Apple Developer "Keys" key with Apple Push Notifications
     # enabled. APNS_KEY is the .p8 file's contents, with its line breaks
-    # written as \n (Kamal passes secrets as single lines).
+    # written as \n (Kamal passes secrets as single lines, and escapes the
+    # backslash on the way into the container, so accept \\n too).
     key_id: <%= ENV["APNS_KEY_ID"] %>
-    encryption_key: <%= ENV["APNS_KEY"].to_s.gsub('\n', "\n").dump %>
+    encryption_key: <%= ENV["APNS_KEY"].to_s.gsub(/\\+n/, "\n").dump %>
     team_id: <%= ENV["APNS_TEAM_ID"] %>
     topic: com.colecoding.ConduitApp
     # Builds run straight from Xcode get development tokens; TestFlight and
