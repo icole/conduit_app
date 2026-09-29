@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_29_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -396,6 +396,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
     t.datetime "completed_at"
     t.bigint "released_by_id"
     t.datetime "released_at"
+    t.datetime "unclaimed_reminder_sent_at"
     t.index ["community_id"], name: "index_tasks_on_community_id"
     t.index ["completed_at"], name: "index_tasks_on_completed_at"
     t.index ["completed_by_id"], name: "index_tasks_on_completed_by_id"
