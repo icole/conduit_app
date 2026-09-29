@@ -21,6 +21,8 @@ import io.getstream.chat.android.client.extensions.currentUserUnreadCount
 import io.getstream.chat.android.models.*
 import io.getstream.chat.android.ui.feature.channels.list.ChannelListView
 import io.getstream.chat.android.ui.feature.channels.list.adapter.ChannelListItem
+import io.getstream.chat.android.state.extensions.globalState
+import com.colecoding.conduit.chat.ChannelMutes
 import com.colecoding.conduit.chat.PendingChatChannel
 import com.colecoding.conduit.chat.TrackingMessageListActivity
 import io.getstream.chat.android.ui.feature.search.SearchInputView
@@ -134,8 +136,6 @@ class CustomChatFragment : Fragment() {
             FrameLayout.LayoutParams.MATCH_PARENT
         )
 
-        // Note: Visual muted indicators will be shown through channel naming
-        // The Stream SDK will automatically show channels with updated names
 
         // Search every chat the user is in. While there's a query the results
         // replace the channel list; clearing it brings the list back.
@@ -449,14 +449,12 @@ class CustomChatFragment : Fragment() {
         val options = mutableListOf<String>()
         val actions = mutableListOf<() -> Unit>()
 
-        // Mute/Unmute option
+        // Mute/Unmute option: muting is per person, so it's read from their own mutes
         val currentUser = ChatClient.instance().getCurrentUser()
         val userId = currentUser?.id
-        val currentMember = channel.members.find { it.user.id == userId }
-        // Check if channel is muted - use the channel name prefix as indicator
-        val isMuted = channel.name.startsWith("🔇") || currentMember?.banned == true
+        val isMuted = isMutedForMe(channel)
         options.add(if (isMuted) "Unmute Channel" else "Mute Channel")
-        actions.add { toggleMuteChannel(channel) }
+        actions.add { toggleMuteChannel(channel, isMuted) }
 
         // Mark as read
         val unreadCount = channel.currentUserUnreadCount()
@@ -489,42 +487,24 @@ class CustomChatFragment : Fragment() {
             .show()
     }
 
-    private fun toggleMuteChannel(channel: Channel) {
-        val client = ChatClient.instance()
-        val channelClient = client.channel(channel.cid)
-        // Check if channel is muted - use the channel name prefix as indicator
-        val isMuted = channel.name.startsWith("🔇")
+    private fun isMutedForMe(channel: Channel): Boolean =
+        ChannelMutes.isMuted(channel.cid, ChatClient.instance().globalState.channelMutes.value)
+
+    /**
+     * Mutes or unmutes the channel for this person only. It used to also rename
+     * the channel ("🔇 General") and post "Channel unmuted", which everyone in
+     * the community saw (CON-79); iOS never did.
+     */
+    private fun toggleMuteChannel(channel: Channel, isMuted: Boolean) {
+        val channelClient = ChatClient.instance().channel(channel.cid)
 
         if (isMuted) {
-            // Unmute the channel - remove the mute emoji from name
-            val cleanName = channel.name.removePrefix("🔇 ").removePrefix("🔇")
-            channelClient.update(message = Message(text = "Channel unmuted")).enqueue { updateResult ->
-                if (updateResult.isSuccess) {
-                    // Actually unmute the channel
-                    channelClient.unmute().enqueue { result ->
-                        if (result.isSuccess) {
-                            // Update channel name to remove mute indicator
-                            val extraData = mapOf("name" to cleanName)
-                            channelClient.updatePartial(set = extraData).enqueue()
-                            showToast("Channel unmuted 🔔")
-                        } else {
-                            showToast("Failed to unmute channel")
-                        }
-                    }
-                }
+            channelClient.unmute().enqueue { result ->
+                showToast(if (result.isSuccess) "Channel unmuted 🔔" else "Failed to unmute channel")
             }
         } else {
-            // Mute the channel - add the mute emoji to name
             channelClient.mute().enqueue { result ->
-                if (result.isSuccess) {
-                    // Update channel name to add mute indicator
-                    val mutedName = "🔇 ${channel.name}"
-                    val extraData = mapOf("name" to mutedName)
-                    channelClient.updatePartial(set = extraData).enqueue()
-                    showToast("Channel muted 🔇")
-                } else {
-                    showToast("Failed to mute channel")
-                }
+                showToast(if (result.isSuccess) "Channel muted 🔇" else "Failed to mute channel")
             }
         }
     }
