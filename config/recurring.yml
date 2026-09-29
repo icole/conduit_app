@@ -29,6 +29,11 @@ production:
     schedule: every day at 5am
     queue: default
 
+  task_reminders:
+    class: TaskRemindersJob
+    schedule: every hour at minute 5
+    queue: default
+
 development:
   generate_weekly_meals:
     class: GenerateWeeklyMealsJob

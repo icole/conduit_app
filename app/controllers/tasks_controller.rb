@@ -40,6 +40,7 @@ class TasksController < ApplicationController
 
     respond_to do |format|
       if assignment_allowed?(@task, [], new_ids) && @task.save
+        notify_new_assignees(@task, new_ids)
         redirect_path = if request.referer&.include?("tasks")
           tasks_path_for(@task)
         else
@@ -70,6 +71,7 @@ class TasksController < ApplicationController
     end
 
     if saved
+      notify_new_assignees(@task, new_ids - old_ids)
       redirect_to @return_to, notice: "Task was successfully updated."
     else
       @task.assignees.reset
@@ -347,6 +349,11 @@ class TasksController < ApplicationController
 
     task.errors.add(:assignees, "can only be changed by one of the workstream's owners")
     false
+  end
+
+  # A push to each person someone else just put on the task
+  def notify_new_assignees(task, user_ids)
+    User.where(id: user_ids - [ current_user.id ]).find_each { |user| TaskPush.assigned(task, user, by: current_user) }
   end
 
   # The people picked on a form (one picker per spot); nil when the form

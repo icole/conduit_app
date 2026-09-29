@@ -1,6 +1,13 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    action_push_native (0.3.1)
+      activejob (>= 8.0)
+      activerecord (>= 8.0)
+      googleauth (~> 1.14)
+      httpx (~> 1.6)
+      jwt (>= 2)
+      railties (>= 8.0)
     action_text-trix (2.1.19)
       railties
     actioncable (8.1.4)
@@ -247,10 +254,13 @@ GEM
     heroicon (1.0.0)
       rails (>= 5.2)
     hkdf (0.3.0)
+    http-2 (1.2.3)
     httparty (0.24.0)
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
+    httpx (1.8.4)
+      http-2 (>= 1.2.0)
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
     icalendar (2.12.5)
@@ -636,6 +646,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  action_push_native (~> 0.3.1)
   acts_as_tenant (~> 2.0)
   bcrypt (~> 3.1.22)
   bootsnap

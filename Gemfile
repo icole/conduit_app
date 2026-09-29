@@ -116,3 +116,5 @@ end
 gem "jsbundling-rails", "~> 1.3"
 
 gem "rack-attack", "~> 6.7"
+
+gem "action_push_native", "~> 0.3.1"

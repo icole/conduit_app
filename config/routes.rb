@@ -20,6 +20,8 @@ Rails.application.routes.draw do
       get "stream_token", to: "auth#stream_token"
       post "auth/refresh", to: "auth#refresh"
       delete "logout", to: "auth#logout"
+      post "push_devices", to: "push_devices#create"
+      delete "push_devices", to: "push_devices#destroy"
     end
   end
 

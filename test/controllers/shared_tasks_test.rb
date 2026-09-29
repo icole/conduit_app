@@ -2,6 +2,7 @@ require "test_helper"
 
 # Tasks several people share, through the pages people use.
 class SharedTasksTest < ActionDispatch::IntegrationTest
+  include ActiveJob::TestHelper
   def sign_in(user)
     delete logout_path
     sign_in_user({ uid: user.uid, name: user.name, email: user.email })
@@ -110,5 +111,21 @@ class SharedTasksTest < ActionDispatch::IntegrationTest
     shared_task.update!(status: "completed")
     get tasks_url(tab: "contribution")
     assert_match "Jane and Mike · Garbage", response.body
+  end
+
+  test "people someone else puts on a task get a push; you don't for adding yourself" do
+    @two.push_devices.create!(token: "phone-2", platform: "google")
+    @one.push_devices.create!(token: "phone-1", platform: "apple")
+
+    assert_enqueued_jobs 1, only: ApplicationPushNotificationJob do
+      post tasks_url, params: { task: { title: "Rinse the bins", workstream_id: workstreams(:garbage).id, assignee_ids: [ @one.id, @two.id ] } }
+    end
+    push = enqueued_jobs.find { |job| job["job_class"] == "ApplicationPushNotificationJob" }["arguments"][1]
+    assert_equal [ "Jane put you on a task", "Rinse the bins" ], push.values_at("title", "body")
+
+    task = Task.find_by!(title: "Rinse the bins")
+    assert_no_enqueued_jobs(only: ApplicationPushNotificationJob) do
+      patch task_url(task), params: { task: { title: "Rinse the bins well" } } # nobody new
+    end
   end
 end

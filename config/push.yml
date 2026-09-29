@@ -1,0 +1,19 @@
+# Push notification credentials (action_push_native), from the environment
+# like the app's other secrets. A platform without them is skipped
+# (ApplicationPushDevice.platform_configured?).
+shared:
+  apple:
+    # APNs token auth: an Apple Developer "Keys" key with Apple Push Notifications
+    # enabled. APNS_KEY is the .p8 file's contents.
+    key_id: <%= ENV["APNS_KEY_ID"] %>
+    encryption_key: <%= ENV["APNS_KEY"].to_s.dump %>
+    team_id: <%= ENV["APNS_TEAM_ID"] %>
+    topic: com.colecoding.ConduitApp
+    # Builds run straight from Xcode get development tokens; TestFlight and
+    # App Store builds get production ones.
+    connect_to_development_server: <%= ENV["APNS_DEVELOPMENT"] == "true" %>
+
+  google:
+    # A Firebase service account key (JSON) for the app's Firebase project
+    encryption_key: <%= ENV["FCM_SERVICE_ACCOUNT"].to_s.dump %>
+    project_id: <%= ENV["FCM_PROJECT_ID"] %>

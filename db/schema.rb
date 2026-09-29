@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_020000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -23,6 +23,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_020000) do
     t.string "token", null: false
     t.datetime "updated_at", null: false
     t.index ["owner_type", "owner_id"], name: "index_action_push_native_devices_on_owner"
+    t.index ["token", "platform"], name: "index_action_push_native_devices_on_token_and_platform", unique: true
   end
 
   create_table "action_text_rich_texts", force: :cascade do |t|
@@ -419,6 +420,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_020000) do
     t.bigint "covering_for_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "due_reminder_sent_at"
+    t.datetime "overdue_reminder_sent_at"
     t.index ["community_id"], name: "index_task_assignments_on_community_id"
     t.index ["covering_for_id"], name: "index_task_assignments_on_covering_for_id"
     t.index ["task_id", "user_id"], name: "index_task_assignments_on_task_id_and_user_id", unique: true
