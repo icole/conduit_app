@@ -15,46 +15,46 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   enable_extension "pg_catalog.plpgsql"
 
   create_table "action_push_native_devices", force: :cascade do |t|
-    t.datetime "created_at", null: false
     t.string "name"
-    t.bigint "owner_id"
-    t.string "owner_type"
     t.string "platform", null: false
     t.string "token", null: false
+    t.string "owner_type"
+    t.bigint "owner_id"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["owner_type", "owner_id"], name: "index_action_push_native_devices_on_owner"
     t.index ["token", "platform"], name: "index_action_push_native_devices_on_token_and_platform", unique: true
   end
 
   create_table "action_text_rich_texts", force: :cascade do |t|
-    t.text "body"
-    t.datetime "created_at", null: false
     t.string "name", null: false
-    t.bigint "record_id", null: false
+    t.text "body"
     t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
   end
 
   create_table "active_storage_attachments", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
-    t.string "name", null: false
-    t.bigint "record_id", null: false
-    t.string "record_type", null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
   create_table "active_storage_blobs", force: :cascade do |t|
-    t.bigint "byte_size", null: false
-    t.string "checksum"
-    t.string "content_type"
-    t.datetime "created_at", null: false
-    t.string "filename", null: false
     t.string "key", null: false
+    t.string "filename", null: false
+    t.string "content_type"
     t.text "metadata"
     t.string "service_name", null: false
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.datetime "created_at", null: false
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
@@ -65,25 +65,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   end
 
   create_table "calendar_shares", force: :cascade do |t|
-    t.string "calendar_id"
-    t.datetime "created_at", null: false
-    t.datetime "shared_at"
-    t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.string "calendar_id"
+    t.datetime "shared_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_calendar_shares_on_user_id"
   end
 
   create_table "comments", force: :cascade do |t|
-    t.bigint "commentable_id"
-    t.string "commentable_type"
     t.text "content"
+    t.bigint "user_id", null: false
     t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "commentable_type"
+    t.bigint "commentable_id"
+    t.bigint "parent_id"
+    t.datetime "discarded_at"
     t.bigint "created_by_id"
     t.bigint "deleted_by_id"
-    t.datetime "discarded_at"
-    t.bigint "parent_id"
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable_type_and_commentable_id"
     t.index ["created_by_id"], name: "index_comments_on_created_by_id"
     t.index ["deleted_by_id"], name: "index_comments_on_deleted_by_id"
@@ -93,31 +93,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   end
 
   create_table "communities", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "domain", null: false
-    t.decimal "monthly_dues_amount", precision: 10, scale: 2
     t.string "name", null: false
-    t.jsonb "settings", default: {}
     t.string "slug", null: false
-    t.string "status", default: "pending", null: false
+    t.string "domain", null: false
+    t.jsonb "settings", default: {}
     t.string "time_zone", default: "America/New_York"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "monthly_dues_amount", precision: 10, scale: 2
+    t.string "status", default: "pending", null: false
     t.index ["domain"], name: "index_communities_on_domain", unique: true
     t.index ["slug"], name: "index_communities_on_slug", unique: true
     t.index ["status"], name: "index_communities_on_status"
   end
 
   create_table "decisions", force: :cascade do |t|
-    t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
-    t.bigint "created_by_id"
-    t.date "decision_date"
-    t.bigint "deleted_by_id"
-    t.text "description"
-    t.datetime "discarded_at"
-    t.bigint "document_id"
     t.string "title", null: false
+    t.text "description"
+    t.date "decision_date"
+    t.bigint "document_id"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "community_id", null: false
+    t.datetime "discarded_at"
+    t.bigint "created_by_id"
+    t.bigint "deleted_by_id"
     t.index ["community_id"], name: "index_decisions_on_community_id"
     t.index ["created_by_id"], name: "index_decisions_on_created_by_id"
     t.index ["decision_date"], name: "index_decisions_on_decision_date"
@@ -127,13 +127,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   end
 
   create_table "document_folders", force: :cascade do |t|
-    t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
-    t.bigint "created_by_id"
-    t.string "google_drive_id"
     t.string "name", null: false
     t.bigint "parent_id"
+    t.bigint "community_id", null: false
+    t.bigint "created_by_id"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "google_drive_id"
     t.index ["community_id", "google_drive_id"], name: "index_document_folders_on_community_id_and_google_drive_id", unique: true, where: "(google_drive_id IS NOT NULL)"
     t.index ["community_id"], name: "index_document_folders_on_community_id"
     t.index ["created_by_id"], name: "index_document_folders_on_created_by_id"
@@ -141,19 +141,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   end
 
   create_table "documents", force: :cascade do |t|
-    t.bigint "community_id", null: false
-    t.text "content"
+    t.string "title"
+    t.text "description"
+    t.string "google_drive_url"
+    t.string "document_type"
     t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "community_id", null: false
+    t.datetime "discarded_at"
     t.bigint "created_by_id"
     t.bigint "deleted_by_id"
-    t.text "description"
-    t.datetime "discarded_at"
-    t.bigint "document_folder_id"
-    t.string "document_type"
-    t.string "google_drive_url"
     t.integer "storage_type", default: 0, null: false
-    t.string "title"
-    t.datetime "updated_at", null: false
+    t.text "content"
+    t.bigint "document_folder_id"
     t.index ["community_id"], name: "index_documents_on_community_id"
     t.index ["created_by_id"], name: "index_documents_on_created_by_id"
     t.index ["deleted_by_id"], name: "index_documents_on_deleted_by_id"
@@ -163,15 +163,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
 
   create_table "email_logs", force: :cascade do |t|
     t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
-    t.text "error_message"
-    t.string "from"
-    t.string "mailer_action"
-    t.string "mailer_class"
-    t.datetime "sent_at"
-    t.string "status", default: "pending", null: false
-    t.string "subject"
     t.string "to", null: false
+    t.string "from"
+    t.string "subject"
+    t.string "mailer_class"
+    t.string "mailer_action"
+    t.string "status", default: "pending", null: false
+    t.text "error_message"
+    t.datetime "sent_at"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["community_id", "created_at"], name: "index_email_logs_on_community_id_and_created_at"
     t.index ["community_id"], name: "index_email_logs_on_community_id"
@@ -179,37 +179,37 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   end
 
   create_table "household_dues_payments", force: :cascade do |t|
-    t.datetime "created_at", null: false
     t.bigint "household_id", null: false
+    t.integer "year", null: false
     t.integer "month", null: false
     t.boolean "paid", default: false, null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "year", null: false
     t.index ["household_id", "year", "month"], name: "index_household_dues_on_household_year_month", unique: true
     t.index ["household_id"], name: "index_household_dues_payments_on_household_id"
   end
 
   create_table "households", force: :cascade do |t|
     t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
     t.string "name", null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["community_id", "name"], name: "index_households_on_community_id_and_name", unique: true
     t.index ["community_id"], name: "index_households_on_community_id"
   end
 
   create_table "in_app_notifications", force: :cascade do |t|
-    t.string "action_url"
+    t.bigint "user_id", null: false
+    t.string "title", null: false
     t.text "body"
-    t.datetime "created_at", null: false
-    t.bigint "notifiable_id"
-    t.string "notifiable_type"
     t.string "notification_type", null: false
+    t.string "notifiable_type"
+    t.bigint "notifiable_id"
+    t.string "action_url"
     t.boolean "read", default: false, null: false
     t.datetime "read_at"
-    t.string "title", null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.index ["notifiable_type", "notifiable_id"], name: "idx_on_notifiable_type_notifiable_id_ee4fad2ac8"
     t.index ["notification_type"], name: "index_in_app_notifications_on_notification_type"
     t.index ["user_id", "read"], name: "index_in_app_notifications_on_user_id_and_read"
@@ -217,36 +217,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   end
 
   create_table "invitations", force: :cascade do |t|
-    t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "expires_at"
     t.string "token"
-    t.datetime "updated_at", null: false
     t.datetime "used_at"
+    t.datetime "expires_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.bigint "user_id"
+    t.bigint "community_id", null: false
     t.index ["community_id"], name: "index_invitations_on_community_id"
     t.index ["token"], name: "index_invitations_on_token", unique: true
     t.index ["user_id"], name: "index_invitations_on_user_id"
   end
 
   create_table "likes", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.bigint "likeable_id"
-    t.string "likeable_type"
-    t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "likeable_type"
+    t.bigint "likeable_id"
     t.index ["likeable_type", "likeable_id"], name: "index_likes_on_likeable_type_and_likeable_id"
     t.index ["user_id"], name: "index_likes_on_user_id"
   end
 
   create_table "meal_cooks", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.integer "guests_count", default: 0, null: false
     t.bigint "meal_id", null: false
-    t.text "notes"
-    t.string "role", default: "helper", null: false
-    t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.string "role", default: "helper", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "guests_count", default: 0, null: false
     t.index ["meal_id", "user_id"], name: "index_meal_cooks_on_meal_id_and_user_id", unique: true
     t.index ["meal_id"], name: "index_meal_cooks_on_meal_id"
     t.index ["role"], name: "index_meal_cooks_on_role"
@@ -254,13 +254,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   end
 
   create_table "meal_rsvps", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.integer "guests_count", default: 0, null: false
     t.bigint "meal_id", null: false
-    t.text "notes"
-    t.string "status", default: "attending", null: false
-    t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.string "status", default: "attending", null: false
+    t.integer "guests_count", default: 0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["meal_id", "user_id"], name: "index_meal_rsvps_on_meal_id_and_user_id", unique: true
     t.index ["meal_id"], name: "index_meal_rsvps_on_meal_id"
     t.index ["status"], name: "index_meal_rsvps_on_status"
@@ -268,18 +268,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   end
 
   create_table "meal_schedules", force: :cascade do |t|
-    t.boolean "active", default: true, null: false
-    t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
-    t.bigint "created_by_id", null: false
+    t.string "name", null: false
     t.integer "day_of_week", null: false
+    t.time "start_time", null: false
     t.time "end_time"
     t.string "location"
     t.integer "max_cooks", default: 2
-    t.string "name", null: false
     t.integer "rsvp_deadline_hours", default: 24
-    t.time "start_time", null: false
+    t.boolean "active", default: true, null: false
+    t.bigint "created_by_id", null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "community_id", null: false
     t.index ["active"], name: "index_meal_schedules_on_active"
     t.index ["community_id"], name: "index_meal_schedules_on_community_id"
     t.index ["created_by_id"], name: "index_meal_schedules_on_created_by_id"
@@ -287,24 +287,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   end
 
   create_table "meals", force: :cascade do |t|
-    t.bigint "community_id", null: false
+    t.bigint "meal_schedule_id"
+    t.string "title", null: false
+    t.text "description"
+    t.datetime "scheduled_at", null: false
+    t.datetime "rsvp_deadline", null: false
+    t.string "location"
+    t.string "status", default: "upcoming", null: false
+    t.integer "max_attendees"
+    t.boolean "rsvps_closed", default: false, null: false
     t.text "cook_notes"
     t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.text "menu"
+    t.bigint "community_id", null: false
+    t.datetime "discarded_at"
     t.bigint "created_by_id"
     t.bigint "deleted_by_id"
-    t.text "description"
-    t.datetime "discarded_at"
     t.string "google_event_id"
-    t.string "location"
-    t.integer "max_attendees"
-    t.bigint "meal_schedule_id"
-    t.text "menu"
-    t.datetime "rsvp_deadline", null: false
-    t.boolean "rsvps_closed", default: false, null: false
-    t.datetime "scheduled_at", null: false
-    t.string "status", default: "upcoming", null: false
-    t.string "title", null: false
-    t.datetime "updated_at", null: false
     t.index ["community_id"], name: "index_meals_on_community_id"
     t.index ["created_by_id"], name: "index_meals_on_created_by_id"
     t.index ["deleted_by_id"], name: "index_meals_on_deleted_by_id"
@@ -318,12 +318,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   end
 
   create_table "push_subscriptions", force: :cascade do |t|
-    t.string "auth_key", null: false
-    t.datetime "created_at", null: false
+    t.bigint "user_id", null: false
     t.text "endpoint", null: false
     t.string "p256dh_key", null: false
+    t.string "auth_key", null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.index ["user_id", "endpoint"], name: "index_push_subscriptions_on_user_id_and_endpoint", unique: true
     t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
   end
@@ -340,77 +340,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
     t.index ["user_id"], name: "index_recurring_task_responsibles_on_user_id"
   end
 
-  create_table "recurring_task_templates", force: :cascade do |t|
-    t.boolean "auto_assign_to_holder", default: true, null: false
-    t.datetime "created_at", null: false
-    t.text "description"
-    t.string "frequency", null: false
-    t.date "last_generated_at"
-    t.bigint "role_id", null: false
-    t.string "title", null: false
-    t.datetime "updated_at", null: false
-    t.index ["frequency"], name: "index_recurring_task_templates_on_frequency"
-    t.index ["role_id"], name: "index_recurring_task_templates_on_role_id"
-  end
-
   create_table "recurring_tasks", force: :cascade do |t|
     t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
-    t.bigint "created_by_id", null: false
+    t.bigint "workstream_id", null: false
+    t.string "title", null: false
     t.text "description"
-    t.datetime "discarded_at"
-    t.integer "estimated_minutes", null: false
     t.string "frequency", default: "weekly", null: false
     t.string "priority"
+    t.integer "estimated_minutes", null: false
+    t.bigint "created_by_id", null: false
     t.date "starts_on", null: false
-    t.string "title", null: false
+    t.datetime "discarded_at"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "workstream_id", null: false
     t.index ["community_id"], name: "index_recurring_tasks_on_community_id"
     t.index ["created_by_id"], name: "index_recurring_tasks_on_created_by_id"
     t.index ["discarded_at"], name: "index_recurring_tasks_on_discarded_at"
     t.index ["workstream_id"], name: "index_recurring_tasks_on_workstream_id"
-  end
-
-  create_table "role_assignments", force: :cascade do |t|
-    t.boolean "active", default: true, null: false
-    t.string "assignment_type", default: "holder", null: false
-    t.datetime "created_at", null: false
-    t.date "ends_at"
-    t.bigint "role_id", null: false
-    t.date "starts_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["active"], name: "index_role_assignments_on_active"
-    t.index ["assignment_type"], name: "index_role_assignments_on_assignment_type"
-    t.index ["ends_at"], name: "index_role_assignments_on_ends_at"
-    t.index ["role_id", "user_id", "active"], name: "idx_role_assignments_unique_active", unique: true, where: "((active = true) AND ((assignment_type)::text = 'holder'::text))"
-    t.index ["role_id"], name: "index_role_assignments_on_role_id"
-    t.index ["user_id"], name: "index_role_assignments_on_user_id"
-  end
-
-  create_table "roles", force: :cascade do |t|
-    t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
-    t.bigint "created_by_id"
-    t.bigint "deleted_by_id"
-    t.text "description"
-    t.datetime "discarded_at"
-    t.text "duties"
-    t.string "group"
-    t.string "role_type", default: "role", null: false
-    t.integer "term_length_months"
-    t.string "title", null: false
-    t.datetime "updated_at", null: false
-    t.boolean "vacant", default: true, null: false
-    t.index ["community_id", "title"], name: "index_roles_on_community_id_and_title", unique: true
-    t.index ["community_id"], name: "index_roles_on_community_id"
-    t.index ["created_by_id"], name: "index_roles_on_created_by_id"
-    t.index ["deleted_by_id"], name: "index_roles_on_deleted_by_id"
-    t.index ["discarded_at"], name: "index_roles_on_discarded_at"
-    t.index ["group"], name: "index_roles_on_group"
-    t.index ["role_type"], name: "index_roles_on_role_type"
-    t.index ["vacant"], name: "index_roles_on_vacant"
   end
 
   create_table "task_assignments", force: :cascade do |t|
@@ -430,27 +376,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   end
 
   create_table "tasks", force: :cascade do |t|
-    t.bigint "community_id", null: false
-    t.datetime "completed_at"
-    t.bigint "completed_by_id"
+    t.string "title"
+    t.text "description"
+    t.string "status"
+    t.bigint "user_id", null: false
     t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.date "due_date"
+    t.integer "priority_order"
+    t.bigint "community_id", null: false
+    t.datetime "discarded_at"
     t.bigint "created_by_id"
     t.bigint "deleted_by_id"
-    t.text "description"
-    t.datetime "discarded_at"
-    t.date "due_date"
-    t.integer "estimated_minutes"
-    t.date "period_start"
-    t.integer "priority_order"
-    t.bigint "recurring_task_id"
-    t.datetime "released_at"
-    t.bigint "released_by_id"
-    t.bigint "role_id"
-    t.string "status"
-    t.string "title"
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.bigint "workstream_id", null: false
+    t.bigint "recurring_task_id"
+    t.date "period_start"
+    t.integer "estimated_minutes"
+    t.bigint "completed_by_id"
+    t.datetime "completed_at"
+    t.bigint "released_by_id"
+    t.datetime "released_at"
     t.index ["community_id"], name: "index_tasks_on_community_id"
     t.index ["completed_at"], name: "index_tasks_on_completed_at"
     t.index ["completed_by_id"], name: "index_tasks_on_completed_by_id"
@@ -462,53 +407,33 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
     t.index ["recurring_task_id", "period_start"], name: "index_tasks_on_recurring_task_id_and_period_start", unique: true, where: "(recurring_task_id IS NOT NULL)"
     t.index ["recurring_task_id"], name: "index_tasks_on_recurring_task_id"
     t.index ["released_by_id"], name: "index_tasks_on_released_by_id"
-    t.index ["role_id"], name: "index_tasks_on_role_id"
     t.index ["user_id"], name: "index_tasks_on_user_id"
     t.index ["workstream_id"], name: "index_tasks_on_workstream_id"
   end
 
-  create_table "time_entries", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "entry_type", null: false
-    t.decimal "hours", precision: 5, scale: 2, null: false
-    t.date "logged_on", null: false
-    t.string "note"
-    t.bigint "role_id"
-    t.bigint "task_id"
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["entry_type"], name: "index_time_entries_on_entry_type"
-    t.index ["logged_on"], name: "index_time_entries_on_logged_on"
-    t.index ["role_id", "logged_on"], name: "index_time_entries_on_role_id_and_logged_on"
-    t.index ["role_id"], name: "index_time_entries_on_role_id"
-    t.index ["task_id"], name: "index_time_entries_on_task_id"
-    t.index ["user_id", "logged_on"], name: "index_time_entries_on_user_id_and_logged_on"
-    t.index ["user_id"], name: "index_time_entries_on_user_id"
-  end
-
   create_table "users", force: :cascade do |t|
-    t.boolean "admin", default: false
-    t.string "avatar_url"
-    t.string "calendar_feed_token"
-    t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
-    t.text "dietary_needs"
+    t.string "name", null: false
     t.string "email", null: false
-    t.datetime "email_verification_sent_at"
-    t.datetime "email_verified_at"
-    t.bigint "household_id"
+    t.string "password_digest"
+    t.string "provider"
+    t.string "uid"
+    t.string "avatar_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "admin", default: false
     t.bigint "invitation_id"
     t.datetime "last_active_at"
-    t.datetime "last_chat_token_at"
-    t.string "name", null: false
-    t.string "password_digest"
-    t.datetime "password_reset_sent_at"
-    t.string "provider"
     t.boolean "restricted_access", default: false, null: false
-    t.boolean "super_admin", default: false, null: false
+    t.bigint "community_id", null: false
+    t.bigint "household_id"
+    t.text "dietary_needs"
+    t.string "calendar_feed_token"
+    t.datetime "password_reset_sent_at"
     t.integer "token_version", default: 0, null: false
-    t.string "uid"
-    t.datetime "updated_at", null: false
+    t.datetime "email_verified_at"
+    t.datetime "email_verification_sent_at"
+    t.datetime "last_chat_token_at"
+    t.boolean "super_admin", default: false, null: false
     t.index ["calendar_feed_token"], name: "index_users_on_calendar_feed_token", unique: true
     t.index ["community_id", "email"], name: "index_users_on_community_id_and_email", unique: true
     t.index ["community_id", "provider", "uid"], name: "index_users_on_community_id_and_provider_and_uid", unique: true
@@ -519,33 +444,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   end
 
   create_table "versions", force: :cascade do |t|
+    t.string "whodunnit"
     t.datetime "created_at"
-    t.string "event", null: false
     t.bigint "item_id", null: false
     t.string "item_type", null: false
+    t.string "event", null: false
     t.text "object"
-    t.string "whodunnit"
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
-  end
-
-  create_table "workload_sentiments", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.date "month", null: false
-    t.bigint "role_id", null: false
-    t.string "sentiment", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["role_id"], name: "index_workload_sentiments_on_role_id"
-    t.index ["user_id", "role_id", "month"], name: "idx_workload_sentiments_unique", unique: true
-    t.index ["user_id"], name: "index_workload_sentiments_on_user_id"
   end
 
   create_table "workstream_owners", force: :cascade do |t|
     t.bigint "community_id", null: false
+    t.bigint "workstream_id", null: false
+    t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.bigint "workstream_id", null: false
     t.index ["community_id"], name: "index_workstream_owners_on_community_id"
     t.index ["user_id"], name: "index_workstream_owners_on_user_id"
     t.index ["workstream_id", "user_id"], name: "index_workstream_owners_on_workstream_id_and_user_id", unique: true
@@ -554,13 +467,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
 
   create_table "workstreams", force: :cascade do |t|
     t.bigint "community_id", null: false
-    t.datetime "created_at", null: false
-    t.text "description"
     t.string "name", null: false
-    t.string "priority", default: "important", null: false
-    t.string "status", default: "active", null: false
-    t.datetime "updated_at", null: false
+    t.text "description"
     t.string "workstream_type", default: "permanent", null: false
+    t.string "status", default: "active", null: false
+    t.string "priority", default: "important", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["community_id", "status"], name: "index_workstreams_on_community_id_and_status"
     t.index ["community_id"], name: "index_workstreams_on_community_id"
   end
@@ -604,36 +517,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_040000) do
   add_foreign_key "recurring_task_responsibles", "communities"
   add_foreign_key "recurring_task_responsibles", "recurring_tasks"
   add_foreign_key "recurring_task_responsibles", "users"
-  add_foreign_key "recurring_task_templates", "roles"
   add_foreign_key "recurring_tasks", "communities"
   add_foreign_key "recurring_tasks", "users", column: "created_by_id"
   add_foreign_key "recurring_tasks", "workstreams"
-  add_foreign_key "role_assignments", "roles"
-  add_foreign_key "role_assignments", "users"
-  add_foreign_key "roles", "communities"
-  add_foreign_key "roles", "users", column: "created_by_id"
-  add_foreign_key "roles", "users", column: "deleted_by_id"
   add_foreign_key "task_assignments", "communities"
   add_foreign_key "task_assignments", "tasks"
   add_foreign_key "task_assignments", "users"
   add_foreign_key "task_assignments", "users", column: "covering_for_id"
   add_foreign_key "tasks", "communities"
   add_foreign_key "tasks", "recurring_tasks"
-  add_foreign_key "tasks", "roles"
   add_foreign_key "tasks", "users"
   add_foreign_key "tasks", "users", column: "completed_by_id"
   add_foreign_key "tasks", "users", column: "created_by_id"
   add_foreign_key "tasks", "users", column: "deleted_by_id"
   add_foreign_key "tasks", "users", column: "released_by_id"
   add_foreign_key "tasks", "workstreams"
-  add_foreign_key "time_entries", "roles"
-  add_foreign_key "time_entries", "tasks"
-  add_foreign_key "time_entries", "users"
   add_foreign_key "users", "communities"
   add_foreign_key "users", "households"
   add_foreign_key "users", "invitations"
-  add_foreign_key "workload_sentiments", "roles"
-  add_foreign_key "workload_sentiments", "users"
   add_foreign_key "workstream_owners", "communities"
   add_foreign_key "workstream_owners", "users"
   add_foreign_key "workstream_owners", "workstreams"
