@@ -21,4 +21,13 @@ class PushConfigTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "the Firebase service account arrives base64-encoded (Kamal would mangle its quotes and backslashes)" do
+    account = { "type" => "service_account", "project_id" => "test-project", "private_key" => "-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n" }.to_json
+    [ Base64.strict_encode64(account), account ].each do |value|
+      with_env("FCM_SERVICE_ACCOUNT" => value) do
+        assert_equal account, Rails.application.config_for(:push).dig(:google, :encryption_key)
+      end
+    end
+  end
 end

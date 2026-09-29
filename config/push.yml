@@ -16,6 +16,9 @@ shared:
     connect_to_development_server: <%= ENV["APNS_DEVELOPMENT"] == "true" %>
 
   google:
-    # A Firebase service account key (JSON) for the app's Firebase project
-    encryption_key: <%= ENV["FCM_SERVICE_ACCOUNT"].to_s.dump %>
+    # A Firebase service account key for the app's Firebase project, as JSON
+    # or base64-encoded JSON (what .env.deploy sends: Kamal would mangle the
+    # JSON's quotes and backslashes).
+    <% fcm = ENV["FCM_SERVICE_ACCOUNT"].to_s.strip %>
+    encryption_key: <%= (fcm.start_with?("{") ? fcm : Base64.decode64(fcm)).dump %>
     project_id: <%= ENV["FCM_PROJECT_ID"] %>
