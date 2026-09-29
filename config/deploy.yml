@@ -44,6 +44,9 @@ env:
     - STREAM_API_SECRET
     - SENTRY_DSN
     - LIVEBLOCKS_SECRET_KEY
+    - APNS_KEY
+    - APNS_KEY_ID
+    - APNS_TEAM_ID
   clear:
     SOLID_QUEUE_IN_PUMA: true
     # Where new-community and Stream usage alerts go; unset means don't send
