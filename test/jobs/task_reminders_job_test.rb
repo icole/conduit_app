@@ -120,4 +120,46 @@ class TaskRemindersJobTest < ActiveJob::TestCase
     at_local(7, 8) { TaskRemindersJob.perform_now }
     assert_equal [ "Facilitate the meeting · due Thu Oct 8" ], unclaimed_titles
   end
+
+  # One push per person per morning, however much there is
+  def pushes_to(token)
+    enqueued_jobs.select { |job| job["job_class"] == "ApplicationPushNotificationJob" }
+      .select { |job| job["arguments"][2].to_s.include?(ApplicationPushDevice.find_by!(token: token).to_global_id.to_s) }
+      .map { |job| job["arguments"][1] }
+  end
+
+  test "several things in a morning come as one summary push, opening My Tasks" do
+    task_due(Date.new(2026, 10, 7)).update!(title: "Take out the bins")
+    task_due(Date.new(2026, 10, 7)).update!(title: "Restock the pantry")
+    task_due(Date.new(2026, 10, 6)).update!(title: "Sweep the porch")
+    task_due(Date.new(2026, 10, 8), people: []).update!(title: "Wash the bins")
+    task_due(Date.new(2026, 10, 9), people: []).update!(title: "Mow the lawn")
+
+    at_local(7, 8) { TaskRemindersJob.perform_now }
+    mine = pushes_to("phone-1")
+    assert_equal 1, mine.size
+    assert_equal "2 due today, 1 overdue · 2 need someone", mine.first["title"]
+    assert_equal "Restock the pantry, Take out the bins, and 1 more", mine.first["body"]
+    assert_equal "/tasks?tab=my", mine.first.dig("data", "path")
+  end
+
+  test "someone with only unclaimed tasks gets one push about them, opening Available" do
+    two = users(:two)
+    two.push_devices.create!(token: "phone-2", platform: "google")
+    task_due(Date.new(2026, 10, 8), people: []).update!(title: "Wash the bins")
+    task_due(Date.new(2026, 10, 9), people: []).update!(title: "Mow the lawn")
+
+    at_local(7, 8) { TaskRemindersJob.perform_now }
+    theirs = pushes_to("phone-2")
+    assert_equal [ [ "2 tasks need someone", "Wash the bins and Mow the lawn" ] ], theirs.map { |push| push.values_at("title", "body") }
+    assert_equal "/tasks?tab=available", theirs.first.dig("data", "path")
+  end
+
+  test "a task that comes due later in the day gets its own push on the next run" do
+    at_local(7, 8) { TaskRemindersJob.perform_now }
+    assert_empty pushes
+    task_due(Date.new(2026, 10, 7))
+    at_local(7, 11) { TaskRemindersJob.perform_now }
+    assert_equal [ "Due today" ], pushes.map { |push| push["title"] }
+  end
 end
