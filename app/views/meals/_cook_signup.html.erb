@@ -13,7 +13,7 @@
         <% meal.meal_cooks.includes(:user).each do |mc| %>
           <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
             <div class="flex items-center gap-3">
-              <div class="avatar placeholder">
+              <div class="avatar avatar-placeholder">
                 <div class="bg-primary text-primary-content rounded-full w-10">
                   <span class="text-sm"><%= mc.user.name.first(2).upcase %></span>
                 </div>
