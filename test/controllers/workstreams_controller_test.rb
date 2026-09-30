@@ -5,10 +5,10 @@ class WorkstreamsControllerTest < ActionDispatch::IntegrationTest
     sign_in_user({ uid: user.uid, name: user.name, email: user.email })
   end
 
-  test "index sends members to the Coverage tab" do
+  test "index sends members to the All work tab" do
     sign_in users(:one)
     get workstreams_url
-    assert_redirected_to tasks_url(tab: "coverage")
+    assert_redirected_to tasks_url(tab: "all")
   end
 
   test "any member can view a workstream" do

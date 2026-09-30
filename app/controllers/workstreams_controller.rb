@@ -4,9 +4,9 @@ class WorkstreamsController < ApplicationController
   before_action :set_workstream, only: [ :show, :edit, :update, :close, :reopen ]
   before_action :authorize_owner_or_admin!, only: [ :close, :reopen ]
 
-  # The list of workstreams lives on the Tasks page's Coverage tab.
+  # The list of workstreams lives on the Tasks page's All work tab.
   def index
-    redirect_to tasks_path(tab: "coverage")
+    redirect_to tasks_path(tab: "all")
   end
 
   def show

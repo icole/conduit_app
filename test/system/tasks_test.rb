@@ -167,9 +167,9 @@ class TasksTest < ApplicationSystemTestCase
     visit tasks_url
     assert_selector "nav[aria-label='Task views'] a[aria-current='page']", text: "My Tasks"
 
-    click_link "Coverage"
+    click_link "All work"
     assert_selector "#ongoing-operations", text: "Garbage & Recycling Coordinator"
-    assert_current_path tasks_path(tab: "coverage")
+    assert_current_path tasks_path(tab: "all")
 
     click_link "Available"
     assert_selector "[data-priority-group='important']", text: "Restock common house pantry"
@@ -381,5 +381,21 @@ class TasksTest < ApplicationSystemTestCase
 
     assert_text "Task was successfully created."
     assert_equal [ users(:one), users(:two) ].sort_by(&:name), Task.find_by!(title: "Deep clean the bins").assignees.to_a
+  end
+
+  test "All work toggles between workstreams and every task, and a task can be claimed from the list" do
+    Capybara.reset_sessions!
+    sign_in_as(users(:one))
+    task = Task.create!(title: "Return the ladder", user: users(:one), workstream: workstreams(:garbage), due_date: Date.current)
+    visit tasks_url
+    click_link "All work"
+    assert_selector "#governance"
+
+    click_link "All tasks"
+    assert_selector "#all-tasks #task_#{task.id}", text: "Nobody yet"
+    within("#task_#{task.id}") { click_button "Claim" }
+    assert_text "It's yours."
+    assert_selector "#all-tasks #task_#{task.id}", text: users(:one).name
+    page.save_screenshot(ENV["ALL_TASKS_SCREENSHOT"]) if ENV["ALL_TASKS_SCREENSHOT"]
   end
 end

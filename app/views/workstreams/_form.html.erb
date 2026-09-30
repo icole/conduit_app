@@ -46,7 +46,7 @@
   </fieldset>
 
   <div class="flex justify-end gap-2 pt-2">
-    <%= link_to "Cancel", workstream.persisted? ? workstream_path(workstream) : tasks_path(tab: "coverage"), class: "btn btn-ghost" %>
+    <%= link_to "Cancel", workstream.persisted? ? workstream_path(workstream) : tasks_path(tab: "all"), class: "btn btn-ghost" %>
     <%= form.submit workstream.persisted? ? "Save workstream" : "Create workstream", class: "btn btn-primary" %>
   </div>
 <% end %>

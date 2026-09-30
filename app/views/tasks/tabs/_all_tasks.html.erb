@@ -1,0 +1,34 @@
+<%# Every open task in open workstreams, soonest due first, with who's on it %>
+<p class="text-sm text-base-content/70 mb-4">Every open task, soonest due first. Tap one to see its workstream.</p>
+
+<section id="all-tasks">
+  <% if @all_tasks.any? %>
+    <div class="<%= task_list_classes %>">
+      <% @all_tasks.each do |task| %>
+        <div id="<%= dom_id task %>" class="sm:rounded-box sm:bg-base-100 sm:border sm:border-base-200">
+          <div class="flex items-start gap-3 px-3 py-3 sm:p-4">
+            <div class="flex-1 min-w-0">
+              <%= link_to task.title, workstream_path(task.workstream), class: "font-medium leading-6 hover:underline", data: { turbo_frame: "_top" } %>
+              <p class="mt-0.5 text-xs text-base-content/70">
+                <%= safe_join([ task.workstream.name, task.recurring_task&.frequency_label, task.effort,
+                                (tag.span(due_label(task.due_date), class: ("text-error-ink" if task.overdue?)) if task.due_date) ].compact, " · ") %>
+              </p>
+              <p class="mt-0.5 text-xs">
+                <% if task.assignees.any? %>
+                  <span class="text-base-content/80"><%= task.assignees.map(&:name).to_sentence %></span>
+                <% else %>
+                  <span class="text-warning-ink">Nobody yet</span>
+                <% end %>
+              </p>
+            </div>
+            <% if task.assignees.empty? && task.claimable_by?(current_user) %>
+              <%= button_to "Claim", claim_task_path(task, return_to: tasks_path(tab: "all", list: "tasks")), method: :patch, class: "btn btn-primary btn-sm" %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-sm text-base-content/65">Nothing open right now.</p>
+  <% end %>
+</section>

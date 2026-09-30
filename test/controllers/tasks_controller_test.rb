@@ -308,6 +308,53 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select "form[action='#{claim_task_path(tasks(:one))}']"
   end
 
+  test "the Coverage tab is now All work, and old coverage links still land on it" do
+    get tasks_url(tab: "coverage")
+    assert_select "nav[aria-label='Task views'] a[aria-current='page']", text: "All work"
+    assert_select "nav[aria-label='Task views'] a", text: "Coverage", count: 0
+    assert_select "nav[aria-label='Task views'] a[href='#{tasks_path(tab: 'all')}']", text: "All work"
+  end
+
+  test "All work shows workstreams by default, with a toggle to every task" do
+    get tasks_url(tab: "all")
+    assert_select "#governance"
+    assert_select "nav[aria-label='Show'] a[aria-current='page']", text: "By workstream"
+    assert_select "nav[aria-label='Show'] a[href='#{tasks_path(tab: 'all', list: 'tasks')}']", text: "All tasks"
+  end
+
+  test "All tasks lists every open task, soonest due first, with who's on it" do
+    general = workstreams(:general)
+    Task.where.not(status: "completed").update_all(due_date: nil) # fixtures out of the way of the order
+    soon = Task.create!(title: "Sweep the porch", user: @user, workstream: general, due_date: Date.current + 1,
+                        assignees: [ users(:one), users(:two) ])
+    today = Task.create!(title: "Return the ladder", user: @user, workstream: workstreams(:garbage), due_date: Date.current)
+    Task.create!(title: "Done already", user: @user, workstream: general, due_date: Date.current, status: "completed")
+    Task.create!(title: "Deleted one", user: @user, workstream: general, due_date: Date.current).discard
+    closed = Workstream.create!(name: "Old project", workstream_type: "ad_hoc", priority: "important")
+    Task.create!(title: "Closed project task", user: @user, workstream: closed, due_date: Date.current)
+    closed.close!
+
+    get tasks_url(tab: "all", list: "tasks")
+    assert_select "nav[aria-label='Show'] a[aria-current='page']", text: "All tasks"
+    titles = css_select("#all-tasks [id^='task_'] .font-medium").map { |node| node.text.strip }
+    assert_equal [ "Return the ladder", "Sweep the porch" ], titles.first(2)
+    assert_not_includes titles, "Done already"
+    assert_not_includes titles, "Deleted one"
+    assert_not_includes titles, "Closed project task"
+
+    assert_select "#task_#{soon.id}", text: /Jane Smith and Mike Davis/
+    assert_select "#task_#{today.id}", text: /Nobody yet/
+    assert_select "#task_#{today.id} form[action^='#{claim_task_path(today)}']"
+    assert_select "#task_#{soon.id} form[action^='#{claim_task_path(soon)}']", count: 0
+  end
+
+  test "claiming from All tasks comes back to All tasks" do
+    task = Task.create!(title: "Return the ladder", user: @user, workstream: workstreams(:garbage), due_date: Date.current)
+    patch claim_task_url(task, return_to: tasks_path(tab: "all", list: "tasks"))
+    assert_redirected_to tasks_path(tab: "all", list: "tasks")
+    assert_equal [ @user ], task.reload.assignees.to_a
+  end
+
   test "Coverage shows every open workstream grouped by type with its status" do
     get tasks_url(tab: "coverage")
     assert_response :success

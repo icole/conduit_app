@@ -28,7 +28,7 @@ class TasksNativeTest < ActionDispatch::IntegrationTest
   test "the apps come back to the last tab, so pull-to-refresh stays put" do
     get tasks_url(tab: "coverage"), headers: NATIVE
     get tasks_url, headers: NATIVE
-    assert_select "nav[aria-label='Task views'] a[aria-current='page']", text: "Coverage"
+    assert_select "nav[aria-label='Task views'] a[aria-current='page']", text: "All work"
   end
 
   test "the web keeps the tab in the address instead" do
@@ -40,7 +40,7 @@ class TasksNativeTest < ActionDispatch::IntegrationTest
   test "the workstream screen keeps its in-page back link" do
     [ LEGACY_IOS, NATIVE, ANDROID ].each do |agent|
       get workstream_url(workstreams(:front_yard)), headers: agent
-      assert_select "a[href='#{tasks_path(tab: "coverage")}']", { text: /Coverage/ }, agent["User-Agent"]
+      assert_select "a[href='#{tasks_path(tab: "all")}']", { text: /All work/ }, agent["User-Agent"]
     end
   end
 

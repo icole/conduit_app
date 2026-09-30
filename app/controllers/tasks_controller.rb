@@ -4,8 +4,10 @@ class TasksController < ApplicationController
   before_action :set_discarded_task, only: [ :restore ]
   before_action :set_users, only: [ :index, :new, :edit, :create, :update ]
 
-  TAB_LABELS = { "my" => "My Tasks", "available" => "Available", "coverage" => "Coverage", "contribution" => "Contribution" }.freeze
+  TAB_LABELS = { "my" => "My Tasks", "available" => "Available", "all" => "All work", "contribution" => "Contribution" }.freeze
   TABS = TAB_LABELS.keys.freeze
+  # Old names still land on their tab (links, bookmarks, a tab the apps remembered)
+  TAB_ALIASES = { "coverage" => "all" }.freeze
 
   def index
     @task = Task.new
@@ -15,12 +17,12 @@ class TasksController < ApplicationController
       @tab = "my"
       load_board
     else
-      @tab = params[:tab].presence_in(TABS) || remembered_tab || "my"
+      @tab = tab_named(params[:tab]) || remembered_tab || "my"
       session[:tasks_tab] = @tab if hotwire_native_app?
       RecurringTask.generate_instances!(Time.current.in_time_zone(current_community.time_zone).to_date)
       case @tab
       when "available" then load_available_tab
-      when "coverage" then load_coverage_tab
+      when "all" then load_all_work_tab
       when "contribution" then load_contribution_tab
       else load_my_tab
       end
@@ -122,13 +124,15 @@ class TasksController < ApplicationController
     end
   end
 
+  # Back to Available, or wherever the Claim button was (All tasks)
   def claim
+    back = url_from(params[:return_to]) || tasks_path(tab: "available")
     if !@task.claimable_by?(current_user)
-      redirect_to tasks_path(tab: "available"), alert: "That's for the #{@task.workstream.name} to pick up."
+      redirect_to back, alert: "That's for the #{@task.workstream.name} to pick up."
     elsif @task.claim!(current_user)
-      redirect_to tasks_path(tab: "available"), notice: "It's yours. Find it under My Tasks."
+      redirect_to back, notice: "It's yours. Find it under My Tasks."
     else
-      redirect_to tasks_path(tab: "available"), alert: "Someone already picked that one up."
+      redirect_to back, alert: "Someone already picked that one up."
     end
   end
 
@@ -245,7 +249,11 @@ class TasksController < ApplicationController
   # The apps switch tabs inside a frame, so the screen's URL stays /tasks and
   # pull-to-refresh would otherwise snap back to My Tasks.
   def remembered_tab
-    session[:tasks_tab].presence_in(TABS) if hotwire_native_app?
+    tab_named(session[:tasks_tab]) if hotwire_native_app?
+  end
+
+  def tab_named(name)
+    TAB_ALIASES.fetch(name.to_s, name).presence_in(TABS)
   end
 
   def load_my_tab
@@ -259,6 +267,16 @@ class TasksController < ApplicationController
 
   def load_available_tab
     @queue = Task.available_queue(current_user).group_by(&:effective_priority)
+  end
+
+  # By workstream (what each area covers), or every open task in one list
+  def load_all_work_tab
+    @list = params[:list] == "tasks" ? "tasks" : "workstreams"
+    return load_coverage_tab if @list == "workstreams"
+
+    @all_tasks = Task.open.joins(:workstream).merge(Workstream.open)
+      .includes(:recurring_task, :assignees, workstream: :owners)
+      .reorder(Arel.sql("tasks.due_date IS NULL, tasks.due_date, tasks.created_at"))
   end
 
   def load_coverage_tab
