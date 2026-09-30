@@ -32,10 +32,17 @@ class TaskCompletionTest < ActionDispatch::IntegrationTest
     assert_equal [ "active", nil, nil, @user ], [ @task.status, @task.completed_at, @task.completed_by, @task.assigned_to_user ]
   end
 
-  test "the Undo toast also shows on a full page load" do
+  test "the Undo toast also shows on a full page load, in the page's toast area" do
     patch complete_task_url(@task, return_to: tasks_path(tab: "my"))
     follow_redirect!
-    assert_select "#undo-notification", text: /done/
+    assert_select "#toasts #undo-notification-container #undo-notification[data-toast]", text: /done/
+  end
+
+  test "messages in the Tasks tabs are the same toast as everywhere else" do
+    post reopen_task_url(@task, return_to: tasks_path(tab: "my")), headers: FRAME
+    get tasks_url(tab: "my"), headers: FRAME
+    assert_select "turbo-frame#tasks_content [data-toast].alert-success", text: /back on the list/
+    assert_select ".alert-soft", count: 0
   end
 
   test "My Tasks lists what you finished in the last two weeks, and each can be marked not done" do

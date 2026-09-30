@@ -1,14 +1,20 @@
-import {Controller} from "@hotwired/stimulus"
+import { Controller } from "@hotwired/stimulus"
 
+// A toast (layouts/_toast): hides itself after a few seconds, longer when
+// it offers Undo, or when its close button is tapped.
 export default class extends Controller {
-    static targets = ["close"]
+  static values = { delay: { type: Number, default: 5000 } }
 
-    connect() {
-        this.timeout = setTimeout(() => this.dismiss(), 3000)
-    }
+  connect() {
+    this.timeout = setTimeout(() => this.dismiss(), this.delayValue)
+  }
 
-    dismiss() {
-        this.element.style.display = "none"
-        clearTimeout(this.timeout)
-    }
+  disconnect() {
+    clearTimeout(this.timeout)
+  }
+
+  dismiss() {
+    this.element.remove()
+    clearTimeout(this.timeout)
+  }
 }

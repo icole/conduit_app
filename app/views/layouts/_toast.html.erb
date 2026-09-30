@@ -1,0 +1,14 @@
+<%# One message: every notice, error and Undo in the app looks like this.
+    locals: message, kind (:success / :error), id, undo_path (adds an Undo button) %>
+<% kind = local_assigns.fetch(:kind, :success) %>
+<% undo_path = local_assigns[:undo_path] %>
+<%= tag.div id: local_assigns[:id], data: { toast: true, controller: "flash", flash_delay_value: undo_path ? 8000 : 5000 },
+      role: (kind == :error ? "alert" : "status"),
+      class: "pointer-events-auto alert #{kind == :error ? 'alert-error' : 'alert-success'} shadow-lg w-full flex items-center gap-3 py-3 px-4 rounded-box" do %>
+  <%= heroicon(kind == :error ? "x-circle" : "check-circle", variant: :outline, options: { class: "stroke-current shrink-0 h-5 w-5", "aria-hidden": true }) %>
+  <span class="flex-1 text-sm"><%= message %></span>
+  <% if undo_path %>
+    <%= button_to "Undo", undo_path, method: :post, class: "btn btn-sm border-0 shadow-none bg-black/15 hover:bg-black/25 text-current" %>
+  <% end %>
+  <button type="button" data-action="click->flash#dismiss" class="btn btn-xs btn-ghost btn-circle text-current" aria-label="Close">✕</button>
+<% end %>

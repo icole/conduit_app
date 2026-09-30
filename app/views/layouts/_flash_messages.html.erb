@@ -1,24 +1,2 @@
-<!-- Flash Messages -->
-<% if flash[:notice] %>
-  <div data-controller="flash" class="alert alert-success shadow-sm mb-4 w-full py-4 rounded-none relative" role="alert">
-    <div class="absolute inset-0 flex items-center justify-center">
-      <div>
-        <%= heroicon "check-circle", variant: :outline, options: { class: "stroke-current inline-block h-5 w-5 mr-1 -mt-0.5" } %>
-        <span><%= flash[:notice] %></span>
-      </div>
-    </div>
-    <button data-action="click->flash#dismiss" class="btn btn-xs btn-ghost text-current absolute right-2 top-1/2 -translate-y-1/2" aria-label="Close">✕</button>
-  </div>
-<% end %>
-
-<% if flash[:alert] %>
-  <div data-controller="flash" class="alert alert-error shadow-sm mb-4 w-full py-4 rounded-none relative" role="alert">
-    <div class="absolute inset-0 flex items-center justify-center">
-      <div>
-        <%= heroicon "x-circle", variant: :outline, options: { class: "stroke-current inline-block h-5 w-5 mr-1 -mt-0.5" } %>
-        <span><%= flash[:alert] %></span>
-      </div>
-    </div>
-    <button data-action="click->flash#dismiss" class="btn btn-xs btn-ghost text-current absolute right-2 top-1/2 -translate-y-1/2" aria-label="Close">✕</button>
-  </div>
-<% end %>
+<% if flash[:notice] %><%= render "layouts/toast", message: flash[:notice], kind: :success %><% end %>
+<% if flash[:alert] %><%= render "layouts/toast", message: flash[:alert], kind: :error %><% end %>

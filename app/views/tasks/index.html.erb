@@ -28,10 +28,8 @@
     <%= render "tasks/tabs" %>
 
     <% if turbo_frame_request? %>
-      <% if flash[:notice] %><div class="alert alert-success alert-soft py-2 text-sm mb-3" role="status"><%= flash[:notice] %></div><% end %>
-      <% if flash[:alert] %><div class="alert alert-error alert-soft py-2 text-sm mb-3" role="alert"><%= flash[:alert] %></div><% end %>
-      <%# The page's own toast is outside this frame %>
-      <%= render "layouts/undo_notification" %>
+      <%# The page's toast area is outside this frame %>
+      <%= render "layouts/toasts", ids: false %>
     <% end %>
 
     <% if @current_view %>
