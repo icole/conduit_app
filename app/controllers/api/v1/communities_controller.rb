@@ -11,15 +11,20 @@ module Api
       # Finds one community by slug or domain so a member can reach it without
       # the app listing every community. Pending communities are findable -
       # their founder has to be able to sign in - but suspended ones are not.
+      # What people type on the apps' "Find Your Community" screen: the
+      # community's name as they know it ("Crow Woods"), its slug
+      # ("crow-woods"), or its domain. Exact matches only (ignoring capitals
+      # and extra spaces), so it never lists or hints at other communities.
       def lookup
-        query = params[:slug].to_s.strip.downcase
+        query = params[:slug].to_s.squish.downcase
         if query.blank?
           render json: { error: "slug_required" }, status: :bad_request
           return
         end
 
         community = Community.where.not(status: "suspended")
-                             .where("LOWER(slug) = :q OR LOWER(domain) = :q", q: query)
+                             .where("LOWER(slug) IN (:q, :slug) OR LOWER(domain) = :q OR LOWER(REGEXP_REPLACE(TRIM(name), '\\s+', ' ', 'g')) = :q",
+                                    q: query, slug: query.parameterize)
                              .first
 
         if community

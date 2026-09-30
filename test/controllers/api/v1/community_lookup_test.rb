@@ -27,6 +27,26 @@ class Api::V1::CommunityLookupTest < ActionDispatch::IntegrationTest
     assert_equal "crow-woods", JSON.parse(response.body)["slug"]
   end
 
+  test "finds a community by the name people know it by" do
+    [ "Crow Woods", "crow woods", "  CROW   WOODS ", "Crow-Woods" ].each do |typed|
+      get lookup_api_v1_communities_url(slug: typed)
+      assert_response :success, typed
+      assert_equal "crow-woods", JSON.parse(response.body)["slug"], typed
+    end
+  end
+
+  test "a name that isn't quite right still isn't found, and nothing else is revealed" do
+    [ "Crow", "Crow Wood", "crowwoods" ].each do |typed|
+      get lookup_api_v1_communities_url(slug: typed)
+      assert_response :not_found, typed
+    end
+  end
+
+  test "a suspended community isn't found by name either" do
+    get lookup_api_v1_communities_url(slug: "Suspended Community")
+    assert_response :not_found
+  end
+
   test "finds a pending community so its founder can sign in" do
     get lookup_api_v1_communities_url(slug: "pending-community")
 
