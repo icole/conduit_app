@@ -64,6 +64,16 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a", text: "Show older meals", count: 0
   end
 
+  test "the meal page shows people's photos, and initials for people without one" do
+    users(:two).update!(avatar_url: "https://example.com/mike.jpg")
+    MealCook.find_or_create_by!(meal: @meal, user: users(:two)) { |cook| cook.role = "helper" }
+    MealRsvp.find_or_create_by!(meal: @meal, user: users(:three)) { |rsvp| rsvp.status = "attending" }
+
+    get meal_url(@meal)
+    assert_select ".avatar img[src='https://example.com/mike.jpg']"
+    assert_select ".avatar span", text: "AJ" # Alice Johnson, no photo
+  end
+
   # Show action tests
   test "should show meal" do
     get meal_url(@meal)

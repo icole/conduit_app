@@ -24,19 +24,7 @@
               <tr class="hover">
                 <td>
                   <div class="flex items-center gap-3">
-                    <% if user.avatar_url.present? %>
-                      <div class="avatar">
-                        <div class="w-10 h-10 rounded-full">
-                          <img src="<%= user.avatar_url %>" alt="<%= user.name %>">
-                        </div>
-                      </div>
-                    <% else %>
-                      <div class="avatar avatar-placeholder">
-                        <div class="bg-neutral text-neutral-content w-10 h-10 rounded-full">
-                          <span class="text-sm"><%= user.name.first(2).upcase %></span>
-                        </div>
-                      </div>
-                    <% end %>
+                    <%= user_avatar(user, size: "w-10", text: "text-sm") %>
                     <div class="font-medium"><%= user.name %></div>
                   </div>
                 </td>

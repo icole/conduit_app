@@ -83,10 +83,8 @@
   <div class="navbar-end pr-2">
     <% if user_signed_in? %>
       <div class="dropdown dropdown-end dropdown-hover">
-        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar avatar-placeholder p-0 overflow-hidden">
-          <div class="flex-shrink-0 h-10 w-10">
-            <img class="h-10 w-10 rounded-full" src="<%= current_user.avatar_url %>" alt="<%= current_user.name %>">
-          </div>
+        <div tabindex="0" role="button" class="btn btn-ghost btn-circle p-0" aria-label="Account menu">
+          <%= user_avatar(current_user, size: "w-10", text: "text-sm") %>
         </div>
         <ul tabindex="0" class="menu dropdown-content z-50 p-2 shadow-lg bg-base-100 text-base-content rounded-box w-52 mt-2">
           <li><%= link_to account_path, class: "py-2" do %>

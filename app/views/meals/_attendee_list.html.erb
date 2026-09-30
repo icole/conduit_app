@@ -41,11 +41,7 @@
         <div class="space-y-2">
           <% meal.meal_cooks.includes(:user).each do |mc| %>
             <div class="flex items-center gap-2">
-              <div class="avatar avatar-placeholder">
-                <div class="bg-primary text-primary-content rounded-full w-8">
-                  <span class="text-xs"><%= mc.user.name.first(2).upcase %></span>
-                </div>
-              </div>
+              <%= user_avatar(mc.user, initials_class: "bg-primary text-primary-content") %>
               <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium truncate"><%= mc.user.name %></div>
                 <% if mc.guests_count > 0 %>
@@ -82,11 +78,7 @@
         <div class="space-y-2">
           <% attending_rsvps.each do |rsvp| %>
             <div class="flex items-center gap-2">
-              <div class="avatar avatar-placeholder">
-                <div class="bg-success/20 text-success-ink rounded-full w-8">
-                  <span class="text-xs"><%= rsvp.user.name.first(2).upcase %></span>
-                </div>
-              </div>
+              <%= user_avatar(rsvp.user, initials_class: "bg-success/20 text-success-ink") %>
               <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium truncate"><%= rsvp.user.name %></div>
                 <% if rsvp.guests_count > 0 %>
@@ -121,11 +113,7 @@
         <div class="space-y-2">
           <% maybe_rsvps.each do |rsvp| %>
             <div class="flex items-center gap-2 opacity-70">
-              <div class="avatar avatar-placeholder">
-                <div class="bg-warning/20 text-warning-ink rounded-full w-8">
-                  <span class="text-xs"><%= rsvp.user.name.first(2).upcase %></span>
-                </div>
-              </div>
+              <%= user_avatar(rsvp.user, initials_class: "bg-warning/20 text-warning-ink") %>
               <div class="flex-1 min-w-0">
                 <div class="text-sm truncate"><%= rsvp.user.name %></div>
               </div>
@@ -154,11 +142,7 @@
         <div class="space-y-2">
           <% late_plate_rsvps.each do |rsvp| %>
             <div class="flex items-center gap-2">
-              <div class="avatar avatar-placeholder">
-                <div class="bg-secondary/20 text-secondary-ink rounded-full w-8">
-                  <span class="text-xs"><%= rsvp.user.name.first(2).upcase %></span>
-                </div>
-              </div>
+              <%= user_avatar(rsvp.user, initials_class: "bg-secondary/20 text-secondary-ink") %>
               <div class="flex-1 min-w-0">
                 <div class="text-sm truncate"><%= rsvp.user.name %></div>
                 <% if rsvp.guests_count > 0 %>
@@ -193,11 +177,7 @@
         <div class="space-y-2">
           <% declined_rsvps.each do |rsvp| %>
             <div class="flex items-center gap-2 opacity-50">
-              <div class="avatar avatar-placeholder">
-                <div class="bg-base-300 text-base-content/65 rounded-full w-8">
-                  <span class="text-xs"><%= rsvp.user.name.first(2).upcase %></span>
-                </div>
-              </div>
+              <%= user_avatar(rsvp.user, initials_class: "bg-base-300 text-base-content/65") %>
               <div class="flex-1 min-w-0">
                 <div class="text-sm truncate"><%= rsvp.user.name %></div>
               </div>
