@@ -59,6 +59,16 @@ class NativeSheetsTest < ActionDispatch::IntegrationTest
     assert_select "h1[class~='bridge-button:hidden']", count: 0
   end
 
+  test "row menus stay in the page for apps without a native top bar" do
+    get workstream_url(workstreams(:general)), headers: IOS
+    assert_kept_without_top_bar "a", text: "Edit"
+
+    reset! # someone with tasks of their own
+    sign_in_user({ uid: users(:two).uid, name: users(:two).name, email: users(:two).email })
+    get tasks_url(tab: "my"), headers: IOS
+    assert_kept_without_top_bar "a", text: "Edit"
+  end
+
   test "forms keep Cancel for apps without a native top bar" do
     get edit_task_url(tasks(:one), return_to: tasks_path), headers: IOS
     assert_kept_without_top_bar "a", text: "Cancel"

@@ -71,8 +71,8 @@
       </div>
       <% if action == :release %>
         <%# On a phone the action goes under the details so the title keeps its width %>
-        <%# Apps with a native menu offer it there instead %>
-        <div class="sm:hidden mt-1 -ml-3 bridge-menu:hidden"><%= release_button %></div>
+        <%# Apps with a native top bar offer it in the native sheet instead %>
+        <div class="sm:hidden mt-1 -ml-3 bridge-button:hidden"><%= release_button %></div>
       <% end %>
     </div>
 
@@ -93,7 +93,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
             </svg>
           </div>
-          <ul tabindex="0" class="dropdown-content z-50 p-2 shadow-lg bg-base-100 text-base-content rounded-box w-44 bridge-menu:hidden">
+          <ul tabindex="0" class="dropdown-content z-50 p-2 shadow-lg bg-base-100 text-base-content rounded-box w-44 bridge-button:hidden">
             <li><%= link_to "Edit", edit_task_path(task), data: { turbo_frame: "_top", bridge__menu_target: "item" }, class: "block px-3 py-2 rounded-lg hover:bg-base-200" %></li>
             <% if action == :release %>
               <%# Only the native menu reads this one; the web shows the button on the row %>

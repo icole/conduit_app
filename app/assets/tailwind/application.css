@@ -44,7 +44,6 @@
    so the page's own header steps aside (older app builds keep it). */
 @custom-variant native (&:where(html[data-bridge-platform] *));
 @custom-variant bridge-button (&:where(html[data-bridge-components~="button"] *));
-@custom-variant bridge-menu (&:where(html[data-bridge-components~="menu"] *));
 
 html[data-bridge-platform] {
   -webkit-tap-highlight-color: transparent;

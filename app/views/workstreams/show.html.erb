@@ -83,13 +83,13 @@
                 </p>
               </div>
               <% if recurring.manageable_by?(current_user) %>
-                <%# In the apps the actions sit behind a ⋮ that opens a native sheet %>
+                <%# Apps with a native top bar put the actions behind a ⋮ that opens a native sheet %>
                 <div class="flex gap-1 shrink-0" data-controller="bridge--menu" data-bridge--menu-title-value="<%= recurring.title %>">
-                  <button type="button" class="hidden bridge-menu:inline-flex btn btn-ghost btn-sm btn-circle -mr-2 -mt-1" aria-label="More actions" data-action="bridge--menu#show">
+                  <button type="button" class="hidden bridge-button:inline-flex btn btn-ghost btn-sm btn-circle -mr-2 -mt-1" aria-label="More actions" data-action="bridge--menu#show">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
                   </button>
-                  <%= link_to "Edit", edit_workstream_recurring_task_path(@workstream, recurring), class: "btn btn-ghost btn-xs bridge-menu:hidden", data: { bridge__menu_target: "item" } %>
-                  <%= button_to "Remove", workstream_recurring_task_path(@workstream, recurring), method: :delete, class: "btn btn-ghost btn-xs text-error-ink", form_class: "button_to bridge-menu:hidden", data: { bridge__menu_target: "item", bridge_destructive: true }, form: { data: { turbo_confirm: "Remove this recurring task? Past instances are kept.", turbo_action: "replace" } } %>
+                  <%= link_to "Edit", edit_workstream_recurring_task_path(@workstream, recurring), class: "btn btn-ghost btn-xs bridge-button:hidden", data: { bridge__menu_target: "item" } %>
+                  <%= button_to "Remove", workstream_recurring_task_path(@workstream, recurring), method: :delete, class: "btn btn-ghost btn-xs text-error-ink", form_class: "button_to bridge-button:hidden", data: { bridge__menu_target: "item", bridge_destructive: true }, form: { data: { turbo_confirm: "Remove this recurring task? Past instances are kept.", turbo_action: "replace" } } %>
                 </div>
               <% end %>
             </div>
@@ -123,25 +123,25 @@
               <%= effort_badge(task.estimated_minutes) %>
               <% if task.due_date %><span class="badge badge-sm badge-ghost">Due <%= task.due_date.strftime("%b %-d") %></span><% end %>
               <% if can_manage || task.user_id == current_user.id || task.assigned_to?(current_user) %>
-                <%# In the apps the actions sit behind a ⋮ that opens a native sheet %>
+                <%# Apps with a native top bar put the actions behind a ⋮ that opens a native sheet %>
                 <div class="ml-auto flex items-center gap-1" data-controller="bridge--menu" data-bridge--menu-title-value="<%= task.title %>">
-                  <button type="button" class="hidden bridge-menu:inline-flex btn btn-ghost btn-sm btn-circle -mr-2 -mt-1" aria-label="More actions" data-action="bridge--menu#show">
+                  <button type="button" class="hidden bridge-button:inline-flex btn btn-ghost btn-sm btn-circle -mr-2 -mt-1" aria-label="More actions" data-action="bridge--menu#show">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
                   </button>
                   <% if can_manage && task.assignees.empty? %>
                     <%# The apps assign from the edit sheet, which has the people picker %>
                     <%= link_to "Assign…", edit_task_path(task, return_to: workstream_path(@workstream)), class: "hidden", data: { bridge__menu_target: "item" } %>
                   <% end %>
-                  <%= link_to "Edit", edit_task_path(task, return_to: workstream_path(@workstream)), class: "btn btn-ghost btn-xs bridge-menu:hidden", data: { bridge__menu_target: "item" } %>
+                  <%= link_to "Edit", edit_task_path(task, return_to: workstream_path(@workstream)), class: "btn btn-ghost btn-xs bridge-button:hidden", data: { bridge__menu_target: "item" } %>
                   <% if can_manage || task.user_id == current_user.id %>
-                    <%= button_to "Delete", task_path(task), method: :delete, class: "btn btn-ghost btn-xs text-error-ink", form_class: "button_to bridge-menu:hidden", data: { bridge__menu_target: "item", bridge_destructive: true },
+                    <%= button_to "Delete", task_path(task), method: :delete, class: "btn btn-ghost btn-xs text-error-ink", form_class: "button_to bridge-button:hidden", data: { bridge__menu_target: "item", bridge_destructive: true },
                           form: { data: { turbo_confirm: task.recurring? ? "Delete this period's “#{task.title}”? The recurring task carries on." : "Delete “#{task.title}”?" } } %>
                   <% end %>
                 </div>
               <% end %>
             </div>
             <% if can_manage && task.assignees.empty? %>
-              <%= form_with model: task, url: task_path(task, return_to: workstream_path(@workstream)), method: :patch, class: "flex gap-2 items-center bridge-menu:hidden", data: { turbo_action: "replace" } do |form| %>
+              <%= form_with model: task, url: task_path(task, return_to: workstream_path(@workstream)), method: :patch, class: "flex gap-2 items-center bridge-button:hidden", data: { turbo_action: "replace" } do |form| %>
                 <%= select_tag "task[assignee_ids][]", options_for_select(@users.map { |u| [ u.name, u.id ] }),
                       prompt: "Assign to…", id: "assign_#{task.id}", class: "select select-bordered select-sm flex-1 min-w-0", required: true,
                       aria: { label: "Assign #{task.title} to" } %>
