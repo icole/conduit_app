@@ -1,6 +1,7 @@
 package com.colecoding.conduit
 
 import android.app.Application
+import android.graphics.Color
 import android.util.Log
 import android.webkit.CookieManager
 import com.colecoding.conduit.fragments.WebFragment
@@ -14,9 +15,12 @@ import dev.hotwire.core.turbo.config.PathConfiguration
 import dev.hotwire.navigation.config.defaultFragmentDestination
 import dev.hotwire.navigation.config.registerBridgeComponents
 import dev.hotwire.navigation.config.registerFragmentDestinations
+import com.colecoding.conduit.bridge.ButtonComponent
 import com.colecoding.conduit.bridge.MenuComponent
 import com.colecoding.conduit.chat.ChannelHashAvatar
 import io.getstream.chat.android.ui.ChatUI
+import io.getstream.chat.android.ui.helper.StyleTransformer
+import io.getstream.chat.android.ui.helper.TransformStyle
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.logger.ChatLogLevel
 import io.getstream.chat.android.offline.plugin.factory.StreamOfflinePluginFactory
@@ -85,7 +89,8 @@ class MainApplication : Application() {
 
         // Register bridge components
         Hotwire.registerBridgeComponents(
-            BridgeComponentFactory("menu", ::MenuComponent)
+            BridgeComponentFactory("menu", ::MenuComponent),
+            BridgeComponentFactory("button", ::ButtonComponent)
         )
 
         // Configure JSON converter for bridge message serialization
@@ -123,6 +128,26 @@ class MainApplication : Application() {
 
             // "#" instead of a collage of member photos, in the list and chat header
             ChatUI.channelAvatarRenderer = ChannelHashAvatar.renderer
+
+            // Bubbles in the app's palette: yours a soft teal, everyone else's
+            // white on the cream page, neither outlined
+            TransformStyle.messageListItemStyleTransformer = StyleTransformer { style ->
+                style.copy(
+                    messageBackgroundColorMine = Color.parseColor("#D5EDE9"),
+                    messageBackgroundColorTheirs = Color.WHITE,
+                    messageStrokeColorMine = Color.TRANSPARENT,
+                    messageStrokeWidthMine = 0f,
+                    messageStrokeColorTheirs = Color.TRANSPARENT,
+                    messageStrokeWidthTheirs = 0f,
+                    // A quiet "Today" pill rather than a dark one
+                    dateSeparatorBackgroundColor = Color.parseColor("#EFEAE6"),
+                    textStyleDateSeparator = style.textStyleDateSeparator.copy(color = Color.parseColor("#6B6470"))
+                )
+            }
+            // The cream page under the channel list, not white past the last row
+            TransformStyle.channelListStyleTransformer = StyleTransformer { style ->
+                style.copy(backgroundColor = Color.parseColor("#FAF7F5"))
+            }
 
             Log.d(TAG, "Stream Chat initialized successfully")
         } catch (e: Exception) {

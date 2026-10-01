@@ -1,5 +1,7 @@
 package com.colecoding.conduit
 
+import android.graphics.Color
+import android.content.res.ColorStateList
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -26,6 +28,7 @@ import com.colecoding.conduit.fragments.CustomChatFragment
 import com.colecoding.conduit.ui.Edge
 import com.colecoding.conduit.ui.padForSystemBars
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.navigation.NavigationBarView
 import dev.hotwire.core.turbo.visit.VisitAction
 import dev.hotwire.core.turbo.visit.VisitOptions
 import dev.hotwire.navigation.activities.HotwireActivity
@@ -246,6 +249,12 @@ class MainActivity : HotwireActivity() {
         openRequestedPath()
     }
 
+    /** Open one of our pages in the tab it belongs to (e.g. Account settings). */
+    fun openInApp(path: String) {
+        intent.putExtra(ConduitLinks.EXTRA_OPEN_PATH, path)
+        openRequestedPath()
+    }
+
     /**
      * A Conduit link tapped in a chat message (ConduitLinks): switch to the
      * tab it belongs to and open it there, from that tab's first screen.
@@ -288,6 +297,20 @@ class MainActivity : HotwireActivity() {
     }
 
     private fun setupBottomNavigation() {
+        // Material 3 style: every label shown, a soft pill behind the current tab
+        val tint = ColorStateList(
+            arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
+            intArrayOf(Color.parseColor("#00736B"), Color.parseColor("#5F5863"))
+        )
+        bottomNavigation.apply {
+            setBackgroundColor(Color.parseColor("#FAF7F5"))
+            itemIconTintList = tint
+            itemTextColor = tint
+            labelVisibilityMode = NavigationBarView.LABEL_VISIBILITY_LABELED
+            isItemActiveIndicatorEnabled = true
+            itemActiveIndicatorColor = ColorStateList.valueOf(Color.parseColor("#D5EDE9"))
+        }
+
         bottomNavigation.setOnItemSelectedListener { item ->
             val newTab = when (item.itemId) {
                 R.id.navigation_home -> Tab.HOME

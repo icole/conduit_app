@@ -1,10 +1,12 @@
 package com.colecoding.conduit.fragments
 
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.webkit.CookieManager
-import androidx.appcompat.widget.Toolbar
+import androidx.core.view.WindowInsetsControllerCompat
+import com.colecoding.conduit.R
 import dev.hotwire.core.turbo.errors.VisitError
 import dev.hotwire.navigation.destinations.HotwireDestinationDeepLink
 import dev.hotwire.navigation.fragments.HotwireWebFragment
@@ -19,19 +21,33 @@ open class WebFragment : HotwireWebFragment() {
         private const val TAG = "WebFragment"
     }
 
-    // Hide the toolbar since we use bottom navigation
-    override fun toolbarForNavigation(): Toolbar? = null
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "WebFragment onViewCreated")
 
-        // Hide the toolbar view if it exists
-        view.findViewById<Toolbar>(dev.hotwire.navigation.R.id.toolbar)?.visibility = View.GONE
-
         // Configure cookies
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)
+
+        styleChrome()
+    }
+
+    // Native chrome in the page's own colours, so it reads as one surface
+    private fun styleChrome() {
+        val surface = Color.parseColor("#FAF7F5")
+        toolbarForNavigation()?.apply {
+            setBackgroundColor(surface)
+            setTitleTextColor(Color.parseColor("#291334"))
+            (parent as? View)?.apply {
+                setBackgroundColor(surface)
+                elevation = 0f
+            }
+        }
+        // The activity's root shows through behind the status bar
+        activity?.findViewById<View>(R.id.root)?.setBackgroundColor(surface)
+        activity?.window?.let { window ->
+            WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+        }
     }
 
     override fun onColdBootPageCompleted(location: String) {

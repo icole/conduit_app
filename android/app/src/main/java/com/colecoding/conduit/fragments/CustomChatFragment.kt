@@ -151,8 +151,17 @@ class CustomChatFragment : Fragment() {
             ))
         }
         val margin = (8 * resources.displayMetrics.density).toInt()
+        // A screen title like Account's, since the Chat tab has no toolbar
+        val title = android.widget.TextView(requireContext()).apply {
+            text = "Chat"
+            textSize = 28f
+            setTextColor(android.graphics.Color.parseColor("#291334"))
+            setPadding(margin * 2 + margin / 2, margin * 3, margin * 2, margin / 2)
+        }
         val column = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
+            setBackgroundColor(android.graphics.Color.parseColor("#FAF7F5"))
+            addView(title)
             addView(searchInput, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT

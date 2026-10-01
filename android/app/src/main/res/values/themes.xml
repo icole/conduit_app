@@ -39,8 +39,10 @@
         <item name="colorPrimary">@color/stream_ui_primary</item>
         <item name="colorPrimaryDark">@color/stream_ui_primary_dark</item>
         <item name="colorAccent">@color/stream_ui_accent</item>
-        <item name="android:statusBarColor">@color/stream_ui_primary_dark</item>
-        <item name="android:navigationBarColor">@android:color/white</item>
+        <item name="android:statusBarColor">@color/stream_ui_bars_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@color/stream_ui_white_snow</item>
+        <item name="android:navigationBarColor">@color/stream_ui_bars_background</item>
         <item name="dialogTheme">@style/StreamChatDialogTheme</item>
         <item name="alertDialogTheme">@style/StreamChatDialogTheme</item>
         <item name="bottomSheetDialogTheme">@style/StreamChatBottomSheetTheme</item>

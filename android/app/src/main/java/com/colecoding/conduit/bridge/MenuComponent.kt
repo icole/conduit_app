@@ -1,8 +1,16 @@
 package com.colecoding.conduit.bridge
 
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.text.TextUtils
 import android.util.Log
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.fragment.app.Fragment
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import dev.hotwire.core.bridge.BridgeComponent
 import dev.hotwire.core.bridge.BridgeDelegate
 import dev.hotwire.core.bridge.Message
@@ -10,6 +18,10 @@ import dev.hotwire.navigation.destinations.HotwireDestination
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * A page's "more" menu as a bottom sheet. Picking an item replies with its
+ * index, and the page clicks the matching link or button.
+ */
 class MenuComponent(
     name: String,
     private val delegate: BridgeDelegate<HotwireDestination>
@@ -27,20 +39,72 @@ class MenuComponent(
 
     private fun handleDisplayEvent(message: Message) {
         val data = message.data<MessageData>() ?: return
-        showDialog(data.title, data.items)
+        showSheet(data.title, data.items)
     }
 
-    private fun showDialog(title: String, items: List<Item>) {
+    private fun showSheet(title: String, items: List<Item>) {
         val context = fragment.requireContext()
-        val itemTitles = items.map { it.title }.toTypedArray()
+        val sheet = BottomSheetDialog(context)
+        val density = context.resources.displayMetrics.density
+        fun dp(value: Int) = (value * density).toInt()
+        val ripple = TypedValue().also {
+            context.theme.resolveAttribute(android.R.attr.selectableItemBackground, it, true)
+        }.resourceId
 
-        MaterialAlertDialogBuilder(context)
-            .setTitle(title)
-            .setItems(itemTitles) { _, which ->
-                onItemSelected(items[which])
+        val list = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, dp(12), 0, dp(24))
+            background = GradientDrawable().apply {
+                setColor(Color.parseColor("#FAF7F5"))
+                val radius = dp(28).toFloat()
+                cornerRadii = floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f)
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+        }
+
+        // Drag handle
+        list.addView(View(context).apply {
+            background = GradientDrawable().apply {
+                setColor(Color.parseColor("#D8D2CE"))
+                cornerRadius = dp(2).toFloat()
+            }
+            layoutParams = LinearLayout.LayoutParams(dp(32), dp(4)).apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+                bottomMargin = dp(8)
+            }
+        })
+
+        list.addView(TextView(context).apply {
+            text = title
+            textSize = 14f
+            setTextColor(Color.parseColor("#6B6470"))
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
+            setPadding(dp(24), dp(8), dp(24), dp(8))
+        })
+
+        items.forEach { item ->
+            list.addView(TextView(context).apply {
+                text = item.title
+                textSize = 16f
+                setTextColor(Color.parseColor(if (item.destructive) "#B3261E" else "#291334"))
+                gravity = Gravity.CENTER_VERTICAL
+                minHeight = dp(56)
+                setPadding(dp(24), 0, dp(24), 0)
+                setBackgroundResource(ripple)
+                setOnClickListener {
+                    sheet.dismiss()
+                    onItemSelected(item)
+                }
+            })
+        }
+
+        sheet.setContentView(list)
+        // Let the rounded corners show instead of the sheet's square backdrop
+        sheet.setOnShowListener {
+            sheet.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                ?.setBackgroundColor(Color.TRANSPARENT)
+        }
+        sheet.show()
     }
 
     private fun onItemSelected(item: Item) {
@@ -56,7 +120,8 @@ class MenuComponent(
     @Serializable
     data class Item(
         @SerialName("title") val title: String,
-        @SerialName("index") val index: Int
+        @SerialName("index") val index: Int,
+        @SerialName("destructive") val destructive: Boolean = false
     )
 
     @Serializable
