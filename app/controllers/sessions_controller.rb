@@ -68,7 +68,7 @@ class SessionsController < ApplicationController
     redirect_path = params[:redirect_to].presence || root_path
 
     # Sanitize redirect path to prevent open redirect
-    redirect_path = root_path unless redirect_path.start_with?("/")
+    redirect_path = root_path unless redirect_path.start_with?("/") && !redirect_path.start_with?("//")
 
     if token.present?
       user = verify_auth_token(token)
@@ -87,10 +87,16 @@ class SessionsController < ApplicationController
 
         Rails.logger.info "Auth login successful for user #{user.id}"
 
-        # For WebView, return a simple HTML response that confirms auth and redirects
+        # For WebView, return a simple HTML response that confirms auth and redirects.
+        # The script carries the CSP nonce (an enforced CSP blocks it otherwise,
+        # leaving the app on "Authenticating..."), and the values are JSON-escaped
+        # so redirect_to can't break out of the string or the script tag.
+        nonce = request.content_security_policy_nonce
+        target = ERB::Util.json_escape(redirect_path.to_json)
+        user_id = ERB::Util.json_escape(user.id.to_s.to_json)
         respond_to do |format|
           format.html do
-            render html: <<-HTML.html_safe
+            render html: <<~HTML.html_safe
               <!DOCTYPE html>
               <html>
               <head>
@@ -99,12 +105,10 @@ class SessionsController < ApplicationController
                 <title>Authenticating...</title>
               </head>
               <body>
-                <script>
-                  // Store auth success flag in localStorage for WebView
-                  localStorage.setItem('conduit_authenticated', 'true');
-                  localStorage.setItem('conduit_user_id', '#{user.id}');
-                  // Redirect to requested path
-                  window.location.href = '#{redirect_path}';
+                <script nonce="#{nonce}">
+                  localStorage.setItem("conduit_authenticated", "true");
+                  localStorage.setItem("conduit_user_id", #{user_id});
+                  window.location.href = #{target};
                 </script>
               </body>
               </html>
