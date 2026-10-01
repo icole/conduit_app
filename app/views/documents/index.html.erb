@@ -26,7 +26,8 @@
       <% end %>
     </div>
     <% if current_community.google_drive_folder_id.present? %>
-      <%= link_to "https://drive.google.com/drive/folders/#{current_community.google_drive_folder_id}", target: "_blank", rel: "noopener noreferrer", class: "btn btn-primary btn-sm gap-1" do %>
+      <%# Apps with a native top bar show this as a row under the list instead %>
+      <%= link_to "https://drive.google.com/drive/folders/#{current_community.google_drive_folder_id}", target: "_blank", rel: "noopener noreferrer", class: "btn btn-primary btn-sm gap-1 bridge-button:hidden" do %>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" class="h-4 w-4" fill="currentColor">
           <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066DA"/>
           <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z" fill="#00AC47"/>
@@ -52,7 +53,8 @@
   <% has_content = @folders.any? || @documents.any? || @drive_folders.any? || @drive_files.any? %>
 
   <% if has_content %>
-    <div class="bg-base-100 sm:rounded-lg border-y sm:border border-base-200 sm:shadow-sm">
+    <%# In the apps: a white card like the other lists %>
+    <div class="bg-base-100 sm:rounded-lg border-y sm:border border-base-200 sm:shadow-sm native:rounded-2xl native:border-0 native:shadow-sm native:overflow-hidden">
       <div class="overflow-x-auto">
         <table class="table table-sm sm:table-md">
           <thead class="hidden sm:table-header-group">
@@ -317,6 +319,14 @@
         <p class="text-sm mb-1">No documents yet.</p>
       <% end %>
     </div>
+  <% end %>
+
+  <% if current_community.google_drive_folder_id.present? %>
+    <%= link_to "https://drive.google.com/drive/folders/#{current_community.google_drive_folder_id}", target: "_blank", rel: "noopener noreferrer",
+          class: "hidden bridge-button:flex items-center justify-between mt-4 rounded-2xl bg-base-100 shadow-sm px-4 py-3.5" do %>
+      Open in Google Drive
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/60" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+    <% end %>
   <% end %>
 </div>
 

@@ -50,6 +50,7 @@ class NativeSheetsTest < ActionDispatch::IntegrationTest
   test "screens titled by the native top bar keep their own title for the other apps" do
     get documents_url, headers: IOS
     assert_kept_without_top_bar "h1", text: "Documents"
+    assert_kept_without_top_bar "a", text: /Open in Drive/
   end
 
   test "calendar event forms keep their heading everywhere, since they open as sheets" do
