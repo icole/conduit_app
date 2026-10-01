@@ -13,10 +13,12 @@ class MealsController < ApplicationController
   helper_method :meals_back_path
 
   PAST_PAGE_SIZE = 20
+  VIEWS = %w[upcoming needs_cooks past].freeze
 
   def index
     session[:meals_view] = "list"
-    @current_view = params[:view] || "upcoming"
+    @current_view = params[:view].presence_in(VIEWS) || remembered_view || "upcoming"
+    session[:meals_tab] = @current_view if hotwire_native_app?
     @needs_cooks_count = Meal.needs_cooks.length
 
     case @current_view
@@ -30,8 +32,6 @@ class MealsController < ApplicationController
       @meals = meals.first(PAST_PAGE_SIZE)
     when "needs_cooks"
       @meals = Meal.needs_cooks.with_card_associations
-    else
-      @meals = Meal.upcoming.with_card_associations
     end
   end
 
@@ -273,6 +273,12 @@ class MealsController < ApplicationController
   end
 
   private
+
+  # The apps reopen /meals on pull-to-refresh, so they come back to the last tab;
+  # the website keeps the tab in the address instead
+  def remembered_view
+    session[:meals_tab].presence_in(VIEWS) if hotwire_native_app?
+  end
 
   def set_meal
     @meal = Meal.find(params[:id])

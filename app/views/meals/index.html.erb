@@ -29,41 +29,47 @@
     </div>
   </div>
 
+  <%# Tabs swap the list in this frame, so the apps stay on one screen (no native
+      visit) and the website keeps the tab in the address. Links in the list open
+      whole screens. %>
+  <% tab_data = { turbo_frame: "meals_content" } %>
+  <% tab_data[:turbo_action] = "advance" unless hotwire_native_app? %>
+  <%= turbo_frame_tag "meals_content", target: "_top" do %>
   <!-- Tab Navigation -->
   <% if hotwire_native_app? %>
-    <div class="flex items-center gap-1 mb-4">
+    <nav aria-label="Meal views" class="flex items-center gap-1 mb-4">
       <div class="<%= ApplicationHelper::NATIVE_SEGMENT_TRACK %>">
-        <%= link_to meals_path(view: "upcoming"), class: native_segment_classes(@current_view == "upcoming") do %>
+        <%= link_to meals_path(view: "upcoming"), class: native_segment_classes(@current_view == "upcoming"), data: tab_data, aria: { current: ("page" if @current_view == "upcoming") } do %>
           Upcoming
         <% end %>
-        <%= link_to meals_path(view: "needs_cooks"), class: native_segment_classes(@current_view == "needs_cooks") do %>
+        <%= link_to meals_path(view: "needs_cooks"), class: native_segment_classes(@current_view == "needs_cooks"), data: tab_data, aria: { current: ("page" if @current_view == "needs_cooks") } do %>
           <span>Need Cooks</span>
           <% if @needs_cooks_count > 0 %>
             <span class="badge badge-xs bg-warning/25 text-base-content border-0 font-semibold"><%= @needs_cooks_count %></span>
           <% end %>
         <% end %>
-        <%= link_to meals_path(view: "past"), class: native_segment_classes(@current_view == "past") do %>
+        <%= link_to meals_path(view: "past"), class: native_segment_classes(@current_view == "past"), data: tab_data, aria: { current: ("page" if @current_view == "past") } do %>
           Past
         <% end %>
       </div>
-    </div>
+    </nav>
   <% else %>
-    <div class="overflow-x-auto mb-6">
+    <nav aria-label="Meal views" class="overflow-x-auto mb-6">
       <div class="tabs tabs-boxed w-fit min-w-full sm:min-w-0">
         <%= link_to meals_path(view: "upcoming"),
-            class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'upcoming'}" do %>
+            class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'upcoming'}", data: tab_data, aria: { current: ("page" if @current_view == "upcoming") } do %>
           Upcoming
         <% end %>
         <%= link_to meals_path(view: "needs_cooks"),
-            class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'needs_cooks'}" do %>
+            class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'needs_cooks'}", data: tab_data, aria: { current: ("page" if @current_view == "needs_cooks") } do %>
           Needs Cooks (<%= @needs_cooks_count %>)
         <% end %>
         <%= link_to meals_path(view: "past"),
-            class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'past'}" do %>
+            class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'past'}", data: tab_data, aria: { current: ("page" if @current_view == "past") } do %>
           Past Meals
         <% end %>
       </div>
-    </div>
+    </nav>
   <% end %>
 
   <!-- Meal Cards Grid/List -->
@@ -93,4 +99,5 @@
       </div>
     <% end %>
   </div>
+  <% end %>
 </div>
