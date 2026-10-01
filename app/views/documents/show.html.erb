@@ -5,7 +5,8 @@
   <%# Header with back button, title, and edit button %>
   <div class="flex items-center justify-between gap-2 mb-4 sm:mb-6">
     <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-      <%= link_to documents_path(folder_id: @document.document_folder_id), class: "btn btn-ghost btn-sm btn-square shrink-0" do %>
+      <%# The apps' top bar has a back button %>
+      <%= link_to documents_path(folder_id: @document.document_folder_id), class: "btn btn-ghost btn-sm btn-square shrink-0 native:hidden" do %>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>

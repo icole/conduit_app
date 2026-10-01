@@ -5,7 +5,8 @@
       <h1 class="text-2xl font-bold">My Meals</h1>
       <p class="text-base-content/70 mt-1">Meals you're cooking or attending</p>
     </div>
-    <%= link_to meals_path, class: "btn btn-outline" do %>
+    <%# The apps' top bar has a back button %>
+    <%= link_to meals_path, class: "btn btn-outline native:hidden" do %>
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
       </svg>

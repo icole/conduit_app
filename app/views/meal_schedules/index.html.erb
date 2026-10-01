@@ -6,7 +6,8 @@
       <p class="text-sm sm:text-base text-base-content/70 mt-1">Manage recurring weekly meal schedules</p>
     </div>
     <div class="flex flex-wrap gap-2">
-      <%= link_to meals_path, class: "btn btn-outline btn-sm sm:btn-md" do %>
+      <%# The apps' top bar has a back button %>
+      <%= link_to meals_path, class: "btn btn-outline btn-sm sm:btn-md native:hidden" do %>
         <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
         </svg>

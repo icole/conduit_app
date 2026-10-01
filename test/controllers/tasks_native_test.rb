@@ -37,10 +37,10 @@ class TasksNativeTest < ActionDispatch::IntegrationTest
     assert_select "nav[aria-label='Task views'] a[aria-current='page']", text: "My Tasks"
   end
 
-  test "the workstream screen keeps its in-page back link" do
+  test "the workstream screen's back link is for the website; the apps' top bar has one" do
     [ LEGACY_IOS, NATIVE, ANDROID ].each do |agent|
       get workstream_url(workstreams(:front_yard)), headers: agent
-      assert_select "a[href='#{tasks_path(tab: "all")}']", { text: /All work/ }, agent["User-Agent"]
+      assert_select "a[href='#{tasks_path(tab: "all")}'][class~='native:hidden']", { text: /All work/ }, agent["User-Agent"]
     end
   end
 

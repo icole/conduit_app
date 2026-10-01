@@ -86,8 +86,20 @@
       <% end %>
 
       <% if action != :claim %>
-        <%# The whole wrapper takes the tap: on a phone it's often just beside the small button %>
-        <div class="dropdown dropdown-end" data-controller="bridge--menu" data-bridge--menu-title-value="<%= task.title %>" data-action="click->bridge--menu#show">
+        <%# Apps without a native top bar: Edit and Delete as icons on the row %>
+        <div class="hidden native:flex bridge-button:hidden items-center -mr-2">
+          <%= link_to edit_task_path(task), data: { turbo_frame: "_top" }, class: "btn btn-ghost btn-sm btn-square", aria: { label: "Edit “#{task.title}”" } do %>
+            <%= heroicon "pencil-square", variant: :outline, options: { class: "h-5 w-5" } %>
+          <% end %>
+          <% unless task.recurring? %>
+            <%= link_to task_path(task), data: { turbo_method: :delete, turbo_confirm: "Delete this task?" }, class: "btn btn-ghost btn-sm btn-square text-error-ink", aria: { label: "Delete “#{task.title}”" } do %>
+              <%= heroicon "trash", variant: :outline, options: { class: "h-5 w-5" } %>
+            <% end %>
+          <% end %>
+        </div>
+        <%# The website's dropdown; the new Android build's ⋮ opens a native sheet.
+            The whole wrapper takes the tap: on a phone it's often just beside the small button %>
+        <div class="dropdown dropdown-end native:hidden bridge-button:inline-block" data-controller="bridge--menu" data-bridge--menu-title-value="<%= task.title %>" data-action="click->bridge--menu#show">
           <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle -mr-2 sm:mr-0" aria-label="More actions">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />

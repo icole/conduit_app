@@ -2,8 +2,8 @@
 <% can_manage = current_user.admin? || @workstream.owned_by?(current_user) %>
 
 <div class="max-w-3xl mx-auto space-y-4">
-  <%# The apps have a native back button %>
-  <%= link_to tasks_path(tab: "all"), class: "inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-base-content bridge-button:hidden" do %>
+  <%# The apps' top bar has a back button %>
+  <%= link_to tasks_path(tab: "all"), class: "inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-base-content native:hidden" do %>
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
     All work
   <% end %>
@@ -88,8 +88,9 @@
                   <button type="button" class="hidden bridge-button:inline-flex btn btn-ghost btn-sm btn-circle -mr-2 -mt-1" aria-label="More actions" data-action="bridge--menu#show">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
                   </button>
-                  <%= link_to "Edit", edit_workstream_recurring_task_path(@workstream, recurring), class: "btn btn-ghost btn-xs bridge-button:hidden", data: { bridge__menu_target: "item" } %>
-                  <%= button_to "Remove", workstream_recurring_task_path(@workstream, recurring), method: :delete, class: "btn btn-ghost btn-xs text-error-ink", form_class: "button_to bridge-button:hidden", data: { bridge__menu_target: "item", bridge_destructive: true }, form: { data: { turbo_confirm: "Remove this recurring task? Past instances are kept.", turbo_action: "replace" } } %>
+                  <%# Apps without a native top bar show these as icons %>
+                  <%= link_to edit_workstream_recurring_task_path(@workstream, recurring), class: "btn btn-ghost btn-xs native:btn-sm native:btn-square bridge-button:hidden", aria: { label: "Edit “#{recurring.title}”" }, data: { bridge__menu_target: "item", bridge_title: "Edit" } do %><span class="native:hidden">Edit</span><%= heroicon "pencil-square", variant: :outline, options: { class: "hidden native:block h-5 w-5" } %><% end %>
+                  <%= button_to workstream_recurring_task_path(@workstream, recurring), method: :delete, class: "btn btn-ghost btn-xs text-error-ink native:btn-sm native:btn-square", form_class: "button_to bridge-button:hidden", aria: { label: "Remove “#{recurring.title}”" }, data: { bridge__menu_target: "item", bridge_title: "Remove", bridge_destructive: true }, form: { data: { turbo_confirm: "Remove this recurring task? Past instances are kept.", turbo_action: "replace" } } do %><span class="native:hidden">Remove</span><%= heroicon "trash", variant: :outline, options: { class: "hidden native:block h-5 w-5" } %><% end %>
                 </div>
               <% end %>
             </div>
@@ -132,10 +133,10 @@
                     <%# The apps assign from the edit sheet, which has the people picker %>
                     <%= link_to "Assign…", edit_task_path(task, return_to: workstream_path(@workstream)), class: "hidden", data: { bridge__menu_target: "item" } %>
                   <% end %>
-                  <%= link_to "Edit", edit_task_path(task, return_to: workstream_path(@workstream)), class: "btn btn-ghost btn-xs bridge-button:hidden", data: { bridge__menu_target: "item" } %>
+                  <%= link_to edit_task_path(task, return_to: workstream_path(@workstream)), class: "btn btn-ghost btn-xs native:btn-sm native:btn-square bridge-button:hidden", aria: { label: "Edit “#{task.title}”" }, data: { bridge__menu_target: "item", bridge_title: "Edit" } do %><span class="native:hidden">Edit</span><%= heroicon "pencil-square", variant: :outline, options: { class: "hidden native:block h-5 w-5" } %><% end %>
                   <% if can_manage || task.user_id == current_user.id %>
-                    <%= button_to "Delete", task_path(task), method: :delete, class: "btn btn-ghost btn-xs text-error-ink", form_class: "button_to bridge-button:hidden", data: { bridge__menu_target: "item", bridge_destructive: true },
-                          form: { data: { turbo_confirm: task.recurring? ? "Delete this period's “#{task.title}”? The recurring task carries on." : "Delete “#{task.title}”?" } } %>
+                    <%= button_to task_path(task), method: :delete, class: "btn btn-ghost btn-xs text-error-ink native:btn-sm native:btn-square", form_class: "button_to bridge-button:hidden", aria: { label: "Delete “#{task.title}”" }, data: { bridge__menu_target: "item", bridge_title: "Delete", bridge_destructive: true },
+                          form: { data: { turbo_confirm: task.recurring? ? "Delete this period's “#{task.title}”? The recurring task carries on." : "Delete “#{task.title}”?" } } do %><span class="native:hidden">Delete</span><%= heroicon "trash", variant: :outline, options: { class: "hidden native:block h-5 w-5" } %><% end %>
                   <% end %>
                 </div>
               <% end %>

@@ -1,8 +1,8 @@
 <% content_for :title, @meal.display_title %>
 <div class="max-w-3xl mx-auto">
   <!-- Back Link -->
-  <%# The apps have a native back button %>
-  <div class="mb-4 bridge-button:hidden">
+  <%# The apps' top bar has a back button %>
+  <div class="mb-4 native:hidden">
     <%= link_to meals_back_path, class: "btn btn-ghost btn-sm gap-2 pl-0" do %>
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -46,8 +46,8 @@
           </div>
         </div>
           <div class="pr-12">
-            <%# The apps title the screen in the toolbar %>
-            <h1 class="text-2xl sm:text-3xl font-bold bridge-button:hidden"><%= @meal.display_title %></h1>
+            <%# The apps title the screen in the top bar %>
+            <h1 class="text-2xl sm:text-3xl font-bold native:hidden"><%= @meal.display_title %></h1>
             <div class="flex flex-wrap gap-3 mt-3">
               <div class="badge badge-lg badge-ghost gap-2 p-3">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

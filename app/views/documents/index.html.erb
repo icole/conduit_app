@@ -4,7 +4,7 @@
   <div class="flex items-center justify-between gap-2 mb-4 sm:mb-6 px-1 sm:px-0">
     <div class="min-w-0 flex-1">
       <%# The apps title the screen in the toolbar %>
-      <h1 class="font-bold text-lg sm:text-2xl bridge-button:hidden">Documents</h1>
+      <h1 class="font-bold text-lg sm:text-2xl native:hidden">Documents</h1>
       <%# Breadcrumb navigation %>
       <% if @browsing_drive %>
         <nav class="text-xs sm:text-sm breadcrumbs mt-1">
@@ -313,7 +313,7 @@
       <% if @browsing_drive %>
         <p class="text-sm mb-1">This Drive folder is empty.</p>
         <div class="flex gap-2 justify-center mt-4">
-          <%= link_to "Back to Documents", documents_path, class: "btn btn-outline btn-sm" %>
+          <%= link_to "Back to Documents", documents_path, class: "btn btn-outline btn-sm native:hidden" %>
         </div>
       <% else %>
         <p class="text-sm mb-1">No documents yet.</p>
