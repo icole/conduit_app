@@ -102,6 +102,7 @@ module TasksHelper
   def task_list_classes(priority: nil)
     border = priority == "essential" ? "border-error/50" : "border-base-200"
     "rounded-box border #{border} bg-base-100 divide-y divide-base-200 " \
-      "sm:rounded-none sm:border-0 sm:bg-transparent sm:divide-y-0 sm:space-y-2"
+      "sm:rounded-none sm:border-0 sm:bg-transparent sm:divide-y-0 sm:space-y-2 " \
+      "native:rounded-2xl native:border-0 native:bg-white native:shadow-sm native:divide-base-200/70"
   end
 end

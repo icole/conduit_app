@@ -1,7 +1,8 @@
-<div class="container mx-auto max-w-4xl px-4 py-8">
-  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-    <h1 class="text-2xl font-bold">New Calendar Event</h1>
-    <%= link_to calendar_index_path, class: "btn btn-outline btn-sm" do %>
+<%# The apps open this as a sheet: it keeps its heading, and swiping down replaces Back %>
+<div class="container mx-auto max-w-4xl px-4 py-8 native:px-0 native:py-2">
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 native:mb-3">
+    <h1 class="text-2xl font-bold native:text-lg native:font-semibold">New Calendar Event</h1>
+    <%= link_to calendar_index_path, class: "btn btn-outline btn-sm bridge-button:hidden" do %>
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
       </svg>

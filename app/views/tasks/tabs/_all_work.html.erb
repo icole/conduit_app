@@ -2,10 +2,11 @@
 <% link_data = { turbo_frame: "tasks_content" } %>
 <% link_data[:turbo_action] = "advance" unless hotwire_native_app? %>
 <nav aria-label="Show" class="mb-4">
-  <div class="inline-flex rounded-lg border border-base-300 p-0.5 bg-base-100">
+  <%# In the apps: the same segmented control as the tabs above %>
+  <div class="<%= hotwire_native_app? ? ApplicationHelper::NATIVE_SEGMENT_TRACK : 'inline-flex rounded-lg border border-base-300 p-0.5 bg-base-100' %>">
     <% { "workstreams" => [ "By workstream", tasks_path(tab: "all") ], "tasks" => [ "All tasks", tasks_path(tab: "all", list: "tasks") ] }.each do |list, (label, path)| %>
       <% current = @list == list %>
-      <%= link_to label, path, class: "btn btn-xs h-7 min-h-0 px-3 #{current ? 'btn-neutral' : 'btn-ghost'}",
+      <%= link_to label, path, class: (hotwire_native_app? ? native_segment_classes(current) : "btn btn-xs h-7 min-h-0 px-3 #{current ? 'btn-neutral' : 'btn-ghost'}"),
             aria: { current: (current ? "page" : nil) }, data: link_data %>
     <% end %>
   </div>

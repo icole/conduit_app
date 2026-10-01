@@ -1,6 +1,8 @@
+<% content_for :title, @meal.display_title %>
 <div class="max-w-3xl mx-auto">
   <!-- Back Link -->
-  <div class="mb-4">
+  <%# The apps have a native back button %>
+  <div class="mb-4 bridge-button:hidden">
     <%= link_to meals_back_path, class: "btn btn-ghost btn-sm gap-2 pl-0" do %>
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -17,32 +19,35 @@
       <div class="card-body">
         <!-- Dropdown Menu -->
         <div class="absolute top-4 right-4">
-          <div class="dropdown dropdown-end">
-            <label tabindex="0" class="btn btn-ghost btn-sm btn-square">
+          <%# In the apps: a ⋮ in the toolbar that opens a native sheet %>
+          <div class="dropdown dropdown-end" data-controller="bridge--menu" data-bridge--menu-title-value="<%= @meal.display_title %>">
+            <button type="button" class="hidden" data-controller="bridge--button" data-bridge-title="More" data-bridge-image="more" data-action="bridge--menu#show"></button>
+            <label tabindex="0" class="btn btn-ghost btn-sm btn-square bridge-button:hidden">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
               </svg>
             </label>
-            <ul tabindex="0" class="dropdown-content z-10 menu p-2 shadow bg-base-100 rounded-box w-52">
-              <li><%= link_to "Edit Meal", edit_meal_path(@meal) %></li>
+            <ul tabindex="0" class="dropdown-content z-10 menu p-2 shadow bg-base-100 rounded-box w-52 bridge-button:hidden">
+              <li><%= link_to "Edit Meal", edit_meal_path(@meal), data: { bridge__menu_target: "item" } %></li>
               <% if @meal.upcoming? && (@meal.user_is_cook?(current_user) || current_user.admin?) %>
-                <li><%= button_to "Close RSVPs", close_rsvps_meal_path(@meal), method: :post, form: { data: { turbo_confirm: "Close RSVPs early?" } } %></li>
+                <li><%= button_to "Close RSVPs", close_rsvps_meal_path(@meal), method: :post, data: { bridge__menu_target: "item" }, form: { data: { turbo_confirm: "Close RSVPs early?" } } %></li>
               <% end %>
               <% if @meal.rsvps_closed? && (@meal.user_is_cook?(current_user) || current_user.admin?) %>
-                <li><%= button_to "Reopen RSVPs", reopen_rsvps_meal_path(@meal), method: :post, form: { data: { turbo_confirm: "Reopen RSVPs for this meal?" } } %></li>
+                <li><%= button_to "Reopen RSVPs", reopen_rsvps_meal_path(@meal), method: :post, data: { bridge__menu_target: "item" }, form: { data: { turbo_confirm: "Reopen RSVPs for this meal?" } } %></li>
               <% end %>
               <% if @meal.upcoming? %>
-                <li><%= button_to "Cancel Meal", cancel_meal_path(@meal), method: :post, class: "text-error", form: { data: { turbo_confirm: "Cancel this meal?" } } %></li>
+                <li><%= button_to "Cancel Meal", cancel_meal_path(@meal), method: :post, class: "text-error", data: { bridge__menu_target: "item", bridge_destructive: true }, form: { data: { turbo_confirm: "Cancel this meal?" } } %></li>
               <% end %>
               <% if @meal.rsvps_closed? || @meal.completed? %>
-                <li><%= button_to "Mark Complete", complete_meal_path(@meal), method: :post %></li>
+                <li><%= button_to "Mark Complete", complete_meal_path(@meal), method: :post, data: { bridge__menu_target: "item" } %></li>
               <% end %>
-              <li><%= button_to "Delete", meal_path(@meal), method: :delete, class: "text-error", form: { data: { turbo_confirm: "Delete this meal?" } } %></li>
+              <li><%= button_to "Delete", meal_path(@meal), method: :delete, class: "text-error", data: { bridge__menu_target: "item", bridge_destructive: true }, form: { data: { turbo_confirm: "Delete this meal?" } } %></li>
             </ul>
           </div>
         </div>
           <div class="pr-12">
-            <h1 class="text-2xl sm:text-3xl font-bold"><%= @meal.display_title %></h1>
+            <%# The apps title the screen in the toolbar %>
+            <h1 class="text-2xl sm:text-3xl font-bold bridge-button:hidden"><%= @meal.display_title %></h1>
             <div class="flex flex-wrap gap-3 mt-3">
               <div class="badge badge-lg badge-ghost gap-2 p-3">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

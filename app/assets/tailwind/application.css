@@ -38,3 +38,65 @@
 .tabs > .tab:not(.tab-active, [aria-selected="true"], [aria-current="true"], [aria-current="page"]) {
   color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
 }
+
+/* In the iOS/Android apps (Hotwire Native marks <html> with data-bridge-platform).
+   bridge-button: the app shows the page's main action in its native toolbar,
+   so the page's own header steps aside (older app builds keep it). */
+@custom-variant native (&:where(html[data-bridge-platform] *));
+@custom-variant bridge-button (&:where(html[data-bridge-components~="button"] *));
+@custom-variant bridge-menu (&:where(html[data-bridge-components~="menu"] *));
+
+html[data-bridge-platform] {
+  -webkit-tap-highlight-color: transparent;
+  font-family: system-ui, -apple-system, "Roboto", "Segoe UI", sans-serif;
+  /* Fields as rounded rectangles, hairline borders, flat buttons */
+  --radius-field: 0.75rem;
+  --radius-selector: 0.5rem;
+  --radius-box: 1rem;
+  --border: 1px;
+  --depth: 0;
+  /* White surfaces (cards, lists, fields) on the cream page, which matches
+     the native toolbar */
+  --color-base-100: #ffffff;
+}
+html[data-bridge-platform] body {
+  background-color: #faf7f5;
+}
+/* Cards and bordered panels read as raised surfaces, not outlined boxes; an
+   accent edge (border-l-4) stays */
+html[data-bridge-platform] :is(.card, .rounded-lg.border.bg-base-100):not(.native-flat, .native-plain) {
+  border-block-color: transparent;
+  border-right-color: transparent;
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+}
+html[data-bridge-platform] :is(.card, .rounded-lg.border.bg-base-100):not(.border-l-4) {
+  border-left-color: transparent;
+}
+/* native-plain: a bordered box that isn't a surface (e.g. a segmented
+   control's track), so the rule above leaves it alone.
+   native-flat: this card is the whole sheet or page, so in the apps it drops
+   its own chrome and padding */
+html[data-bridge-platform] .native-flat {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+html[data-bridge-platform] .native-flat > .card-body {
+  padding: 0;
+}
+/* Status colour as a tint with dark ink, not a solid fill: badges and alerts */
+html[data-bridge-platform] :is(.badge, .alert):is(.badge-primary, .badge-success, .badge-info, .badge-warning, .badge-error, .badge-secondary, .alert-success, .alert-info, .alert-warning, .alert-error) {
+  border-color: transparent;
+  box-shadow: none;
+}
+html[data-bridge-platform] :is(.badge-primary) { background: color-mix(in oklab, var(--color-primary) 20%, white); color: var(--color-primary-ink); }
+html[data-bridge-platform] :is(.badge-success, .alert-success) { background: color-mix(in oklab, var(--color-success) 16%, white); color: var(--color-success-ink); }
+html[data-bridge-platform] :is(.badge-info, .alert-info) { background: color-mix(in oklab, var(--color-info) 14%, white); color: var(--color-info-ink); }
+html[data-bridge-platform] :is(.badge-warning, .alert-warning) { background: color-mix(in oklab, var(--color-warning) 22%, white); color: var(--color-warning-ink); }
+html[data-bridge-platform] :is(.badge-error, .alert-error) { background: color-mix(in oklab, var(--color-error) 14%, white); color: var(--color-error-ink); }
+html[data-bridge-platform] :is(.badge-secondary) { background: color-mix(in oklab, var(--color-secondary) 14%, white); color: var(--color-secondary-ink); }
+html[data-bridge-platform] :is(button, .btn, nav a) {
+  -webkit-user-select: none;
+  user-select: none;
+}

@@ -40,20 +40,22 @@ class TasksController < ApplicationController
     new_ids = assignee_ids_param || []
     @task.assignees = User.where(id: new_ids)
 
-    respond_to do |format|
-      if assignment_allowed?(@task, [], new_ids) && @task.save
-        notify_new_assignees(@task, new_ids)
-        redirect_path = if request.referer&.include?("tasks")
-          tasks_path_for(@task)
-        else
-          dashboard_index_path
-        end
-        format.html { redirect_to redirect_path, notice: "Task was successfully created." }
-        format.turbo_stream { flash.now[:notice] = "Task was successfully created." }
-      else
+    unless assignment_allowed?(@task, [], new_ids) && @task.save
+      return respond_to do |format|
         format.html { render :new, status: :unprocessable_entity }
         format.turbo_stream { render turbo_stream: turbo_stream.replace("new_task", partial: "tasks/form", locals: { task: @task }) }
       end
+    end
+
+    notify_new_assignees(@task, new_ids)
+    notice = "Task was successfully created."
+    redirect_path = request.referer&.include?("tasks") ? tasks_path_for(@task) : dashboard_index_path
+    # The apps' add-task sheet: close it and reload the screen beneath
+    return close_native_sheet(notice:) if from_native_sheet?
+
+    respond_to do |format|
+      format.html { redirect_to redirect_path, notice: }
+      format.turbo_stream { flash.now[:notice] = notice }
     end
   end
 
@@ -74,6 +76,8 @@ class TasksController < ApplicationController
 
     if saved
       notify_new_assignees(@task, new_ids - old_ids)
+      # The apps' edit sheet: close it and reload the screen beneath
+      return close_native_sheet(notice: "Task was successfully updated.") if from_native_sheet?
       redirect_to @return_to, notice: "Task was successfully updated."
     else
       @task.assignees.reset
@@ -236,8 +240,9 @@ class TasksController < ApplicationController
 
     if recurring.save
       recurring.instance_for
-      redirect_to workstream_path(recurring.workstream),
-                  notice: "“#{recurring.title}” repeats #{recurring.frequency_label.downcase}. This period's task is ready."
+      notice = "“#{recurring.title}” repeats #{recurring.frequency_label.downcase}. This period's task is ready."
+      return close_native_sheet(notice:) if from_native_sheet?
+      redirect_to workstream_path(recurring.workstream), notice:
     else
       recurring.errors.each do |error|
         @task.errors.add(:base, "#{RECURRING_ERROR_LABELS.fetch(error.attribute, error.attribute.to_s.humanize)} #{error.message}")
@@ -379,6 +384,20 @@ class TasksController < ApplicationController
   def assignee_ids_param
     ids = params.dig(:task, :assignee_ids)
     ids && Array(ids).compact_blank.map(&:to_i).uniq
+  end
+
+  # Submitted from one of the apps' form sheets (sheet_form_controller), which
+  # the app closes when told to refresh the screen beneath
+  def from_native_sheet?
+    hotwire_native_app? && params[:sheet].present?
+  end
+
+  # The app closes the sheet and refreshes the screen beneath, which shows the
+  # notice. (turbo-rails' refresh_or_redirect_to puts it in the URL instead,
+  # where nothing reads it.)
+  def close_native_sheet(notice:)
+    flash[:notice] = notice
+    redirect_to turbo_refresh_historical_location_url
   end
 
   def tasks_path_for(task)

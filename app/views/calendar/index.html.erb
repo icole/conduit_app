@@ -1,3 +1,4 @@
+<% content_for :title, "Calendar" %>
 <div>
   <% if flash[:open_event_modal].present? %>
     <div data-controller="calendar-modal" data-calendar-modal-event-id-value="<%= flash[:open_event_modal] %>"></div>
@@ -52,7 +53,9 @@
     <div class="space-y-6">
       <!-- Action Buttons -->
       <div class="mt-6 flex flex-wrap gap-2">
-        <%= link_to new_calendar_event_path, class: "btn btn-primary" do %>
+        <%# The apps' toolbar + adds the event instead %>
+        <%= link_to "New event", new_calendar_event_path, class: "hidden", data: { controller: "bridge--button", bridge_title: "New event", bridge_image: "plus" } %>
+        <%= link_to new_calendar_event_path, class: "btn btn-primary bridge-button:hidden" do %>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
           </svg>

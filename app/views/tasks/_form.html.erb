@@ -1,4 +1,4 @@
-<%= form_with(model: task, id: dom_id(task, "form"), data: { turbo: false, controller: "task-repeat" }) do |form| %>
+<%= form_with(model: task, id: dom_id(task, "form"), data: { turbo: false, controller: "task-repeat sheet-form" }) do |form| %>
   <% if task.errors.any? %>
     <div class="alert alert-error mb-4">
       <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -59,7 +59,7 @@
     </div>
   <% end %>
 
-  <div class="flex justify-end gap-2 mt-6">
+  <div class="flex justify-end gap-2 mt-6 <%= 'bridge-button:hidden' if action_name.in?(%w[new create]) %>">
     <% if task.persisted? %>
       <%= link_to "Cancel", dashboard_index_path, class: "btn btn-ghost" %>
     <% elsif action_name.in?(%w[new create]) %>
@@ -69,4 +69,8 @@
     <% end %>
     <%= form.submit task.persisted? ? "Update Task" : "Create Task", class: "btn btn-primary" %>
   </div>
+  <% if action_name.in?(%w[new create]) %>
+    <%# In the add-task sheet: swipe down to cancel; one full-width action %>
+    <%= form.submit "Add task", class: "btn btn-primary w-full h-12 mt-4 text-base hidden bridge-button:block" %>
+  <% end %>
 <% end %>

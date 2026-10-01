@@ -72,8 +72,8 @@
       </div>
 
       <div class="flex justify-end gap-3 mt-6">
-        <%= link_to "Cancel", calendar_index_path, class: "btn btn-ghost" %>
-        <%= form.submit(event.google_event_id ? "Update Event" : "Create Event", class: "btn btn-primary") %>
+        <%= link_to "Cancel", calendar_index_path, class: "btn btn-ghost bridge-button:hidden" %>
+        <%= form.submit(event.google_event_id ? "Update Event" : "Create Event", class: "btn btn-primary bridge-button:w-full bridge-button:h-12 bridge-button:text-base") %>
       </div>
     <% end %>
   </div>

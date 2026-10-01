@@ -52,7 +52,7 @@
   </div>
 
   <div class="flex justify-end gap-2 pt-2">
-    <%= link_to "Cancel", workstream_path(workstream), class: "btn btn-ghost" %>
-    <%= form.submit recurring_task.persisted? ? "Save recurring task" : "Add recurring task", class: "btn btn-primary" %>
+    <%= link_to "Cancel", workstream_path(workstream), class: "btn btn-ghost bridge-button:hidden" %>
+    <%= form.submit recurring_task.persisted? ? "Save recurring task" : "Add recurring task", class: "btn btn-primary bridge-button:w-full bridge-button:h-12 bridge-button:text-base" %>
   </div>
 <% end %>

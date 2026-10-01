@@ -1,9 +1,10 @@
 <% content_for :title, "New Task" %>
 
 <div class="max-w-2xl mx-auto">
-  <h1 class="text-xl sm:text-2xl font-bold mb-4">New task</h1>
-  <div class="card bg-base-100 border border-base-200">
-    <div class="card-body p-4 sm:p-6">
+  <h1 class="text-xl sm:text-2xl font-bold mb-4 native:text-lg native:font-semibold native:mb-2">New task</h1>
+  <%# In the apps the sheet is the card %>
+  <div class="card bg-base-100 border border-base-200 native:border-0 native:bg-transparent">
+    <div class="card-body p-4 sm:p-6 native:p-0">
       <%= turbo_frame_tag "new_task" do %>
         <%= render "tasks/form", task: @task %>
       <% end %>

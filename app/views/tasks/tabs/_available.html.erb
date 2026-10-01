@@ -1,13 +1,18 @@
-<p class="text-sm text-base-content/70 mb-4">Open work, <strong>essential first</strong>. Grab what you have capacity for.</p>
+<p class="text-sm text-base-content/70 mb-4 native:hidden">Open work, <strong>essential first</strong>. Grab what you have capacity for.</p>
 
 <% Workstream::PRIORITIES.each do |priority| %>
   <% tasks = @queue[priority] %>
   <% next if tasks.blank? %>
   <section data-priority-group="<%= priority %>" class="mb-6">
-    <div class="flex items-center gap-2 mb-2">
+    <div class="flex items-center gap-2 mb-2 native:hidden">
       <%= priority_badge(priority, size: "badge-md") %>
       <span class="text-sm text-base-content/65"><%= pluralize(tasks.size, "item") %></span>
     </div>
+    <%# In the apps: a quiet label like My Tasks', the dot carrying the colour %>
+    <h2 class="hidden native:flex items-center gap-1.5 mb-2 px-1 text-sm font-medium text-base-content/60">
+      <%= priority_dot(priority) %>
+      <span class="ml-1"><%= tasks.size %></span>
+    </h2>
     <div class="<%= task_list_classes(priority: priority) %>">
       <% tasks.each do |task| %>
         <%= render "tasks/work_card", task: task, action: :claim, return_tab: "available", show_priority: false %>

@@ -3,11 +3,17 @@
 <% link_data = { turbo_frame: "tasks_content" } %>
 <% link_data[:turbo_action] = "advance" unless hotwire_native_app? %>
 <nav aria-label="Task views" class="mb-4">
-  <div class="flex w-full sm:inline-flex sm:w-auto rounded-lg border border-base-300 p-0.5 bg-base-100">
+  <%# In the apps: a platform-style segmented control (grey track, raised white segment) %>
+  <div class="flex w-full sm:inline-flex sm:w-auto rounded-lg border border-base-300 p-0.5 bg-base-100 native:border-0 native:bg-base-200 native:p-1 native-plain">
     <% TasksController::TAB_LABELS.each do |tab, label| %>
       <% current = @tab == tab %>
+      <% look = if hotwire_native_app?
+           "inline-flex items-center justify-center rounded-md text-sm #{current ? 'bg-base-100 text-base-content shadow-sm font-semibold' : 'text-base-content/70 font-medium'}"
+         else
+           "btn btn-sm #{current ? 'btn-primary text-base-content' : 'btn-ghost'}"
+         end %>
       <%= link_to label, tasks_path(tab: tab),
-            class: "btn btn-sm h-8 min-h-0 flex-1 sm:flex-none px-1 sm:px-3 whitespace-nowrap #{current ? 'btn-primary text-base-content' : 'btn-ghost'}",
+            class: "#{look} h-8 min-h-0 flex-1 sm:flex-none px-1 sm:px-3 whitespace-nowrap",
             aria: { current: (current ? "page" : nil) },
             data: link_data %>
     <% end %>

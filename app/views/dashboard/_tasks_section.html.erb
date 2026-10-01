@@ -1,7 +1,12 @@
-<div class="bg-base-100 rounded-lg border border-base-200 overflow-hidden">
+<%# In the apps: the same rows as My Tasks %>
+<div class="<%= hotwire_native_app? ? task_list_classes : 'bg-base-100 rounded-lg border border-base-200 overflow-hidden' %>">
   <% if @tasks.any? %>
     <% @tasks.limit(5).each do |task| %>
-      <%= render "tasks/task", task: task %>
+      <% if hotwire_native_app? %>
+        <%= render "tasks/work_card", task: task, action: nil, return_tab: "my", return_to: root_path %>
+      <% else %>
+        <%= render "tasks/task", task: task %>
+      <% end %>
     <% end %>
   <% else %>
     <div class="text-center py-6 text-base-content/65">

@@ -1,4 +1,12 @@
 module ApplicationHelper
+  # The apps' segmented control: a grey track with the current segment raised
+  NATIVE_SEGMENT_TRACK = "flex w-full rounded-lg bg-base-200 p-1".freeze
+
+  def native_segment_classes(current)
+    "inline-flex flex-1 items-center justify-center gap-1 rounded-md text-sm h-8 px-2 whitespace-nowrap " +
+      (current ? "bg-base-100 text-base-content shadow-sm font-semibold" : "text-base-content/70 font-medium")
+  end
+
   include Heroicon::ApplicationHelper
   # Converts a string to title case, keeping small words lowercase
   # Example: "meeting with john and jane at the office" becomes "Meeting with John and Jane at the Office"

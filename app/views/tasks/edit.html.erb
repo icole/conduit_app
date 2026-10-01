@@ -1,7 +1,8 @@
 <% content_for :title, "Edit Task" %>
 
-<div class="container mx-auto max-w-4xl px-4 py-8">
-  <div class="card bg-base-100 shadow-xl">
+<%# In the apps this is a sheet: a title, the fields, one Save button %>
+<div class="container mx-auto max-w-4xl px-4 py-8 native:px-0 native:py-2">
+  <div class="card bg-base-100 shadow-xl native-flat">
     <div class="card-body">
       <% unless turbo_native_app? %>
         <div class="flex justify-between items-center mb-6">
@@ -16,9 +17,10 @@
           </div>
         </div>
       <% end %>
-      
-      <div class="card border border-base-300 rounded-lg p-4 mb-6">
-        <%= form_with(model: @task, url: task_path(@task), method: :patch, data: { turbo: false }) do |form| %>
+      <h1 class="hidden native:block text-lg font-semibold mb-2">Edit task</h1>
+
+      <div class="card border border-base-300 rounded-lg p-4 mb-6 native-flat native:p-0">
+        <%= form_with(model: @task, url: task_path(@task), method: :patch, data: { turbo: false, controller: "sheet-form" }) do |form| %>
           <% if @task.errors.any? %>
             <div class="alert alert-error mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -56,8 +58,8 @@
           </div>
 
           <div class="flex justify-end gap-2 mt-6">
-            <%= link_to "Cancel", @return_to, class: "btn btn-ghost" %>
-            <%= form.submit "Update Task", class: "btn btn-primary" %>
+            <%= link_to "Cancel", @return_to, class: "btn btn-ghost bridge-button:hidden" %>
+            <%= form.submit hotwire_native_app? ? "Save" : "Update Task", class: "btn btn-primary bridge-button:w-full bridge-button:h-12 bridge-button:text-base" %>
           </div>
           
           <%= hidden_field_tag :return_to, @return_to %>

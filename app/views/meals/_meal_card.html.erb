@@ -22,7 +22,7 @@
 %>
 
 <% if native_app %>
-  <%= link_to meal_path(meal), id: "meal_#{meal.id}", class: "block px-3 py-2.5 border-b border-base-200 hover:bg-base-200/50" do %>
+  <%= link_to meal_path(meal), id: "meal_#{meal.id}", class: "block px-4 py-3 border-b border-base-200 last:border-b-0 active:bg-base-200/60" do %>
     <div class="flex items-center gap-3">
       <div class="text-center min-w-10 <%= needs_cook ? 'text-warning-ink' : (is_today ? 'text-primary-ink' : '') %>">
         <div class="text-lg font-bold"><%= meal.scheduled_at.day %></div>
@@ -30,12 +30,12 @@
       </div>
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2">
-          <span class="font-medium text-sm">
+          <span class="font-medium">
             <% if is_today %>Today<% elsif is_tomorrow %>Tomorrow<% else %><%= meal.scheduled_at.strftime("%A") %><% end %>
           </span>
-          <span class="text-xs text-base-content/60"><%= meal.time_display %></span>
+          <span class="text-sm text-base-content/60"><%= meal.time_display %></span>
         </div>
-        <div class="text-xs text-base-content/60 mt-0.5 truncate">
+        <div class="text-sm text-base-content/60 mt-0.5 truncate">
           <% head_cook = meal.meal_cooks.find { |mc| mc.head_cook? } %>
           <% if head_cook %>
             Cook: <%= head_cook.user.name.split.first %>
@@ -49,20 +49,21 @@
       </div>
       <div class="flex flex-col items-end gap-0.5">
         <% if meal.cancelled? %>
-          <span class="badge badge-error badge-xs">Cancelled</span>
+          <span class="badge badge-sm border-0 font-medium bg-error/15 text-error-ink">Cancelled</span>
         <% elsif user_is_cook %>
-          <span class="badge badge-success badge-xs">Cooking</span>
+          <span class="badge badge-sm border-0 font-medium bg-success/15 text-success-ink">Cooking</span>
         <% elsif user_attending %>
-          <span class="badge badge-info badge-xs">Going</span>
+          <span class="badge badge-sm border-0 font-medium bg-info/15 text-info-ink">Going</span>
         <% elsif user_maybe %>
-          <span class="badge badge-warning badge-xs">Maybe</span>
+          <span class="badge badge-sm border-0 font-medium bg-warning/20 text-warning-ink">Maybe</span>
         <% elsif user_late_plate %>
-          <span class="badge badge-secondary badge-xs">Late Plate</span>
+          <span class="badge badge-sm border-0 font-medium bg-secondary/15 text-secondary-ink">Late Plate</span>
         <% elsif user_declined %>
-          <span class="badge badge-ghost badge-xs opacity-60">Declined</span>
+          <span class="badge badge-sm border-0 font-medium bg-base-200 text-base-content/60">Declined</span>
         <% end %>
+        <%# Head count, labelled so a bare number reads %>
         <span class="text-xs text-base-content/65">
-          <%= meal.total_attendees %><% if meal.guests_count > 0 %><span class="text-base-content/65"> (+<%= meal.guests_count %>)</span><% end %>
+          <%= meal.total_attendees %> going<% if meal.guests_count > 0 %><span class="text-base-content/65"> (+<%= meal.guests_count %>)</span><% end %>
         </span>
         <% if meal.late_plate_count > 0 %>
           <span class="badge badge-secondary badge-xs"><%= meal.late_plate_count %> late</span>

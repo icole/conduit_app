@@ -1,6 +1,9 @@
+<% content_for :title, "Meals" %>
 <div>
+  <%# The apps' toolbar +: a new meal opens as a sheet %>
+  <%= link_to "Add meal", new_meal_path, class: "hidden", data: { controller: "bridge--button", bridge_title: "Add meal", bridge_image: "plus" } %>
   <!-- Header Section -->
-  <div class="flex justify-between items-center gap-2 <%= hotwire_native_app? ? 'mb-2 px-1' : 'mb-4' %>">
+  <div class="bridge-button:hidden flex justify-between items-center gap-2 <%= hotwire_native_app? ? 'mb-2 px-1' : 'mb-4' %>">
     <h1 class="<%= hotwire_native_app? ? 'text-lg font-semibold' : 'text-xl sm:text-2xl font-bold' %>">Meals</h1>
     <div class="flex items-center gap-2">
       <% unless hotwire_native_app? %>
@@ -29,20 +32,17 @@
   <!-- Tab Navigation -->
   <% if hotwire_native_app? %>
     <div class="flex items-center gap-1 mb-4">
-      <div class="inline-flex rounded-lg border border-base-300 p-0.5 bg-base-100">
-        <%= link_to meals_path(view: "upcoming"),
-            class: "btn btn-sm h-8 min-h-0 px-3 #{@current_view == 'upcoming' ? 'btn-primary' : 'btn-ghost'}" do %>
+      <div class="<%= ApplicationHelper::NATIVE_SEGMENT_TRACK %>">
+        <%= link_to meals_path(view: "upcoming"), class: native_segment_classes(@current_view == "upcoming") do %>
           Upcoming
         <% end %>
-        <%= link_to meals_path(view: "needs_cooks"),
-            class: "btn btn-sm h-8 min-h-0 px-2 gap-1 #{@current_view == 'needs_cooks' ? 'btn-primary' : 'btn-ghost'}" do %>
+        <%= link_to meals_path(view: "needs_cooks"), class: native_segment_classes(@current_view == "needs_cooks") do %>
           <span>Need Cooks</span>
           <% if @needs_cooks_count > 0 %>
-            <span class="<%= @current_view == 'needs_cooks' ? 'badge badge-xs bg-white text-primary-ink border-0 font-semibold' : 'badge badge-xs badge-primary' %>"><%= @needs_cooks_count %></span>
+            <span class="badge badge-xs bg-warning/25 text-base-content border-0 font-semibold"><%= @needs_cooks_count %></span>
           <% end %>
         <% end %>
-        <%= link_to meals_path(view: "past"),
-            class: "btn btn-sm h-8 min-h-0 px-3 #{@current_view == 'past' ? 'btn-primary' : 'btn-ghost'}" do %>
+        <%= link_to meals_path(view: "past"), class: native_segment_classes(@current_view == "past") do %>
           Past
         <% end %>
       </div>
@@ -68,7 +68,7 @@
 
   <!-- Meal Cards Grid/List -->
   <%# In the apps each row draws its own bottom line, since older pages of past meals arrive nested in frames %>
-  <div class="<%= hotwire_native_app? ? 'bg-base-100 rounded-lg border border-b-0 border-base-200 overflow-hidden' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' %>">
+  <div class="<%= hotwire_native_app? ? 'bg-base-100 rounded-2xl shadow-sm overflow-hidden' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' %>">
     <% if @meals.present? %>
       <% if @current_view == "past" && @page > 1 %>
         <%= turbo_frame_tag "past_meals_page_#{@page}", class: "contents", target: "_top" do %>
