@@ -81,6 +81,6 @@ class RecurringTasksController < ApplicationController
   end
 
   def recurring_task_params
-    params.require(:recurring_task).permit(:title, :description, :frequency, :priority, :effort, :starts_on)
+    params.require(:recurring_task).permit(:title, :description, :frequency, :priority, :effort, :starts_on, :due_wday)
   end
 end

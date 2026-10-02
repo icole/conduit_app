@@ -488,6 +488,16 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to workstream_url(workstream)
   end
 
+  test "a new repeating task can fall due on any day of the week" do
+    sign_in_as_admin
+    get new_task_url
+    assert_select "select[name='task[due_wday]'] option", count: 7
+
+    post tasks_url, params: { task: { title: "Bins to the curb", workstream_id: workstreams(:garbage).id, repeats: "weekly",
+                                      effort: "Small", due_wday: 2 } }
+    assert_equal 2, RecurringTask.find_by!(title: "Bins to the curb").due_wday
+  end
+
   test "a repeating task needs an effort estimate" do
     sign_in_as_admin
     assert_no_difference([ "RecurringTask.count", "Task.count" ]) do

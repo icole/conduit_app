@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_29_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_02_165053) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -353,6 +353,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_000000) do
     t.datetime "discarded_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "due_wday", default: 0, null: false
     t.index ["community_id"], name: "index_recurring_tasks_on_community_id"
     t.index ["created_by_id"], name: "index_recurring_tasks_on_created_by_id"
     t.index ["discarded_at"], name: "index_recurring_tasks_on_discarded_at"

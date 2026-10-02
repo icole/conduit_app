@@ -74,6 +74,11 @@ module TasksHelper
     include_inherit ? [ [ "Same as workstream", "" ] ] + options : options
   end
 
+  # Monday first, as people read a week; values are Date#wday (0 = Sunday)
+  def due_weekday_options
+    (1..7).map { |n| [ Date::DAYNAMES[n % 7], n % 7 ] }
+  end
+
   # 585 -> "9.8 hrs"
   def hours(minutes)
     format("%.1f hrs", minutes / 60.0)

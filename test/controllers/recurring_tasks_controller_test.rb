@@ -9,6 +9,17 @@ class RecurringTasksControllerTest < ActionDispatch::IntegrationTest
     @workstream = workstreams(:common_house)
   end
 
+  test "the due day of a weekly task can be changed" do
+    sign_in users(:one) # owns Garbage & Recycling
+    recurring = recurring_tasks(:garbage_night)
+    get edit_workstream_recurring_task_url(workstreams(:garbage), recurring)
+    assert_select "select[name='recurring_task[due_wday]'] option", count: 7
+    assert_select "select[name='recurring_task[due_wday]'] option[selected]", text: "Sunday"
+
+    patch workstream_recurring_task_url(workstreams(:garbage), recurring), params: { recurring_task: { due_wday: 2 } }
+    assert_equal 2, recurring.reload.due_wday
+  end
+
   test "a workstream's owners edit and remove its recurring tasks" do
     sign_in users(:one) # owns Garbage & Recycling
     recurring = recurring_tasks(:garbage_night)

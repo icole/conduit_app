@@ -27,9 +27,13 @@ class RecurringTask < ApplicationRecord
   validates :frequency, inclusion: { in: FREQUENCIES.keys }
   validates :priority, inclusion: { in: Workstream::PRIORITIES }, allow_nil: true
   validates :estimated_minutes, presence: true, numericality: { only_integer: true, greater_than: 0 }
+  # Weekly and every-two-weeks tasks fall due on this day (Date#wday, 0 = Sunday)
+  validates :due_wday, inclusion: { in: 0..6 }
 
   before_validation { self.starts_on ||= Date.current }
   before_validation { self.priority = nil if priority.blank? }
+
+  after_update :move_current_instance, if: :saved_change_to_due_wday?
 
   # Admins, the workstream's owners, and whoever set it up can change it.
   def manageable_by?(user) = user.admin? || workstream.owned_by?(user) || created_by_id == user.id
@@ -88,16 +92,36 @@ class RecurringTask < ApplicationRecord
       start = starts_on >> (12 * (years - 1)) if start > date
       start..((start >> 12) - 1)
     when "biweekly"
-      anchor = starts_on.beginning_of_week
-      offset = ((date.beginning_of_week - anchor).to_i / 7).floor
+      # Two of those weeks, keeping the rhythm set by starts_on
+      anchor = week_start(starts_on)
+      offset = (week_start(date) - anchor).to_i / 7
       start = anchor + (offset - offset % 2).weeks
       start..(start + 13.days)
     else
-      date.beginning_of_week..date.end_of_week
+      week_start(date)..(week_start(date) + 6.days)
     end
   end
 
   private
+
+  # A week runs from the day after the due day to the due day: Monday to
+  # Sunday by default.
+  def week_start(date)
+    first_wday = (due_wday + 1) % 7
+    date - ((date.wday - first_wday) % 7)
+  end
+
+  # A new due day moves this period's open task with it, rather than leaving it
+  # on the old day and adding another task for the new period.
+  def move_current_instance
+    return unless frequency.in?(%w[weekly biweekly])
+
+    period = period_for(Date.current)
+    current = instances.open.where(due_date: Date.current..).order(:due_date).first
+    return if current.nil? || instances.with_discarded.where(period_start: period.begin).where.not(id: current.id).exists?
+
+    current.update!(period_start: period.begin, due_date: period.end)
+  end
 
   # The period's instance, deleted or not; nil when it was deleted.
   def existing_instance(period)

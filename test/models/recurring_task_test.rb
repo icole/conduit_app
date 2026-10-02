@@ -46,6 +46,41 @@ class RecurringTaskTest < ActiveSupport::TestCase
     assert_equal Date.new(2026, 2, 16)..Date.new(2026, 3, 1), @recurring.period_for(Date.new(2026, 2, 20))
   end
 
+  test "a weekly task can fall due on another day: its week ends on that day" do
+    @recurring.frequency = "weekly"
+    @recurring.due_wday = 2 # Tuesday
+    assert_equal Date.new(2026, 3, 4)..Date.new(2026, 3, 10), @recurring.period_for(Date.new(2026, 3, 5)) # Wed..Tue
+    assert_equal Date.new(2026, 2, 25)..Date.new(2026, 3, 3), @recurring.period_for(Date.new(2026, 3, 3)) # due day itself
+    assert_equal Date.new(2026, 3, 10), @recurring.instance_for(Date.new(2026, 3, 5)).due_date
+  end
+
+  test "an every-two-weeks task can fall due on another day, keeping its rhythm from starts_on" do
+    @recurring.frequency = "biweekly"
+    @recurring.starts_on = Date.new(2026, 3, 4) # a Wednesday
+    @recurring.due_wday = 2
+    assert_equal Date.new(2026, 3, 4)..Date.new(2026, 3, 17), @recurring.period_for(Date.new(2026, 3, 12))
+    assert_equal Date.new(2026, 3, 18)..Date.new(2026, 3, 31), @recurring.period_for(Date.new(2026, 3, 18))
+  end
+
+  test "changing the due day moves this period's open task instead of adding another" do
+    travel_to Date.new(2026, 3, 5) do # Thursday
+      current = @recurring.instance_for(Date.current)
+      assert_equal Date.new(2026, 3, 8), current.due_date
+
+      assert_no_difference("Task.count") do
+        @recurring.update!(due_wday: 2)
+        assert_equal current, @recurring.instance_for(Date.current)
+      end
+      assert_equal Date.new(2026, 3, 10), current.reload.due_date
+      assert_equal Date.new(2026, 3, 4), current.period_start
+    end
+  end
+
+  test "the due day is a day of the week" do
+    @recurring.due_wday = 7
+    assert_not @recurring.valid?
+  end
+
   test "monthly periods are calendar months" do
     @recurring.frequency = "monthly"
     assert_equal Date.new(2026, 2, 1)..Date.new(2026, 2, 28), @recurring.period_for(Date.new(2026, 2, 14))

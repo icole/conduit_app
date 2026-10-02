@@ -232,6 +232,7 @@ class TasksController < ApplicationController
       description: task_params[:description],
       workstream_id: task_params[:workstream_id],
       frequency: @repeats,
+      due_wday: params[:task][:due_wday].presence || 0,
       priority: params[:task][:priority],
       effort: task_params[:effort],
       responsibles: User.where(id: responsible_ids),

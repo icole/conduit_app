@@ -26,10 +26,16 @@
     <p class="text-xs text-base-content/70 -mt-2">Each period's task goes to everyone picked. Anyone can drop out of a single period if they're away.</p>
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-controller="due-weekday">
     <div class="form-control">
       <%= form.label :frequency, class: "label" %>
-      <%= form.select :frequency, RecurringTask::FREQUENCIES.map { |value, label| [ label, value ] }, {}, class: "select select-bordered w-full" %>
+      <%= form.select :frequency, RecurringTask::FREQUENCIES.map { |value, label| [ label, value ] }, {}, class: "select select-bordered w-full",
+            data: { due_weekday_target: "frequency", action: "change->due-weekday#toggle" } %>
+    </div>
+
+    <div class="form-control" data-due-weekday-target="field">
+      <%= form.label :due_wday, "Due on", class: "label" %>
+      <%= form.select :due_wday, due_weekday_options, {}, class: "select select-bordered w-full" %>
     </div>
 
     <div class="form-control">
