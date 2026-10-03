@@ -48,6 +48,13 @@ class MealCookStats
     (cooks.size * weeks_so_far / meals_with_a_cook).round
   end
 
+  # When someone counts as resting: half the usual gap between turns, so a cook
+  # from a week or two ago isn't on the list; 4 weeks before there's a pace
+  def rest_weeks
+    every = weeks_between_turns
+    every ? (every / 2.0).ceil : 4
+  end
+
   # How many meals a typical cook has cooked this year
   def typical_turns_this_year
     cooks.any? ? (meals_with_a_cook.to_f / cooks.size).round : 0
@@ -59,10 +66,11 @@ class MealCookStats
       .includes(:rich_text_menu, meal_cooks: :user).order(scheduled_at: :desc).limit(limit).to_a
   end
 
-  # For whoever asks people to cook: past cooks with nothing coming up, the
-  # longest since their turn first
-  def resting_cooks
-    last_by_user = held_cooking.where.not(user_id: upcoming_cooking.select(:user_id)).group(:user_id).maximum("meals.scheduled_at")
+  # For whoever asks people to cook: past cooks with nothing coming up whose
+  # last turn was at least +at_least+ ago, the longest since their turn first
+  def resting_cooks(at_least: rest_weeks.weeks)
+    last_by_user = held_cooking.where.not(user_id: upcoming_cooking.select(:user_id))
+      .group(:user_id).having("MAX(meals.scheduled_at) <= ?", Time.current - at_least).maximum("meals.scheduled_at")
     counts = held_cooking.group(:user_id).count
     users = User.where(id: last_by_user.keys).index_by(&:id)
     last_by_user.sort_by { |_, at| at }.map { |id, at| Resting.new(users[id], local_date(at), counts[id]) }

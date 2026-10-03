@@ -52,7 +52,7 @@ class MealCookStatsTest < ActiveSupport::TestCase
     meal Time.zone.local(2027, 2, 7), cook: users(:five)
     meal Time.zone.local(2027, 7, 4), cook: users(:five), status: "upcoming"
 
-    resting = MealCookStats.new.resting_cooks
+    resting = MealCookStats.new.resting_cooks(at_least: 4.weeks)
     ours = resting.map(&:user) & [ users(:three), users(:four), users(:five) ] # the fixtures' cooks are in there too
     assert_equal [ users(:three), users(:four) ], ours
     assert_not_includes resting.map(&:user), users(:five), "already signed up"
@@ -85,5 +85,25 @@ class MealCookStatsTest < ActiveSupport::TestCase
 
   test "no pace yet with nothing cooked this year" do
     assert_nil MealCookStats.new.weeks_between_turns
+  end
+
+  test "someone who cooked recently isn't listed as resting, however they're signed up" do
+    meal Time.zone.local(2027, 1, 3), cook: users(:three)  # 23 weeks ago
+    meal Time.zone.local(2027, 6, 6), cook: users(:four)   # last week
+
+    resting = MealCookStats.new.resting_cooks(at_least: 4.weeks).map(&:user)
+    assert_includes resting, users(:three)
+    assert_not_includes resting, users(:four)
+  end
+
+  test "resting means at least half the usual gap between turns, or 4 weeks before there's a pace" do
+    assert_equal 4, MealCookStats.new.rest_weeks
+
+    # A turn every 12 weeks (see above), so resting starts at 6
+    meal Time.zone.local(2027, 1, 3), cook: users(:three)
+    meal Time.zone.local(2027, 2, 14), cook: users(:four)
+    meal Time.zone.local(2027, 4, 4), cook: users(:three)
+    meal Time.zone.local(2027, 5, 16), cook: users(:four)
+    assert_equal 6, MealCookStats.new.rest_weeks
   end
 end

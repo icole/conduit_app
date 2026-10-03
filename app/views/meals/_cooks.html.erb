@@ -102,7 +102,7 @@
     <%# For whoever asks people to cook; deliberately not shown to everyone %>
     <section id="resting-cooks">
       <h2 class="<%= heading %>">Haven't had a turn in a while</h2>
-      <p class="text-xs text-base-content/60 mb-2 px-1">Only admins see this: people who've cooked before and aren't signed up now, longest first.</p>
+      <p class="text-xs text-base-content/60 mb-2 px-1">Only admins see this: people who've cooked before, last cooked over <%= pluralize(stats.rest_weeks, "week") %> ago (half the usual gap between turns), and aren't signed up now. Longest first.</p>
       <% resting = stats.resting_cooks %>
       <% if resting.any? %>
         <div class="bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200 overflow-hidden">
