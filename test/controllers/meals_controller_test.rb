@@ -21,10 +21,10 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
     assert_includes assigns(:meals), @meal
   end
 
-  test "should get index with needs_cooks view" do
+  test "the old needs_cooks view lands on Cooks, which lists the meals needing a cook" do
     get meals_url(view: "needs_cooks")
     assert_response :success
-    assert_includes assigns(:meals), @needs_cook_meal
+    assert_select "#open-meals a[href='#{meal_path(@needs_cook_meal)}']"
   end
 
   test "should get index with past view" do

@@ -11,8 +11,14 @@ class MealsNativeTest < ActionDispatch::IntegrationTest
 
   test "tabs switch inside the frame without proposing a native visit" do
     get meals_url, headers: NATIVE
-    assert_select "nav[aria-label='Meal views'] a[data-turbo-frame='meals_content']", count: 4
+    assert_select "nav[aria-label='Meal views'] a[data-turbo-frame='meals_content']", count: 3
     assert_select "nav[aria-label='Meal views'] a[data-turbo-action]", count: 0
+  end
+
+  test "meals still needing a cook are on Cooks, which shows how many; old Need Cooks links land there" do
+    get meals_url(view: "needs_cooks"), headers: NATIVE
+    assert_select "nav[aria-label='Meal views'] a[aria-current='page']", text: /Cooks\s*#{Meal.needs_cooks.length}/
+    assert_select "nav[aria-label='Meal views'] a", text: /Need/, count: 0
   end
 
   test "a meal in the list opens as its own screen, not inside the frame" do
@@ -28,7 +34,7 @@ class MealsNativeTest < ActionDispatch::IntegrationTest
 
   test "the web keeps the tab in the address instead" do
     get meals_url(view: "past")
-    assert_select "nav[aria-label='Meal views'] a[data-turbo-frame='meals_content'][data-turbo-action='advance']", count: 4
+    assert_select "nav[aria-label='Meal views'] a[data-turbo-frame='meals_content'][data-turbo-action='advance']", count: 3
 
     get meals_url
     assert_select "nav[aria-label='Meal views'] a[aria-current='page']", text: "Upcoming"

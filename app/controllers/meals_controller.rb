@@ -13,11 +13,13 @@ class MealsController < ApplicationController
   helper_method :meals_back_path
 
   PAST_PAGE_SIZE = 20
-  VIEWS = %w[upcoming needs_cooks past cooks].freeze
+  VIEWS = %w[upcoming past cooks].freeze
+  # Old names still land on their tab (links, bookmarks, a tab the apps remembered)
+  VIEW_ALIASES = { "needs_cooks" => "cooks" }.freeze
 
   def index
     session[:meals_view] = "list"
-    @current_view = params[:view].presence_in(VIEWS) || remembered_view || "upcoming"
+    @current_view = view_named(params[:view]) || remembered_view || "upcoming"
     session[:meals_tab] = @current_view if hotwire_native_app?
     @needs_cooks_count = Meal.needs_cooks.length
 
@@ -30,8 +32,6 @@ class MealsController < ApplicationController
       meals = Meal.past.with_card_associations.offset((@page - 1) * PAST_PAGE_SIZE).limit(PAST_PAGE_SIZE + 1).to_a
       @more_past_meals = meals.size > PAST_PAGE_SIZE
       @meals = meals.first(PAST_PAGE_SIZE)
-    when "needs_cooks"
-      @meals = Meal.needs_cooks.with_card_associations
     when "cooks"
       @cook_stats = MealCookStats.new(current_community)
     end
@@ -279,7 +279,11 @@ class MealsController < ApplicationController
   # The apps reopen /meals on pull-to-refresh, so they come back to the last tab;
   # the website keeps the tab in the address instead
   def remembered_view
-    session[:meals_tab].presence_in(VIEWS) if hotwire_native_app?
+    view_named(session[:meals_tab]) if hotwire_native_app?
+  end
+
+  def view_named(name)
+    VIEW_ALIASES.fetch(name.to_s, name).presence_in(VIEWS)
   end
 
   def set_meal

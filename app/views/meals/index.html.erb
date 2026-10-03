@@ -42,17 +42,15 @@
         <%= link_to meals_path(view: "upcoming"), class: native_segment_classes(@current_view == "upcoming"), data: tab_data, aria: { current: ("page" if @current_view == "upcoming") } do %>
           Upcoming
         <% end %>
-        <%= link_to meals_path(view: "needs_cooks"), class: native_segment_classes(@current_view == "needs_cooks"), data: tab_data, aria: { current: ("page" if @current_view == "needs_cooks") } do %>
-          <span>Need Cooks</span>
-          <% if @needs_cooks_count > 0 %>
-            <span class="badge badge-xs bg-warning/25 text-base-content border-0 font-semibold"><%= @needs_cooks_count %></span>
-          <% end %>
-        <% end %>
         <%= link_to meals_path(view: "past"), class: native_segment_classes(@current_view == "past"), data: tab_data, aria: { current: ("page" if @current_view == "past") } do %>
           Past
         <% end %>
+        <%# Cooks leads with the meals that still need one; the badge says how many %>
         <%= link_to meals_path(view: "cooks"), class: native_segment_classes(@current_view == "cooks"), data: tab_data, aria: { current: ("page" if @current_view == "cooks") } do %>
-          Cooks
+          <span>Cooks</span>
+          <% if @needs_cooks_count > 0 %>
+            <span class="badge badge-xs bg-warning/25 text-base-content border-0 font-semibold"><%= @needs_cooks_count %></span>
+          <% end %>
         <% end %>
       </div>
     </nav>
@@ -63,17 +61,13 @@
             class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'upcoming'}", data: tab_data, aria: { current: ("page" if @current_view == "upcoming") } do %>
           Upcoming
         <% end %>
-        <%= link_to meals_path(view: "needs_cooks"),
-            class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'needs_cooks'}", data: tab_data, aria: { current: ("page" if @current_view == "needs_cooks") } do %>
-          Needs Cooks (<%= @needs_cooks_count %>)
-        <% end %>
         <%= link_to meals_path(view: "past"),
             class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'past'}", data: tab_data, aria: { current: ("page" if @current_view == "past") } do %>
           Past Meals
         <% end %>
         <%= link_to meals_path(view: "cooks"),
             class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'cooks'}", data: tab_data, aria: { current: ("page" if @current_view == "cooks") } do %>
-          Cooks
+          Cooks<%= " (#{@needs_cooks_count})" if @needs_cooks_count > 0 %>
         <% end %>
       </div>
     </nav>
@@ -98,9 +92,7 @@
         <div class="text-6xl mb-4">🍽️</div>
         <h3 class="text-xl font-medium mb-2">No meals found</h3>
         <p class="text-base-content/70">
-          <% if @current_view == "needs_cooks" %>
-            All upcoming meals have cooks assigned!
-          <% elsif @current_view == "past" %>
+          <% if @current_view == "past" %>
             No past meals to display.
           <% else %>
             No upcoming meals scheduled.
