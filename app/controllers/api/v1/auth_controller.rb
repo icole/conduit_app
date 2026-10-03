@@ -6,11 +6,11 @@ module Api
       skip_before_action :verify_authenticity_token
       skip_before_action :authenticate_user!
       skip_before_action :set_tenant_from_domain
-      before_action :set_tenant_from_jwt, only: [ :stream_token, :check, :logout, :establish_session ]
-      before_action :authenticate_api_user!, only: [ :stream_token, :check, :logout, :establish_session ]
+      before_action :set_tenant_from_jwt, only: [ :stream_token, :check, :logout, :establish_session, :session_exchange ]
+      before_action :authenticate_api_user!, only: [ :stream_token, :check, :logout, :establish_session, :session_exchange ]
       # Tenant comes from the JWT above, so the suspension check must run after it.
       # Logout stays allowed so a suspended member can still revoke their token.
-      before_action :enforce_community_status, only: [ :stream_token, :check, :establish_session ]
+      before_action :enforce_community_status, only: [ :stream_token, :check, :establish_session, :session_exchange ]
 
       # POST /api/v1/login
       def login
@@ -165,6 +165,14 @@ module Api
         end
       end
 
+      # POST /api/v1/session_exchange
+      # A one-time code, good for a minute, for signing a web view in through
+      # /auth_login without putting the 30-day API token in the URL (CON-54)
+      def session_exchange
+        render json: { token: JwtService.generate_session_exchange_token(@current_user),
+                       expires_in: JwtService::SESSION_EXCHANGE_TTL.to_i }
+      end
+
       # GET /api/v1/stream_token
       def stream_token
         unless StreamChatClient.configured?
@@ -194,8 +202,8 @@ module Api
           # Ensure user is in default channels
           StreamChannelService.ensure_user_in_default_channels(@current_user)
 
-          # Generate token
-          token = StreamChatClient.client.create_token(@current_user.id.to_s)
+          # Expiring only for app versions that can fetch a new one (CON-80)
+          token = StreamChatClient.token_for(@current_user.id, expiring: params[:expiring].present?)
 
           render json: {
             token: token,

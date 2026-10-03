@@ -42,12 +42,17 @@ class Community < ApplicationRecord
     CommunityMailer.approved(self).deliver_later
   end
 
-  # Members can no longer use the app; existing mobile sessions end immediately.
+  # Members can no longer use the app: existing mobile sessions end
+  # immediately, and so do the chat tokens they've already been given.
   def suspend!
-    transaction do
+    member_ids = transaction do
       update!(status: "suspended")
-      ActsAsTenant.with_tenant(self) { User.find_each(&:revoke_mobile_tokens!) }
+      ActsAsTenant.with_tenant(self) do
+        User.find_each(&:revoke_mobile_tokens!)
+        User.pluck(:id)
+      end
     end
+    StreamTokenRevocationJob.perform_later(member_ids, Time.current)
   end
 
   # Per-community feature flags for the metered third-party features. Off by

@@ -67,7 +67,7 @@ class ChatController < ApplicationController
     respond_to do |format|
       format.json do
         render json: {
-          token: generate_stream_token(user),
+          token: generate_stream_token(user, expiring: params[:expiring].present?),
           user: {
             id: user.id.to_s,
             name: user.name,
@@ -80,7 +80,7 @@ class ChatController < ApplicationController
       end
       format.any do
         render json: {
-          token: generate_stream_token(user),
+          token: generate_stream_token(user, expiring: params[:expiring].present?),
           user: {
             id: user.id.to_s,
             name: user.name,
@@ -285,7 +285,9 @@ class ChatController < ApplicationController
     redirect_to root_path, alert: message
   end
 
-  def generate_stream_token(user = nil)
+  # Expiring by default; apps installed before they could fetch a new token
+  # get the lasting kind unless they ask (CON-80)
+  def generate_stream_token(user = nil, expiring: true)
     user ||= current_user
     user.record_chat_access!
     # Sync user to Stream first
@@ -294,8 +296,7 @@ class ChatController < ApplicationController
     # Ensure user is in default channels
     StreamChannelService.ensure_user_in_default_channels(user)
 
-    # Generate token
-    StreamChatClient.client.create_token(user.id.to_s)
+    StreamChatClient.token_for(user.id, expiring: expiring)
   end
 
   def sync_user_to_stream(user = nil)

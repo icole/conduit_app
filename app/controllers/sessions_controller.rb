@@ -147,9 +147,13 @@ class SessionsController < ApplicationController
     set_current_tenant(community) if community
   end
 
+  # A one-time code from /api/v1/session_exchange (CON-54), or, from app
+  # versions before it, the app's own API token. Drop the fallback once those
+  # versions are gone.
   def verify_auth_token(token)
-    # Use JwtService to verify the token (same as in API controller)
-    JwtService.verify_auth_token(token)
+    JwtService.redeem_session_exchange_token(token) || JwtService.verify_auth_token(token)&.tap do |user|
+      Rails.logger.info "auth_login with an app's API token (pre-exchange app version), user #{user.id}"
+    end
   end
 
   def link_google_to_existing_account(auth)

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   Chat,
@@ -376,9 +376,28 @@ const ChatApp = ({ apiKey, userToken, userData, isAdmin }) => {
   const [channelListKey, setChannelListKey] = useState(0);
   const [initError, setInitError] = useState(null);
 
+  // Chat tokens expire (CON-80). The page's token connects us; after that,
+  // Stream calls this again for a fresh one whenever it runs out.
+  const tokenProvider = useMemo(() => {
+    let pageToken = userToken;
+    return async () => {
+      if (pageToken) {
+        const token = pageToken;
+        pageToken = null;
+        return token;
+      }
+      const response = await fetch('/chat/token.json?expiring=1', {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
+      if (!response.ok) throw new Error(`Couldn't refresh the chat token (${response.status})`);
+      return (await response.json()).token;
+    };
+  }, [userToken]);
+
   const client = useCreateChatClient({
     apiKey,
-    tokenOrProvider: userToken,
+    tokenOrProvider: tokenProvider,
     userData: {
       id: userData.id,
       name: userData.name,

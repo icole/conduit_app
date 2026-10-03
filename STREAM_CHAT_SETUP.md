@@ -148,3 +148,30 @@ bin/rails stream:setup_channels
 ---
 
 Your HOA chat system is ready to go! Just add your Stream credentials and you'll have a private, secure messaging platform that replaces those messy SMS group texts.
+## Permissions and tokens (checked 2026-10-03)
+
+Production uses multi-tenant Stream Teams: each community is a team, and
+channels are type `team`.
+
+**Creating channels:** server-side only (`POST /chat/channels`). The `user`
+role has no `CreateChannel` grant on `team` channels. A real client-side
+attempt with a member's token gets a 403 ("not allowed to perform action
+CreateChannel in scope 'team'"). Because of that, the `Webhooks::StreamController`
+cleanup of client-created channels isn't needed, and no webhook is registered
+in the Stream app; registering one would post every chat event to the server.
+
+**`team` channel grants for the `user` role** (abridged): read channels and
+their members, join (`add-own-channel-membership`, which the apps use when
+someone taps a channel they're not in), send messages, attachments, reactions
+and replies, and `*-owner` rights on things they own. That includes
+`update-channel-owner`, `delete-channel-owner`, `truncate-channel-owner` and
+`update-channel-members-owner` for channels they created. `channel_member`
+adds full messaging, flagging, muting and leaving.
+
+**Tokens (CON-80):** `StreamChatClient.token_for` mints them. The web chat's
+tokens expire after `StreamChatClient::TOKEN_TTL` (1 hour) and its token
+provider refetches from `/chat/token.json?expiring=1`. The apps get expiring
+tokens when they pass `expiring=1`; versions from before that get
+non-expiring ones. Suspending a community revokes its members' tokens
+(`StreamTokenRevocationJob`). Deleting an account deactivates the Stream user
+and revokes their tokens (`StreamUserRemovalJob`).

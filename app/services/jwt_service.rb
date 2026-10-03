@@ -7,6 +7,9 @@ class JwtService
   # Token expires in 30 days by default
   DEFAULT_EXPIRY = 30.days
 
+  # How long a one-time web sign-in code lasts (CON-54)
+  SESSION_EXCHANGE_TTL = 60.seconds
+
   class << self
     def encode(payload, expiry = DEFAULT_EXPIRY)
       # Add expiration to payload
@@ -53,6 +56,29 @@ class JwtService
         token_version: user.token_version
       }
       encode(payload)
+    end
+
+    # A one-time code, good for SESSION_EXCHANGE_TTL, that signs a web view
+    # in through /auth_login so the 30-day API token never goes in a URL
+    # (CON-54). Its id is held in the cache until it's redeemed.
+    def generate_session_exchange_token(user)
+      jti = SecureRandom.uuid
+      Rails.cache.write(session_exchange_key(jti), true, expires_in: SESSION_EXCHANGE_TTL)
+      encode({ type: "session_exchange", user_id: user.id, community_id: user.community_id,
+               token_version: user.token_version, jti: jti }, SESSION_EXCHANGE_TTL)
+    end
+
+    # The user for a one-time code, which is used up by redeeming it. nil for
+    # anything else: an expired, reused or tampered code, or another token type.
+    def redeem_session_exchange_token(token)
+      decoded = decode(token)
+      return nil unless decoded && decoded[:type] == "session_exchange" && decoded[:jti].present?
+
+      key = session_exchange_key(decoded[:jti])
+      return nil unless Rails.cache.read(key)
+
+      Rails.cache.delete(key)
+      user_for_auth_claims(decoded)
     end
 
     def verify_auth_token(token)
@@ -133,5 +159,9 @@ class JwtService
       Rails.logger.error "Password reset token verification error: #{e.message}"
       nil
     end
+
+    private
+
+    def session_exchange_key(jti) = "session_exchange:#{jti}"
   end
 end
