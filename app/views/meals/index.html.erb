@@ -51,6 +51,9 @@
         <%= link_to meals_path(view: "past"), class: native_segment_classes(@current_view == "past"), data: tab_data, aria: { current: ("page" if @current_view == "past") } do %>
           Past
         <% end %>
+        <%= link_to meals_path(view: "cooks"), class: native_segment_classes(@current_view == "cooks"), data: tab_data, aria: { current: ("page" if @current_view == "cooks") } do %>
+          Cooks
+        <% end %>
       </div>
     </nav>
   <% else %>
@@ -68,10 +71,17 @@
             class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'past'}", data: tab_data, aria: { current: ("page" if @current_view == "past") } do %>
           Past Meals
         <% end %>
+        <%= link_to meals_path(view: "cooks"),
+            class: "tab flex-nowrap whitespace-nowrap #{'tab-active' if @current_view == 'cooks'}", data: tab_data, aria: { current: ("page" if @current_view == "cooks") } do %>
+          Cooks
+        <% end %>
       </div>
     </nav>
   <% end %>
 
+  <% if @current_view == "cooks" %>
+    <%= render "meals/cooks", stats: @cook_stats %>
+  <% else %>
   <!-- Meal Cards Grid/List -->
   <%# In the apps each row draws its own bottom line, since older pages of past meals arrive nested in frames %>
   <div class="<%= hotwire_native_app? ? 'bg-base-100 rounded-2xl shadow-sm overflow-hidden' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' %>">
@@ -99,5 +109,6 @@
       </div>
     <% end %>
   </div>
+  <% end %>
   <% end %>
 </div>

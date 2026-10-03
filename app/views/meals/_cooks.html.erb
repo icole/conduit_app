@@ -1,0 +1,89 @@
+<%# The Cooks tab: where a cook is still needed, how shared meals are going, and
+    thanks. Never a ranking: the only count next to a name is your own. %>
+<% heading = "font-semibold mb-2 native:text-sm native:font-medium native:text-base-content/60 native:px-1" %>
+<% open_meals = stats.open_meals %>
+<% mine = stats.for(current_user) %>
+<div class="max-w-2xl space-y-6">
+  <section id="open-meals">
+    <h2 class="<%= heading %>">Still needs a cook</h2>
+    <% if open_meals.any? %>
+      <div class="bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200 overflow-hidden">
+        <% open_meals.each do |meal| %>
+          <% day = meal.scheduled_at.strftime("%A, %b %-d") %>
+          <div class="flex items-center justify-between gap-3 px-4 py-3">
+            <%= link_to meal_path(meal), class: "min-w-0" do %>
+              <p class="font-medium"><%= day %></p>
+              <p class="text-sm text-base-content/60 truncate"><%= meal.time_display %> · <%= meal.title %></p>
+            <% end %>
+            <%= button_to "I'll cook", volunteer_cook_meal_path(meal, role: "head_cook"),
+                  class: "btn btn-primary btn-sm whitespace-nowrap native:bg-primary/15 native:border-0 native:text-primary-ink",
+                  form: { data: { turbo_confirm: "Sign up to cook #{day}?" } } %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-sm text-base-content/70 px-1">Every upcoming meal has a cook. Thank you!</p>
+    <% end %>
+  </section>
+
+  <section id="cooking-this-year">
+    <h2 class="<%= heading %>">In <%= stats.year %></h2>
+    <div class="grid grid-cols-3 gap-3">
+      <% [ [ stats.meals_shared, "meals shared" ], [ stats.meals_with_a_cook, "had a cook" ], [ stats.cooks.size, stats.cooks.one? ? "person cooked" : "people cooked" ] ].each do |number, label| %>
+        <div class="bg-base-100 rounded-lg border border-base-200 px-3 py-3 text-center">
+          <p class="text-2xl font-bold"><%= number %></p>
+          <p class="text-xs text-base-content/70"><%= label %></p>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <section id="my-cooking" class="text-sm text-base-content/80 px-1">
+    <% if mine.count.positive? %>
+      You've cooked <%= pluralize(mine.count, "meal") %>, most recently <%= mine.last_on.strftime("%b %-d") %>.
+    <% else %>
+      You haven't cooked a meal yet. Whenever you'd like to, pick one above.
+    <% end %>
+    <% if mine.next_on %>
+      Next: <%= mine.next_on.strftime("%A, %b %-d") %>.
+    <% end %>
+  </section>
+
+  <section id="cooks-thanks">
+    <h2 class="<%= heading %>">Thanks to this year's cooks</h2>
+    <% if stats.cooks.any? %>
+      <ul class="flex flex-wrap gap-2">
+        <% stats.cooks.each do |cook| %>
+          <li class="inline-flex items-center gap-2 rounded-full bg-base-100 border border-base-200 pl-1 pr-3 py-1 text-sm">
+            <%= user_avatar(cook, size: "w-6", text: "text-[0.6rem]") %>
+            <%= cook.name %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-sm text-base-content/70 px-1">No meals cooked yet this year.</p>
+    <% end %>
+  </section>
+
+  <% if current_user.admin? %>
+    <%# For whoever asks people to cook; deliberately not shown to everyone %>
+    <section id="resting-cooks">
+      <h2 class="<%= heading %>">Haven't had a turn in a while</h2>
+      <p class="text-xs text-base-content/60 mb-2 px-1">Only admins see this: people who've cooked before and aren't signed up now, longest first.</p>
+      <% resting = stats.resting_cooks %>
+      <% if resting.any? %>
+        <div class="bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200 overflow-hidden">
+          <% resting.each do |row| %>
+            <div class="flex items-center gap-3 px-4 py-2.5 text-sm">
+              <%= user_avatar(row.user, size: "w-7", text: "text-[0.65rem]") %>
+              <span class="flex-1"><%= row.user.name %></span>
+              <span class="text-base-content/60">last cooked <%= row.last_on.strftime("%b %-d") %></span>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-sm text-base-content/70 px-1">Everyone who's cooked is signed up again.</p>
+      <% end %>
+    </section>
+  <% end %>
+</div>

@@ -13,7 +13,7 @@ class MealsController < ApplicationController
   helper_method :meals_back_path
 
   PAST_PAGE_SIZE = 20
-  VIEWS = %w[upcoming needs_cooks past].freeze
+  VIEWS = %w[upcoming needs_cooks past cooks].freeze
 
   def index
     session[:meals_view] = "list"
@@ -32,6 +32,8 @@ class MealsController < ApplicationController
       @meals = meals.first(PAST_PAGE_SIZE)
     when "needs_cooks"
       @meals = Meal.needs_cooks.with_card_associations
+    when "cooks"
+      @cook_stats = MealCookStats.new(current_community)
     end
   end
 
