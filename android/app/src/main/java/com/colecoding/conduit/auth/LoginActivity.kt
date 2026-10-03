@@ -314,7 +314,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         // Note: We no longer clear WebView cookies here because:
-        // 1. The auth_login endpoint will establish a fresh session
+        // 1. MainActivity signs the web views in afresh (WebSession)
         // 2. Clearing cookies asynchronously creates race conditions
         // 3. Cookie manager is a singleton - all WebViews share cookies
 

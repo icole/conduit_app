@@ -13,6 +13,8 @@
     <!-- Community Selection -->
     <string name="community_select_title">Find Your Community</string>
     <string name="community_select_subtitle">Enter the name your community uses on Conduit</string>
+    <string name="web_session_offline">Couldn\'t reach your community. Check your connection and try again.</string>
+    <string name="web_session_retry">Try again</string>
     <string name="community_input_hint">Community name</string>
     <string name="community_find">Find community</string>
     <string name="community_continue">Continue</string>

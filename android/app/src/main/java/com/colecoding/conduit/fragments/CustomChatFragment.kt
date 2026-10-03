@@ -94,7 +94,7 @@ class CustomChatFragment : Fragment() {
                             name = userName ?: "User"
                         )
 
-                        client.connectUser(user, token).enqueue { result ->
+                        client.connectUser(user, AuthManager.streamTokenProvider(requireContext(), token)).enqueue { result ->
                             if (result.isSuccess) {
                                 Log.d(TAG, "Successfully connected to Stream Chat")
                                 // Register FCM token for push notifications

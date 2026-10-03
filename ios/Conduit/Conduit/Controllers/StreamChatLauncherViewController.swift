@@ -222,6 +222,7 @@ class StreamChatLauncherViewController: UIViewController {
     private func fetchStreamToken(completion: @escaping ((userId: String, userName: String, userAvatar: String?, token: String, apiKey: String, communitySlug: String?)?) -> Void) {
         // Get token URL from AppConfig - add .json extension for Rails
         let tokenURL = AppConfig.baseURL.appendingPathComponent("chat/token.json")
+            .appending(queryItems: [URLQueryItem(name: "expiring", value: "1")])
 
         // Get cookies from shared cookie storage
         let cookies = HTTPCookieStorage.shared.cookies(for: tokenURL) ?? []

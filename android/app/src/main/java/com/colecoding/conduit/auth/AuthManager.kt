@@ -17,6 +17,7 @@ object AuthManager {
     private const val KEY_USER_EMAIL = "user_email"
     private const val KEY_SESSION_COOKIE = "session_cookie"
     private const val KEY_IS_AUTHENTICATED = "is_authenticated"
+    // Older versions kept a chat token that never expired here; cleared on next fetch
     private const val KEY_STREAM_TOKEN = "stream_chat_token"
     private const val KEY_AUTH_TOKEN = "auth_token"
     private const val KEY_RESTRICTED_ACCESS = "restricted_access"
@@ -144,11 +145,6 @@ object AuthManager {
         getPrefs(context).edit().putString(KEY_USER_NAME, userName).apply()
     }
 
-    fun setStreamChatToken(context: Context, token: String) {
-        Log.d(TAG, "Setting Stream Chat token")
-        getPrefs(context).edit().putString(KEY_STREAM_TOKEN, token).apply()
-    }
-
     fun setRestrictedAccess(context: Context, restricted: Boolean) {
         Log.d(TAG, "Setting restricted access: $restricted")
         getPrefs(context).edit().putBoolean(KEY_RESTRICTED_ACCESS, restricted).apply()
@@ -198,22 +194,21 @@ object AuthManager {
         Log.d(TAG, "Logout complete - all data cleared")
     }
 
-    suspend fun getStreamChatToken(context: Context): String? {
-        // First check if we have a stored Stream Chat token
-        val storedToken = getPrefs(context).getString(KEY_STREAM_TOKEN, null)
-        if (storedToken != null) {
-            Log.d(TAG, "Using cached Stream Chat token")
-            return storedToken
-        }
+    /** A chat token that expires within the hour (CON-80); each call fetches a new one. */
+    suspend fun getStreamChatToken(context: Context): String? =
+        withContext(Dispatchers.IO) { fetchStreamToken(context) }
 
-        // Fetch from backend if not stored
-        Log.d(TAG, "Fetching Stream Chat token from backend")
-        return fetchStreamTokenFromBackend(context)
+    /** For connectUser: starts with [first], then fetches fresh tokens as Stream needs them. */
+    fun streamTokenProvider(context: Context, first: String): StreamTokens {
+        val appContext = context.applicationContext
+        return StreamTokens(first) { fetchStreamToken(appContext) }
     }
 
-    private suspend fun fetchStreamTokenFromBackend(context: Context): String? {
+    /** Blocks on the network, so call it off the main thread. */
+    private fun fetchStreamToken(context: Context): String? {
         return try {
-            val url = java.net.URL("${com.colecoding.conduit.config.AppConfig.getBaseUrl(context)}/api/v1/stream_token")
+            getPrefs(context).edit().remove(KEY_STREAM_TOKEN).apply()
+            val url = java.net.URL("${com.colecoding.conduit.config.AppConfig.getBaseUrl(context)}/api/v1/stream_token?expiring=1")
             val connection = url.openConnection() as java.net.HttpURLConnection
 
             connection.requestMethod = "GET"
@@ -252,9 +247,6 @@ object AuthManager {
                 val jsonObject = org.json.JSONObject(response)
                 val token = jsonObject.getString("token")
 
-                // Store the token for future use
-                setStreamChatToken(context, token)
-
                 // Store community slug for channel filtering
                 if (jsonObject.has("community_slug")) {
                     setCommunitySlug(context, jsonObject.getString("community_slug"))
@@ -276,7 +268,7 @@ object AuthManager {
                     }
                 }
 
-                Log.d(TAG, "Stream token successfully fetched and stored")
+                Log.d(TAG, "Stream token successfully fetched")
                 token
             } else {
                 Log.e(TAG, "Failed to fetch Stream token. Response code: $responseCode")

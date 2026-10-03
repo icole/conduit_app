@@ -9,18 +9,19 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.webkit.CookieManager
 import android.widget.FrameLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentContainerView
+import androidx.lifecycle.lifecycleScope
 import com.colecoding.conduit.auth.AuthManager
 import com.colecoding.conduit.auth.CommunitySelectActivity
 import com.colecoding.conduit.chat.ConduitLinks
 import com.colecoding.conduit.chat.PendingChatChannel
 import com.colecoding.conduit.services.PushDeviceRegistrar
 import com.colecoding.conduit.auth.LoginActivity
+import com.colecoding.conduit.auth.WebSession
 import com.colecoding.conduit.config.AppConfig
 import com.colecoding.conduit.config.CommunityManager
 import com.colecoding.conduit.fragments.AccountFragment
@@ -33,7 +34,9 @@ import dev.hotwire.core.turbo.visit.VisitAction
 import dev.hotwire.core.turbo.visit.VisitOptions
 import dev.hotwire.navigation.activities.HotwireActivity
 import dev.hotwire.navigation.navigator.NavigatorConfiguration
-import java.net.URLEncoder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : HotwireActivity() {
 
@@ -83,7 +86,6 @@ class MainActivity : HotwireActivity() {
     /**
      * CRITICAL: This must be called before setContentView()
      * Returns navigator configurations with start URLs for web tabs.
-     * If no session cookie exists, uses auth_login to establish the session first.
      */
     override fun navigatorConfigurations(): List<NavigatorConfiguration> {
         // If no community URL set, return a placeholder config
@@ -106,43 +108,10 @@ class MainActivity : HotwireActivity() {
 
         Log.d(TAG, "Creating navigator configurations with baseUrl: $baseUrl")
 
-        // Check if we have a session cookie
-        val cookieManager = CookieManager.getInstance()
-        val cookies = cookieManager.getCookie(baseUrl)
-        val hasSession = cookies != null && cookies.contains("_conduit_app_session")
-
-        // Get auth token for session establishment
-        val authToken = AuthManager.getAuthToken(this)
-
-        // Build URLs - use auth_login to establish session if needed
-        val homeUrl = if (!hasSession && authToken != null) {
-            val redirectTo = URLEncoder.encode("/", "UTF-8")
-            "$baseUrl/auth_login?token=$authToken&redirect_to=$redirectTo"
-        } else {
-            "$baseUrl/"
-        }
-
-        val tasksUrl = if (!hasSession && authToken != null) {
-            val redirectTo = URLEncoder.encode("/tasks", "UTF-8")
-            "$baseUrl/auth_login?token=$authToken&redirect_to=$redirectTo"
-        } else {
-            "$baseUrl/tasks"
-        }
-
-        val mealsUrl = if (!hasSession && authToken != null) {
-            val redirectTo = URLEncoder.encode("/meals", "UTF-8")
-            "$baseUrl/auth_login?token=$authToken&redirect_to=$redirectTo"
-        } else {
-            "$baseUrl/meals"
-        }
-
-        // Don't log the full token for security
-        val logSafeHomeUrl = if (homeUrl.contains("token=")) {
-            homeUrl.substringBefore("token=") + "token=[REDACTED]"
-        } else {
-            homeUrl
-        }
-        Log.d(TAG, "Has session: $hasSession, homeUrl: $logSafeHomeUrl")
+        // Plain addresses: onCreate signs the web views in first (WebSession)
+        val homeUrl = "$baseUrl/"
+        val tasksUrl = "$baseUrl/tasks"
+        val mealsUrl = "$baseUrl/meals"
 
         homeConfig = NavigatorConfiguration(
             name = "home",
@@ -187,6 +156,14 @@ class MainActivity : HotwireActivity() {
             super.onCreate(savedInstanceState)
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
+            return
+        }
+
+        // The web views need a session before the tabs load; sign them in, then start over
+        if (WebSession.needsSignIn(this)) {
+            super.onCreate(savedInstanceState)
+            setContentView(R.layout.activity_web_session)
+            signInWebViews()
             return
         }
 
@@ -241,10 +218,39 @@ class MainActivity : HotwireActivity() {
         requestNotificationPermission()
     }
 
+    private fun signInWebViews() {
+        val progress = findViewById<View>(R.id.progress)
+        val message = findViewById<View>(R.id.message)
+        val retry = findViewById<View>(R.id.retry)
+        progress.visibility = View.VISIBLE
+        message.visibility = View.GONE
+        retry.visibility = View.GONE
+
+        lifecycleScope.launch {
+            when (withContext(Dispatchers.IO) { WebSession.establish(this@MainActivity) }) {
+                WebSession.Result.SIGNED_IN -> recreate()
+                WebSession.Result.REJECTED -> {
+                    Log.d(TAG, "Sign-in no longer accepted, back to login")
+                    AuthManager.logout(this@MainActivity)
+                    startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                    finish()
+                }
+                WebSession.Result.OFFLINE -> {
+                    progress.visibility = View.GONE
+                    message.visibility = View.VISIBLE
+                    retry.visibility = View.VISIBLE
+                    retry.setOnClickListener { signInWebViews() }
+                }
+            }
+        }
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         PendingChatChannel.recordFrom(intent)
+        // Still signing the web views in: the tabs open it once they're up
+        if (!::bottomNavigation.isInitialized) return
         openRequestedChat()
         openRequestedPath()
     }

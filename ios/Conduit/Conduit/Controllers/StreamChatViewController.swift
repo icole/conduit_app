@@ -299,7 +299,7 @@ class StreamChatViewController: UIViewController {
                existingClient.currentUserId == self.userId {
                 print("Using existing Stream Chat connection")
                 // Already connected, but we still need to fetch user data to get restrictedAccess flag
-                self.fetchStreamToken { [weak self] result in
+                StreamChatViewController.fetchStreamToken { [weak self] result in
                     switch result {
                     case .success(let tokenData):
                         // Store the restrictedAccess value
@@ -328,7 +328,7 @@ class StreamChatViewController: UIViewController {
                 }
             } else if let token = self.token, let apiKey = self.apiKey {
                 // If token and API key were provided, fetch user data from backend to get restrictedAccess flag
-                self.fetchStreamToken { [weak self] result in
+                StreamChatViewController.fetchStreamToken { [weak self] result in
                     guard let self = self else { return }
 
                     switch result {
@@ -356,7 +356,7 @@ class StreamChatViewController: UIViewController {
             } else {
                 print("Fetching Stream token from backend")
                 // Otherwise, fetch Stream token from Rails backend
-                self.fetchStreamToken { [weak self] result in
+                StreamChatViewController.fetchStreamToken { [weak self] result in
                     switch result {
                     case .success(let tokenData):
                         self?.initializeStreamChat(with: tokenData)
@@ -370,10 +370,13 @@ class StreamChatViewController: UIViewController {
         }
     }
 
-    private func fetchStreamToken(completion: @escaping (Result<TokenData, Error>) -> Void) {
+    /// A chat token that expires within the hour (CON-80). Static so chat can
+    /// still renew its token after this screen is gone.
+    private static func fetchStreamToken(completion: @escaping (Result<TokenData, Error>) -> Void) {
         // Get base URL from AppConfig
         let baseURL = AppConfig.baseURL
         let tokenURL = baseURL.appendingPathComponent("chat/token.json")
+            .appending(queryItems: [URLQueryItem(name: "expiring", value: "1")])
 
         var request = URLRequest(url: tokenURL)
         request.httpMethod = "GET"
@@ -464,9 +467,22 @@ class StreamChatViewController: UIViewController {
             imageURL: tokenData.user.avatar.flatMap { URL(string: $0) }
         )
 
+        // Connect with the token in hand; Stream asks again whenever it expires
+        var firstToken: String? = tokenData.token
         chatClient.connectUser(
             userInfo: userInfo,
-            token: Token(stringLiteral: tokenData.token)
+            tokenProvider: { completion in
+                if let token = firstToken {
+                    firstToken = nil
+                    completion(Result { try Token(rawValue: token) })
+                    return
+                }
+                DispatchQueue.main.async {
+                    StreamChatViewController.fetchStreamToken { result in
+                        completion(result.flatMap { data in Result { try Token(rawValue: data.token) } })
+                    }
+                }
+            }
         ) { [weak self] error in
             DispatchQueue.main.async {
                 if let error = error {

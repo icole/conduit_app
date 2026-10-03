@@ -112,7 +112,7 @@ class StreamChatActivity : AppCompatActivity() {
                         name = AuthManager.getUserName(this@StreamChatActivity) ?: "User"
                     )
 
-                    client.connectUser(user, token).enqueue { result ->
+                    client.connectUser(user, AuthManager.streamTokenProvider(this@StreamChatActivity, token)).enqueue { result ->
                         if (result.isSuccess) {
                             Log.d(TAG, "Successfully connected to Stream Chat")
                             onComplete()
