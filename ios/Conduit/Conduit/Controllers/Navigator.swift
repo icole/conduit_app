@@ -11,6 +11,9 @@ import SafariServices
 /// - when a modal leads to a page that isn't a modal (a form saved, or a
 ///   Cancel link), the sheet closes and that page shows in the main stack,
 ///   refreshed in place if it's the page that was underneath;
+/// - Rails' historical location routes (a sheet form saved with `sheet=1`
+///   redirects to /refresh_historical_location) close the sheet and refresh
+///   or go back, as their path rules' "presentation" says;
 /// - the web page's alert()/confirm() dialogs are shown natively
 ///   (Hotwire's `WKUIController`). Without it every data-turbo-confirm
 ///   silently answered "Cancel".
@@ -66,13 +69,11 @@ class Navigator: UINavigationController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Configure navigation bar appearance
         navigationBar.prefersLargeTitles = false
-        navigationBar.tintColor = .systemBlue
+        navigationBar.tintColor = Palette.teal
 
-        // Web screens hide the navigation bar, which also turns off the
-        // edge-swipe back gesture; turn it back on.
-        interactivePopGestureRecognizer?.delegate = self
+        // Sheets keep the page's own heading, as on Android
+        modalNavigationController.isNavigationBarHidden = true
 
         // Configure web view
         session.webView.allowsLinkPreview = true
@@ -99,6 +100,11 @@ class Navigator: UINavigationController {
     }
 
     private func route(url: URL, options: VisitOptions, properties: PathProperties) {
+        if properties["historical_location"] as? Bool == true {
+            routeHistoricalLocation(properties.presentation)
+            return
+        }
+
         let viewController = makeViewController(for: url, properties: properties)
 
         if properties.context == .modal && viewController is Visitable {
@@ -139,7 +145,27 @@ class Navigator: UINavigationController {
         } else {
             modalNavigationController.setViewControllers([viewController], animated: false)
             modalNavigationController.modalPresentationStyle = .pageSheet
+            modalNavigationController.sheetPresentationController?.prefersGrabberVisible = true
             present(modalNavigationController, animated: true)
+        }
+    }
+
+    private func routeHistoricalLocation(_ presentation: Navigation.Presentation) {
+        let wasShowingModal = isShowingModal
+        if wasShowingModal {
+            dismiss(animated: true)
+        }
+
+        switch presentation {
+        case .refresh:
+            guard let top = topViewController as? Visitable else { return }
+            // The sheet's form changed what this page shows; don't restore an old copy
+            session.clearSnapshotCache()
+            session.visit(top, options: VisitOptions(action: .restore))
+        case .pop where !wasShowingModal:
+            popViewController(animated: true)
+        default:
+            break
         }
     }
 
@@ -216,15 +242,6 @@ class Navigator: UINavigationController {
 
         // User content controller is available via configuration.userContentController
         // if custom JavaScript messaging is needed for general app functionality
-    }
-}
-
-// MARK: - UIGestureRecognizerDelegate
-
-extension Navigator: UIGestureRecognizerDelegate {
-    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        // Only swipe back when there's somewhere to go back to
-        gestureRecognizer !== interactivePopGestureRecognizer || viewControllers.count > 1
     }
 }
 

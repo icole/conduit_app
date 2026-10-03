@@ -50,10 +50,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     static let bridgeComponentTypes: [BridgeComponent.Type] = [
+        ButtonComponent.self,
         MenuComponent.self
     ]
 
     private func configureHotwireNative() {
+        // Bridge and visit logs in the Xcode console, e.g. why a message was ignored
+        #if DEBUG
+        Hotwire.config.debugLoggingEnabled = true
+        #else
+        Hotwire.config.debugLoggingEnabled = ProcessInfo.processInfo.environment["HOTWIRE_DEBUG_LOGGING"] != nil
+        #endif
+
         // Register bridge components
         Hotwire.registerBridgeComponents(AppDelegate.bridgeComponentTypes)
 

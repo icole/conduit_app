@@ -145,7 +145,7 @@ class TabBarController: UITabBarController {
     private func configureAppearance() {
         // Configure tab bar appearance
         tabBar.backgroundColor = .systemBackground
-        tabBar.tintColor = .systemBlue
+        tabBar.tintColor = Palette.teal
 
         // Configure tab bar for iOS 15+
         if #available(iOS 15.0, *) {

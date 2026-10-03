@@ -23,7 +23,7 @@ final class MenuComponent: BridgeComponent {
         )
 
         for item in data.items {
-            let action = UIAlertAction(title: item.title, style: .default) { [weak self] _ in
+            let action = UIAlertAction(title: item.title, style: item.destructive == true ? .destructive : .default) { [weak self] _ in
                 self?.reply(to: message.event, with: SelectionMessageData(selectedIndex: item.index))
             }
             alert.addAction(action)
@@ -31,7 +31,14 @@ final class MenuComponent: BridgeComponent {
 
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
-        viewController?.present(alert, animated: true)
+        guard let viewController else { return }
+        // On iPad an action sheet is a popover and must be anchored, or it crashes
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = viewController.view
+            popover.sourceRect = CGRect(x: viewController.view.bounds.midX, y: viewController.view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        viewController.present(alert, animated: true)
     }
 }
 
@@ -44,6 +51,7 @@ private extension MenuComponent {
     struct Item: Decodable {
         let title: String
         let index: Int
+        let destructive: Bool?
     }
 
     struct SelectionMessageData: Encodable {

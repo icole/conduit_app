@@ -10,14 +10,14 @@
       }
     },
     {
-      "patterns": ["/new$", "/edit$"],
+      "patterns": ["/new(\\?.*)?$", "/edit(\\?.*)?$"],
       "properties": {
         "context": "modal",
         "pull_to_refresh_enabled": false
       }
     },
     {
-      "patterns": ["/documents/[^/]+/edit$"],
+      "patterns": ["/documents/[^/]+/edit(\\?.*)?$"],
       "properties": {
         "context": "default",
         "pull_to_refresh_enabled": false
