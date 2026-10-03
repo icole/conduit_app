@@ -1,8 +1,13 @@
-<%# The Cooks tab: where a cook is still needed, how shared meals are going, and
-    thanks. Never a ranking: the only count next to a name is your own. %>
+<%# The Cooks tab: where a cook is still needed, enough about your own cooking
+    to tell if it's your turn, how shared meals are going, and what's been on
+    the menu. Never a ranking: the only numbers about a person are your own. %>
 <% heading = "font-semibold mb-2 native:text-sm native:font-medium native:text-base-content/60 native:px-1" %>
 <% open_meals = stats.open_meals %>
 <% mine = stats.for(current_user) %>
+<% every = stats.weeks_between_turns %>
+<% weeks_since = mine.last_on && ((Date.current - mine.last_on) / 7).floor %>
+<%# Dates outside this year get their year, so last December doesn't read as this one %>
+<% on = ->(date, format) { date.strftime(date.year == Date.current.year ? format : "#{format}, %Y") } %>
 <div class="max-w-2xl space-y-6">
   <section id="open-meals">
     <h2 class="<%= heading %>">Still needs a cook</h2>
@@ -26,6 +31,43 @@
     <% end %>
   </section>
 
+  <section id="my-cooking" class="bg-base-100 rounded-lg border border-base-200 px-4 py-3">
+    <div class="flex items-baseline justify-between gap-2 mb-2">
+      <h2 class="font-semibold">Your cooking</h2>
+      <span class="text-xs text-base-content/60">Only you see this</span>
+    </div>
+    <% if mine.count.zero? && mine.next_on.nil? %>
+      <p class="text-sm text-base-content/80">You haven't cooked a meal yet. Whenever you'd like to, pick one above.</p>
+    <% else %>
+      <dl class="grid grid-cols-3 gap-2 text-center mb-2">
+        <div>
+          <dt class="text-xs text-base-content/60">This year</dt>
+          <dd class="text-xl font-bold"><%= mine.this_year %></dd>
+          <dd class="text-xs text-base-content/60">typical: <%= stats.typical_turns_this_year %></dd>
+        </div>
+        <div>
+          <dt class="text-xs text-base-content/60">Last turn</dt>
+          <dd class="text-xl font-bold"><%= mine.last_on ? on.(mine.last_on, "%b %-d") : "—" %></dd>
+          <% if weeks_since %><dd class="text-xs text-base-content/60"><%= pluralize(weeks_since, "week") %> ago</dd><% end %>
+        </div>
+        <div>
+          <dt class="text-xs text-base-content/60">Next</dt>
+          <dd class="text-xl font-bold"><%= mine.next_on&.strftime("%b %-d") || "—" %></dd>
+        </div>
+      </dl>
+      <p class="text-sm text-base-content/80">
+        <% if mine.next_on %>
+          You're on for <%= mine.next_on.strftime("%A, %b %-d") %>. Thank you!
+        <% elsif every && weeks_since && weeks_since >= every %>
+          It's been <%= pluralize(weeks_since, "week") %> since your last turn, a bit past the usual <%= every %>.
+          <%= open_meals.any? ? "If you're up for it, there's an open meal above." : "If you're up for it, keep an eye out for an open meal." %>
+        <% elsif every && weeks_since %>
+          Turns come round about every <%= every %> weeks.
+        <% end %>
+      </p>
+    <% end %>
+  </section>
+
   <section id="cooking-this-year">
     <h2 class="<%= heading %>">In <%= stats.year %></h2>
     <div class="grid grid-cols-3 gap-3">
@@ -38,32 +80,23 @@
     </div>
   </section>
 
-  <section id="my-cooking" class="text-sm text-base-content/80 px-1">
-    <% if mine.count.positive? %>
-      You've cooked <%= pluralize(mine.count, "meal") %>, most recently <%= mine.last_on.strftime("%b %-d") %>.
-    <% else %>
-      You haven't cooked a meal yet. Whenever you'd like to, pick one above.
-    <% end %>
-    <% if mine.next_on %>
-      Next: <%= mine.next_on.strftime("%A, %b %-d") %>.
-    <% end %>
-  </section>
-
-  <section id="cooks-thanks">
-    <h2 class="<%= heading %>">Thanks to this year's cooks</h2>
-    <% if stats.cooks.any? %>
-      <ul class="flex flex-wrap gap-2">
-        <% stats.cooks.each do |cook| %>
-          <li class="inline-flex items-center gap-2 rounded-full bg-base-100 border border-base-200 pl-1 pr-3 py-1 text-sm">
-            <%= user_avatar(cook, size: "w-6", text: "text-[0.6rem]") %>
-            <%= cook.name %>
-          </li>
+  <% recent = stats.recent_menus %>
+  <% if recent.any? %>
+    <section id="recent-menus">
+      <h2 class="<%= heading %>">Recently on the menu</h2>
+      <div class="bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200 overflow-hidden">
+        <% recent.each do |meal| %>
+          <%= link_to meal_path(meal), class: "block px-4 py-3" do %>
+            <p class="flex items-baseline justify-between gap-2 text-sm">
+              <span class="font-medium"><%= on.(meal.scheduled_at, "%a, %b %-d") %></span>
+              <% if (cook = meal.head_cook) %><span class="text-base-content/60"><%= cook.name.split.first %></span><% end %>
+            </p>
+            <p class="text-sm text-base-content/80 line-clamp-2"><%= meal.menu.to_plain_text %></p>
+          <% end %>
         <% end %>
-      </ul>
-    <% else %>
-      <p class="text-sm text-base-content/70 px-1">No meals cooked yet this year.</p>
-    <% end %>
-  </section>
+      </div>
+    </section>
+  <% end %>
 
   <% if current_user.admin? %>
     <%# For whoever asks people to cook; deliberately not shown to everyone %>

@@ -4,8 +4,8 @@ class MealCookStatsTest < ActiveSupport::TestCase
   # Well clear of the fixtures' meals, which sit around today's date
   setup { travel_to Time.zone.local(2027, 6, 15, 12) }
 
-  def meal(on, cook: nil, status: "completed")
-    shared = Meal.create!(title: "Dinner", scheduled_at: on.change(hour: 18), rsvp_deadline: on.change(hour: 12), status: status)
+  def meal(on, cook: nil, status: "completed", menu: nil)
+    shared = Meal.create!(title: "Dinner", scheduled_at: on.change(hour: 18), rsvp_deadline: on.change(hour: 12), status: status, menu: menu)
     shared.meal_cooks.create!(user: cook, role: "head_cook") if cook
     shared
   end
@@ -57,5 +57,33 @@ class MealCookStatsTest < ActiveSupport::TestCase
     assert_equal [ users(:three), users(:four) ], ours
     assert_not_includes resting.map(&:user), users(:five), "already signed up"
     assert_equal Date.new(2027, 1, 3), resting.find { |row| row.user == users(:three) }.last_on
+  end
+
+  test "recently on the menu: the last few shared meals, newest first, with their cook" do
+    meal Time.zone.local(2027, 5, 2), cook: users(:three), menu: "Lentil dal and greens"
+    meal Time.zone.local(2027, 5, 9), cook: users(:four), menu: "Tacos with all the fixings"
+    meal Time.zone.local(2027, 5, 16), status: "cancelled", menu: "Never happened"
+    meal Time.zone.local(2027, 6, 20), cook: users(:five), status: "upcoming", menu: "Not yet"
+
+    recent = MealCookStats.new.recent_menus(limit: 2)
+    assert_equal [ "Tacos with all the fixings", "Lentil dal and greens" ], recent.map { |m| m.menu.to_plain_text }
+    assert_equal users(:four), recent.first.head_cook
+  end
+
+  test "how often a turn comes round: cooks shared across the year's pace of meals" do
+    # 2027 so far: 4 cooked meals in 24 weeks, shared by 2 cooks: a meal every 6 weeks, a turn every 12
+    meal Time.zone.local(2027, 1, 3), cook: users(:three)
+    meal Time.zone.local(2027, 2, 14), cook: users(:four)
+    meal Time.zone.local(2027, 4, 4), cook: users(:three)
+    meal Time.zone.local(2027, 5, 16), cook: users(:four)
+
+    stats = MealCookStats.new
+    assert_equal 12, stats.weeks_between_turns
+    assert_equal 2, stats.typical_turns_this_year
+    assert_equal 2, stats.for(users(:three)).this_year
+  end
+
+  test "no pace yet with nothing cooked this year" do
+    assert_nil MealCookStats.new.weeks_between_turns
   end
 end

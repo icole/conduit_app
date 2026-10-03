@@ -1,9 +1,10 @@
-# The Meals "Cooks" tab: how shared meals are going this year, who to thank,
-# and where a cook is still needed. Framed around the community, not a
-# ranking: nobody's count is shown except to themselves. Head cooks only;
-# helpers aren't really used.
+# The Meals "Cooks" tab: where a cook is still needed, how shared meals are
+# going this year, what's been on the menu, and enough about your own cooking
+# to tell whether it's your turn. Framed around the community, not a ranking:
+# nobody's count is shown except to themselves. Head cooks only; helpers
+# aren't really used.
 class MealCookStats
-  Mine = Struct.new(:count, :last_on, :next_on)
+  Mine = Struct.new(:count, :this_year, :last_on, :next_on)
   Resting = Struct.new(:user, :last_on, :count)
 
   attr_reader :year
@@ -31,11 +32,31 @@ class MealCookStats
     User.where(id: head_cooks.where(meal_id: held_this_year.select(:id)).select(:user_id)).order(:name).to_a
   end
 
-  # One person's own cooking: meals held (all time), the last one, and the next
+  # One person's own cooking: meals held (all time and this year), the last
+  # one, and the next
   def for(user)
     theirs = held_cooking.where(user: user)
-    Mine.new(theirs.count, local_date(theirs.maximum("meals.scheduled_at")),
+    Mine.new(theirs.count, theirs.merge(held_this_year).count, local_date(theirs.maximum("meals.scheduled_at")),
              local_date(upcoming_cooking.where(user: user).minimum("meals.scheduled_at")))
+  end
+
+  # How often a turn comes round: this year's cooks shared across its pace of
+  # cooked meals. nil before anything's been cooked this year.
+  def weeks_between_turns
+    return if meals_with_a_cook.zero?
+
+    (cooks.size * weeks_so_far / meals_with_a_cook).round
+  end
+
+  # How many meals a typical cook has cooked this year
+  def typical_turns_this_year
+    cooks.any? ? (meals_with_a_cook.to_f / cooks.size).round : 0
+  end
+
+  # The last few shared meals with a menu, newest first
+  def recent_menus(limit: 4)
+    held.joins(:rich_text_menu).where.not(action_text_rich_texts: { body: [ nil, "" ] })
+      .includes(:rich_text_menu, meal_cooks: :user).order(scheduled_at: :desc).limit(limit).to_a
   end
 
   # For whoever asks people to cook: past cooks with nothing coming up, the
@@ -56,6 +77,10 @@ class MealCookStats
   def held_this_year
     start = @zone.local(year)
     held.where(scheduled_at: start...start.next_year)
+  end
+
+  def weeks_so_far
+    (Time.current - @zone.local(year)) / 1.week
   end
 
   def head_cooks

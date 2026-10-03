@@ -14,17 +14,28 @@ class MealsCooksTabTest < ActionDispatch::IntegrationTest
     assert_select "#open-meals form[action='#{volunteer_cook_meal_path(meals(:needs_cook), role: "head_cook")}']"
   end
 
-  test "thanks this year's cooks by name, with no counts beside them" do
+  test "shows what's recently been on the menu, and who cooked it" do
+    meals(:past_meal).update!(menu: "Harvest soup and fresh bread")
     sign_in users(:two)
     get meals_url(view: "cooks")
-    assert_select "#cooks-thanks li", minimum: 1
-    css_select("#cooks-thanks li").each { |li| assert_no_match(/\d/, li.text, "no numbers next to anyone's name") }
+    assert_select "#recent-menus", text: /Harvest soup and fresh bread/
+    assert_select "#recent-menus", text: /#{users(:one).name.split.first}/
+    assert_select "#cooks-thanks", count: 0
   end
 
-  test "shows you your own cooking, and only yours" do
-    sign_in users(:one) # cooked the past meal
+  test "shows you your own cooking, and only yours, so you can tell if it's your turn" do
+    sign_in users(:one) # cooked the past meal, and is on for the upcoming one
     get meals_url(view: "cooks")
-    assert_select "#my-cooking", text: /You've cooked 1 meal/
+    assert_select "#my-cooking", text: /Only you see this/
+    assert_select "#my-cooking", text: /You're on for/
+    assert_select "#my-cooking", text: /#{users(:two).name}/, count: 0
+  end
+
+  test "someone who hasn't cooked is invited, not compared" do
+    sign_in users(:six)
+    get meals_url(view: "cooks")
+    assert_select "#my-cooking", text: /haven't cooked/
+    assert_select "#my-cooking", text: /typical/, count: 0
   end
 
   test "the list of who hasn't had a turn in a while is for admins only" do
