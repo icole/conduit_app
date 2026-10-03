@@ -29,6 +29,12 @@ production:
     schedule: every day at 5am
     queue: default
 
+  # 10:15 UTC, about 3am Pacific; matches NightlyBackupJob::SCHEDULE (CON-31)
+  nightly_backup:
+    class: NightlyBackupJob
+    schedule: "15 10 * * *"
+    queue: default
+
   task_reminders:
     class: TaskRemindersJob
     schedule: every hour at minute 5

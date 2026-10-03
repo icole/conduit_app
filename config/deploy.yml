@@ -49,12 +49,18 @@ env:
     - APNS_TEAM_ID
     - FCM_SERVICE_ACCOUNT
     - FCM_PROJECT_ID
+    # Nightly backups (CON-31): encrypts the database dumps, and the key of a
+    # service account that can only write to the backups bucket
+    - BACKUP_PASSPHRASE
+    - BACKUP_GCS_CREDENTIALS
   clear:
     SOLID_QUEUE_IN_PUMA: true
     # Where new-community and Stream usage alerts go; unset means don't send
     CONDUIT_ADMIN_EMAIL: <%= ENV["CONDUIT_ADMIN_EMAIL"] %>
     # Stream plan's monthly-active-user allowance, for the usage guardrail
     STREAM_MAU_LIMIT: <%= ENV["STREAM_MAU_LIMIT"] %>
+    # Where NightlyBackupJob writes (CON-31)
+    BACKUP_BUCKET: wide-gamma-462206-r8-backups
 
 volumes:
   - "conduit_app_storage:/rails/storage"

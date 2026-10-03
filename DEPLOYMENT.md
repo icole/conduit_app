@@ -151,3 +151,59 @@ If you need to update Stream Chat credentials:
 - Keep your Stream Chat API Secret secure
 - Regularly rotate your credentials
 - Use strong passwords for database and services
+## Backups
+
+`NightlyBackupJob` runs every night at 10:15 UTC (about 3am Pacific) from
+Solid Queue's recurring schedule. It writes to the private bucket
+`gs://wide-gamma-462206-r8-backups` in the `wide-gamma-462206-r8` project:
+
+* `db/conduit_app-<UTC time>.dump.enc` — a `pg_dump` of the main database
+  (custom format), encrypted with `BACKUP_PASSPHRASE`. Kept 30 days.
+* `files/…` — a mirror of `/rails/storage` (photos and other uploads). Only
+  changed files are copied each night. The bucket keeps versioning on, so a
+  deleted or overwritten file can still be restored for 30 days.
+
+The cache, queue and cable databases hold nothing that needs a backup.
+
+Sentry's cron monitor `nightly-backup` alerts if a night fails or doesn't
+run. The job uses a service account, `conduit-backups@…`, which has rights to
+this bucket only. Its key is `BACKUP_GCS_CREDENTIALS` (base64 JSON) in
+`.env.deploy`.
+
+**The passphrase isn't stored anywhere but `.env.deploy` and the server.**
+Keep a copy in a password manager. Without it, the database dumps can't be
+decrypted.
+
+To run a backup now: `bundle exec kamal app exec --reuse 'bin/rails runner NightlyBackupJob.perform_now'`
+
+### Restoring the database
+
+```sh
+. ./.env.deploy                       # BACKUP_PASSPHRASE
+gcloud storage ls gs://wide-gamma-462206-r8-backups/db/   # pick a dump
+gcloud storage cp gs://wide-gamma-462206-r8-backups/db/conduit_app-<time>.dump.enc .
+
+# Decrypt (the same settings as DatabaseDump::DECRYPT)
+openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -md sha256 \
+  -pass env:BACKUP_PASSPHRASE -in conduit_app-<time>.dump.enc -out conduit_app.dump
+
+# Check it, then restore into an empty database (here a scratch one)
+pg_restore --list conduit_app.dump | head
+createdb conduit_restore_check
+pg_restore --no-owner --no-privileges -d conduit_restore_check conduit_app.dump
+```
+
+To restore production itself: stop the app (`bundle exec kamal app stop`), copy the
+decrypted dump to the server, restore it into the `db` accessory with
+`pg_restore --clean --if-exists --no-owner -d conduit_app_production`, then
+`bundle exec kamal app boot`.
+
+### Restoring uploaded files
+
+```sh
+gcloud storage rsync -r gs://wide-gamma-462206-r8-backups/files/ ./storage-restore/
+```
+
+Then copy them into the `conduit_app_storage` volume on the server. To get
+back a file deleted in the last 30 days, list its versions with
+`gcloud storage ls -a gs://wide-gamma-462206-r8-backups/files/<path>`.

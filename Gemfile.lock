@@ -237,6 +237,8 @@ GEM
       retriable (>= 3.1, < 5.0)
     google-apis-drive_v3 (0.88.0)
       google-apis-core (>= 0.15.0, < 2.a)
+    google-apis-storage_v1 (0.68.0)
+      google-apis-core (>= 0.15.0, < 2.a)
     google-cloud-env (2.4.0)
       base64 (~> 0.2)
       faraday (>= 1.0, < 3.a)
@@ -658,6 +660,7 @@ DEPENDENCIES
   dotenv-rails
   google-apis-calendar_v3 (~> 0.57.0)
   google-apis-drive_v3 (~> 0.88.0)
+  google-apis-storage_v1
   googleauth (~> 1.17)
   heroicon
   icalendar (~> 2.12)

@@ -66,6 +66,9 @@ gem "google-apis-drive_v3", "~> 0.88.0"
 gem "multi_json"
 gem "googleauth", "~> 1.17"
 gem "google-apis-calendar_v3", "~> 0.57.0"
+
+# Nightly backups to a Cloud Storage bucket (CON-31)
+gem "google-apis-storage_v1"
 gem "icalendar", "~> 2.12"
 
 gem "pstore"
