@@ -56,7 +56,10 @@ enum AppConfig {
         return "Conduit"
     }
 
+    /// The server knows the app by "Conduit iOS/2" and "Turbo Native"; the web
+    /// bridge loads a component's controller only if it's listed here.
     static var userAgent: String {
-        return "Conduit iOS/2 (Turbo Native)"
+        let components = AppDelegate.bridgeComponentTypes.map { $0.name }.joined(separator: " ")
+        return "Conduit iOS/2 (Turbo Native) bridge-components: [\(components)]"
     }
 }

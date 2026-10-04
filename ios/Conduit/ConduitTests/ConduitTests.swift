@@ -34,3 +34,15 @@ struct ButtonComponentTests {
         #expect(ButtonComponent.symbolName(for: "sparkles") == nil)
     }
 }
+
+@MainActor
+struct UserAgentTests {
+    // The web loads a bridge controller only when the user agent lists its component
+    @Test func listsTheBridgeComponentsForTheWeb() {
+        #expect(AppConfig.userAgent.contains("bridge-components: [button menu]"))
+    }
+
+    @Test func keepsWhatTheServerLooksFor() {
+        #expect(AppConfig.userAgent.hasPrefix("Conduit iOS/2 (Turbo Native)"))
+    }
+}
