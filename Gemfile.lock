@@ -671,14 +671,12 @@ DEPENDENCIES
   jwt (~> 2.10)
   kamal
   minitest (~> 5.27)
-  multi_json
   omniauth (~> 2.1)
   omniauth-google-oauth2 (~> 1.2)
   omniauth-rails_csrf_protection (~> 2.0)
   paper_trail (~> 17.0)
   pg (~> 1.6)
   propshaft
-  pstore
   puma (>= 5.0)
   rack-attack (~> 6.7)
   rails (~> 8.1.4)

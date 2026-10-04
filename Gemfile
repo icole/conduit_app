@@ -63,7 +63,6 @@ gem "image_processing", "~> 1.2"
 
 # Google Drive API - Using specific service gem as recommended
 gem "google-apis-drive_v3", "~> 0.88.0"
-gem "multi_json"
 gem "googleauth", "~> 1.17"
 gem "google-apis-calendar_v3", "~> 0.57.0"
 
@@ -71,7 +70,6 @@ gem "google-apis-calendar_v3", "~> 0.57.0"
 gem "google-apis-storage_v1"
 gem "icalendar", "~> 2.12"
 
-gem "pstore"
 gem "simple_calendar"
 
 # Stream Chat for HOA community messaging

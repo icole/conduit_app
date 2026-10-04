@@ -33,10 +33,6 @@ class Community < ApplicationRecord
     settings&.dig("smtp_from_name") || "#{name} Conduit"
   end
 
-  def smtp_from_address
-    "#{smtp_from_name} <#{settings&.dig('smtp_username') || ENV['SMTP_USERNAME']}>"
-  end
-
   def approve!
     update!(status: "active")
     CommunityMailer.approved(self).deliver_later

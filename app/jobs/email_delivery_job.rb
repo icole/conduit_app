@@ -19,13 +19,6 @@ class EmailDeliveryJob < ActionMailer::MailDeliveryJob
       end
     end
 
-    # Log additional context for SMTP authentication errors
-    if exception.is_a?(Net::SMTPAuthenticationError)
-      Rails.logger.error "[EMAIL DELIVERY] SMTP Authentication failed. " \
-                         "Check SMTP_USERNAME and SMTP_PASSWORD environment variables. " \
-                         "Error: #{exception.message}"
-    end
-
     # Re-raise so the job fails and can be retried if configured
     raise exception
   end
@@ -33,19 +26,7 @@ class EmailDeliveryJob < ActionMailer::MailDeliveryJob
   private
 
   def build_error_message(exception)
-    base_message = "#{exception.class}: #{exception.message}"
-
-    # Add helpful context for common SMTP errors
-    case exception
-    when Net::SMTPAuthenticationError
-      "#{base_message} - Verify SMTP credentials (SMTP_USERNAME/SMTP_PASSWORD) are correct and the account is not locked"
-    when Net::SMTPServerBusy
-      "#{base_message} - SMTP server is busy, will retry"
-    when Net::OpenTimeout, Net::ReadTimeout
-      "#{base_message} - Connection to SMTP server timed out"
-    else
-      base_message
-    end
+    "#{exception.class}: #{exception.message}"
   end
 
   def extract_mail_message
