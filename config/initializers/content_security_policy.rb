@@ -4,6 +4,20 @@
 # See the Securing Rails Applications Guide for more information:
 # https://guides.rubyonrails.org/security.html#content-security-policy-header
 
+# Sentry takes CSP reports at its "security" endpoint, which is derived from the
+# DSN; nil without a usable DSN (development, test)
+module SentryCspReportUri
+  def self.from_dsn(dsn)
+    uri = URI.parse(dsn.to_s)
+    project = uri.path.to_s.delete_prefix("/")
+    return if uri.host.blank? || uri.user.blank? || project.blank?
+
+    "#{uri.scheme}://#{uri.host}/api/#{project}/security/?sentry_key=#{uri.user}"
+  rescue URI::InvalidURIError
+    nil
+  end
+end
+
 Rails.application.configure do
   config.content_security_policy do |policy|
     policy.default_src :self, :https
@@ -17,9 +31,8 @@ Rails.application.configure do
     policy.base_uri    :self
     policy.form_action :self
 
-    # Send violation reports to Sentry
-    if ENV["SENTRY_CSP_REPORT_URI"].present?
-      policy.report_uri ENV["SENTRY_CSP_REPORT_URI"]
+    if (report_uri = SentryCspReportUri.from_dsn(ENV["SENTRY_DSN"]))
+      policy.report_uri report_uri
     end
   end
 
@@ -29,9 +42,8 @@ Rails.application.configure do
 
   # Enforced everywhere except production, so a blocked script fails loudly for
   # developers and fails the system tests (see test/application_system_test_case.rb)
-  # instead of silently doing nothing. Production stays report-only until the
-  # policy has been verified against the real Stream and Liveblocks traffic that
-  # no test reaches — CON-53 step 3. Note that report-only sends nothing at all
-  # today: no report_uri is configured in production.
+  # instead of silently doing nothing. Production stays report-only, reporting to
+  # Sentry, until the policy has been checked against the real Stream and
+  # Liveblocks traffic that no test reaches (CON-53 step 3).
   config.content_security_policy_report_only = Rails.env.production?
 end
