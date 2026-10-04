@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.colecoding.conduit.R
+import com.colecoding.conduit.auth.ApiReply
 import com.colecoding.conduit.auth.AuthManager
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.logger.ChatLogLevel
@@ -97,9 +98,14 @@ class StreamChatActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 // Fetch token on IO dispatcher
-                val token = withContext(Dispatchers.IO) {
+                val reply = withContext(Dispatchers.IO) {
                     AuthManager.getStreamChatToken(this@StreamChatActivity)
                 }
+                if (reply == ApiReply.Unauthorized) {
+                    AuthManager.signInAgain(this@StreamChatActivity)
+                    return@launch
+                }
+                val token = (reply as? ApiReply.Ok)?.value
 
                 val userId = AuthManager.getUserId(this@StreamChatActivity)
 

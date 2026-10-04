@@ -37,7 +37,15 @@ object WebSession {
     /** Blocks on the network, so call it off the main thread. */
     fun establish(context: Context): Result {
         return try {
-            val code = exchangeCode(context) ?: return Result.REJECTED
+            val reply = ApiTokenRetry.call(
+                AuthManager.getAuthToken(context),
+                refresh = { runBlocking { AuthManager.refreshAuthToken(context) } }
+            ) { token -> exchangeCode(context, token) }
+            val code = when (reply) {
+                is ApiReply.Ok -> reply.value
+                ApiReply.Unauthorized -> return Result.REJECTED
+                ApiReply.Failed -> return Result.OFFLINE
+            }
             val cookie = redeem(context, code) ?: return Result.REJECTED
             val cookies = CookieManager.getInstance()
             cookies.setCookie(AppConfig.getBaseUrl(context), cookie)
@@ -50,9 +58,8 @@ object WebSession {
         }
     }
 
-    /** The one-time code, or null if the API token is no good (even refreshed). */
-    private fun exchangeCode(context: Context, isRetry: Boolean = false): String? {
-        val token = AuthManager.getAuthToken(context) ?: return null
+    /** Trades the API token for a one-time code. */
+    private fun exchangeCode(context: Context, token: String): ApiReply<String> {
         val connection = URL("${AppConfig.getBaseUrl(context).trimEnd('/')}/api/v1/session_exchange")
             .openConnection() as HttpURLConnection
         try {
@@ -62,22 +69,25 @@ object WebSession {
             connection.connectTimeout = 10000
             connection.readTimeout = 10000
 
-            return when (connection.responseCode) {
+            return when (val code = connection.responseCode) {
                 HttpURLConnection.HTTP_OK -> {
                     val body = connection.inputStream.bufferedReader().use { it.readText() }
-                    JSONObject(body).getString("token")
+                    ApiReply.Ok(JSONObject(body).getString("token"))
                 }
-                HttpURLConnection.HTTP_UNAUTHORIZED -> {
-                    if (isRetry) return null
-                    runBlocking { AuthManager.refreshAuthToken(context) } ?: return null
-                    exchangeCode(context, isRetry = true)
+                HttpURLConnection.HTTP_UNAUTHORIZED -> ApiReply.Unauthorized
+                // A suspended community (403) can't sign in either
+                in 400..499 -> {
+                    Log.e(TAG, "Session exchange refused: $code")
+                    ApiReply.Unauthorized
                 }
                 else -> {
-                    Log.e(TAG, "Session exchange failed: ${connection.responseCode}")
-                    if (connection.responseCode >= 500) throw IOException("Server error ${connection.responseCode}")
-                    null
+                    Log.e(TAG, "Session exchange failed: $code")
+                    ApiReply.Failed
                 }
             }
+        } catch (e: IOException) {
+            Log.e(TAG, "Session exchange failed", e)
+            return ApiReply.Failed
         } finally {
             connection.disconnect()
         }

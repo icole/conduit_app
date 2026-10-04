@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.colecoding.conduit.R
+import com.colecoding.conduit.auth.ApiReply
 import com.colecoding.conduit.auth.AuthManager
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.models.User
@@ -41,9 +42,14 @@ class ChatFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 // Fetch token on IO dispatcher
-                val token = withContext(Dispatchers.IO) {
+                val reply = withContext(Dispatchers.IO) {
                     AuthManager.getStreamChatToken(requireContext())
                 }
+                if (reply == ApiReply.Unauthorized) {
+                    activity?.let { AuthManager.signInAgain(it) }
+                    return@launch
+                }
+                val token = (reply as? ApiReply.Ok)?.value
 
                 val userId = AuthManager.getUserId(requireContext())
                 val userName = AuthManager.getUserName(requireContext())

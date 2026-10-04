@@ -14,6 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.colecoding.conduit.R
+import com.colecoding.conduit.auth.ApiReply
 import com.colecoding.conduit.auth.AuthManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.getstream.chat.android.client.ChatClient
@@ -75,9 +76,14 @@ class CustomChatFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 // Fetch token on IO dispatcher
-                val token = withContext(Dispatchers.IO) {
+                val reply = withContext(Dispatchers.IO) {
                     AuthManager.getStreamChatToken(requireContext())
                 }
+                if (reply == ApiReply.Unauthorized) {
+                    activity?.let { AuthManager.signInAgain(it) }
+                    return@launch
+                }
+                val token = (reply as? ApiReply.Ok)?.value
 
                 val userId = AuthManager.getUserId(requireContext())
                 val userName = AuthManager.getUserName(requireContext())
@@ -445,13 +451,7 @@ class CustomChatFragment : Fragment() {
     }
 
     private fun redirectToLogin() {
-        activity?.let { activity ->
-            AuthManager.logout(activity)
-            val intent = android.content.Intent(activity, com.colecoding.conduit.auth.LoginActivity::class.java)
-            intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
-            activity.startActivity(intent)
-            android.widget.Toast.makeText(activity, "Session expired. Please log in again.", android.widget.Toast.LENGTH_LONG).show()
-        }
+        activity?.let { AuthManager.signInAgain(it) }
     }
 
     private fun showChannelOptionsDialog(channel: Channel) {

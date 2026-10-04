@@ -1,9 +1,13 @@
 package com.colecoding.conduit.auth
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
+import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import android.webkit.CookieManager
 import android.webkit.WebStorage
@@ -195,97 +199,74 @@ object AuthManager {
     }
 
     /** A chat token that expires within the hour (CON-80); each call fetches a new one. */
-    suspend fun getStreamChatToken(context: Context): String? =
+    /** A chat token that expires within the hour (CON-80); each call fetches a new one. */
+    suspend fun getStreamChatToken(context: Context): ApiReply<String> =
         withContext(Dispatchers.IO) { fetchStreamToken(context) }
 
     /** For connectUser: starts with [first], then fetches fresh tokens as Stream needs them. */
     fun streamTokenProvider(context: Context, first: String): StreamTokens {
         val appContext = context.applicationContext
-        return StreamTokens(first) { fetchStreamToken(appContext) }
+        return StreamTokens(first) { (fetchStreamToken(appContext) as? ApiReply.Ok)?.value }
+    }
+
+    /** Signed out by the server: back to the login screen, saying why. */
+    fun signInAgain(activity: Activity) {
+        logout(activity)
+        val intent = Intent(activity, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        activity.startActivity(intent)
+        Toast.makeText(activity, "Session expired. Please log in again.", Toast.LENGTH_LONG).show()
     }
 
     /** Blocks on the network, so call it off the main thread. */
-    private fun fetchStreamToken(context: Context): String? {
+    private fun fetchStreamToken(context: Context): ApiReply<String> {
+        getPrefs(context).edit().remove(KEY_STREAM_TOKEN).apply()
+        return ApiTokenRetry.call(
+            getAuthToken(context),
+            refresh = { runBlocking { refreshAuthToken(context) } }
+        ) { token -> requestStreamToken(context, token) }
+    }
+
+    private fun requestStreamToken(context: Context, authToken: String): ApiReply<String> {
         return try {
-            getPrefs(context).edit().remove(KEY_STREAM_TOKEN).apply()
             val url = java.net.URL("${com.colecoding.conduit.config.AppConfig.getBaseUrl(context)}/api/v1/stream_token?expiring=1")
             val connection = url.openConnection() as java.net.HttpURLConnection
-
             connection.requestMethod = "GET"
             connection.setRequestProperty("Accept", "application/json")
-            connection.setRequestProperty("Content-Type", "application/json")
             connection.setRequestProperty("User-Agent", "Conduit-Android/1.0")
-
-            // Try auth token first
-            val authToken = getAuthToken(context)
-            if (authToken != null) {
-                connection.setRequestProperty("Authorization", "Bearer $authToken")
-                Log.d(TAG, "Using auth token for authentication")
-            } else {
-                // Fall back to session cookie
-                val sessionCookie = getSessionCookie(context)
-                if (sessionCookie != null) {
-                    connection.setRequestProperty("Cookie", "_conduit_app_session=$sessionCookie")
-                    Log.d(TAG, "Using session cookie for authentication")
-                } else {
-                    Log.e(TAG, "No authentication credentials available for Stream token request")
-                    return null
-                }
-            }
-
+            connection.setRequestProperty("Authorization", "Bearer $authToken")
             connection.connectTimeout = 5000
             connection.readTimeout = 5000
 
             val responseCode = connection.responseCode
             Log.d(TAG, "Stream token API response code: $responseCode")
 
-            if (responseCode == java.net.HttpURLConnection.HTTP_OK) {
-                val response = connection.inputStream.bufferedReader().use { it.readText() }
-                Log.d(TAG, "Stream token response received")
-
-                // Parse JSON response
-                val jsonObject = org.json.JSONObject(response)
-                val token = jsonObject.getString("token")
-
-                // Store community slug for channel filtering
-                if (jsonObject.has("community_slug")) {
-                    setCommunitySlug(context, jsonObject.getString("community_slug"))
-                    Log.d(TAG, "Community slug: ${jsonObject.getString("community_slug")}")
+            when (responseCode) {
+                java.net.HttpURLConnection.HTTP_OK -> {
+                    val jsonObject = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
+                    rememberChatDetails(context, jsonObject)
+                    ApiReply.Ok(jsonObject.getString("token"))
                 }
-
-                // Also update user data if present
-                if (jsonObject.has("user")) {
-                    val userObject = jsonObject.getJSONObject("user")
-                    if (userObject.has("id")) {
-                        setUserId(context, userObject.getString("id"))
-                    }
-                    if (userObject.has("name")) {
-                        setUserName(context, userObject.getString("name"))
-                    }
-                    if (userObject.has("restricted_access")) {
-                        setRestrictedAccess(context, userObject.getBoolean("restricted_access"))
-                        Log.d(TAG, "User restricted access: ${userObject.getBoolean("restricted_access")}")
-                    }
-                }
-
-                Log.d(TAG, "Stream token successfully fetched")
-                token
-            } else {
-                Log.e(TAG, "Failed to fetch Stream token. Response code: $responseCode")
-
-                // Try to read error response
-                try {
+                java.net.HttpURLConnection.HTTP_UNAUTHORIZED -> ApiReply.Unauthorized
+                else -> {
+                    // e.g. 403: chat disabled, community awaiting approval, email unverified
                     val errorResponse = connection.errorStream?.bufferedReader()?.use { it.readText() }
-                    Log.e(TAG, "Error response: $errorResponse")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Could not read error response", e)
+                    Log.e(TAG, "Failed to fetch Stream token: $responseCode $errorResponse")
+                    ApiReply.Failed
                 }
-
-                null
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching Stream token from backend", e)
-            null
+            ApiReply.Failed
         }
+    }
+
+    /** The community slug (for channel filtering) and the member's details that come with a token. */
+    private fun rememberChatDetails(context: Context, json: JSONObject) {
+        if (json.has("community_slug")) setCommunitySlug(context, json.getString("community_slug"))
+        val user = json.optJSONObject("user") ?: return
+        if (user.has("id")) setUserId(context, user.getString("id"))
+        if (user.has("name")) setUserName(context, user.getString("name"))
+        if (user.has("restricted_access")) setRestrictedAccess(context, user.getBoolean("restricted_access"))
     }
 }
