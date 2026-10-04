@@ -28,7 +28,7 @@ gem "bcrypt", "~> 3.1.22"
 gem "acts_as_tenant", "~> 2.0"
 
 # Soft delete for content models [https://github.com/jhawthorn/discard]
-gem "discard", "~> 1.3"
+gem "discard", "~> 2.0"
 
 # Audit trail for model changes [https://github.com/paper-trail-gem/paper_trail]
 gem "paper_trail", "~> 17.0"
@@ -59,7 +59,9 @@ gem "kamal", require: false
 gem "thruster", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.2"
+# image_processing 2 no longer brings it; Active Storage resizes with vips
+gem "ruby-vips"
 
 # Google Drive API - Using specific service gem as recommended
 gem "google-apis-drive_v3", "~> 0.88.0"
@@ -110,8 +112,9 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
   gem "rails-controller-testing"
-  # Pin minitest to 5.x until Rails 8.1 compatibility is resolved
-  gem "minitest", "~> 5.27"
+  gem "minitest", "~> 6.0"
+  # Minitest 6 moved minitest/mock into its own gem
+  gem "minitest-mock"
 end
 
 gem "jsbundling-rails", "~> 1.3"
