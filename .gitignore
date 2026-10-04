@@ -15,6 +15,12 @@
 # Ignore google keys
 wide-gamma-462206-r8-823649cf4ac3.json
 
+# Ignore Apple auth keys. These are unencrypted private keys that Apple issues
+# as a one-time download, so a leaked one can only be revoked, never rotated
+# quietly. Ignored by pattern because they get parked in a working copy while
+# configuring signing or push.
+*.p8
+
 # Ignore all logfiles and tempfiles.
 /log/*
 /tmp/*
