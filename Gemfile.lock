@@ -415,7 +415,7 @@ GEM
       rack
     pstore (0.2.1)
     public_suffix (7.0.5)
-    puma (7.2.0)
+    puma (8.0.2)
       nio4r (~> 2.0)
     raabro (1.5.0)
     racc (1.8.1)
@@ -487,8 +487,9 @@ GEM
       uber (< 0.2.0)
     request_store (1.7.0)
       rack (>= 1.4)
-    resend (0.27.0)
-      httparty (>= 0.21.0)
+    resend (1.17.0)
+      base64
+      httparty (>= 0.22.0)
     retriable (4.2.0)
     rexml (3.4.4)
     rubocop (1.81.7)
@@ -539,10 +540,10 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 4.0)
       websocket (~> 1.0)
-    sentry-rails (6.7.0)
+    sentry-rails (7.1.0)
       railties (>= 5.2.0)
-      sentry-ruby (~> 6.7.0)
-    sentry-ruby (6.7.0)
+      sentry-ruby (~> 7.1.0)
+    sentry-ruby (7.1.0)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
       logger
@@ -555,7 +556,7 @@ GEM
     snaky_hash (2.0.7)
       hashie (>= 0.1.0, < 6)
       version_gem (~> 1.1, >= 1.1.14)
-    solid_cable (3.0.12)
+    solid_cable (4.1.0)
       actioncable (>= 7.2)
       activejob (>= 7.2)
       activerecord (>= 7.2)
@@ -681,7 +682,7 @@ DEPENDENCIES
   rack-attack (~> 6.7)
   rails (~> 8.1.4)
   rails-controller-testing
-  resend (~> 0.17)
+  resend (~> 1.17)
   rubocop-rails-omakase
   ruby-vips
   selenium-webdriver
