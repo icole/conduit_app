@@ -40,6 +40,11 @@ production:
     schedule: every hour at minute 5
     queue: default
 
+  email_log_retention:
+    class: EmailLogRetentionJob
+    schedule: every day at 4am
+    queue: default
+
 development:
   generate_weekly_meals:
     class: GenerateWeeklyMealsJob
