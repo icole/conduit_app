@@ -61,7 +61,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres
+        image: postgres:15 # what production runs; the runner's pg_dump must be at least this
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
