@@ -23,6 +23,8 @@ class TaskSampleData
 
   HISTORY_WEEKS = 16
 
+  def self.email_for(name) = "#{name.parameterize(separator: '.')}@example.com"
+
   def initialize(community, viewer: nil, people: true)
     @community = community
     @viewer = viewer
@@ -58,7 +60,7 @@ class TaskSampleData
   def create_people
     HOUSEHOLDS.to_h do |name, household_name|
       household = Household.find_or_create_by!(name: household_name)
-      user = User.find_or_create_by!(email: "#{name.parameterize(separator: '.')}@example.com") do |u|
+      user = User.find_or_create_by!(email: self.class.email_for(name)) do |u|
         u.name = name
         u.password = SecureRandom.base58(24)
         u.household = household

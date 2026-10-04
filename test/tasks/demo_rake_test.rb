@@ -7,10 +7,13 @@ class DemoRakeTest < ActiveSupport::TestCase
     ActsAsTenant.current_tenant = nil
   end
 
-  test "demo:create builds a demo community with the sample task data" do
+  test "demo:create builds a demo community with the sample task data, without printing the password" do
     ENV["DEMO_COMMUNITY_SLUG"] = "demo-test"
     ENV["DEMO_COMMUNITY_DOMAIN"] = "demo-test.example.com"
-    assert_output(/Demo community created successfully/) { Rake::Task["demo:create"].execute }
+    ENV["DEMO_USER_PASSWORD"] = "a-long-review-password"
+    out, = capture_io { Rake::Task["demo:create"].execute }
+    assert_match "Demo community ready", out
+    assert_no_match "a-long-review-password", out
 
     community = Community.find_by!(slug: "demo-test")
     ActsAsTenant.with_tenant(community) do
@@ -20,13 +23,18 @@ class DemoRakeTest < ActiveSupport::TestCase
       assert_empty Task.where(workstream_id: nil)
     end
   ensure
-    ENV.delete("DEMO_COMMUNITY_SLUG")
-    ENV.delete("DEMO_COMMUNITY_DOMAIN")
+    %w[DEMO_COMMUNITY_SLUG DEMO_COMMUNITY_DOMAIN DEMO_USER_PASSWORD].each { |key| ENV.delete(key) }
+  end
+
+  test "demo:create refuses to run without a password" do
+    ENV.delete("DEMO_USER_PASSWORD")
+    assert_raises(ArgumentError) { capture_io { Rake::Task["demo:create"].execute } }
   end
 
   test "demo:destroy removes only the demo community's task data" do
     ENV["DEMO_COMMUNITY_SLUG"] = "demo-test"
     ENV["DEMO_COMMUNITY_DOMAIN"] = "demo-test.example.com"
+    ENV["DEMO_USER_PASSWORD"] = "a-long-review-password"
     capture_io { Rake::Task["demo:create"].execute }
     other_tasks = ActsAsTenant.without_tenant { Task.where.not(community: Community.find_by!(slug: "demo-test")).count }
     other_workstreams = ActsAsTenant.without_tenant { Workstream.where.not(community: Community.find_by!(slug: "demo-test")).count }
@@ -40,6 +48,6 @@ class DemoRakeTest < ActiveSupport::TestCase
       assert_equal other_workstreams, Workstream.count
     end
   ensure
-    %w[DEMO_COMMUNITY_SLUG DEMO_COMMUNITY_DOMAIN CONFIRM].each { |key| ENV.delete(key) }
+    %w[DEMO_COMMUNITY_SLUG DEMO_COMMUNITY_DOMAIN DEMO_USER_PASSWORD CONFIRM].each { |key| ENV.delete(key) }
   end
 end

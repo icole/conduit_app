@@ -45,6 +45,12 @@ production:
     schedule: every day at 4am
     queue: default
 
+  # Clears the App Store / Play reviewers' demo community (CON-66)
+  demo_reset:
+    class: DemoResetJob
+    schedule: "0 3 * * 0 America/Los_Angeles"
+    queue: default
+
 development:
   generate_weekly_meals:
     class: GenerateWeeklyMealsJob

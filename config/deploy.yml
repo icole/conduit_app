@@ -53,6 +53,8 @@ env:
     # service account that can only write to the backups bucket
     - BACKUP_PASSPHRASE
     - BACKUP_GCS_CREDENTIALS
+    # The App Store / Play reviewers' demo account (CON-66); the weekly reset sets it
+    - DEMO_USER_PASSWORD
   clear:
     SOLID_QUEUE_IN_PUMA: true
     # Where new-community and Stream usage alerts go; unset means don't send

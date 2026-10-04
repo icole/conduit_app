@@ -1,93 +1,22 @@
 # frozen_string_literal: true
 
 namespace :demo do
-  desc "Create a demo community with demo user for App Store review"
-  task create: :environment do
-    # Demo community settings
-    community_name = ENV.fetch("DEMO_COMMUNITY_NAME", "Demo Community")
-    community_domain = ENV.fetch("DEMO_COMMUNITY_DOMAIN", "demo.conduitcoho.app")
-    community_slug = ENV.fetch("DEMO_COMMUNITY_SLUG", "demo")
-
-    # Demo user settings
-    demo_email = ENV.fetch("DEMO_USER_EMAIL", "demo@conduitcoho.app")
-    demo_password = ENV.fetch("DEMO_USER_PASSWORD", "DemoPass123!")
-    demo_name = ENV.fetch("DEMO_USER_NAME", "Demo User")
-
-    puts "Creating demo community..."
-
-    # Create or find the demo community
-    community = Community.find_or_initialize_by(slug: community_slug)
-    community.assign_attributes(
-      name: community_name,
-      domain: community_domain,
-      status: "active",
-      chat_enabled: true,
-      collaborative_docs_enabled: true
+  # The reviewer password comes from DEMO_USER_PASSWORD; there's no default,
+  # since this repository is public
+  def demo_community
+    DemoCommunity.new(
+      password: ENV["DEMO_USER_PASSWORD"],
+      slug: ENV.fetch("DEMO_COMMUNITY_SLUG", DemoCommunity::SLUG),
+      domain: ENV.fetch("DEMO_COMMUNITY_DOMAIN", DemoCommunity::DOMAIN),
+      name: ENV.fetch("DEMO_COMMUNITY_NAME", DemoCommunity::NAME)
     )
+  end
 
-    if community.save
-      puts "  Community: #{community.name} (#{community.domain})"
-    else
-      puts "  ERROR: #{community.errors.full_messages.join(', ')}"
-      exit 1
-    end
-
-    # Create the demo user within the community tenant
-    ActsAsTenant.with_tenant(community) do
-      puts "Creating demo user..."
-
-      user = User.find_or_initialize_by(email: demo_email)
-      user.assign_attributes(
-        name: demo_name,
-        password: demo_password,
-        password_confirmation: demo_password,
-        community: community
-      )
-
-      if user.save
-        puts "  User: #{user.email}"
-        puts "  Password: #{demo_password}"
-      else
-        puts "  ERROR: #{user.errors.full_messages.join(', ')}"
-        exit 1
-      end
-
-      # Create some sample data for the demo
-      puts "Creating sample data..."
-
-      # Sample meals (upcoming)
-      3.times do |i|
-        scheduled_at = (Date.today + (i + 1).weeks).to_datetime.change(hour: 18)
-        Meal.find_or_create_by!(
-          scheduled_at: scheduled_at,
-          community: community
-        ) do |meal|
-          meal.title = "Community Dinner #{i + 1}"
-          meal.description = "A delicious community meal for everyone to enjoy"
-          meal.rsvp_deadline = scheduled_at - 1.day
-        end
-      end
-      puts "  Created sample meals"
-
-      # Workstreams, recurring and one-off tasks, neighbours and history
-      TaskSampleData.new(community, viewer: user).load!
-      puts "  Created sample tasks"
-    end
-
-    puts ""
-    puts "=" * 50
-    puts "Demo community created successfully!"
-    puts "=" * 50
-    puts ""
-    puts "Community: #{community_name}"
-    puts "Domain: #{community_domain}"
-    puts ""
-    puts "Login credentials:"
-    puts "  Email: #{demo_email}"
-    puts "  Password: #{demo_password}"
-    puts ""
-    puts "Add '#{community_domain}' to your proxy hosts if needed."
-    puts "=" * 50
+  desc "Create the App Store / Play reviewers' demo community, or update it. Needs DEMO_USER_PASSWORD."
+  task create: :environment do
+    community = demo_community.ensure!
+    puts "Demo community ready: #{community.name} (#{community.domain})"
+    puts "Sign in as #{DemoCommunity::EMAIL} with DEMO_USER_PASSWORD."
   end
 
   desc "Destroy the demo community and all its data"
@@ -171,9 +100,9 @@ namespace :demo do
     puts "Demo community destroyed successfully!"
   end
 
-  desc "Reset demo community (destroy and recreate)"
+  desc "Clear what reviewers added to the demo community and restore the sample content (weekly: DemoResetJob). Needs DEMO_USER_PASSWORD."
   task reset: :environment do
-    Rake::Task["demo:destroy"].invoke
-    Rake::Task["demo:create"].invoke
+    community = demo_community.reset!
+    puts "Demo community reset: #{community.name} (#{community.domain})"
   end
 end

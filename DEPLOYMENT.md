@@ -207,3 +207,26 @@ gcloud storage rsync -r gs://wide-gamma-462206-r8-backups/files/ ./storage-resto
 Then copy them into the `conduit_app_storage` volume on the server. To get
 back a file deleted in the last 30 days, list its versions with
 `gcloud storage ls -a gs://wide-gamma-462206-r8-backups/files/<path>`.
+
+## App review demo community
+
+App Store and Play reviewers sign in to the demo community (CON-66):
+
+1. In the app, enter the community name `demo`.
+2. Sign in as `demo@conduitcoho.app` with the password in `DEMO_USER_PASSWORD`
+   (`.env.deploy`). Put both in the review notes in App Store Connect and the
+   Play Console.
+3. Home, Tasks, Meals, Chat and Account all have content. Neighbours have
+   signed up to cook, RSVP'd, taken on chores, and posted in General.
+
+`DemoResetJob` runs every Sunday at 3am Pacific (`config/recurring.yml`). It
+clears whatever reviewers and testers added and restores the sample content,
+keeping the reviewer account and the sample neighbours. To set the community
+up, change its password, or reset it by hand:
+
+```bash
+kamal app exec 'bin/rails demo:create'   # or demo:reset
+```
+
+There's no default password: the repository is public. The community's own
+address, `demo.conduitcoho.app`, has no DNS yet (CON-90); the apps don't need it.
