@@ -1,0 +1,127 @@
+# Lefthook Configuration
+# https://github.com/evilmartians/lefthook
+#
+# This file configures git hooks to run automatically before commits and pushes.
+# Hooks help maintain code quality by catching issues early in the development process.
+#
+# To install hooks: bundle install && lefthook install
+# To skip hooks: LEFTHOOK=0 git commit ... or git commit --no-verify
+
+# Pre-commit hooks - run before each commit
+pre-commit:
+  parallel: true  # Run commands in parallel for speed
+
+  commands:
+    # 1. RuboCop - Ruby linting and style checking
+    rubocop:
+      tags: backend style
+      glob: "*.{rb,rake}"  # Only run on Ruby files
+      run: bundle exec rubocop --autocorrect {staged_files}
+      stage_fixed: true  # Automatically stage files fixed by autocorrect
+
+    # 2. Brakeman - Security vulnerability scanning
+    brakeman:
+      tags: backend security
+      files: git diff --name-only --cached
+      glob: "{*.rb,config/**/*.rb,app/**/*.rb}"  # Only run if Ruby files changed
+      run: |
+        echo "🔒 Running security scan..."
+        bundle exec brakeman --no-pager --quiet --format plain
+      fail_text: "Security vulnerabilities detected. Run 'bin/brakeman' for details."
+
+    # 3. Migration check - Warn if new migrations exist
+    migration-check:
+      tags: database
+      files: git diff --name-only --cached
+      glob: "db/migrate/*.rb"
+      run: |
+        echo "⚠️  Database migration detected!"
+        echo "   Please ensure:"
+        echo "   - Migration is reversible (or explicitly irreversible)"
+        echo "   - Migration tested locally"
+        echo "   - Migration won't cause downtime"
+        echo ""
+        echo "   Migration files:"
+        git diff --name-only --cached | grep "db/migrate"
+        echo ""
+        echo "   Continue? (This is just a warning, commit will proceed)"
+        # This is informational only - doesn't block commit
+
+    # 4. ERB Lint - Check ERB templates (optional, can enable if needed)
+    # erb-lint:
+    #   tags: frontend linting
+    #   glob: "*.{erb}"
+    #   run: bundle exec erblint --autocorrect {staged_files}
+    #   stage_fixed: true
+
+    # 5. JavaScript/CSS linting (if using ESLint/Stylelint)
+    # eslint:
+    #   tags: frontend linting
+    #   glob: "app/javascript/**/*.js"
+    #   run: yarn eslint --fix {staged_files}
+    #   stage_fixed: true
+
+  # scripts:
+  #   # Run custom scripts from .lefthook directory
+  #   "check-console.sh":
+  #     runner: bash
+
+# Pre-push hooks - run before pushing to remote
+pre-push:
+  parallel: true
+
+  commands:
+    # 1. Run full test suite before pushing
+    tests:
+      tags: tests
+      run: |
+        echo "🧪 Running full test suite..."
+        bundle exec rails test
+      fail_text: "Tests failed. Fix failing tests before pushing."
+
+    # 2. Final security scan before push
+    brakeman-final:
+      tags: security
+      run: |
+        echo "🔒 Final security scan..."
+        bundle exec brakeman --no-pager --quiet --format plain
+      fail_text: "Security vulnerabilities detected. Run 'bin/brakeman' for details."
+
+    # 3. Check for secrets/credentials in code
+    secrets-check:
+      tags: security
+      run: |
+        echo "🔑 Checking for exposed secrets..."
+        # Check for common secret patterns
+        if git diff origin/staging..HEAD -- . ':(exclude)lefthook.yml' | grep -E "(api_key|api_secret|password|token|secret_key_base)" | grep -v "REDACTED"; then
+          echo "⚠️  WARNING: Possible secret detected in diff!"
+          echo "   Review your changes carefully."
+          echo "   If this is a false positive, you can skip with: LEFTHOOK=0 git push"
+          exit 1
+        fi
+
+# Commit message hooks - validate commit message format (optional)
+# commit-msg:
+#   commands:
+#     conventional-commit:
+#       run: |
+#         commit_msg=$(cat {1})
+#         if ! echo "$commit_msg" | grep -qE "^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+"; then
+#           echo "❌ Commit message doesn't follow conventional commits format"
+#           echo "   Expected: type(scope): message"
+#           echo "   Examples:"
+#           echo "     feat(chat): add notification navigation"
+#           echo "     fix(auth): resolve login redirect issue"
+#           echo "     docs(readme): update setup instructions"
+#           exit 1
+#         fi
+
+# Skip patterns - files to always skip
+skip_output:
+  - meta  # Don't show meta information
+  - summary  # Don't show summary
+
+# Output configuration
+output:
+  - out
+  - err
