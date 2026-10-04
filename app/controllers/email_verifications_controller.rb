@@ -14,6 +14,10 @@ class EmailVerificationsController < ApplicationController
 
     if user
       user.verify_email!
+      # The API domain has no pages without a session (a new community's
+      # links point there), so say it worked rather than show a 404
+      return render :verified if api_domain?(request.host) && !user_signed_in?
+
       redirect_to root_path, notice: "Your email address is verified. Thanks!"
     else
       redirect_to root_path, alert: "That verification link is invalid or has expired. Log in and request a new one."

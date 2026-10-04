@@ -95,7 +95,11 @@ class User < ApplicationRecord
 
   def send_email_verification!
     update!(email_verification_sent_at: Time.current)
-    UserMailer.verify_email(self, JwtService.generate_email_verification_token(self)).deliver_later
+    # The job keeps the community current when it's queued, which builds the
+    # link; community signup queues this with none set
+    ActsAsTenant.with_tenant(community) do
+      UserMailer.verify_email(self, JwtService.generate_email_verification_token(self)).deliver_later
+    end
   end
 
   def verify_email!

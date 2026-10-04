@@ -29,6 +29,19 @@ class Community < ApplicationRecord
     settings&.dig("google_drive_folder_id")
   end
 
+  def self.api_domain
+    ENV["CONDUIT_API_DOMAIN"] || "api.conduitcoho.app"
+  end
+
+  # Where links to this community's pages should point. Self-created
+  # communities get <slug>.conduitcoho.app, which has no DNS yet, so their
+  # members use the API domain.
+  def web_host
+    return self.class.api_domain if domain.blank? || domain.end_with?(".#{CommunitySignup.domain_suffix}")
+
+    domain
+  end
+
   def smtp_from_name
     settings&.dig("smtp_from_name") || "#{name} Conduit"
   end

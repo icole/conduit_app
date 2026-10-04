@@ -57,8 +57,7 @@ class ApplicationController < ActionController::Base
   end
 
   def api_domain?(host)
-    api_domain = ENV["CONDUIT_API_DOMAIN"] || "api.conduitcoho.app"
-    host == api_domain
+    host == Community.api_domain
   end
 
   def community_from_session

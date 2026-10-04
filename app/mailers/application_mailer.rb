@@ -14,8 +14,8 @@ class ApplicationMailer < ActionMailer::Base
 
   def set_url_options
     tenant = ActsAsTenant.current_tenant
-    if tenant&.domain.present?
-      default_url_options[:host] = tenant.domain
+    if tenant
+      default_url_options[:host] = tenant.web_host
       default_url_options[:protocol] = "https"
     end
   end
