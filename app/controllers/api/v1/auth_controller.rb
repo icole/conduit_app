@@ -284,7 +284,6 @@ module Api
             user = User.new(
               email: email.downcase,
               name: name,
-              password: SecureRandom.hex(16), # Random password for OAuth users
               provider: "google_oauth2",
               uid: google_uid,
               avatar_url: image_url,

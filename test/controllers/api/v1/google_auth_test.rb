@@ -140,4 +140,22 @@ class Api::V1::GoogleAuthTest < ActionDispatch::IntegrationTest
     assert JSON.parse(response.body)["auth_token"].present?
     assert_equal @community.id, User.find_by(email: "newcomer@example.com").community_id
   end
+
+  # CON-91: app sign-ups used to get a random password nobody knew, so the
+  # Account page asked for a "current password" they'd never had
+  test "a member who signs up with Google in the app can set their own password" do
+    invitation = Invitation.create!
+    GoogleIdTokenVerifier.stub(:verify, newcomer_claims) do
+      post api_v1_google_auth_url,
+        params: { id_token: "valid-token", community_domain: @community.domain, invitation_token: invitation.token },
+        as: :json
+    end
+    newcomer = User.find_by(email: "newcomer@example.com")
+    assert_nil newcomer.password_digest
+
+    get account_path
+    assert_select "h3", text: "Set a password to enable email login"
+    patch set_password_path, params: { new_password: "a-new-password", new_password_confirmation: "a-new-password" }
+    assert newcomer.reload.authenticate("a-new-password")
+  end
 end
