@@ -328,6 +328,17 @@ module Api
 
       private
 
+      # Google sign-in brings the member's profile; keep their name and photo
+      # out of the logs. Set before Rails logs the parameters, which happens
+      # ahead of any callback. Only here, since "name" elsewhere is a task's.
+      def process_action(*)
+        if action_name == "google_auth"
+          request.set_header("action_dispatch.parameter_filter",
+            Rails.application.config.filter_parameters + [ :name, :image_url ])
+        end
+        super
+      end
+
       # The community a login is scoped to. Renders the error and returns nil
       # when it is missing or unknown, so callers can `or return`.
       def required_community

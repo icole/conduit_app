@@ -9,6 +9,32 @@ class Api::V1::GoogleAuthTest < ActionDispatch::IntegrationTest
     @community = communities(:crow_woods)
   end
 
+  def controller_log
+    io = StringIO.new
+    original = ActionController::Base.logger
+    ActionController::Base.logger = ActiveSupport::Logger.new(io)
+    yield
+    io.string
+  ensure
+    ActionController::Base.logger = original
+  end
+
+  # The apps send the Google profile along; a member's name and photo don't
+  # belong in the server logs. Only these are filtered: "name" elsewhere is
+  # a task's or a meal's.
+  test "google_auth doesn't log the member's name or photo" do
+    log = controller_log do
+      post api_v1_google_auth_url,
+        params: { name: "Pat Example", image_url: "https://lh3.googleusercontent.com/a/photo", community_domain: @community.domain },
+        as: :json
+    end
+
+    assert_match "Parameters", log
+    assert_no_match "Pat Example", log
+    assert_no_match "googleusercontent", log
+    assert_match @community.domain, log
+  end
+
   test "google_auth without id_token is rejected even for an existing user's email" do
     post api_v1_google_auth_url,
       params: { email: @user.email, name: @user.name, community_domain: @community.domain },
