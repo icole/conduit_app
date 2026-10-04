@@ -337,7 +337,9 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     get tasks_url(tab: "all", list: "tasks")
     assert_select "nav[aria-label='Show'] a[aria-current='page']", text: "All tasks"
     titles = css_select("#all-tasks [id^='task_'] .font-medium").map { |node| node.text.strip }
-    assert_equal [ "Return the ladder", "Sweep the porch" ], titles.first(2)
+    # Visiting generates this week's recurring tasks, which on some days fall
+    # due today or tomorrow too, so compare only this test's tasks
+    assert_equal [ "Return the ladder", "Sweep the porch" ], titles & [ "Sweep the porch", "Return the ladder" ]
     assert_not_includes titles, "Done already"
     assert_not_includes titles, "Deleted one"
     assert_not_includes titles, "Closed project task"
