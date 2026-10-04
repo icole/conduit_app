@@ -54,8 +54,10 @@ RUN bundle exec bootsnap precompile app/ lib/
 # Build JavaScript assets (React chat component)
 RUN yarn build:production
 
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+# Precompiling assets for production without requiring secret RAILS_MASTER_KEY.
+# SKIP_JS_BUILD stops jsbundling-rails rebuilding the JavaScript above in
+# development mode first.
+RUN SECRET_KEY_BASE_DUMMY=1 SKIP_JS_BUILD=1 ./bin/rails assets:precompile
 
 # Final stage for app image
 FROM base
