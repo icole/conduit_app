@@ -5,9 +5,12 @@
 class NightlyBackupJob < ApplicationJob
   include Sentry::Cron::MonitorCheckIns
 
-  # Same schedule as config/recurring.yml: 10:15 UTC, about 3am Pacific
-  SCHEDULE = "15 10 * * *".freeze
-  sentry_monitor_check_ins slug: "nightly-backup", monitor_config: Sentry::Cron::MonitorConfig.from_crontab(SCHEDULE)
+  # 3:15am Pacific, as in config/recurring.yml. The zone is explicit on both
+  # sides: Solid Queue reads a bare crontab in the app's zone, Sentry in UTC.
+  SCHEDULE = "15 3 * * *".freeze
+  TIME_ZONE = "America/Los_Angeles".freeze
+  sentry_monitor_check_ins slug: "nightly-backup",
+    monitor_config: Sentry::Cron::MonitorConfig.from_crontab(SCHEDULE, timezone: TIME_ZONE)
 
   queue_as :default
 

@@ -153,8 +153,8 @@ If you need to update Stream Chat credentials:
 - Use strong passwords for database and services
 ## Backups
 
-`NightlyBackupJob` runs every night at 10:15 UTC (about 3am Pacific) from
-Solid Queue's recurring schedule. It writes to the private bucket
+`NightlyBackupJob` runs every night at 3:15am Pacific (the zone is explicit in
+`config/recurring.yml` and in the job's Sentry monitor). It writes to the private bucket
 `gs://wide-gamma-462206-r8-backups` in the `wide-gamma-462206-r8` project:
 
 * `db/conduit_app-<UTC time>.dump.enc` — a `pg_dump` of the main database

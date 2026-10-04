@@ -29,10 +29,10 @@ production:
     schedule: every day at 5am
     queue: default
 
-  # 10:15 UTC, about 3am Pacific; matches NightlyBackupJob::SCHEDULE (CON-31)
+  # 3:15am Pacific; must match NightlyBackupJob's Sentry monitor (CON-31)
   nightly_backup:
     class: NightlyBackupJob
-    schedule: "15 10 * * *"
+    schedule: "15 3 * * * America/Los_Angeles"
     queue: default
 
   task_reminders:
