@@ -48,18 +48,16 @@ STREAM_API_SECRET=your_actual_api_secret_here
 bin/rails server
 ```
 
-### 4. Initialize Channels and Users
-Run these commands to set up your Stream Chat data:
+### 4. Initialize Users
+Sync your existing users to Stream. Each member is added to their community's
+default channels the first time they open chat.
 
 ```bash
-# Test the connection
-bin/rails stream:test
+# Lists channels, which also checks the connection
+bin/rails stream_chat:list_channels
 
 # Sync all your existing users to Stream
-bin/rails stream:sync_users
-
-# Create the default HOA channels
-bin/rails stream:setup_channels
+bin/rails stream_chat:sync_users
 ```
 
 ### 5. Test the Web Interface
@@ -121,15 +119,15 @@ As configured, Stream Chat provides:
 ## 🛠️ Maintenance Commands
 
 ```bash
-# Check Stream connection status
-bin/rails stream:test
+# List channels (also checks the connection)
+bin/rails stream_chat:list_channels
 
 # Sync new users to Stream (run after adding users)
-bin/rails stream:sync_users
-
-# Recreate channels if needed
-bin/rails stream:setup_channels
+bin/rails stream_chat:sync_users
 ```
+
+`bin/rails -T stream_chat` lists the rest: Teams checks, isolation and user
+audits, and the permission grant tools.
 
 ## 📚 Resources
 

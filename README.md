@@ -39,12 +39,8 @@ Community:
 
 In development, the app automatically uses the "crow-woods" community when accessing via `localhost`. This means you don't need to set up custom domains locally.
 
-**To create the initial community:**
-
-```bash
-# Run the data migration task (creates "Crow Woods" community and associates existing data)
-bin/rails multi_community:setup
-```
+**To create the initial community:** create one in the console as shown below,
+with the slug `crow-woods` so `localhost` finds it.
 
 **To create additional communities:**
 

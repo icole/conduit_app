@@ -126,7 +126,7 @@ After successful deployment:
 - Verify STREAM_PROD_API_KEY and STREAM_PROD_API_SECRET in `.env` are the production app's (Stream dashboard → app → Overview)
 - Confirm what the container is running: `kamal app exec --reuse 'printenv STREAM_API_KEY'`
 - Check Rails logs: `kamal app logs`
-- Test Stream connection: `kamal app exec 'bin/rails stream:test'`
+- Test Stream connection: `kamal app exec 'bin/rails stream_chat:list_channels'`
 
 #### Environment variables not being picked up?
 - Ensure you've sourced your .env file: `source .env`
