@@ -148,7 +148,7 @@ bin/rails stream:setup_channels
 ---
 
 Your HOA chat system is ready to go! Just add your Stream credentials and you'll have a private, secure messaging platform that replaces those messy SMS group texts.
-## Permissions and tokens (checked 2026-10-03)
+## Permissions and tokens (checked 2026-10-04)
 
 Production uses multi-tenant Stream Teams: each community is a team, and
 channels are type `team`.
@@ -163,10 +163,13 @@ in the Stream app; registering one would post every chat event to the server.
 **`team` channel grants for the `user` role** (abridged): read channels and
 their members, join (`add-own-channel-membership`, which the apps use when
 someone taps a channel they're not in), send messages, attachments, reactions
-and replies, and `*-owner` rights on things they own. That includes
-`update-channel-owner`, `delete-channel-owner`, `truncate-channel-owner` and
-`update-channel-members-owner` for channels they created. `channel_member`
-adds full messaging, flagging, muting and leaving.
+and replies, and `*-owner` rights on their own messages, reactions and
+attachments. Since 2026-10-04 (CON-51) it has no owner rights over channels:
+`update-channel-owner`, `delete-channel-owner`, `truncate-channel-owner`,
+`update-channel-members-owner` and `recreate-channel-owner` were removed, so
+whoever asked the server for a channel can't rename, clear or delete it, or
+change its members, from the client. `channel_member` adds full messaging,
+flagging, muting and leaving.
 
 **Tokens (CON-80):** `StreamChatClient.token_for` mints them. The web chat's
 tokens expire after `StreamChatClient::TOKEN_TTL` (1 hour) and its token
