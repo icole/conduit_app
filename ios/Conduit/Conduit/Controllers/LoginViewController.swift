@@ -283,6 +283,9 @@ class LoginViewController: UIViewController {
 
         // Dismiss keyboard on tap
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        // Let taps through too: the Apple button is a plain UIControl, which
+        // (unlike UIButton) loses its tap to a recognizer that cancels touches
+        tapGesture.cancelsTouchesInView = false
         view.addGestureRecognizer(tapGesture)
 
         // Handle return key
