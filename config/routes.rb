@@ -232,6 +232,8 @@ Rails.application.routes.draw do
   # Static pages
   get "privacy", to: "pages#privacy"
   get "terms", to: "pages#terms"
+  # How to delete an account, for anyone (Google Play requires one, CON-65)
+  get "delete-account", to: "pages#account_deletion", as: :delete_account_info
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
