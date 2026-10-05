@@ -38,6 +38,10 @@ KAMAL_REGISTRY_PASSWORD=your_docker_password
 CONDUIT_SERVER_IP=your_server_ip
 CONDUIT_SSH_USER=your_ssh_user
 CONDUIT_DOMAIN=your_domain.com
+# The apps and self-created communities use this one (sign-in is by session there)
+CONDUIT_API_DOMAIN=api.your_domain.com
+# The App Store / Play reviewers' demo community (see "App review demo community")
+CONDUIT_DEMO_DOMAIN=demo.your_domain.com
 
 # Google OAuth
 GOOGLE_CLIENT_ID=your_google_client_id
@@ -46,12 +50,8 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 # Database
 CONDUIT_APP_DATABASE_PASSWORD=secure_database_password
 
-# Email (Mailgun)
-MAILGUN_API_KEY=your_mailgun_api_key
-MAILGUN_DOMAIN=your_mailgun_domain
-MAILGUN_SMTP_USERNAME=your_mailgun_smtp_username
-MAILGUN_SMTP_PASSWORD=your_mailgun_smtp_password
-MAILGUN_SIGNING_KEY=your_mailgun_signing_key
+# Email (Resend; see README "Email Setup")
+RESEND_API_KEY=your_resend_api_key
 
 # Optional (if using Google Calendar/Drive)
 GOOGLE_CALENDAR_ID=your_calendar_id

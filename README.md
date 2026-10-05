@@ -31,7 +31,7 @@ Community:
   - name          # Display name (e.g., "Crow Woods")
   - slug          # URL-friendly identifier (e.g., "crow-woods")
   - domain        # The domain for this community (e.g., "conduit.crowwoods.com")
-  - settings      # JSONB for Google integration IDs, SMTP settings, etc.
+  - settings      # JSONB: Google integration IDs, feature flags, sender name
   - time_zone     # Community's timezone (default: "America/New_York")
 ```
 
@@ -114,9 +114,9 @@ GOOGLE_CLIENT_SECRET=your_client_secret
 STREAM_API_KEY=your_stream_api_key
 STREAM_API_SECRET=your_stream_api_secret
 
-# SMTP Email (required for email notifications)
-SMTP_USERNAME=your_email_address
-SMTP_PASSWORD=your_email_password
+# Email, sent through Resend in production (see Email Setup)
+RESEND_API_KEY=your_resend_api_key
+DEFAULT_FROM_EMAIL=noreply@yourdomain.com
 
 # JWT Secret (required for mobile app authentication)
 JWT_SECRET=your_jwt_secret
@@ -145,30 +145,13 @@ JWT_SECRET=your_jwt_secret
 
 ## Email Setup
 
-Email notifications (meal reminders, RSVP confirmations, etc.) are sent via SMTP. The default configuration uses Namecheap PrivateEmail, but any SMTP provider works.
+Email (meal reminders, RSVP confirmations, verification and password reset)
+is sent through [Resend](https://resend.com) in production
+(`config/initializers/email.rb`). Development and test never send real mail.
 
-### Namecheap PrivateEmail (Default)
-
-1. Use your domain email (e.g., `info@yourcommunity.com`)
-2. Add to your `.env` file:
-   ```
-   SMTP_USERNAME=info@yourcommunity.com
-   SMTP_PASSWORD=your_email_password
-   ```
-
-The SMTP server is configured as `mail.privateemail.com` on port 587.
-
-### Other SMTP Providers
-
-To use a different provider, update `config/initializers/email.rb` with your SMTP settings:
-
-| Provider | Server | Port |
-|----------|--------|------|
-| Gmail | smtp.gmail.com | 587 |
-| Outlook | smtp.office365.com | 587 |
-| SendGrid | smtp.sendgrid.net | 587 |
-
-**Note:** Gmail requires an [App Password](https://myaccount.google.com/apppasswords) (not your regular password).
+1. Create a Resend account and verify the domain you'll send from.
+2. Set `RESEND_API_KEY`, and `DEFAULT_FROM_EMAIL` if you don't want
+   `noreply@conduitcoho.app`. Mail shows each community's name as the sender.
 
 ## Mobile Apps
 

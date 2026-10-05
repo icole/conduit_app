@@ -57,10 +57,9 @@ Rails.application.configure do
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
-  # Set host to be used by links generated in mailer templates.
+  # Only a fallback: ApplicationMailer points links at each community's address
+  # (Community#web_host). Delivery is Resend, in config/initializers/email.rb.
   config.action_mailer.default_url_options = { host: "example.com" }
-
-  # Email delivery is configured via SMTP in config/initializers/mailgun.rb
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
