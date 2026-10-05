@@ -51,4 +51,18 @@ class NotificationBellTest < ActionDispatch::IntegrationTest
 
     assert_response :not_found
   end
+
+  # The apps hide the navbar; their top bar shows a native bell instead, fed
+  # by this element on every page (the "bell" bridge component)
+  test "in the apps, every page hands the native bell its count" do
+    get root_path, headers: { "User-Agent" => "Conduit iOS/2 (Turbo Native) bridge-components: [button menu bell]" }
+
+    assert_select "a.hidden[data-controller='bridge--bell'][href='#{notifications_path}'][data-bridge-count='1']"
+    assert_select "#notification-bell", count: 0
+  end
+
+  test "the website has its own bell, not the bridge one" do
+    get root_path
+    assert_select "[data-controller='bridge--bell']", count: 0
+  end
 end
