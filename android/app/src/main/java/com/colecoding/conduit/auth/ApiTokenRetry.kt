@@ -9,6 +9,9 @@ sealed interface ApiReply<out T> {
 
     /** A network or server problem; worth trying again later. */
     data object Failed : ApiReply<Nothing>
+
+    /** Signed in, but the server won't do it, saying why (e.g. "chat_disabled"). */
+    data class Refused(val reason: String?) : ApiReply<Nothing>
 }
 
 /**

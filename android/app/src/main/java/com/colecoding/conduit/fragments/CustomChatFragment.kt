@@ -8,6 +8,8 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.TextView
+import com.colecoding.conduit.chat.ChatUnavailable
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -83,7 +85,11 @@ class CustomChatFragment : Fragment() {
                     activity?.let { AuthManager.signInAgain(it) }
                     return@launch
                 }
-                val token = (reply as? ApiReply.Ok)?.value
+                if (reply !is ApiReply.Ok) {
+                    showUnavailable(ChatUnavailable.message((reply as? ApiReply.Refused)?.reason))
+                    return@launch
+                }
+                val token = reply.value
 
                 val userId = AuthManager.getUserId(requireContext())
                 val userName = AuthManager.getUserName(requireContext())
@@ -125,6 +131,21 @@ class CustomChatFragment : Fragment() {
                 Log.e(TAG, "Error initializing Stream Chat", e)
             }
         }
+    }
+
+    /** Why chat can't load (CON-76), in place of the spinner */
+    private fun showUnavailable(message: String) {
+        val view = view ?: return
+        view.findViewById<ProgressBar>(R.id.progress_bar)?.visibility = View.GONE
+        val container = view.findViewById<FrameLayout>(R.id.chat_container) ?: return
+        container.removeAllViews()
+        val padding = (24 * resources.displayMetrics.density).toInt()
+        container.addView(TextView(requireContext()).apply {
+            text = message
+            textSize = 16f
+            gravity = Gravity.CENTER
+            setPadding(padding, padding, padding, padding)
+        }, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
     }
 
     private fun setupChannelListUI() {

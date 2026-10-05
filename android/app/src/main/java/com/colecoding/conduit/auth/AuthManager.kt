@@ -248,10 +248,12 @@ object AuthManager {
                     ApiReply.Ok(jsonObject.getString("token"))
                 }
                 java.net.HttpURLConnection.HTTP_UNAUTHORIZED -> ApiReply.Unauthorized
+                // Chat off, community awaiting approval, or email unverified
+                java.net.HttpURLConnection.HTTP_FORBIDDEN -> ApiReply.Refused(
+                    com.colecoding.conduit.chat.ChatUnavailable.reasonFrom(connection.errorStream?.bufferedReader()?.use { it.readText() })
+                )
                 else -> {
-                    // e.g. 403: chat disabled, community awaiting approval, email unverified
-                    val errorResponse = connection.errorStream?.bufferedReader()?.use { it.readText() }
-                    Log.e(TAG, "Failed to fetch Stream token: $responseCode $errorResponse")
+                    Log.e(TAG, "Failed to fetch Stream token: $responseCode")
                     ApiReply.Failed
                 }
             }

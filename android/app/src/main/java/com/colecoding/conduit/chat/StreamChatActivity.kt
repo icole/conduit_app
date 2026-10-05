@@ -105,6 +105,16 @@ class StreamChatActivity : AppCompatActivity() {
                     AuthManager.signInAgain(this@StreamChatActivity)
                     return@launch
                 }
+                // Opened from a notification: say why chat can't open (CON-76)
+                if (reply !is ApiReply.Ok) {
+                    android.widget.Toast.makeText(
+                        this@StreamChatActivity,
+                        ChatUnavailable.message((reply as? ApiReply.Refused)?.reason),
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                    finish()
+                    return@launch
+                }
                 val token = (reply as? ApiReply.Ok)?.value
 
                 val userId = AuthManager.getUserId(this@StreamChatActivity)

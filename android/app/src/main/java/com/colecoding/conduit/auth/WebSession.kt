@@ -45,6 +45,7 @@ object WebSession {
                 is ApiReply.Ok -> reply.value
                 ApiReply.Unauthorized -> return Result.REJECTED
                 ApiReply.Failed -> return Result.OFFLINE
+                is ApiReply.Refused -> return Result.REJECTED
             }
             val cookie = redeem(context, code) ?: return Result.REJECTED
             val cookies = CookieManager.getInstance()
