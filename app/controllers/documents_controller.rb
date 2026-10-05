@@ -1,7 +1,6 @@
 class DocumentsController < ApplicationController
   before_action :set_document, only: %i[ show edit update destroy update_content view_content move upload_image ]
   before_action :authenticate_user!
-  skip_before_action :verify_authenticity_token, only: [ :update_content ]
 
   # GET /documents or /documents.json
   def index

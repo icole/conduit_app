@@ -1,6 +1,5 @@
 class PushSubscriptionsController < ApplicationController
   before_action :authenticate_user!
-  skip_before_action :verify_authenticity_token, only: [ :create, :destroy ]
 
   def create
     subscription = current_user.push_subscriptions.find_or_initialize_by(
