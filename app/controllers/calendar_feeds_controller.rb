@@ -6,12 +6,13 @@ class CalendarFeedsController < ApplicationController
   def show
     user = User.find_by(calendar_feed_token: params[:token])
 
-    unless user
+    # The member's own community's calendar; a community without one has no feed
+    calendar_id = current_community&.google_calendar_id
+    unless user && calendar_id.present?
       head :not_found
       return
     end
 
-    calendar_id = ENV["GOOGLE_CALENDAR_ID"]
     service = GoogleCalendarApiService.from_service_account_with_acl_scope
     result = service.get_events(
       calendar_id: calendar_id,
@@ -21,14 +22,14 @@ class CalendarFeedsController < ApplicationController
     )
 
     cal = Icalendar::Calendar.new
-    cal.prodid = "-//Crow Woods Community//Conduit//EN"
-    cal.x_wr_calname = "Crow Woods Community"
-    cal.append_custom_property("X-WR-TIMEZONE", "America/Los_Angeles")
+    cal.prodid = "-//Conduit//#{current_community.name}//EN"
+    cal.x_wr_calname = current_community.name
+    cal.append_custom_property("X-WR-TIMEZONE", current_community.time_zone)
 
     if result[:status] == :success
       result[:events].each do |event|
         cal.event do |e|
-          e.uid = "#{event[:id]}@conduit.crowwoods.com"
+          e.uid = "#{event[:id]}@#{current_community.domain}"
           e.summary = event[:summary]
           e.description = event[:description] if event[:description].present?
           e.location = event[:location] if event[:location].present?

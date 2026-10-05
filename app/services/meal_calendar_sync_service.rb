@@ -114,8 +114,10 @@ class MealCalendarSyncService
     @meal.community&.name.presence || "Common House"
   end
 
+  # The meal's own community's calendar; none means no sync. (It was
+  # ENV["GOOGLE_CALENDAR_ID"], Crow Woods' calendar, for every community.)
   def calendar_id
-    ENV["GOOGLE_CALENDAR_ID"]
+    @meal.community&.google_calendar_id
   end
 
   def calendar_service

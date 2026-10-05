@@ -6,14 +6,12 @@ class CalendarSharesController < ApplicationController
 
   # Share a calendar with the current user
   def create
-    calendar_id = params[:calendar_id] || ENV["GOOGLE_CALENDAR_ID"]
-
-    Rails.logger.info("Attempting to share calendar '#{calendar_id}' with user: #{current_user.email}")
-
-    # Verify the required configuration is available
-    unless ENV["GOOGLE_CALENDAR_ID"].present?
-      Rails.logger.error("Missing GOOGLE_CALENDAR_ID environment variable")
-      return redirect_back(fallback_location: root_path, alert: "Calendar configuration incomplete. Please contact the administrator.")
+    # Only ever the member's own community's calendar: it used to take
+    # calendar_id from the request, and the service account can grant writer
+    # access to any calendar it manages
+    calendar_id = current_community.google_calendar_id
+    unless calendar_id.present?
+      return redirect_back(fallback_location: root_path, alert: "Your community doesn't have a shared Google Calendar.")
     end
 
     # Check if calendar is already shared with this user
@@ -66,6 +64,6 @@ class CalendarSharesController < ApplicationController
 
   # Show success page after calendar has been shared
   def success
-    @calendar_id = session.delete(:shared_calendar_id) || ENV["GOOGLE_CALENDAR_ID"]
+    @calendar_id = session.delete(:shared_calendar_id) || current_community.google_calendar_id
   end
 end

@@ -72,4 +72,24 @@ class MealCalendarSyncServiceTest < ActiveSupport::TestCase
 
     assert_not_includes description, "Menu:"
   end
+
+  # CON-34: the sync used ENV["GOOGLE_CALENDAR_ID"], Crow Woods' calendar, for
+  # every community, so the demo community's meals appeared there
+  test "a meal goes to its own community's calendar" do
+    crow_woods = communities(:crow_woods)
+    crow_woods.update!(settings: (crow_woods.settings || {}).merge("google_calendar_id" => "crow-woods@group.calendar.google.com"))
+    meal = ActsAsTenant.with_tenant(crow_woods) { Meal.create!(title: "Dinner", scheduled_at: 3.days.from_now, rsvp_deadline: 2.days.from_now) }
+
+    assert_equal "crow-woods@group.calendar.google.com", MealCalendarSyncService.new(meal).send(:calendar_id)
+  end
+
+  test "a community without its own calendar isn't synced anywhere" do
+    other = communities(:other_community)
+    meal = ActsAsTenant.with_tenant(other) { Meal.create!(title: "Dinner", scheduled_at: 3.days.from_now, rsvp_deadline: 2.days.from_now) }
+
+    ENV["GOOGLE_CALENDAR_ID"] = "crow-woods@group.calendar.google.com"
+    assert_equal({ status: :skipped, reason: "No calendar configured" }, MealCalendarSyncService.new(meal).sync)
+  ensure
+    ENV.delete("GOOGLE_CALENDAR_ID")
+  end
 end
