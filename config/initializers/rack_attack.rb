@@ -1,5 +1,9 @@
 # Rate limiting and request throttling
 class Rack::Attack
+  # The app's cache, fixed at boot. Left to itself rack-attack takes Rails.cache
+  # on first use, which in a test that swaps Rails.cache could be a borrowed one.
+  cache.store = Rails.cache
+
   # Throttle login attempts by IP (20 attempts per 15 minutes)
   throttle("logins/ip", limit: 20, period: 15.minutes) do |req|
     req.ip if req.post? && req.path.match?(%r{\A/(login|sessions|api/v1/login|api/v1/google_auth)\z})

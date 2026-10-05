@@ -36,4 +36,15 @@ class RackAttackTest < ActionDispatch::IntegrationTest
 
     assert_equal 429, response.status
   end
+
+  # rack-attack takes Rails.cache the first time it's used. Tests that swap in
+  # a real cache (SessionExchangeTest) could hand it theirs for good, and later
+  # signups in that worker were throttled (429). It's fixed at boot instead.
+  test "throttling keeps the cache store it booted with" do
+    Rack::Attack.cache.store = @original_cache
+    Rails.stub(:cache, ActiveSupport::Cache::MemoryStore.new) { Rack::Attack.cache.store }
+
+    assert_same @original_cache, Rack::Attack.cache.store
+    assert_kind_of ActiveSupport::Cache::NullStore, Rack::Attack.cache.store, "tests run with Rails' null cache"
+  end
 end
