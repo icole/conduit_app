@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_05_045954) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_05_050939) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -427,7 +427,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_05_045954) do
     t.datetime "email_verification_sent_at"
     t.datetime "last_chat_token_at"
     t.boolean "super_admin", default: false, null: false
+    t.string "apple_uid"
     t.index ["calendar_feed_token"], name: "index_users_on_calendar_feed_token", unique: true
+    t.index ["community_id", "apple_uid"], name: "index_users_on_community_id_and_apple_uid", unique: true, where: "(apple_uid IS NOT NULL)"
     t.index ["community_id", "email"], name: "index_users_on_community_id_and_email", unique: true
     t.index ["community_id", "provider", "uid"], name: "index_users_on_community_id_and_provider_and_uid", unique: true
     t.index ["community_id"], name: "index_users_on_community_id"

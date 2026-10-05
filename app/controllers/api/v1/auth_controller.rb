@@ -223,6 +223,46 @@ module Api
         end
       end
 
+      # POST /api/v1/apple_auth
+      # Sign in with Apple from the iPhone app (App Store guideline 4.8). Like
+      # Google: the verified identity token is the identity, found by Apple's
+      # ID once linked (so Hide My Email still finds them), else by email, and
+      # someone new needs an invitation. Apple sends the name only the first
+      # time, so the app passes it along.
+      def apple_auth
+        if params[:identity_token].blank?
+          render json: { error: "Apple identity token is required" }, status: :bad_request
+          return
+        end
+
+        community = required_community or return
+
+        claims = AppleIdTokenVerifier.verify(params[:identity_token])
+        unless claims && claims["email_verified"].to_s != "false"
+          render json: { error: "Invalid Apple identity token" }, status: :unauthorized
+          return
+        end
+
+        apple_uid = claims["sub"]
+        email = claims["email"].to_s.downcase
+        set_current_tenant(community)
+        user = User.find_by(apple_uid: apple_uid) || (email.present? && User.find_by(email: email))
+
+        if user
+          user.update!(apple_uid: apple_uid) if user.apple_uid.blank?
+        else
+          unless User.valid_invitation?(params[:invitation_token])
+            render json: { error: "Access restricted to invited users only" }, status: :forbidden
+            return
+          end
+
+          name = [ params[:given_name], params[:family_name] ].compact_blank.join(" ").presence || email.split("@").first
+          user = User.create!(email: email, name: name, apple_uid: apple_uid, email_verified_at: Time.current)
+        end
+
+        render_signed_in(user)
+      end
+
       # POST /api/v1/google_auth
       def google_auth
         # The ID token is the only thing we trust. Identity comes from the
@@ -296,32 +336,7 @@ module Api
             user.save!
           end
 
-          # Clear any existing session first to prevent stale data
-          reset_session
-
-          # Set session with extended expiry for mobile apps
-          session[:user_id] = user.id
-          session[:community_id] = user.community_id
-
-          # For mobile apps, ensure cookie persists
-          if request.user_agent&.include?("Conduit")
-            session.options[:expire_after] = 30.days
-          end
-
-          # Generate an auth token for the mobile app
-          auth_token = generate_auth_token(user)
-
-          render json: {
-            success: true,
-            user: {
-              id: user.id,
-              email: user.email,
-              name: user.name,
-              avatar_url: user.avatar_url
-            },
-            auth_token: auth_token,
-            session_cookie: session.id
-          }, status: :ok
+          render_signed_in(user)
         rescue StandardError => e
           Rails.logger.error "Google auth error: #{e.message}"
           render json: { error: "Authentication failed" }, status: :unauthorized
@@ -330,13 +345,29 @@ module Api
 
       private
 
+      # Signed in by Google or Apple: a fresh session for the web views, and
+      # the app's API token
+      def render_signed_in(user)
+        reset_session
+        session[:user_id] = user.id
+        session[:community_id] = user.community_id
+        session.options[:expire_after] = 30.days if request.user_agent&.include?("Conduit")
+
+        render json: {
+          success: true,
+          user: { id: user.id, email: user.email, name: user.name, avatar_url: user.avatar_url },
+          auth_token: generate_auth_token(user),
+          session_cookie: session.id
+        }, status: :ok
+      end
+
       # Google sign-in brings the member's profile; keep their name and photo
       # out of the logs. Set before Rails logs the parameters, which happens
       # ahead of any callback. Only here, since "name" elsewhere is a task's.
       def process_action(*)
-        if action_name == "google_auth"
+        if %w[google_auth apple_auth].include?(action_name)
           request.set_header("action_dispatch.parameter_filter",
-            Rails.application.config.filter_parameters + [ :name, :image_url ])
+            Rails.application.config.filter_parameters + [ :name, :image_url, :given_name, :family_name ])
         end
         super
       end

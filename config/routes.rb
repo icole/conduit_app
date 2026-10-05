@@ -16,6 +16,7 @@ Rails.application.routes.draw do
       get "users/search", to: "users#search"
       post "login", to: "auth#login"
       post "google_auth", to: "auth#google_auth"
+      post "apple_auth", to: "auth#apple_auth"
       post "establish_session", to: "auth#establish_session"
       post "session_exchange", to: "auth#session_exchange"
       get "auth/check", to: "auth#check"
