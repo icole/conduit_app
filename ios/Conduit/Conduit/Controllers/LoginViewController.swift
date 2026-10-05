@@ -688,6 +688,7 @@ extension LoginViewController: ASAuthorizationControllerDelegate, ASAuthorizatio
     }
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        print("Sign in with Apple failed: \(error)")
         if (error as? ASAuthorizationError)?.code == .canceled { return }
         showError("Sign in with Apple failed: \(error.localizedDescription)")
     }
