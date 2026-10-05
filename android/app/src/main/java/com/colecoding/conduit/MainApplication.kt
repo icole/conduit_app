@@ -15,6 +15,7 @@ import dev.hotwire.core.turbo.config.PathConfiguration
 import dev.hotwire.navigation.config.defaultFragmentDestination
 import dev.hotwire.navigation.config.registerBridgeComponents
 import dev.hotwire.navigation.config.registerFragmentDestinations
+import com.colecoding.conduit.bridge.BellComponent
 import com.colecoding.conduit.bridge.ButtonComponent
 import com.colecoding.conduit.bridge.MenuComponent
 import com.colecoding.conduit.chat.ChannelHashAvatar
@@ -90,7 +91,8 @@ class MainApplication : Application() {
         // Register bridge components
         Hotwire.registerBridgeComponents(
             BridgeComponentFactory("menu", ::MenuComponent),
-            BridgeComponentFactory("button", ::ButtonComponent)
+            BridgeComponentFactory("button", ::ButtonComponent),
+            BridgeComponentFactory("bell", ::BellComponent)
         )
 
         // Configure JSON converter for bridge message serialization
