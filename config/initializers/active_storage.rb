@@ -11,7 +11,8 @@
 # How it works:
 # 1. Authentication module is included in all ActiveStorage controllers
 # 2. Models with attachments can implement `accessible_to?(user)` for fine-grained access
-# 3. If a blob's record implements `accessible_to?`, it's checked; otherwise just auth is required
+# 3. Otherwise a file is shared within its owner's community (rich text images:
+#    the record the text belongs to), and refused when there's no telling
 
 module ActiveStorage
   module Authorization
@@ -41,13 +42,24 @@ module ActiveStorage
       record = find_record_for_blob
       return unless record # No record found, allow access (blob exists independently)
 
-      # If the record implements accessible_to?, use it for authorization
-      if record.respond_to?(:accessible_to?)
-        unless record.accessible_to?(current_user)
-          head :forbidden
-        end
+      head :forbidden unless owner_allows?(record)
+    end
+
+    # The owner decides. Rich text's images belong to an ActionText::RichText,
+    # so ask the record the text belongs to (e.g. a meal). An owner without
+    # accessible_to? is shared within its community; anything else is refused.
+    # (Authentication alone used to be enough, across communities.)
+    def owner_allows?(record)
+      owner = record.is_a?(ActionText::RichText) ? record.record : record
+      return false unless owner
+
+      if owner.respond_to?(:accessible_to?)
+        owner.accessible_to?(current_user)
+      elsif owner.respond_to?(:community_id)
+        owner.community_id == current_user.community_id
+      else
+        false
       end
-      # If no accessible_to? method, authentication alone is sufficient
     end
 
     def find_record_for_blob

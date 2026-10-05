@@ -66,6 +66,29 @@ class ActiveStorageAuthorizationTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
+  # CON-34: an image embedded in rich text belongs to an ActionText::RichText,
+  # which had no accessible_to?, so any signed-in member of any community
+  # could fetch it. Its owner (here a meal) decides now.
+  test "a meal menu's image is only for that meal's community" do
+    blob = create_test_blob
+    other_meal = ActsAsTenant.with_tenant(communities(:other_community)) do
+      Meal.create!(title: "Their dinner", scheduled_at: 3.days.from_now, rsvp_deadline: 2.days.from_now,
+        menu: %(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>))
+    end
+    assert_equal "ActionText::RichText", ActiveStorage::Attachment.find_by(blob: blob).record_type
+
+    sign_in_user(uid: @user.uid, email: @user.email)
+    get rails_blob_path(blob)
+    assert_response :forbidden
+
+    own_blob = create_test_blob
+    Meal.create!(title: "Our dinner", scheduled_at: 3.days.from_now, rsvp_deadline: 2.days.from_now,
+      menu: %(<action-text-attachment sgid="#{own_blob.attachable_sgid}"></action-text-attachment>))
+    get rails_blob_path(own_blob)
+    assert_response :redirect
+    assert other_meal
+  end
+
   private
 
   def create_test_blob
