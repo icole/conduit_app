@@ -1,4 +1,5 @@
 import Foundation
+import HotwireNative
 
 enum AppConfig {
     // MARK: - Environment
