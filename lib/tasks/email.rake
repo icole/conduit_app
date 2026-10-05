@@ -22,10 +22,11 @@ namespace :email do
       response = Resend::Domains.list
       puts "\n✅ Resend API connection successful!"
       puts "Verified domains:"
-      if response[:data].any?
-        response[:data].each do |domain|
-          status = domain[:status] == "verified" ? "✓" : "⏳"
-          puts "  #{status} #{domain[:name]} (#{domain[:status]})"
+      domains = response["data"] || []
+      if domains.any?
+        domains.each do |domain|
+          status = domain["status"] == "verified" ? "✓" : "⏳"
+          puts "  #{status} #{domain["name"]} (#{domain["status"]})"
         end
       else
         puts "  (no domains configured yet)"
@@ -55,11 +56,8 @@ namespace :email do
 
     Resend.api_key = api_key
 
-    # Get the from address from the first community or use default
-    community = ActsAsTenant.without_tenant { Community.first }
-    from_name = community&.smtp_from_name || "Conduit"
-    from_email = community&.smtp_from_email || "noreply@conduitcoho.app"
-    from_address = "#{from_name} <#{from_email}>"
+    # The address ApplicationMailer sends from, without a community's name
+    from_address = "Conduit <#{ENV.fetch('DEFAULT_FROM_EMAIL', 'noreply@conduitcoho.app')}>"
 
     puts "Sending test email to #{to_address}..."
     puts "From: #{from_address}"
@@ -72,9 +70,10 @@ namespace :email do
         html: "<h1>Hello!</h1><p>If you're reading this, Resend email is working!</p>"
       })
 
-      if response[:id]
+      # resend 1.x returns string keys
+      if response["id"]
         puts "\n✅ Email sent successfully!"
-        puts "Message ID: #{response[:id]}"
+        puts "Message ID: #{response["id"]}"
       else
         puts "\n❌ Failed to send email"
         puts response.inspect
