@@ -14,4 +14,16 @@ class ContentSecurityPolicyReportsTest < ActiveSupport::TestCase
     assert_nil SentryCspReportUri.from_dsn("not a dsn")
     assert_nil SentryCspReportUri.from_dsn("https://o42.ingest.us.sentry.io/4507"), "no key"
   end
+
+  # Found by browsing production with the policy reporting (CON-53): the Google
+  # button posts to our /auth/google_oauth2, which redirects to Google, and
+  # Chrome applies form-action to that redirect. Enforced, it would have
+  # stopped Google sign-in on the web.
+  test "form-action lets the Google sign-in redirect through" do
+    policy = Rails.application.config.content_security_policy.build(ActionDispatch::Request.new({}))
+    form_action = policy[/form-action [^;]+/]
+
+    assert_includes form_action.split, "https://accounts.google.com"
+    assert_includes form_action.split, "'self'"
+  end
 end

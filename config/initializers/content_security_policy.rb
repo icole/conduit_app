@@ -29,7 +29,8 @@ Rails.application.configure do
     policy.connect_src :self, :https, :wss
     policy.frame_src   :none
     policy.base_uri    :self
-    policy.form_action :self
+    # Google sign-in posts here and is redirected to Google, which form-action covers
+    policy.form_action :self, "https://accounts.google.com"
 
     if (report_uri = SentryCspReportUri.from_dsn(ENV["SENTRY_DSN"]))
       policy.report_uri report_uri
