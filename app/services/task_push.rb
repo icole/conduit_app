@@ -1,6 +1,6 @@
-# Push notifications about tasks. Tapping one opens My Tasks (or Available,
-# for work nobody is on) in the app. Nothing is sent to someone without the
-# app (no registered phone).
+# Notifications about tasks. Each task gets an entry in the person's bell
+# (CON-72), whether or not they have the app; the push, which opens My Tasks
+# (or Available, for work nobody is on), only goes to registered phones.
 class TaskPush
   MY_TASKS = "/tasks?tab=my".freeze
   AVAILABLE = "/tasks?tab=available".freeze
@@ -13,6 +13,10 @@ class TaskPush
     mine = due.sort_by(&:title) + overdue.sort_by(&:title)
     unclaimed = unclaimed.sort_by { |task| [ task.due_date, task.title ] }
     return if mine.empty? && unclaimed.empty?
+
+    due.each { |task| remember(user, "task_due", task, "Due today", task.title, MY_TASKS) }
+    overdue.each { |task| remember(user, "task_due", task, "Overdue", "#{task.title} was due yesterday", MY_TASKS) }
+    unclaimed.each { |task| remember(user, "task_needs_someone", task, *needs_someone(task), AVAILABLE) }
 
     title, body =
       if mine.size + unclaimed.size == 1
@@ -31,7 +35,7 @@ class TaskPush
   def self.single(due, overdue, unclaimed)
     if due then [ "Due today", due.title ]
     elsif overdue then [ "Overdue", "#{overdue.title} was due yesterday" ]
-    else [ "Needs someone", "#{unclaimed.title} · due #{unclaimed.due_date.strftime('%a %b %-d')}" ]
+    else needs_someone(unclaimed)
     end
   end
 
@@ -42,20 +46,28 @@ class TaskPush
   end
 
   def self.assigned(task, user, by:)
-    deliver(user, title: "#{by.name.split.first} put you on a task", body: task.title)
+    title = "#{by.name.split.first} put you on a task"
+    remember(user, "task_assigned", task, title, task.title, MY_TASKS)
+    deliver(user, title: title, body: task.title)
   end
 
   def self.unclaimed(task, user)
-    deliver(user, title: "Needs someone", body: "#{task.title} · due #{task.due_date.strftime('%a %b %-d')}", path: AVAILABLE)
+    title, body = needs_someone(task)
+    remember(user, "task_needs_someone", task, title, body, AVAILABLE)
+    deliver(user, title: title, body: body, path: AVAILABLE)
+  end
+
+  def self.needs_someone(task) = [ "Needs someone", "#{task.title} · due #{task.due_date.strftime('%a %b %-d')}" ]
+
+  # One entry per task and kind: a due task that turns overdue is updated and
+  # shown as unread again, not added twice
+  def self.remember(user, kind, task, title, body, path)
+    notification = user.in_app_notifications.unresolved.find_or_initialize_by(notification_type: kind, notifiable: task)
+    notification.update!(title: title, body: body, action_url: path, read: false, read_at: nil)
   end
 
   def self.deliver(user, title:, body:, path: MY_TASKS)
-    devices = user.push_devices.to_a
-    return if devices.empty?
-
-    ApplicationPushNotification.with_data(path: path)
-      .new(title: title, body: body, thread_id: "tasks")
-      .deliver_later_to(devices)
+    PhonePush.deliver(user, title: title, body: body, path: path, thread: "tasks")
   end
-  private_class_method :deliver, :single, :names
+  private_class_method :deliver, :single, :names, :needs_someone, :remember
 end

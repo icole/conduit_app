@@ -162,4 +162,33 @@ class TaskRemindersJobTest < ActiveJob::TestCase
     at_local(7, 11) { TaskRemindersJob.perform_now }
     assert_equal [ "Due today" ], pushes.map { |push| push["title"] }
   end
+
+  # CON-72: reminders also go in the bell, one per task, for everyone,
+  # with the app or without
+  def bell(user) = ActsAsTenant.with_tenant(@community) { user.in_app_notifications.order(:created_at).map { |n| [ n.notification_type, n.title, n.notifiable ] } }
+
+  test "a due task goes in the bell, then turns overdue there rather than adding another" do
+    task = task_due(Date.new(2026, 10, 7))
+    at_local(7, 8) { TaskRemindersJob.perform_now }
+    assert_equal [ [ "task_due", "Due today", task ] ], bell(@one)
+
+    at_local(8, 8) { TaskRemindersJob.perform_now }
+    assert_equal [ [ "task_due", "Overdue", task ] ], bell(@one)
+  end
+
+  test "people without the app get the bell, not a push" do
+    no_phone = users(:two)
+    task = task_due(Date.new(2026, 10, 7), people: [ no_phone ])
+    at_local(7, 8) { TaskRemindersJob.perform_now }
+
+    assert_equal [ [ "task_due", "Due today", task ] ], bell(no_phone)
+    assert_empty pushes
+  end
+
+  test "work nobody is on goes in everyone's bell as needing someone" do
+    task = task_due(Date.new(2026, 10, 8), people: [])
+    at_local(7, 8) { TaskRemindersJob.perform_now }
+
+    assert_equal [ [ "task_needs_someone", "Needs someone", task ] ], bell(users(:two)).last(1)
+  end
 end
