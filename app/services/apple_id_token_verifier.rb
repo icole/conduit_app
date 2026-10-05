@@ -18,7 +18,7 @@ class AppleIdTokenVerifier
         iss: ISSUER, verify_iss: true, aud: audiences, verify_aud: true)
       claims
     rescue JWT::DecodeError => e
-      Rails.logger.warn "Apple identity token refused: #{e.class}"
+      Rails.logger.warn "Apple identity token refused: #{e.class}: #{e.message}"
       nil
     end
 

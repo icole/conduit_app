@@ -238,7 +238,11 @@ module Api
         community = required_community or return
 
         claims = AppleIdTokenVerifier.verify(params[:identity_token])
-        unless claims && claims["email_verified"].to_s != "false"
+        if claims && claims["email_verified"].to_s == "false"
+          Rails.logger.warn "Apple identity token refused: email not verified"
+          claims = nil
+        end
+        unless claims
           render json: { error: "Invalid Apple identity token" }, status: :unauthorized
           return
         end

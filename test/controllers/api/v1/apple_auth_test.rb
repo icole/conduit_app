@@ -56,6 +56,15 @@ class Api::V1::AppleAuthTest < ActionDispatch::IntegrationTest
     assert_response :bad_request
   end
 
+  test "a token whose email Apple hasn't verified is refused, and the log says so" do
+    log = StringIO.new
+    Rails.logger.stub(:warn, ->(message) { log.puts(message) }) do
+      sign_in_with_apple(claims.merge("email_verified" => "false"))
+    end
+    assert_response :unauthorized
+    assert_match(/email not verified/, log.string)
+  end
+
   test "the community has to be named" do
     AppleIdTokenVerifier.stub(:verify, claims) do
       post api_v1_apple_auth_url, params: { identity_token: "token" }, as: :json

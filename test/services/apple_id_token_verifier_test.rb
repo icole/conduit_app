@@ -1,4 +1,5 @@
 require "test_helper"
+require "minitest/mock"
 
 # Sign in with Apple (CON-64): the identity token is a JWT signed with one of
 # Apple's published keys, issued by Apple, for our iPhone app
@@ -32,5 +33,13 @@ class AppleIdTokenVerifierTest < ActiveSupport::TestCase
     assert_nil AppleIdTokenVerifier.verify(token(key: OpenSSL::PKey::RSA.generate(2048))), "not signed by Apple"
     assert_nil AppleIdTokenVerifier.verify(""), "blank"
     assert_nil AppleIdTokenVerifier.verify("not.a.jwt"), "garbage"
+  end
+
+  test "a refusal is logged with its reason, so a failed sign-in can be traced" do
+    log = StringIO.new
+    Rails.logger.stub(:warn, ->(message) { log.puts(message) }) do
+      AppleIdTokenVerifier.verify(token({ aud: "com.someone.else" }))
+    end
+    assert_match(/JWT::InvalidAudError.*com\.someone\.else/, log.string)
   end
 end
