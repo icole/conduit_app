@@ -59,9 +59,11 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            minifyEnabled false  // Changed to false for easier debugging
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            buildConfigField "String", "BASE_URL", "\"https://conduit.crowwoods.com\""
+            // Unused in release (AppConfig uses the central API), but BuildConfig needs it
+            buildConfigField "String", "BASE_URL", "\"https://api.conduitcoho.app\""
             // API Keys from local.properties (not in version control)
             buildConfigField "String", "STREAM_API_KEY", "\"${localProperties.getProperty('STREAM_API_KEY_RELEASE', 'YOUR_STREAM_API_KEY')}\""
             buildConfigField "String", "GOOGLE_CLIENT_ID", "\"${localProperties.getProperty('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID')}\""
