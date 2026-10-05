@@ -9,6 +9,29 @@ class InAppNotification < ApplicationRecord
   scope :read, -> { where(read: true) }
   scope :recent, -> { order(created_at: :desc).limit(50) }
   scope :for_meals, -> { where(notification_type: %w[meal_reminder rsvp_deadline cook_assigned rsvps_closed]) }
+  # Not yet dealt with (CON-72); see NotificationKind
+  scope :unresolved, -> { where(resolved_at: nil) }
+  scope :needs_you, -> { unresolved.where(notification_type: NotificationKind.needing_you) }
+  scope :updates, -> { where(notification_type: NotificationKind.updates) }
+
+  # Marks as resolved whatever has been dealt with since. Run before showing
+  # the bell; a member only ever has a handful unresolved.
+  def self.settle_for(user)
+    user.in_app_notifications.unresolved.includes(:notifiable).find_each do |notification|
+      notification.update_columns(resolved_at: Time.current) if notification.addressed?
+    end
+  end
+
+  def kind = NotificationKind.fetch(notification_type)
+
+  # Its meal or task was deleted, or its kind's rule says so. Updates without
+  # a rule are addressed by reading them (mark_as_read!).
+  def addressed?
+    return true if notifiable_type.present? && notifiable.nil?
+    return false unless kind.addressed
+
+    kind.addressed.call(self, notifiable)
+  end
 
   TYPES = {
     meal_reminder: "meal_reminder",
@@ -19,7 +42,9 @@ class InAppNotification < ApplicationRecord
   }.freeze
 
   def mark_as_read!
-    update!(read: true, read_at: Time.current) unless read?
+    return if read?
+
+    update!(read: true, read_at: Time.current, resolved_at: kind.needs_you? ? resolved_at : (resolved_at || Time.current))
   end
 
   def unread?

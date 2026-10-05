@@ -80,8 +80,9 @@
   </div>
 
   <!-- User Menu -->
-  <div class="navbar-end pr-2">
+  <div class="navbar-end pr-2 gap-1">
     <% if user_signed_in? %>
+      <%= render "notifications/bell" %>
       <div class="dropdown dropdown-end dropdown-hover">
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle p-0" aria-label="Account menu">
           <%= user_avatar(current_user, size: "w-10", text: "text-sm") %>

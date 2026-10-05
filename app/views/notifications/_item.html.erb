@@ -1,0 +1,17 @@
+<%# One notification, in the bell and the full list. Opening it marks it read
+    and goes to what it's about (NotificationsController#show). %>
+<%= link_to notification_path(notification), data: { turbo_frame: "_top" },
+      class: "flex items-start gap-3 px-4 py-3 hover:bg-base-200 transition-colors #{'bg-primary/5' if notification.unread?}" do %>
+  <span class="mt-0.5 shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-base-200 <%= notification.kind.needs_you? && !notification.resolved_at ? 'text-warning-content bg-warning/30' : 'text-base-content/70' %>">
+    <%= notification_icon(notification) %>
+  </span>
+  <span class="min-w-0 flex-1">
+    <span class="flex items-baseline justify-between gap-2">
+      <span class="text-sm <%= notification.unread? ? 'font-semibold' : 'text-base-content/80' %>"><%= notification.title %></span>
+      <span class="text-xs text-base-content/60 whitespace-nowrap"><%= notification.time_ago %></span>
+    </span>
+    <% if notification.body.present? %>
+      <span class="block text-sm text-base-content/70 line-clamp-2"><%= notification.body %></span>
+    <% end %>
+  </span>
+<% end %>

@@ -1,0 +1,27 @@
+<%# The navbar's bell (CON-72): the number is what still needs you; updates
+    are listed too but don't count %>
+<% bell = notification_bell %>
+<div id="notification-bell" class="dropdown dropdown-end">
+  <div tabindex="0" role="button" class="btn btn-ghost btn-circle" aria-label="Notifications<%= ", #{bell[:count]} need you" if bell[:count].positive? %>">
+    <span class="indicator">
+      <%= heroicon "bell", variant: :outline, options: { class: "h-6 w-6" } %>
+      <% if bell[:count].positive? %>
+        <span class="indicator-item badge badge-sm badge-warning font-semibold" data-count><%= bell[:count] %></span>
+      <% end %>
+    </span>
+  </div>
+  <div tabindex="0" class="dropdown-content z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-box bg-base-100 text-base-content shadow-lg overflow-hidden">
+    <% if bell[:needs_you].any? %>
+      <p class="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-base-content/60">Needs you</p>
+      <div class="divide-y divide-base-200"><%= render partial: "notifications/item", collection: bell[:needs_you], as: :notification %></div>
+    <% end %>
+    <% if bell[:updates].any? %>
+      <p class="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-base-content/60">Updates</p>
+      <div class="divide-y divide-base-200"><%= render partial: "notifications/item", collection: bell[:updates], as: :notification %></div>
+    <% end %>
+    <% if bell[:needs_you].empty? && bell[:updates].empty? %>
+      <p class="px-4 py-6 text-sm text-center text-base-content/70">You're all caught up.</p>
+    <% end %>
+    <%= link_to "See all", notifications_path, class: "block border-t border-base-200 px-4 py-2.5 text-sm text-center link link-hover" %>
+  </div>
+</div>

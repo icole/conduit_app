@@ -1,39 +1,32 @@
-<div class="container mx-auto max-w-2xl px-4 py-8">
-  <!-- Header -->
-  <div class="flex justify-between items-center mb-6">
-    <div>
-      <h1 class="text-2xl font-bold">Notifications</h1>
-      <p class="text-base-content/70 mt-1">
-        <% if @unread_count > 0 %>
-          You have <%= @unread_count %> unread notification<%= @unread_count == 1 ? '' : 's' %>
-        <% else %>
-          All caught up!
-        <% end %>
-      </p>
-    </div>
-    <% if @unread_count > 0 %>
-      <%= button_to mark_all_read_notifications_path, method: :post, class: "btn btn-ghost btn-sm" do %>
-        Mark all as read
-      <% end %>
+<% content_for :title, "Notifications" %>
+
+<div class="max-w-2xl mx-auto space-y-6">
+  <div class="flex items-center justify-between gap-2">
+    <h1 class="text-2xl font-bold native:text-lg native:font-semibold">Notifications</h1>
+    <% if @unread_count.positive? %>
+      <%= button_to "Mark all as read", mark_all_read_notifications_path, method: :post, class: "btn btn-ghost btn-sm" %>
     <% end %>
   </div>
 
-  <!-- Notifications List -->
-  <div class="card bg-base-100 shadow-xl">
-    <div class="card-body p-0">
-      <% if @notifications.any? %>
-        <div class="divide-y divide-base-200">
-          <% @notifications.each do |notification| %>
-            <%= render "notification", notification: notification %>
-          <% end %>
-        </div>
-      <% else %>
-        <div class="text-center py-12 text-base-content/65">
-          <div class="text-5xl mb-4">🔔</div>
-          <h3 class="text-lg font-medium mb-2">No notifications yet</h3>
-          <p>We'll notify you about upcoming meals and RSVPs here.</p>
-        </div>
-      <% end %>
-    </div>
-  </div>
+  <section id="needs-you">
+    <h2 class="font-semibold mb-2 native:text-sm native:font-medium native:text-base-content/60 native:px-1">Needs you</h2>
+    <% if @needs_you.any? %>
+      <div class="bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200 overflow-hidden">
+        <%= render partial: "notifications/item", collection: @needs_you, as: :notification %>
+      </div>
+    <% else %>
+      <p class="text-sm text-base-content/70 px-1">Nothing waiting on you. Dealt-with reminders clear themselves.</p>
+    <% end %>
+  </section>
+
+  <section id="updates">
+    <h2 class="font-semibold mb-2 native:text-sm native:font-medium native:text-base-content/60 native:px-1">Updates</h2>
+    <% if @updates.any? %>
+      <div class="bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200 overflow-hidden">
+        <%= render partial: "notifications/item", collection: @updates, as: :notification %>
+      </div>
+    <% else %>
+      <p class="text-sm text-base-content/70 px-1">No updates yet.</p>
+    <% end %>
+  </section>
 </div>

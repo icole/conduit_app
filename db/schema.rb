@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_02_165053) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_05_022104) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -210,9 +210,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_165053) do
     t.datetime "read_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "resolved_at"
     t.index ["notifiable_type", "notifiable_id"], name: "idx_on_notifiable_type_notifiable_id_ee4fad2ac8"
     t.index ["notification_type"], name: "index_in_app_notifications_on_notification_type"
     t.index ["user_id", "read"], name: "index_in_app_notifications_on_user_id_and_read"
+    t.index ["user_id", "resolved_at"], name: "index_in_app_notifications_on_user_id_and_resolved_at"
     t.index ["user_id"], name: "index_in_app_notifications_on_user_id"
   end
 
