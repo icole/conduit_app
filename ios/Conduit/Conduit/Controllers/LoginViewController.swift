@@ -1,6 +1,7 @@
 import UIKit
 internal import WebKit
 import GoogleSignIn
+import AuthenticationServices
 
 class LoginViewController: UIViewController {
 
@@ -13,6 +14,7 @@ class LoginViewController: UIViewController {
     private let forgotPasswordButton = UIButton(type: .system)
     private let loginButton = UIButton(type: .system)
     private let googleSignInButton = UIButton(type: .system)  // Changed to regular UIButton
+    private let appleSignInButton = ASAuthorizationAppleIDButton(type: .signIn, style: .black)
     private let dividerLabel = UILabel()
     private let errorLabel = UILabel()
     private let activityIndicator = UIActivityIndicatorView(style: .medium)
@@ -148,6 +150,9 @@ class LoginViewController: UIViewController {
         view.addSubview(loginButton)
         view.addSubview(dividerLabel)
         view.addSubview(googleSignInButton)
+        appleSignInButton.cornerRadius = 4
+        appleSignInButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(appleSignInButton)
         view.addSubview(errorLabel)
         view.addSubview(activityIndicator)
         view.addSubview(switchCommunityButton)
@@ -195,7 +200,8 @@ class LoginViewController: UIViewController {
         NSLayoutConstraint.activate([
             // Logo
             logoImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            logoImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
+            // Room for both sign-in buttons on an iPhone SE
+            logoImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 32),
             logoImageView.widthAnchor.constraint(equalToConstant: 80),
             logoImageView.heightAnchor.constraint(equalToConstant: 80),
 
@@ -247,9 +253,15 @@ class LoginViewController: UIViewController {
             googleSignInButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
             googleSignInButton.heightAnchor.constraint(equalToConstant: 50),
 
+            // Sign in with Apple Button
+            appleSignInButton.topAnchor.constraint(equalTo: googleSignInButton.bottomAnchor, constant: 12),
+            appleSignInButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
+            appleSignInButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
+            appleSignInButton.heightAnchor.constraint(equalToConstant: 50),
+
             // Activity Indicator
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityIndicator.topAnchor.constraint(equalTo: googleSignInButton.bottomAnchor, constant: 20),
+            activityIndicator.topAnchor.constraint(equalTo: appleSignInButton.bottomAnchor, constant: 20),
 
             // Switch Community Button
             switchCommunityButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -264,6 +276,7 @@ class LoginViewController: UIViewController {
         // Add Google Sign-In button action HERE as well
         googleSignInButton.addTarget(self, action: #selector(googleSignInTapped), for: .touchUpInside)
         print("setupActions: Added googleSignInTapped action to button")
+        appleSignInButton.addTarget(self, action: #selector(appleSignInTapped), for: .touchUpInside)
 
         // Switch Community button
         switchCommunityButton.addTarget(self, action: #selector(switchCommunityTapped), for: .touchUpInside)
@@ -479,6 +492,71 @@ class LoginViewController: UIViewController {
         }.resume()
     }
 
+    // MARK: - Sign in with Apple
+
+    @objc private func appleSignInTapped() {
+        let request = ASAuthorizationAppleIDProvider().createRequest()
+        request.requestedScopes = [.fullName, .email]
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        controller.performRequests()
+    }
+
+    private func performAppleLogin(credential: ASAuthorizationAppleIDCredential) {
+        guard let tokenData = credential.identityToken,
+              let identityToken = String(data: tokenData, encoding: .utf8) else {
+            showError("Sign in with Apple failed. Please try again.")
+            return
+        }
+
+        var request = URLRequest(url: AppConfig.baseURL.appendingPathComponent("api/v1/apple_auth"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        // Apple shares the name only the first time someone signs in
+        let body: [String: Any] = [
+            "identity_token": identityToken,
+            "community_domain": CommunityManager.shared.getCommunityDomain() ?? "",
+            "given_name": credential.fullName?.givenName ?? "",
+            "family_name": credential.fullName?.familyName ?? ""
+        ]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        activityIndicator.startAnimating()
+        appleSignInButton.isEnabled = false
+        loginButton.isEnabled = false
+
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            DispatchQueue.main.async {
+                self?.activityIndicator.stopAnimating()
+                self?.appleSignInButton.isEnabled = true
+                self?.loginButton.isEnabled = true
+
+                if let error = error {
+                    self?.showError("Network error: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    self?.showError("Invalid response from server")
+                    return
+                }
+
+                switch httpResponse.statusCode {
+                case 200:
+                    self?.handleLoginSuccess(response: httpResponse, data: data)
+                case 403:
+                    // No member here with that Apple ID or its email (e.g. Hide My Email)
+                    self?.showError("We couldn't find your account. Sign in with the email address you use for Conduit.")
+                default:
+                    self?.showError("Sign in with Apple failed. Please try again.")
+                }
+            }
+        }.resume()
+    }
+
     private func performLogin(email: String, password: String) {
         // Create login URL
         let loginURL = AppConfig.baseURL.appendingPathComponent("api/v1/login")
@@ -595,6 +673,23 @@ class LoginViewController: UIViewController {
         animation.duration = 0.6
         animation.values = [-20, 20, -20, 20, -10, 10, -5, 5, 0]
         errorLabel.layer.add(animation, forKey: "shake")
+    }
+}
+
+// MARK: - Sign in with Apple
+extension LoginViewController: ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        view.window ?? ASPresentationAnchor()
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else { return }
+        performAppleLogin(credential: credential)
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        if (error as? ASAuthorizationError)?.code == .canceled { return }
+        showError("Sign in with Apple failed: \(error.localizedDescription)")
     }
 }
 
