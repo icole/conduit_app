@@ -143,9 +143,14 @@ class TabBarController: UITabBarController {
     }
 
     private func configureAppearance() {
+        tabBar.tintColor = Palette.teal
+
+        // iOS 26 draws the tab bar as Liquid Glass; painting it opaque leaves
+        // its icons faded after some transitions
+        if #available(iOS 26.0, *) { return }
+
         // Configure tab bar appearance
         tabBar.backgroundColor = .systemBackground
-        tabBar.tintColor = Palette.teal
 
         // Configure tab bar for iOS 15+
         if #available(iOS 15.0, *) {
