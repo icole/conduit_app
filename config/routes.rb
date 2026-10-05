@@ -9,7 +9,8 @@ Rails.application.routes.draw do
     get "liveblocks/users", to: "liveblocks#users"
 
     namespace :v1 do
-      resources :communities, only: [ :index ] do
+      # Only finding one community by name; no public list (CON-34)
+      resources :communities, only: [] do
         get :lookup, on: :collection
       end
       get "users/search", to: "users#search"

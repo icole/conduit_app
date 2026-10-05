@@ -3,6 +3,8 @@
 module Api
   module V1
     class CommunitiesController < ApplicationController
+      # The apps' community picker runs before anyone signs in, on the API
+      # domain. Read-only, and it answers one exact name, never a list.
       skip_before_action :verify_authenticity_token
       skip_before_action :authenticate_user!
       skip_before_action :set_tenant_from_domain
@@ -32,11 +34,6 @@ module Api
         else
           render json: { error: "community_not_found" }, status: :not_found
         end
-      end
-
-      # GET /api/v1/communities
-      def index
-        render json: Community.active.order(:name).map { |c| community_json(c) }
       end
 
       private
