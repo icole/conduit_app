@@ -1,7 +1,13 @@
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
+require "webmock/minitest"
 require_relative "support/soft_delete_test_helper"
+
+# No real network from tests: .env's development keys load here, so an
+# unstubbed Stream or Google call would otherwise go out (and sometimes time
+# out). Localhost stays open for the browser tests.
+WebMock.disable_net_connect!(allow_localhost: true)
 
 module ActiveSupport
   class TestCase

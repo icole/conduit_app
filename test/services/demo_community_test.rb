@@ -6,15 +6,21 @@ require_relative "../support/fake_stream_client"
 class DemoCommunityTest < ActiveSupport::TestCase
   PASSWORD = "a-long-review-password".freeze
 
-  setup { ActsAsTenant.current_tenant = nil }
+  setup do
+    ActsAsTenant.current_tenant = nil
+    @stream = FakeStreamClient.new
+  end
 
-  def demo = DemoCommunity.new(password: PASSWORD)
+  # The demo posts in chat, so it always runs against the fake Stream client
+  def with_stream(&) = StreamChatClient.stub(:configured?, true) { StreamChatClient.stub(:client, @stream, &) }
+  def ensure_demo! = with_stream { DemoCommunity.new(password: PASSWORD).ensure! }
+  def reset_demo! = with_stream { DemoCommunity.new(password: PASSWORD).reset! }
   def community = Community.find_by!(slug: DemoCommunity::SLUG)
   def in_demo(&) = ActsAsTenant.with_tenant(community, &)
   def reviewer = in_demo { User.find_by!(email: DemoCommunity::EMAIL) }
 
   test "sets up an active community with chat on, the reviewer's account, and neighbours who use it" do
-    demo.ensure!
+    ensure_demo!
 
     assert community.active?
     assert community.chat_enabled?
@@ -35,7 +41,7 @@ class DemoCommunityTest < ActiveSupport::TestCase
   end
 
   test "a reset clears what reviewers added and puts the sample content back, keeping their account" do
-    demo.ensure!
+    ensure_demo!
     reviewer_id = reviewer.id
     in_demo do
       User.create!(name: "Invited Tester", email: "tester@example.com", password: "password123")
@@ -44,7 +50,7 @@ class DemoCommunityTest < ActiveSupport::TestCase
       MealRsvp.create!(meal: Meal.upcoming.first, user: reviewer, status: "attending")
     end
 
-    demo.reset!
+    reset_demo!
 
     assert_equal reviewer_id, reviewer.id
     assert reviewer.authenticate(PASSWORD)
@@ -58,12 +64,12 @@ class DemoCommunityTest < ActiveSupport::TestCase
   end
 
   test "a reset leaves every other community alone" do
-    demo.ensure!
+    ensure_demo!
     others = ActsAsTenant.without_tenant do
       [ User, Meal, Task, Decision ].to_h { |model| [ model, model.where.not(community: community).count ] }
     end
 
-    demo.reset!
+    reset_demo!
 
     ActsAsTenant.without_tenant do
       others.each { |model, count| assert_equal count, model.where.not(community: community).count, model.name }
@@ -75,13 +81,10 @@ class DemoCommunityTest < ActiveSupport::TestCase
   end
 
   test "neighbours start the conversation in General, after clearing last week's" do
-    stream = FakeStreamClient.new
-    StreamChatClient.stub(:configured?, true) do
-      StreamChatClient.stub(:client, stream) { demo.reset! }
-    end
+    reset_demo!
 
-    assert_includes stream.truncated, "team:demo-general"
-    assert_operator stream.messages.count { |m| m[:channel] == "team:demo-general" }, :>=, 3
+    assert_includes @stream.truncated, "team:demo-general"
+    assert_operator @stream.messages.count { |m| m[:channel] == "team:demo-general" }, :>=, 3
   end
 
   test "resets weekly, early Sunday Pacific" do

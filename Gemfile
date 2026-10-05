@@ -115,6 +115,8 @@ group :test do
   gem "minitest", "~> 6.0"
   # Minitest 6 moved minitest/mock into its own gem
   gem "minitest-mock"
+  # Tests never reach the network (see test_helper)
+  gem "webmock"
 end
 
 gem "jsbundling-rails", "~> 1.3"
