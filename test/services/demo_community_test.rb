@@ -4,7 +4,8 @@ require_relative "../support/fake_stream_client"
 
 # The community App Store and Play reviewers sign in to (CON-66)
 class DemoCommunityTest < ActiveSupport::TestCase
-  PASSWORD = "a-long-review-password".freeze
+  # Generated, so no credential-shaped string sits in this public repo
+  PASSWORD = SecureRandom.base58(20)
 
   setup do
     ActsAsTenant.current_tenant = nil
@@ -97,8 +98,9 @@ class DemoCommunityTest < ActiveSupport::TestCase
   test "the weekly job resets the demo with the password from the environment, and skips where there's none" do
     reset = Minitest::Mock.new
     reset.expect(:reset!, nil)
-    DemoCommunity.stub(:new, ->(password:) { assert_equal "from-env", password; reset }) do
-      with_env("DEMO_USER_PASSWORD" => "from-env") { DemoResetJob.perform_now }
+    configured = SecureRandom.base58(20)
+    DemoCommunity.stub(:new, ->(password:) { assert_equal configured, password; reset }) do
+      with_env("DEMO_USER_PASSWORD" => configured) { DemoResetJob.perform_now }
     end
     reset.verify
 

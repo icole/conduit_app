@@ -155,7 +155,8 @@ class Api::V1::GoogleAuthTest < ActionDispatch::IntegrationTest
 
     get account_path
     assert_select "h3", text: "Set a password to enable email login"
-    patch set_password_path, params: { new_password: "a-new-password", new_password_confirmation: "a-new-password" }
-    assert newcomer.reload.authenticate("a-new-password")
+    chosen = SecureRandom.base58(16)
+    patch set_password_path, params: { new_password: chosen, new_password_confirmation: chosen }
+    assert newcomer.reload.authenticate(chosen)
   end
 end

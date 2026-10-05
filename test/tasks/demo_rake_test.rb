@@ -19,10 +19,11 @@ class DemoRakeTest < ActiveSupport::TestCase
   test "demo:create builds a demo community with the sample task data, without printing the password" do
     ENV["DEMO_COMMUNITY_SLUG"] = "demo-test"
     ENV["DEMO_COMMUNITY_DOMAIN"] = "demo-test.example.com"
-    ENV["DEMO_USER_PASSWORD"] = "a-long-review-password"
+    password = SecureRandom.base58(20)
+    ENV["DEMO_USER_PASSWORD"] = password
     out, = capture_io { run_task("demo:create") }
     assert_match "Demo community ready", out
-    assert_no_match "a-long-review-password", out
+    assert_no_match password, out
 
     community = Community.find_by!(slug: "demo-test")
     ActsAsTenant.with_tenant(community) do
@@ -43,7 +44,7 @@ class DemoRakeTest < ActiveSupport::TestCase
   test "demo:destroy removes only the demo community's task data" do
     ENV["DEMO_COMMUNITY_SLUG"] = "demo-test"
     ENV["DEMO_COMMUNITY_DOMAIN"] = "demo-test.example.com"
-    ENV["DEMO_USER_PASSWORD"] = "a-long-review-password"
+    ENV["DEMO_USER_PASSWORD"] = SecureRandom.base58(20)
     capture_io { run_task("demo:create") }
     other_tasks = ActsAsTenant.without_tenant { Task.where.not(community: Community.find_by!(slug: "demo-test")).count }
     other_workstreams = ActsAsTenant.without_tenant { Workstream.where.not(community: Community.find_by!(slug: "demo-test")).count }
