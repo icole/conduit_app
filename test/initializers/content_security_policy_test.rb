@@ -26,4 +26,15 @@ class ContentSecurityPolicyReportsTest < ActiveSupport::TestCase
     assert_includes form_action.split, "https://accounts.google.com"
     assert_includes form_action.split, "'self'"
   end
+
+  # Report-only in production until the policy had been checked against real
+  # pages (CON-53); after a clean tour of every page no test reaches, enforced
+  test "the policy is enforced in production, not just reported" do
+    initializer = Rails.root.join("config/initializers/content_security_policy.rb")
+    Rails.stub(:env, ActiveSupport::EnvironmentInquirer.new("production")) { load initializer }
+
+    assert_equal false, Rails.application.config.content_security_policy_report_only
+  ensure
+    load initializer
+  end
 end

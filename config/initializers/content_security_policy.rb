@@ -41,10 +41,10 @@ Rails.application.configure do
   config.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
   config.content_security_policy_nonce_directives = %w[script-src]
 
-  # Enforced everywhere except production, so a blocked script fails loudly for
-  # developers and fails the system tests (see test/application_system_test_case.rb)
-  # instead of silently doing nothing. Production stays report-only, reporting to
-  # Sentry, until the policy has been checked against the real Stream and
-  # Liveblocks traffic that no test reaches (CON-53 step 3).
-  config.content_security_policy_report_only = Rails.env.production?
+  # Enforced everywhere, and violations still go to Sentry. A blocked script
+  # fails the system tests (see test/application_system_test_case.rb); the
+  # pages no test reaches (Stream chat, the Liveblocks editor, Google sign-in,
+  # the apps' chat prompt) were checked in a browser against production first
+  # (CON-53).
+  config.content_security_policy_report_only = false
 end
