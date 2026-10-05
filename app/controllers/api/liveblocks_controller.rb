@@ -48,26 +48,23 @@ module Api
         return
       end
 
-      # Get room ID from request (format: "document:123")
-      room = params[:room]
-
-      unless room.present?
-        render json: { error: "Room is required" }, status: :bad_request
+      # Exactly "document:<id>". The token grants the room by name, and
+      # Liveblocks reads a trailing * as a wildcard over every room with
+      # that prefix, other communities' documents included.
+      match = params[:room].to_s.match(/\Adocument:(\d+)\z/)
+      unless match
+        render json: { error: "Room must be document:<id>" }, status: :bad_request
         return
       end
 
-      # Extract document ID from room name
-      document_id = room.split(":").last.to_i
-
-      # Verify user has access to this document
-      document = Document.find_by(id: document_id)
+      # Tenant-scoped: another community's document isn't found
+      document = Document.find_by(id: match[1])
       unless document
         render json: { error: "Document not found" }, status: :not_found
         return
       end
 
-      # Build Liveblocks session
-      response = authorize_liveblocks(room)
+      response = authorize_liveblocks("document:#{document.id}")
 
       if response[:status] == :success
         render json: response[:body], status: :ok
