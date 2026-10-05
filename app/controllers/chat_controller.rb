@@ -22,7 +22,11 @@ class ChatController < ApplicationController
   before_action :ensure_community_chat_available, only: :index
   before_action :ensure_stream_configured, except: [ :token ]
 
-  # Skip CSRF for API endpoints called from mobile apps
+  # The apps call these without our CSRF token: Android with a bearer token,
+  # but the iPhone app creates channels with its session cookie (it looks for
+  # a CSRF-TOKEN cookie Rails never sets). SameSite=Lax keeps cross-site POSTs
+  # from carrying that cookie. Narrow this to bearer requests once the iPhone
+  # app sends its API token (CON-89).
   skip_forgery_protection only: MOBILE_API_ACTIONS
 
   # GET /chat

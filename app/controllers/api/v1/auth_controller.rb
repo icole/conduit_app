@@ -3,6 +3,9 @@
 module Api
   module V1
     class AuthController < ApplicationController
+      # The apps' JSON API: requests carry a bearer token (or are the sign-in
+      # that issues one), not a browser session, so there's no CSRF to guard
+      # and the token names the community (set_tenant_from_jwt below)
       skip_before_action :verify_authenticity_token
       skip_before_action :authenticate_user!
       skip_before_action :set_tenant_from_domain

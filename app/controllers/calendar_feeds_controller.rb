@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class CalendarFeedsController < ApplicationController
+  # Calendar apps fetch the feed without a session: the unguessable
+  # per-member token in the URL is the credential, looked up within the
+  # community the domain names
   skip_before_action :authenticate_user!
 
   def show

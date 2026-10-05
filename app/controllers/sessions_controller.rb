@@ -1,5 +1,8 @@
 class SessionsController < ApplicationController
+  # Signing in can't require being signed in
   skip_before_action :authenticate_user!, only: [ :new, :create, :omniauth, :auth_login ]
+  # auth_login is the apps' GET that redeems a one-time code (CON-54); the code
+  # is the credential and names the community
   skip_before_action :verify_authenticity_token, only: [ :auth_login ]
   skip_before_action :set_tenant_from_domain, only: [ :auth_login ]
   before_action :set_tenant_from_token, only: [ :auth_login ]

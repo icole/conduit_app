@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class PasswordResetsController < ApplicationController
+  # For members who can't sign in; the emailed token is the credential, and
+  # the community still comes from the domain
   skip_before_action :authenticate_user!
   skip_before_action :verify_user_belongs_to_tenant!
 

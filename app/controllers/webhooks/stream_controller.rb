@@ -2,6 +2,9 @@
 
 module Webhooks
   class StreamController < ApplicationController
+    # Called by Stream's servers, not a member: no session, no CSRF token, no
+    # community domain. verify_stream_signature (HMAC with the API secret) is
+    # the authentication. No webhook is registered today (STREAM_CHAT_SETUP.md).
     skip_before_action :set_tenant_from_domain
     skip_before_action :authenticate_user!
     skip_before_action :verify_user_belongs_to_tenant!

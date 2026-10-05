@@ -1,6 +1,9 @@
 module Api
   class LiveblocksController < ApplicationController
     before_action :authenticate_user!
+    # The editor's Liveblocks client POSTs here without our CSRF header. auth
+    # changes nothing and returns a token in the response, which another site
+    # couldn't read; users only reads names within the member's community.
     skip_before_action :verify_authenticity_token
 
     # GET /api/liveblocks/users
