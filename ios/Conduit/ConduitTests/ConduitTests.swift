@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import Testing
 import HotwireNative
 @testable import Conduit
@@ -36,10 +37,47 @@ struct ButtonComponentTests {
 }
 
 @MainActor
+struct BellComponentTests {
+    @Test func saysHowManyThingsNeedYou() {
+        #expect(BellComponent.label(title: "Notifications", count: 0) == "Notifications")
+        #expect(BellComponent.label(title: "Notifications", count: 1) == "Notifications, 1 needs you")
+        #expect(BellComponent.label(title: "Notifications", count: 4) == "Notifications, 4 need you")
+    }
+
+    @Test func badgesOnlyWhenSomethingNeedsYouUpTo99() {
+        #expect(BellComponent.badgeNumber(0) == nil)
+        #expect(BellComponent.badgeNumber(3) == 3)
+        #expect(BellComponent.badgeNumber(250) == 99)
+    }
+
+    @Test func theBellSitsLeftOfThePagesButtonWhicheverArrivesFirst() {
+        let item = UINavigationItem()
+        let bell = UIBarButtonItem(title: "bell")
+        let button = UIBarButtonItem(title: "add")
+        item.setRightBarItem(bell, slot: .bell)
+        item.setRightBarItem(button, slot: .button)
+        #expect(item.rightBarButtonItems == [button, bell])
+
+        let newBell = UIBarButtonItem(title: "bell 2")
+        item.setRightBarItem(newBell, slot: .bell)
+        #expect(item.rightBarButtonItems == [button, newBell])
+    }
+}
+
+struct ChatUnavailableTests {
+    @Test func explainsEachReasonTheServerGives() {
+        #expect(StreamChatError.message(for: "community_not_active") == "Chat opens once your community is approved.")
+        #expect(StreamChatError.message(for: "chat_disabled") == "Chat isn't turned on for your community.")
+        #expect(StreamChatError.message(for: "email_unverified").hasPrefix("Verify your email address"))
+        #expect(StreamChatError.message(for: nil) == "Chat couldn't load. Check your connection and try again.")
+    }
+}
+
+@MainActor
 struct UserAgentTests {
     // The web loads a bridge controller only when the user agent lists its component
     @Test func listsTheBridgeComponentsForTheWeb() {
-        #expect(AppConfig.userAgent.contains("bridge-components: [button menu]"))
+        #expect(AppConfig.userAgent.contains("bridge-components: [button bell menu]"))
     }
 
     @Test func keepsWhatTheServerLooksFor() {

@@ -260,7 +260,7 @@ class CustomChannelListVC: ChatChannelListVC {
         let body: [String: Any] = ["name": name]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        AuthenticationManager.shared.send(request) { data, response, error in
             if let error = error {
                 completion(.failure(error))
                 return
@@ -283,7 +283,7 @@ class CustomChannelListVC: ChatChannelListVC {
                 let errorMessage = json["error"] as? String ?? "Failed to create channel"
                 completion(.failure(NSError(domain: "CustomChannelListVC", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
             }
-        }.resume()
+        }
     }
 
     private func navigateToChannel(channelController: ChatChannelController) {

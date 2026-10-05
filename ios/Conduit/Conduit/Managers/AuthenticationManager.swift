@@ -25,6 +25,59 @@ class AuthenticationManager {
         return UserDefaults.standard.string(forKey: authTokenKey)
     }
 
+    /// Sends a request with the API token, refreshing the token once if the
+    /// server refuses it (it allows that for a week after expiry). Without a
+    /// usable token the request goes with the session cookie alone, as it did
+    /// before the app sent its token; CON-89 removes that fallback.
+    /// Completes on the main queue.
+    func send(_ request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) {
+        guard let token = getAuthToken() else {
+            Self.dataTask(request, completion)
+            return
+        }
+        Self.dataTask(Self.authorized(request, token)) { data, response, error in
+            guard (response as? HTTPURLResponse)?.statusCode == 401 else {
+                completion(data, response, error)
+                return
+            }
+            self.refreshAuthToken { newToken in
+                Self.dataTask(newToken.map { Self.authorized(request, $0) } ?? request, completion)
+            }
+        }
+    }
+
+    /// A fresh API token for one that has expired, or nil if there isn't one to be had
+    func refreshAuthToken(completion: @escaping (String?) -> Void) {
+        guard let expired = getAuthToken() else {
+            completion(nil)
+            return
+        }
+        var request = URLRequest(url: AppConfig.baseURL.appendingPathComponent("api/v1/auth/refresh"))
+        request.httpMethod = "POST"
+        Self.dataTask(Self.authorized(request, expired)) { data, response, _ in
+            guard (response as? HTTPURLResponse)?.statusCode == 200, let data,
+                  let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+                  let token = json["auth_token"] as? String else {
+                completion(nil)
+                return
+            }
+            self.storeAuthToken(token)
+            completion(token)
+        }
+    }
+
+    private static func authorized(_ request: URLRequest, _ token: String) -> URLRequest {
+        var request = request
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        return request
+    }
+
+    private static func dataTask(_ request: URLRequest, _ completion: @escaping (Data?, URLResponse?, Error?) -> Void) {
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async { completion(data, response, error) }
+        }.resume()
+    }
+
     /// Check if user is authenticated by verifying auth token or session cookie exists
     func isAuthenticated() -> Bool {
         // First check for auth token (more reliable)

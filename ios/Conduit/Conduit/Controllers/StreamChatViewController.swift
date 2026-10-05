@@ -389,7 +389,7 @@ class StreamChatViewController: UIViewController {
             }
         }
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        AuthenticationManager.shared.send(request) { data, response, error in
             if let error = error {
                 DispatchQueue.main.async {
                     completion(.failure(error))
@@ -404,6 +404,15 @@ class StreamChatViewController: UIViewController {
                 return
             }
 
+            // Chat off, community awaiting approval, or email unverified
+            if (response as? HTTPURLResponse)?.statusCode == 403 {
+                let body = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+                DispatchQueue.main.async {
+                    completion(.failure(StreamChatError.unavailable(reason: body?["error"] as? String)))
+                }
+                return
+            }
+
             do {
                 let tokenData = try JSONDecoder().decode(TokenData.self, from: data)
                 DispatchQueue.main.async {
@@ -414,7 +423,7 @@ class StreamChatViewController: UIViewController {
                     completion(.failure(error))
                 }
             }
-        }.resume()
+        }
     }
 
     private func initializeStreamChat(with tokenData: TokenData) {
@@ -676,6 +685,11 @@ class StreamChatViewController: UIViewController {
     private func showError(_ error: Error) {
         hideLoading()
 
+        if case StreamChatError.unavailable = error {
+            showUnavailable(error.localizedDescription)
+            return
+        }
+
         let alert = UIAlertController(
             title: "Chat Error",
             message: error.localizedDescription,
@@ -691,6 +705,24 @@ class StreamChatViewController: UIViewController {
         })
 
         present(alert, animated: true)
+    }
+
+    /// Why chat can't load (CON-76), in place of the spinner
+    private func showUnavailable(_ message: String) {
+        let label = UILabel()
+        label.text = message
+        label.font = .preferredFont(forTextStyle: .body)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(label)
+
+        NSLayoutConstraint.activate([
+            label.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            label.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor, constant: 16),
+            label.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor, constant: -16)
+        ])
     }
 
     /// Open the channel a tapped notification asked for, if there is one and
@@ -793,11 +825,24 @@ struct UserData: @preconcurrency Decodable, Sendable {
 
 enum StreamChatError: LocalizedError {
     case noData
+    /// The server won't issue a chat token, saying why
+    case unavailable(reason: String?)
 
     var errorDescription: String? {
         switch self {
         case .noData:
             return "No data received from server"
+        case .unavailable(let reason):
+            return Self.message(for: reason)
+        }
+    }
+
+    static func message(for reason: String?) -> String {
+        switch reason {
+        case "community_not_active": "Chat opens once your community is approved."
+        case "chat_disabled": "Chat isn't turned on for your community."
+        case "email_unverified": "Verify your email address to use chat: use the link we emailed you, or send a new one from Account."
+        default: "Chat couldn't load. Check your connection and try again."
         }
     }
 }

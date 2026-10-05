@@ -51,6 +51,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     static let bridgeComponentTypes: [BridgeComponent.Type] = [
         ButtonComponent.self,
+        BellComponent.self,
         MenuComponent.self
     ]
 

@@ -27,7 +27,7 @@ final class ButtonComponent: BridgeComponent {
         } else {
             item = UIBarButtonItem(title: data.title, primaryAction: action)
         }
-        viewController?.navigationItem.rightBarButtonItem = item
+        viewController?.navigationItem.setRightBarItem(item, slot: .button)
     }
 
     private var viewController: UIViewController? {
