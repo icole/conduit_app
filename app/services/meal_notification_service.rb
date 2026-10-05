@@ -94,14 +94,8 @@ class MealNotificationService
         action_url: url
       )
 
-      # 2. Send push notification
-      PushNotificationService.send(
-        user: user,
-        title: title,
-        body: body,
-        url: url,
-        tag: "meal-#{notifiable.id}"
-      )
+      # 2. Push to their phones, opening the meal
+      PhonePush.deliver(user, title: title, body: body, path: URI.parse(url).path, thread: "meals")
 
       # 3. Send email notification (use custom mailer if provided, otherwise generic)
       unless skip_email

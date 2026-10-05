@@ -77,8 +77,6 @@ gem "simple_calendar"
 # Stream Chat for HOA community messaging
 gem "stream-chat-ruby", "~> 3.26"
 
-# Web Push notifications
-gem "webpush", "~> 1.1"
 
 # Sentry for error tracking
 gem "sentry-ruby"

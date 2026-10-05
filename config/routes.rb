@@ -84,7 +84,6 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :push_subscriptions, only: [ :create, :destroy ]
 
   resources :users, only: [ :index, :edit, :update, :destroy ] do
     member do

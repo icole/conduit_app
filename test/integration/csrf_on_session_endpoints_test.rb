@@ -1,8 +1,7 @@
 require "test_helper"
 
-# CON-34: these JSON endpoints run on the signed-in session but skipped the
-# CSRF check, so another site could have saved over a document or pointed a
-# member's push notifications at itself. SameSite=Lax cookies made that hard,
+# CON-34: this JSON endpoint runs on the signed-in session but skipped the
+# CSRF check, so another site could have saved over a document. SameSite=Lax cookies made that hard,
 # but the token is the check that's meant to stop it.
 class CsrfOnSessionEndpointsTest < ActionDispatch::IntegrationTest
   setup do
@@ -38,11 +37,5 @@ class CsrfOnSessionEndpointsTest < ActionDispatch::IntegrationTest
       headers: { "X-CSRF-Token" => token }
     assert_response :ok
     assert_equal "<p>Saved</p>", @document.reload.content.to_s.strip
-  end
-
-  test "registering a browser for push notifications needs the page's token" do
-    post push_subscriptions_path, params: { endpoint: "https://attacker.example/push", keys: { p256dh: "k", auth: "a" } }, as: :json
-    assert_response :unprocessable_content
-    assert_not @user.push_subscriptions.exists?
   end
 end

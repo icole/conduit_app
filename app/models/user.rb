@@ -35,7 +35,6 @@ class User < ApplicationRecord
   has_many :rsvped_meals, through: :meal_rsvps, source: :meal
 
   # Notifications
-  has_many :push_subscriptions, dependent: :destroy
   # Phones the apps registered for push notifications (action_push_native)
   has_many :push_devices, class_name: "ApplicationPushDevice", as: :owner, dependent: :destroy
   has_many :in_app_notifications, dependent: :destroy

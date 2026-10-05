@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_05_022104) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_05_045954) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -319,17 +319,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_05_022104) do
     t.index ["status"], name: "index_meals_on_status"
   end
 
-  create_table "push_subscriptions", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.text "endpoint", null: false
-    t.string "p256dh_key", null: false
-    t.string "auth_key", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["user_id", "endpoint"], name: "index_push_subscriptions_on_user_id_and_endpoint", unique: true
-    t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
-  end
-
   create_table "recurring_task_responsibles", force: :cascade do |t|
     t.bigint "community_id", null: false
     t.bigint "recurring_task_id", null: false
@@ -517,7 +506,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_05_022104) do
   add_foreign_key "meals", "meal_schedules"
   add_foreign_key "meals", "users", column: "created_by_id"
   add_foreign_key "meals", "users", column: "deleted_by_id"
-  add_foreign_key "push_subscriptions", "users"
   add_foreign_key "recurring_task_responsibles", "communities"
   add_foreign_key "recurring_task_responsibles", "recurring_tasks"
   add_foreign_key "recurring_task_responsibles", "users"
