@@ -41,6 +41,19 @@ class InAppNotification < ApplicationRecord
     general: "general"
   }.freeze
 
+  # Where it leads, as a path on this site. Stored URLs may be full ones on a
+  # community's domain; only the path is followed, so a notification can't
+  # send anyone off-site
+  def path
+    return if action_url.blank?
+
+    uri = URI.parse(action_url)
+    path = uri.path.presence || "/"
+    path.start_with?("/") && !path.start_with?("//") ? [ path, uri.query ].compact.join("?") : nil
+  rescue URI::InvalidURIError
+    nil
+  end
+
   def mark_as_read!
     return if read?
 

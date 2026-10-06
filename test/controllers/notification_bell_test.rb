@@ -38,6 +38,19 @@ class NotificationBellTest < ActionDispatch::IntegrationTest
     assert @update.resolved_at, "an update is dealt with once read"
   end
 
+  test "each notification links straight to what it's about, not through a redirect" do
+    get notifications_path
+
+    assert_select "#updates a[href=?][data-notification-read-url-value=?]", meal_path(@meal), mark_read_notification_path(@update)
+  end
+
+  test "a notification's link only ever goes somewhere on this site" do
+    @update.update!(action_url: "https://evil.example/phish")
+    get notifications_path
+
+    assert_select "#updates a[href=?]", "/phish"
+  end
+
   test "the full list separates what needs you from updates" do
     get notifications_path
 

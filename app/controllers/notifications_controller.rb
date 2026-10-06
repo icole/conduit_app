@@ -13,7 +13,7 @@ class NotificationsController < ApplicationController
   def show
     notification = current_user.in_app_notifications.find(params[:id])
     notification.mark_as_read!
-    redirect_to in_app_path(notification.action_url) || notifications_path
+    redirect_to notification.path || notifications_path
   end
 
   def mark_read
@@ -38,19 +38,5 @@ class NotificationsController < ApplicationController
       format.turbo_stream
       format.json { head :ok }
     end
-  end
-
-  private
-
-  # Stored URLs may be full ones on a community's domain; only ever follow
-  # the path, so a notification can't send anyone off-site
-  def in_app_path(url)
-    return if url.blank?
-
-    uri = URI.parse(url)
-    path = uri.path.presence || "/"
-    path.start_with?("/") && !path.start_with?("//") ? [ path, uri.query ].compact.join("?") : nil
-  rescue URI::InvalidURIError
-    nil
   end
 end
