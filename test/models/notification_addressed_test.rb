@@ -54,14 +54,20 @@ class NotificationAddressedTest < ActiveSupport::TestCase
     assert settled(needs).resolved_at
   end
 
-  test "updates are addressed by reading them, and a meal reminder by the meal passing" do
+  test "updates are addressed by reading them" do
     update = notify("cook_assigned", @meal)
     assert_nil settled(update).resolved_at
     update.mark_as_read!
     assert update.reload.resolved_at
+  end
 
+  test "the day-before meal reminder needs you until you RSVP, like the RSVP reminder" do
     reminder = notify("meal_reminder", @meal)
-    travel_to(@meal.scheduled_at + 3.hours) { assert settled(reminder).resolved_at }
+    assert_nil settled(reminder).resolved_at
+    assert_includes @member.in_app_notifications.needs_you, reminder
+
+    @meal.meal_rsvps.create!(user: @member, status: "attending")
+    assert settled(reminder).resolved_at
   end
 
   test "something deleted since is addressed" do

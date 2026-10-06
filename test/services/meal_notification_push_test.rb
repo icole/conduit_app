@@ -26,4 +26,17 @@ class MealNotificationPushTest < ActiveJob::TestCase
 
     assert @member.in_app_notifications.needs_you.exists?(notifiable: @meal)
   end
+
+  test "the day-before and closing-soon reminders are one entry in the bell, counted once" do
+    MealNotificationService.meal_reminder(@meal, @member)
+    @member.in_app_notifications.update_all(read: true)
+    MealNotificationService.rsvp_deadline_reminder(@meal, @member)
+
+    entries = @member.in_app_notifications.where(notifiable: @meal)
+    assert_equal 1, entries.count
+    assert_equal 1, @member.in_app_notifications.needs_you.count
+    assert_equal "RSVPs Closing Soon!", entries.first.title
+    assert entries.first.unread?, "the newer reminder is news"
+    assert_equal 2, pushes.size, "each still reaches the phone"
+  end
 end

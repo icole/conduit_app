@@ -9,15 +9,17 @@ class NotificationKind
   end
 
   def self.task_done_or_not_yours = ->(n, task) { task.status == "completed" || !task.assigned_to?(n.user) }
+  def self.rsvped_or_closed = ->(n, meal) {
+    meal.rsvps_closed? || meal.meal_rsvps.exists?(user_id: n.user_id) || meal.meal_cooks.exists?(user_id: n.user_id)
+  }
 
   ALL = [
-    Kind.new("rsvp_deadline", true, ->(n, meal) {
-      meal.rsvp_deadline.past? || meal.meal_rsvps.exists?(user_id: n.user_id) || meal.meal_cooks.exists?(user_id: n.user_id)
-    }),
+    # Both ask for an RSVP, and share one entry per meal (MealNotificationService)
+    Kind.new("rsvp_deadline", true, rsvped_or_closed),
+    Kind.new("meal_reminder", true, rsvped_or_closed),
     Kind.new("task_assigned", true, task_done_or_not_yours),
     Kind.new("task_due", true, task_done_or_not_yours),
     Kind.new("task_needs_someone", true, ->(_n, task) { task.status == "completed" || task.assignees.any? }),
-    Kind.new("meal_reminder", false, ->(_n, meal) { meal.scheduled_at < 2.hours.ago }),
     Kind.new("cook_assigned", false, nil),
     Kind.new("rsvps_closed", false, nil),
     Kind.new("general", false, nil)

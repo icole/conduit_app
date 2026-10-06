@@ -85,14 +85,12 @@ class MealNotificationService
     private
 
     def send_all_channels(user:, title:, body:, url:, notification_type:, notifiable:, mailer: nil, skip_email: false, email_delay: 0, batch_service: nil)
-      # 1. Create in-app notification
-      user.in_app_notifications.create!(
-        title: title,
-        body: body,
-        notification_type: notification_type,
-        notifiable: notifiable,
-        action_url: url
-      )
+      # 1. In the bell. A reminder that needs them replaces one still waiting
+      # about the same meal, so the bell counts the meal once
+      notification = (user.in_app_notifications.needs_you.find_by(notifiable: notifiable) if NotificationKind.fetch(notification_type).needs_you?)
+      notification ||= user.in_app_notifications.new
+      notification.update!(title: title, body: body, notification_type: notification_type, notifiable: notifiable,
+        action_url: url, read: false, read_at: nil)
 
       # 2. Push to their phones, opening the meal
       PhonePush.deliver(user, title: title, body: body, path: URI.parse(url).path, thread: "meals")
