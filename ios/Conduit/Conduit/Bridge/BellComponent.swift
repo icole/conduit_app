@@ -20,22 +20,29 @@ final class BellComponent: BridgeComponent {
     }
 
     override func onReceive(message: Message) {
-        guard message.event == "connect", let data: MessageData = message.data() else { return }
+        guard message.event == "connect", let data: MessageData = message.data(),
+              let navigationItem = viewController?.navigationItem else { return }
+
+        // Update the bell already in the bar: iOS 26 may not draw the badge of
+        // a new button that replaces one that looks the same
+        let existing = navigationItem.rightBarButtonItems?.first { $0.tag == RightBarSlot.bell.rawValue }
+        let item = existing ?? UIBarButtonItem(image: UIImage(systemName: "bell"))
+        item.primaryAction = UIAction(image: item.image) { [weak self] _ in
+            self?.reply(to: "connect")
+        }
 
         let count = data.count ?? 0
         let number = Self.badgeNumber(count)
-        let action = UIAction { [weak self] _ in
-            self?.reply(to: "connect")
-        }
-        let item: UIBarButtonItem
         if #available(iOS 26.0, *) {
-            item = UIBarButtonItem(image: UIImage(systemName: "bell"), primaryAction: action)
             item.badge = number.map { .count($0) }
         } else {
-            item = UIBarButtonItem(image: UIImage(systemName: number == nil ? "bell" : "bell.badge"), primaryAction: action)
+            item.image = UIImage(systemName: number == nil ? "bell" : "bell.badge")
         }
         item.accessibilityLabel = Self.label(title: data.title, count: count)
-        viewController?.navigationItem.setRightBarItem(item, slot: .bell)
+
+        if existing == nil {
+            navigationItem.setRightBarItem(item, slot: .bell)
+        }
     }
 
     private var viewController: UIViewController? {
