@@ -175,7 +175,7 @@
     --c-fill: color-mix(in oklab, var(--c) 15%, var(--color-base-100));
     --c-text: var(--c-ink);
   }
-  .badge-warning { --c-fill: color-mix(in oklab, var(--c) 30%, var(--color-base-100)); }
+  .badge-warning { --c-fill: color-mix(in oklab, var(--c) 26%, var(--color-base-100)); }
   .badge-neutral { --c-fill: var(--color-neutral); --c-text: var(--color-neutral-content); }
   .badge-ghost { --c-fill: var(--color-base-200); }
   .badge-outline {
