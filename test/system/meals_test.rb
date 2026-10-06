@@ -182,7 +182,7 @@ class MealsTest < ApplicationSystemTestCase
 
     within "#meal_#{meal.id}" do
       # Should show warning about needing a cook (head cook)
-      assert_text "Needs cook!"
+      assert_text "Needs a cook"
     end
   end
 
@@ -200,8 +200,7 @@ class MealsTest < ApplicationSystemTestCase
     visit meals_path
 
     within "#meal_#{meal.id}" do
-      assert_no_text "Needs head cook!"
-      assert_no_text "Needs volunteers!"
+      assert_no_text "Needs a cook"
     end
   end
 

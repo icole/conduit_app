@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="cupcake">
+<%# The website wears the almanac theme; the apps keep the cupcake look they shipped with %>
+<html lang="en" data-theme="<%= hotwire_native_app? ? "cupcake" : "conduit" %>">
 <head>
   <title><%= content_for(:title) || "Conduit App" %></title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -10,13 +11,16 @@
 
 
   <%= yield :head %>
+  <% unless hotwire_native_app? %>
+    <meta name="view-transition" content="same-origin">
+  <% end %>
 
   <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
   <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter&family=Lora&family=Merriweather&family=Open+Sans&family=Roboto+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400..700&family=Lora&family=Merriweather&family=Open+Sans&family=Roboto+Mono&display=swap" rel="stylesheet">
 
   <link rel="icon" href="/icon.png" type="image/png">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
@@ -28,8 +32,8 @@
   <%= Sentry.get_trace_propagation_meta.html_safe %>
   </head>
 
-<body class="bg-base-100 <%= content_for?(:full_bleed) ? 'h-screen overflow-hidden' : '' %>">
-<main class="w-full bg-base-100 flex flex-col <%= content_for?(:full_bleed) ? 'h-full' : 'min-h-screen' %>">
+<body class="<%= hotwire_native_app? ? 'bg-base-100' : 'bg-paper' %> <%= content_for?(:full_bleed) ? 'h-screen overflow-hidden' : '' %>">
+<main class="w-full <%= 'bg-base-100' if hotwire_native_app? %> flex flex-col <%= content_for?(:full_bleed) ? 'h-full' : 'min-h-screen' %>">
   <% if !hotwire_native_app? %>
     <%= render "layouts/navbar" %>
   <% elsif user_signed_in? %>
@@ -47,9 +51,12 @@
       <%= yield %>
     </div>
   <% else %>
-    <div class="w-full max-w-7xl mx-auto flex-1 px-4 <%= hotwire_native_app? ? 'pt-4 pb-8' : 'py-8' %>">
+    <div class="w-full max-w-7xl mx-auto flex-1 px-4 <%= hotwire_native_app? ? 'pt-4 pb-8' : 'pt-6 pb-12 sm:px-6 lg:px-8 lg:pt-10' %>">
       <%= yield %>
     </div>
+  <% end %>
+  <% if !hotwire_native_app? && user_signed_in? %>
+    <%= render "layouts/tab_bar" %>
   <% end %>
 </main>
 <%= render "layouts/toasts" %>

@@ -439,7 +439,7 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
     get meals_url
     assert_response :success
     # Check for responsive text sizes
-    assert_select ".text-xl.sm\\:text-2xl"
+    assert_select "h1.text-4xl.sm\\:text-5xl"
     # Check for compact button classes
     assert_select ".btn-sm"
   end

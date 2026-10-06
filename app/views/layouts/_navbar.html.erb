@@ -1,102 +1,60 @@
-<!-- Navigation -->
-<div class="navbar bg-base-300 shadow-md text-primary-content px-4 lg:px-6">
-  <div class="navbar-start">
-    <!-- Mobile hamburger menu -->
-    <div class="dropdown lg:hidden">
-      <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
-        <%= heroicon "bars-3", variant: :outline, options: { class: "h-5 w-5" } %>
-      </div>
-      <ul tabindex="0" class="menu dropdown-content z-[1] p-2 shadow bg-base-100 text-base-content rounded-box w-52 mt-4">
-        <li><%= link_to "Dashboard", dashboard_index_path %></li>
-        <li><%= link_to "Tasks", tasks_path %></li>
-        <li><%= link_to "Calendar", calendar_index_path %></li>
-        <li><%= link_to "Meals", meals_path %></li>
-        <li><%= link_to "Docs", documents_path %></li>
-        <% if current_community&.chat_available? %>
-          <li><%= link_to "Chat", chat_index_path %></li>
-        <% end %>
-        <li class="divider"></li>
-        <% if current_user&.super_admin? %>
-          <li><%= link_to "Communities (admin)", admin_communities_path %></li>
-        <% end %>
-        <li><%= link_to account_path do %>
-          Account Settings
-          <% unless google_account? %>
-            <span class="badge badge-warning badge-xs">Limited</span>
-          <% end %>
-        <% end %></li>
-        <% if user_signed_in? && current_user.admin? %>
-          <li>
-            <details>
-              <summary>Admin</summary>
-              <ul class="p-2">
-                <li><%= link_to "Invitations", invitations_path %></li>
-                <li><%= link_to "Users", users_path %></li>
-                <li><%= link_to "Households", households_path %></li>
-                <li><%= link_to "Monthly Dues", dues_path %></li>
-                <li><%= link_to "Email Logs", email_logs_path %></li>
-              </ul>
-            </details>
-          </li>
-        <% end %>
-      </ul>
-    </div>
-
-    <!-- Logo -->
-    <%= link_to root_path, class: "flex items-center gap-2 mr-4" do %>
-      <%= image_tag("crow-woods-logo.png", alt: current_community&.name || "Conduit", class: "h-10 w-auto") %>
+<%# Top bar. On a phone it's just the logo, bell and you; the sections live in
+    the tab bar at the bottom (layouts/tab_bar), within reach of a thumb. %>
+<header class="sticky top-0 z-40 border-b border-[var(--hairline)] bg-paper/85 backdrop-blur-md backdrop-saturate-150">
+  <div class="max-w-7xl mx-auto h-14 lg:h-16 px-4 sm:px-6 lg:px-8 flex items-center gap-8">
+    <%= link_to root_path, class: "shrink-0 flex items-center" do %>
+      <%= image_tag("crow-woods-logo.png", alt: current_community&.name || "Conduit", class: "h-8 lg:h-9 w-auto") %>
     <% end %>
 
-    <!-- Desktop Navigation -->
-    <div class="hidden lg:flex items-center gap-1 flex-1">
-      <ul class="menu menu-horizontal px-1 gap-1">
-        <li><%= link_to "Dashboard", dashboard_index_path, class: "btn btn-ghost btn-sm #{'btn-active' if current_page?(dashboard_index_path) || current_page?(root_path)}" %></li>
-        <li><%= link_to "Tasks", tasks_path, class: "btn btn-ghost btn-sm #{'btn-active' if %w[tasks workstreams recurring_tasks].include?(controller_name)}" %></li>
-        <li><%= link_to "Calendar", calendar_index_path, class: "btn btn-ghost btn-sm #{'btn-active' if controller_name.in?(['calendar', 'calendar_events'])}" %></li>
-        <li><%= link_to "Meals", meals_path, class: "btn btn-ghost btn-sm #{'btn-active' if controller_name.in?(['meals', 'meal_schedules'])}" %></li>
-        <li><%= link_to "Docs", documents_path, class: "btn btn-ghost btn-sm #{'btn-active' if controller_name.in?(['documents', 'document_folders'])}" %></li>
-        <% if current_community&.chat_available? %>
-          <li><%= link_to "Chat", chat_index_path, class: "btn btn-ghost btn-sm #{'btn-active' if controller_name == 'chat'}" %></li>
-        <% end %>
-
-        <!-- Admin Dropdown (if admin) -->
-        <% if user_signed_in? && current_user.admin? %>
-          <li class="dropdown dropdown-hover">
-            <div tabindex="0" role="button" class="btn btn-ghost btn-sm #{'btn-active' if controller_name.in?(['invitations', 'users', 'households', 'dues', 'email_logs'])}">
-              Admin
-              <%= heroicon "chevron-down", variant: :outline, options: { class: "h-3 w-3 ml-1" } %>
-            </div>
-            <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 text-base-content rounded-box w-48">
-              <li><%= link_to "Invitations", invitations_path, class: "#{'active' if current_page?(invitations_path)}" %></li>
-              <li><%= link_to "Users", users_path, class: "#{'active' if controller_name == 'users'}" %></li>
-              <li><%= link_to "Households", households_path, class: "#{'active' if controller_name == 'households'}" %></li>
-              <li><%= link_to "Monthly Dues", dues_path, class: "#{'active' if controller_name == 'dues'}" %></li>
-              <li><%= link_to "Email Logs", email_logs_path, class: "#{'active' if controller_name == 'email_logs'}" %></li>
-            </ul>
-          </li>
-        <% end %>
-      </ul>
-    </div>
-  </div>
-
-  <!-- User Menu -->
-  <div class="navbar-end pr-2 gap-3">
     <% if user_signed_in? %>
-      <%= render "notifications/bell" %>
-      <div class="dropdown dropdown-end dropdown-hover">
-        <div tabindex="0" role="button" class="btn btn-ghost btn-circle p-0" aria-label="Account menu">
-          <%= user_avatar(current_user, size: "w-10", text: "text-sm") %>
+      <nav aria-label="Main" class="hidden lg:flex items-center gap-7 flex-1">
+        <%= section_link_to "Home", dashboard_index_path, :home, class: "nav-link" %>
+        <%= section_link_to "Meals", meals_path, :meals, class: "nav-link" %>
+        <%= section_link_to "Tasks", tasks_path, :tasks, class: "nav-link" %>
+        <%= section_link_to "Calendar", calendar_index_path, :calendar, class: "nav-link" %>
+        <%= section_link_to "Docs", documents_path, :docs, class: "nav-link" %>
+        <% if current_community&.chat_available? %>
+          <%= section_link_to "Chat", chat_index_path, :chat, class: "nav-link" %>
+        <% end %>
+
+        <% if current_user.admin? %>
+          <div class="dropdown dropdown-hover">
+            <div tabindex="0" role="button" class="nav-link flex items-center gap-1" <%= 'aria-current="page"'.html_safe if current_section == :admin %>>
+              Admin
+              <%= heroicon "chevron-down", variant: :outline, options: { class: "h-3.5 w-3.5" } %>
+            </div>
+            <ul tabindex="0" class="dropdown-content menu z-50 w-52 rounded-box bg-base-100 p-2 shadow-lg border border-[var(--hairline)]">
+              <li><%= link_to "Invitations", invitations_path %></li>
+              <li><%= link_to "Users", users_path %></li>
+              <li><%= link_to "Households", households_path %></li>
+              <li><%= link_to "Monthly Dues", dues_path %></li>
+              <li><%= link_to "Email Logs", email_logs_path %></li>
+              <% if current_user.super_admin? %>
+                <li><%= link_to "Communities", admin_communities_path %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      </nav>
+
+      <div class="ml-auto flex items-center gap-1">
+        <%= render "notifications/bell" %>
+        <div class="dropdown dropdown-end">
+          <div tabindex="0" role="button" class="btn btn-ghost btn-circle p-0" aria-label="Account menu">
+            <%= user_avatar(current_user, size: "w-9", text: "text-sm") %>
+          </div>
+          <ul tabindex="0" class="menu dropdown-content z-50 mt-2 w-56 rounded-box bg-base-100 p-2 shadow-lg border border-[var(--hairline)]">
+            <li class="menu-title text-base-content/70"><%= current_user.name %></li>
+            <li><%= link_to account_path do %>
+              Account Settings
+              <% unless google_account? %>
+                <span class="badge badge-warning badge-xs">Limited</span>
+              <% end %>
+            <% end %></li>
+            <li><%= button_to "Logout", logout_path, method: :delete, class: "w-full text-left", form_class: "w-full" %></li>
+          </ul>
         </div>
-        <ul tabindex="0" class="menu dropdown-content z-50 p-2 shadow-lg bg-base-100 text-base-content rounded-box w-52 mt-2">
-          <li><%= link_to account_path, class: "py-2" do %>
-            Account Settings
-            <% unless google_account? %>
-              <span class="badge badge-warning badge-xs">Limited</span>
-            <% end %>
-          <% end %></li>
-          <li><%= button_to "Logout", logout_path, method: :delete, class: "py-2 w-full text-left", form_class: "w-full" %></li>
-        </ul>
       </div>
     <% end %>
   </div>
-</div>
+</header>

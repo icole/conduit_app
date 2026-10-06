@@ -10,7 +10,7 @@
       <% look = if hotwire_native_app?
            "inline-flex items-center justify-center rounded-md text-sm #{current ? 'bg-base-100 text-base-content shadow-sm font-semibold' : 'text-base-content/70 font-medium'}"
          else
-           "btn btn-sm #{current ? 'btn-primary text-base-content' : 'btn-ghost'}"
+           "btn btn-sm #{current ? 'btn-primary' : 'btn-ghost'}"
          end %>
       <%= link_to label, tasks_path(tab: tab),
             class: "#{look} h-8 min-h-0 flex-1 sm:flex-none px-1 sm:px-3 whitespace-nowrap",

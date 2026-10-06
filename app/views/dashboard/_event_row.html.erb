@@ -1,0 +1,7 @@
+<div class="-mx-3 px-3 py-2.5">
+  <p class="eyebrow text-[0.6875rem] text-primary-ink">Event · <%= event[:start_time].strftime("%-I:%M %p") %></p>
+  <p class="font-display text-xl sm:text-[1.375rem] leading-tight mt-0.5"><%= event[:summary] %></p>
+  <% if event[:location].present? %>
+    <p class="text-sm text-base-content/70 mt-1"><%= event[:location] %></p>
+  <% end %>
+</div>

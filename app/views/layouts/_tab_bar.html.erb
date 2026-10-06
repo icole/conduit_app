@@ -1,0 +1,47 @@
+<%# Phones: the main sections along the bottom, where a thumb rests. It's the
+    last thing in the page, stuck to the bottom of the screen, so it never
+    covers the end of a page or a full-height page like Chat. %>
+<% tabs = [
+  [ "Home", dashboard_index_path, :home, "home" ],
+  [ "Meals", meals_path, :meals, "cake" ],
+  [ "Tasks", tasks_path, :tasks, "check-circle" ],
+  [ "Calendar", calendar_index_path, :calendar, "calendar-days" ]
+] %>
+<nav aria-label="Sections" class="lg:hidden sticky bottom-0 z-40 mt-auto border-t border-[var(--hairline)] bg-paper/90 backdrop-blur-md backdrop-saturate-150 pb-[env(safe-area-inset-bottom)]">
+  <div class="flex px-2">
+    <% tabs.each do |label, path, section, icon| %>
+      <%= section_link_to label, path, section, class: "tab-link" do %>
+        <%= heroicon icon, variant: :outline, options: { class: "icon-idle h-6 w-6" } %>
+        <%= heroicon icon, variant: :solid, options: { class: "icon-active h-6 w-6" } %>
+        <%= label %>
+      <% end %>
+    <% end %>
+    <button type="button" popovertarget="more-sheet" class="tab-link" <%= 'aria-current="page"'.html_safe if current_section.in?([ :docs, :chat, :admin ]) %>>
+      <%= heroicon "squares-2x2", variant: :outline, options: { class: "icon-idle h-6 w-6" } %>
+      <%= heroicon "squares-2x2", variant: :solid, options: { class: "icon-active h-6 w-6" } %>
+      More
+    </button>
+  </div>
+</nav>
+
+<div id="more-sheet" popover class="sheet lg:hidden">
+  <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-base-content/15"></div>
+  <ul class="menu w-full gap-0.5 p-0 text-base">
+    <li><%= section_link_to "Docs", documents_path, :docs %></li>
+    <% if current_community&.chat_available? %>
+      <li><%= section_link_to "Chat", chat_index_path, :chat %></li>
+    <% end %>
+    <li><%= link_to "Account Settings", account_path %></li>
+    <% if current_user.admin? %>
+      <li class="menu-title mt-3 eyebrow text-base-content/70">Admin</li>
+      <li><%= link_to "Invitations", invitations_path %></li>
+      <li><%= link_to "Users", users_path %></li>
+      <li><%= link_to "Households", households_path %></li>
+      <li><%= link_to "Monthly Dues", dues_path %></li>
+      <li><%= link_to "Email Logs", email_logs_path %></li>
+      <% if current_user.super_admin? %>
+        <li><%= link_to "Communities", admin_communities_path %></li>
+      <% end %>
+    <% end %>
+  </ul>
+</div>

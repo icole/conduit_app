@@ -1,0 +1,37 @@
+<% head = meal.head_cook %>
+<%= link_to meal_path(meal), class: "group block -mx-3 px-3 py-2.5 rounded-box hover:bg-base-100 transition-colors" do %>
+  <div class="flex items-start justify-between gap-3">
+    <div class="min-w-0">
+      <p class="eyebrow text-[0.6875rem] text-secondary-ink">Meal · <%= meal.scheduled_at.strftime("%-I:%M %p") %></p>
+      <p class="font-display text-xl sm:text-[1.375rem] leading-tight mt-0.5 group-hover:underline underline-offset-4 decoration-1"><%= meal.title %></p>
+      <p class="text-sm text-base-content/70 mt-1">
+        <% if head %>
+          <span class="text-base-content font-medium"><%= head.name %></span> cooking<% if meal.helpers.any? %>, <%= meal.helpers.map(&:name).to_sentence %> helping<% end %>
+        <% elsif meal.needs_head_cook? %>
+          <span class="font-medium text-secondary-ink">No cook yet. Could it be you?</span>
+        <% end %>
+        <% if meal.attending_count > 0 %>
+          · <%= meal.attending_count %> going
+        <% end %>
+        <% if meal.location.present? %>
+          · <%= meal.location %>
+        <% end %>
+      </p>
+    </div>
+    <div class="shrink-0 pt-1">
+      <% if meal.user_is_cook?(current_user) %>
+        <span class="badge badge-sm border-0 bg-secondary/12 text-secondary-ink font-medium">Cooking</span>
+      <% elsif meal.user_attending?(current_user) %>
+        <span class="badge badge-sm border-0 bg-primary/12 text-primary-ink font-medium">Going</span>
+      <% elsif meal.user_maybe?(current_user) %>
+        <span class="badge badge-sm border-0 bg-base-300 font-medium">Maybe</span>
+      <% elsif meal.user_late_plate?(current_user) %>
+        <span class="badge badge-sm border-0 bg-secondary/12 text-secondary-ink font-medium">Late plate</span>
+      <% elsif meal.user_declined?(current_user) %>
+        <span class="badge badge-sm border-0 bg-base-200 text-base-content/70">Not going</span>
+      <% elsif meal.rsvps_open? %>
+        <span class="btn btn-primary btn-sm rounded-full px-4">RSVP</span>
+      <% end %>
+    </div>
+  </div>
+<% end %>

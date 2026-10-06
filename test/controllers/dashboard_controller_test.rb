@@ -9,6 +9,24 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil assigns(:timeline_items)
   end
 
+  test "the dashboard greets you by first name for the time of day" do
+    member = users(:two)
+    sign_in_user(uid: member.uid, name: member.name, email: member.email)
+
+    travel_to Time.zone.local(2026, 10, 5, 19, 30) do
+      get dashboard_index_url
+    end
+
+    assert_select "h1", text: "Good evening, Mike."
+  end
+
+  test "the dashboard sums up the coming week's meals and the ones without a cook" do
+    sign_in_user
+    get dashboard_index_url
+
+    assert_select "[data-testid='week-summary']", text: /3 meals this week\s*·\s*2 still need a cook/
+  end
+
   # There's no backlog any more: what's yours and open is what's yours to do
   test "your open tasks show, whatever their old backlog status, and finished ones don't" do
     member = users(:two)

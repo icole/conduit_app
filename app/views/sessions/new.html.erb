@@ -1,59 +1,47 @@
-<div class="container mx-auto px-4 py-16 flex justify-center">
-  <div class="card bg-base-100 shadow-xl w-full max-w-md">
-    <div class="card-body">
-      <h2 class="card-title text-2xl font-bold text-center w-full justify-center mb-6">Log in to Community Hub</h2>
+<div class="grid lg:grid-cols-[1.25fr_1fr] gap-6 lg:gap-16 items-stretch lg:min-h-[calc(100svh-11rem)]">
+  <section class="relative overflow-hidden rounded-box bg-primary text-primary-content px-6 py-8 sm:p-10 lg:p-14 flex flex-col justify-between gap-10">
+    <p class="eyebrow opacity-90">Conduit · for cohousing communities</p>
+    <h1 class="text-[clamp(2.25rem,4vw+0.75rem,4.5rem)] leading-[0.95] tracking-[-0.035em]">
+      Supper at six.<br>
+      A gate to mend.<br>
+      <em class="font-normal">Friends</em> next door.
+    </h1>
+    <p class="max-w-sm text-base sm:text-lg opacity-90">Meals, chores, the calendar and the paperwork of living together, in one place.</p>
+  </section>
 
-      <!-- Google Sign In (Recommended) -->
-      <div class="bg-base-200 rounded-lg p-4 mb-4">
-        <%= button_to "/auth/google_oauth2", method: :post, class: "btn btn-primary w-full", data: { turbo: false } do %>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
-          Sign in with Google
-        <% end %>
-        <p class="text-xs text-center text-base-content/70 mt-2">
-          Recommended for full access to Calendar and Drive features
-        </p>
+  <section class="w-full max-w-md mx-auto lg:mx-0 self-center py-2 lg:py-10">
+    <h2 class="text-3xl sm:text-4xl">Welcome home.</h2>
+    <p class="mt-2 text-base-content/70">Sign in to your community.</p>
+
+    <%= button_to "/auth/google_oauth2", method: :post, class: "btn btn-primary btn-lg w-full mt-8 rounded-full text-base", data: { turbo: false } do %>
+      <span class="grid place-items-center rounded-full bg-base-100 p-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg></span>
+      Sign in with Google
+    <% end %>
+    <p class="text-sm text-base-content/70 mt-3 text-center">Recommended. It also connects the Calendar and Drive.</p>
+
+    <div class="divider my-8 text-sm text-base-content/70">or with email</div>
+
+    <%= form_with url: login_path, method: :post, class: "space-y-5" do |f| %>
+      <div>
+        <%= f.label :email, "Email", class: "block text-sm font-medium mb-1.5" %>
+        <%= f.email_field :email, class: "input input-lg w-full text-base", required: true, autocomplete: "email" %>
       </div>
 
-      <div class="divider text-sm">or sign in with email</div>
-
-      <!-- Email/Password Sign In -->
-      <%= form_with url: login_path, method: :post, class: "space-y-4" do |f| %>
-        <div class="form-control">
-          <%= f.label :email, class: "label" do %>
-            <span class="label-text">Email</span>
-          <% end %>
-          <%= f.email_field :email, class: "input input-bordered w-full", required: true, autocomplete: "email" %>
+      <div>
+        <div class="flex items-baseline justify-between mb-1.5">
+          <%= f.label :password, "Password", class: "block text-sm font-medium" %>
+          <%= link_to "Forgot password?", password_reset_new_path, class: "text-sm text-primary-ink hover:underline underline-offset-4" %>
         </div>
-
-        <div class="form-control">
-          <%= f.label :password, class: "label" do %>
-            <span class="label-text">Password</span>
-          <% end %>
-          <%= f.password_field :password, class: "input input-bordered w-full", required: true, autocomplete: "current-password" %>
-        </div>
-
-        <div class="text-right">
-          <%= link_to "Forgot password?", password_reset_new_path, class: "link link-hover text-sm" %>
-        </div>
-
-        <%= f.submit "Sign in", class: "btn btn-outline w-full" %>
-      <% end %>
-
-      <div class="divider text-sm">new here?</div>
-
-      <div class="text-center">
-        <%= link_to "Start a community on Conduit", new_community_signup_path, class: "btn btn-ghost btn-sm" %>
+        <%= f.password_field :password, class: "input input-lg w-full text-base", required: true, autocomplete: "current-password" %>
       </div>
 
-      <div class="alert alert-info mt-4">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-5 w-5 shrink-0 stroke-current">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <div class="text-sm">
-          <p class="font-medium">Note about email sign-in</p>
-          <p class="text-xs opacity-80">Email accounts have access to most features, but Google Calendar and Drive integrations require a Google account.</p>
-        </div>
-      </div>
-    </div>
-  </div>
+      <%= f.submit "Sign in", class: "btn btn-outline btn-lg w-full rounded-full text-base" %>
+    <% end %>
+
+    <p class="mt-6 text-sm text-base-content/70">Email accounts can use most of Conduit. Google Calendar and Drive need a Google account.</p>
+
+    <p class="mt-10 pt-6 border-t border-[var(--hairline)] text-sm text-base-content/70">
+      New here? <%= link_to "Start a community on Conduit", new_community_signup_path, class: "font-medium text-primary-ink hover:underline underline-offset-4" %>
+    </p>
+  </section>
 </div>

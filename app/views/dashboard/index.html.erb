@@ -1,98 +1,69 @@
 <%# The apps call this tab Home %>
 <% content_for :title, hotwire_native_app? ? "Home" : "Dashboard" %>
 
-<div class="max-w-6xl mx-auto p-3 sm:p-4">
-  <div class="flex flex-col lg:flex-row gap-4 sm:gap-6">
+<% if hotwire_native_app? %>
+  <%= render "dashboard/native" %>
+<% else %>
+  <section class="max-w-6xl mx-auto mb-10 lg:mb-14">
+    <p class="eyebrow text-base-content/70 rise"><%= Date.current.strftime("%A, %B %-d") %></p>
+    <h1 class="mt-2 text-[clamp(2.5rem,6vw+0.5rem,4.75rem)] leading-[0.95] tracking-[-0.035em] rise" style="--i: 1"><%= greeting_for(current_user) %></h1>
+    <p data-testid="week-summary" class="mt-4 text-lg sm:text-xl text-base-content/75 rise" style="--i: 2"><%= week_summary(@timeline_items) %></p>
+  </section>
 
-    <!-- Main Column: What's Coming Up -->
-    <div class="min-w-0 flex-1">
-      <div class="flex items-center justify-between mb-3 px-1">
-        <h2 class="text-lg font-semibold flex items-center gap-2 native:text-sm native:font-medium native:text-base-content/60">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-ink native:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          What's Coming Up
-        </h2>
-        <div class="flex items-center gap-2">
-          <span class="native:hidden"><%= render "shared/calendar_subscribe_button", button_class: "btn btn-ghost btn-xs", disabled_class: "btn btn-ghost btn-xs btn-disabled opacity-50" %></span>
-          <%= link_to calendar_index_path, class: "text-sm text-primary-ink font-medium" do %>
-            View all →
-          <% end %>
+  <div class="max-w-6xl mx-auto grid lg:grid-cols-12 gap-x-14 gap-y-12">
+    <section class="lg:col-span-8 min-w-0" aria-labelledby="coming-up">
+      <div class="flex items-end justify-between gap-4 pb-3 border-b border-base-content/80">
+        <h2 id="coming-up" class="text-2xl sm:text-3xl">Coming up</h2>
+        <div class="flex items-center gap-3 text-sm">
+          <%= render "shared/calendar_subscribe_button", button_class: "btn btn-ghost btn-sm", disabled_class: "btn btn-ghost btn-sm btn-disabled opacity-50" %>
+          <%= link_to "Full calendar →", calendar_index_path, class: "font-medium text-primary-ink hover:underline underline-offset-4" %>
         </div>
       </div>
 
       <% if @timeline_items.any? %>
-        <div class="space-y-2">
-          <% @timeline_items.group_by { |item| item[:start_time].to_date }.each do |date, items| %>
-            <%# Day group header %>
-            <div class="text-xs font-semibold text-base-content/65 uppercase tracking-wide mt-4 first:mt-0 mb-1 px-1 pb-1 border-b border-base-200 native:border-0 native:pb-0">
-              <% if date == Date.current %>
-                Today — <%= date.strftime("%A, %b %-d") %>
-              <% elsif date == Date.current + 1 %>
-                Tomorrow — <%= date.strftime("%A, %b %-d") %>
-              <% else %>
-                <%= date.strftime("%A, %b %-d") %>
-              <% end %>
-            </div>
-
-            <% items.each do |item| %>
-              <% if item[:type] == :meal %>
-                <%= render "dashboard/meal_card", meal: item[:meal], current_user: current_user %>
-              <% else %>
-                <%= render "dashboard/event_card", event: item[:event] %>
-              <% end %>
-            <% end %>
+        <ol>
+          <% @timeline_items.group_by { |item| item[:start_time].to_date }.each_with_index do |(date, items), index| %>
+            <li class="grid grid-cols-[3.75rem_1fr] sm:grid-cols-[5.5rem_1fr] gap-x-4 py-5 border-b border-[var(--hairline)] rise" style="--i: <%= index + 3 %>">
+              <div class="leading-none <%= 'text-secondary-ink' if date == Date.current %>">
+                <div class="eyebrow text-[0.6875rem] text-base-content/70">
+                  <%= date == Date.current ? "Today" : (date == Date.current + 1 ? "Tmrw" : date.strftime("%a")) %>
+                </div>
+                <div class="font-display text-[2.75rem] sm:text-5xl tracking-[-0.04em] mt-1"><%= date.day %></div>
+                <div class="text-sm text-base-content/70 mt-0.5"><%= date.strftime("%B") %></div>
+              </div>
+              <div class="space-y-1 min-w-0">
+                <% items.each do |item| %>
+                  <% if item[:type] == :meal %>
+                    <%= render "dashboard/meal_row", meal: item[:meal] %>
+                  <% else %>
+                    <%= render "dashboard/event_row", event: item[:event] %>
+                  <% end %>
+                <% end %>
+              </div>
+            </li>
           <% end %>
-        </div>
+        </ol>
       <% else %>
-        <div class="text-center py-12 text-base-content/65">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-base-content/65" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <p class="text-sm">No upcoming events or meals</p>
-        </div>
+        <p class="py-16 text-center text-base-content/70">Nothing on the calendar yet. A quiet stretch.</p>
       <% end %>
-    </div>
+    </section>
 
-    <!-- Sidebar: Tasks + Documents -->
-    <div class="w-full lg:w-96 lg:min-w-[24rem] shrink-0 space-y-4 sm:space-y-6 overflow-hidden">
-
-      <!-- My Tasks -->
-      <section>
-        <div class="flex items-center justify-between mb-2 px-1">
-          <h3 class="text-base font-semibold flex items-center gap-2 native:text-sm native:font-medium native:text-base-content/60">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary-ink native:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-            My Tasks
-          </h3>
-          <%= link_to tasks_path, class: "text-sm text-primary-ink font-medium" do %>
-            View all →
-          <% end %>
+    <aside class="lg:col-span-4 space-y-12 min-w-0">
+      <section aria-labelledby="your-tasks">
+        <div class="flex items-end justify-between gap-4 pb-3 mb-4 border-b border-base-content/80">
+          <h2 id="your-tasks" class="text-2xl">Your tasks</h2>
+          <%= link_to "All tasks →", tasks_path, class: "text-sm font-medium text-primary-ink hover:underline underline-offset-4" %>
         </div>
         <%= render "dashboard/tasks_section" %>
       </section>
 
-      <!-- Documents (lazy-loaded) -->
       <%= turbo_frame_tag "dashboard-documents", src: documents_section_dashboard_index_path, loading: :lazy, class: "block" do %>
-        <section>
-          <div class="flex items-center justify-between mb-2 px-1">
-            <h3 class="text-base font-semibold flex items-center gap-2 native:text-sm native:font-medium native:text-base-content/60">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary-ink native:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Documents
-            </h3>
-            <%= link_to documents_path, class: "text-sm text-primary-ink font-medium", data: { turbo_frame: "_top" } do %>
-              View all →
-            <% end %>
-          </div>
-          <div class="bg-base-100 rounded-lg border border-base-200 flex justify-center py-4">
-            <span class="loading loading-spinner loading-md text-primary-ink"></span>
-          </div>
-        </section>
+        <div class="flex items-end justify-between pb-3 mb-4 border-b border-base-content/80">
+          <h3 class="text-2xl">Documents</h3>
+          <%= link_to "All docs →", documents_path, class: "text-sm font-medium text-primary-ink hover:underline underline-offset-4", data: { turbo_frame: "_top" } %>
+        </div>
+        <div class="flex justify-center py-6"><span class="loading loading-dots loading-md text-base-content/40"></span></div>
       <% end %>
-
-    </div>
+    </aside>
   </div>
-</div>
+<% end %>

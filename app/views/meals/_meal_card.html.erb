@@ -10,15 +10,7 @@
   rsvps_open = meal.rsvps_open?
   native_app = hotwire_native_app? rescue false
 
-  border_class = if meal.cancelled?
-    "border-error/50 opacity-60"
-  elsif needs_cook
-    "border-warning"
-  elsif is_today
-    "border-primary"
-  else
-    "border-base-300"
-  end
+  card_state = "opacity-60" if meal.cancelled?
 %>
 
 <% if native_app %>
@@ -72,17 +64,17 @@
     </div>
   <% end %>
 <% else %>
-<%= link_to meal_path(meal), id: "meal_#{meal.id}", class: "card bg-base-100 shadow-lg border-l-4 #{border_class} hover:shadow-xl transition-shadow" do %>
-  <div class="card-body p-4">
+<%= link_to meal_path(meal), id: "meal_#{meal.id}", class: "card bg-base-100 lift #{card_state}" do %>
+  <div class="card-body p-5 gap-0">
     <!-- Header: Date, Time, Status -->
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-3">
-        <div class="text-center min-w-12">
-          <div class="text-2xl font-bold <%= is_today ? 'text-primary-ink' : '' %>"><%= meal.scheduled_at.day %></div>
-          <div class="text-xs text-base-content/60 uppercase"><%= meal.scheduled_at.strftime("%b") %></div>
+        <div class="text-center min-w-12 leading-none <%= is_today ? 'text-secondary-ink' : '' %>">
+          <div class="font-display text-4xl tracking-[-0.04em]"><%= meal.scheduled_at.day %></div>
+          <div class="eyebrow text-[0.6875rem] text-base-content/70 mt-1"><%= meal.scheduled_at.strftime("%b") %></div>
         </div>
         <div>
-          <div class="font-semibold">
+          <div class="font-display text-xl leading-tight">
             <% if is_today %>
               Today
             <% elsif is_tomorrow %>
@@ -121,13 +113,13 @@
       <% if head_cook %>
         <span><span class="text-base-content/60">Cook:</span> <%= head_cook.user.name.split.first %></span>
       <% elsif needs_cook %>
-        <span class="text-warning-ink">Needs cook!</span>
+        <span class="font-medium text-secondary-ink">Needs a cook</span>
       <% end %>
       <% if helpers.any? %>
         <span><span class="text-base-content/60">Helpers:</span> <%= helpers.map { |mc| mc.user.name.split.first }.join(', ') %></span>
       <% end %>
       <% if meal.cooks.empty? %>
-        <span class="text-warning-ink">Needs volunteers!</span>
+        <span class="text-base-content/70">and helpers</span>
       <% end %>
     </div>
 
@@ -139,12 +131,12 @@
     <% end %>
 
     <!-- Footer: Attendees count and actions -->
-    <div class="flex items-center justify-between mt-3 pt-3 border-t border-base-200">
+    <div class="flex items-center justify-between mt-4 pt-3 border-t border-[var(--hairline)]">
       <div class="text-sm text-base-content/60">
         <span class="font-medium text-base-content"><%= meal.total_attendees %></span> attending<% if meal.guests_count > 0 %><span class="text-base-content/65"> (+<%= meal.guests_count %> guests)</span><% end %><% if meal.late_plate_count > 0 %><span class="badge badge-secondary badge-sm ml-2"><%= meal.late_plate_count %> late</span><% end %>
       </div>
       <% if !meal.cancelled? && rsvps_open && !user_is_cook && !user_attending && !user_maybe && !user_late_plate && !user_declined %>
-        <span class="text-primary-ink text-sm font-medium">RSVP →</span>
+        <span class="btn btn-primary btn-sm rounded-full px-4">RSVP</span>
       <% end %>
     </div>
   </div>
