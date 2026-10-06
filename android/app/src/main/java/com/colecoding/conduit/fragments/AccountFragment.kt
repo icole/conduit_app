@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import com.colecoding.conduit.MainActivity
 import com.colecoding.conduit.R
 import com.colecoding.conduit.auth.AuthManager
+import com.colecoding.conduit.ui.Palette
 
 /**
  * The Account tab: who you're signed in as, then grouped rows like the
@@ -24,10 +25,10 @@ import com.colecoding.conduit.auth.AuthManager
  */
 class AccountFragment : Fragment() {
 
-    private val page = Color.parseColor("#FAF7F5")
-    private val ink = Color.parseColor("#291334")
-    private val muted = Color.parseColor("#6B6470")
-    private val destructive = Color.parseColor("#B3261E")
+    private val page = Palette.paper
+    private val ink = Palette.ink
+    private val muted = Palette.muted
+    private val destructive = Palette.destructive
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -99,7 +100,7 @@ class AccountFragment : Fragment() {
         orientation = LinearLayout.VERTICAL
         rows.forEachIndexed { index, row ->
             if (index > 0) addView(View(context).apply {
-                setBackgroundColor(Color.parseColor("#EFEAE6"))
+                setBackgroundColor(Palette.line)
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1).apply {
                     marginStart = dp(16)
                 }
@@ -140,11 +141,11 @@ class AccountFragment : Fragment() {
         text = name.split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() }
         textSize = 20f
         setTypeface(typeface, Typeface.BOLD)
-        setTextColor(Color.parseColor("#00736B"))
+        setTextColor(Palette.green)
         gravity = Gravity.CENTER
         background = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
-            setColor(Color.parseColor("#D5EDE9"))
+            setColor(Palette.greenTint)
         }
         layoutParams = LinearLayout.LayoutParams(dp(56), dp(56))
     }

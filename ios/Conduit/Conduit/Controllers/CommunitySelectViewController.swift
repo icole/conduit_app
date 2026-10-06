@@ -76,7 +76,7 @@ class CommunitySelectViewController: UIViewController {
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
         button.layer.cornerRadius = 12
         button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.systemBlue.cgColor
+        button.layer.borderColor = Palette.green.cgColor
         return button
     }()
 
@@ -95,7 +95,7 @@ class CommunitySelectViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setTitle("Continue", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
-        button.backgroundColor = .systemBlue
+        button.backgroundColor = Palette.green
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 12
         button.isEnabled = false

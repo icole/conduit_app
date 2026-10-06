@@ -29,8 +29,8 @@
         android:layout_margin="16dp"
         android:src="@drawable/ic_add"
         android:visibility="gone"
-        app:backgroundTint="#D5EDE9"
-        app:tint="#00736B"
+        app:backgroundTint="@color/green_tint"
+        app:tint="@color/primary"
         app:elevation="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

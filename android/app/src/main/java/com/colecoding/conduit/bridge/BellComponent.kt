@@ -1,7 +1,6 @@
 package com.colecoding.conduit.bridge
 
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.widget.Toolbar
@@ -17,6 +16,7 @@ import dev.hotwire.navigation.fragments.HotwireFragment
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.WeakHashMap
+import com.colecoding.conduit.ui.Palette
 
 /**
  * The notification bell in the top bar (CON-72). Every page sends the count
@@ -43,7 +43,7 @@ class BellComponent(
         toolbar.menu.add(Menu.NONE, bellItemId, 998, data.title).apply {
             setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
             setIcon(R.drawable.ic_notifications)
-            iconTintList = ColorStateList.valueOf(Color.parseColor("#291334"))
+            iconTintList = ColorStateList.valueOf(Palette.ink)
             contentDescription = label(data.title, data.count)
             setOnMenuItemClickListener {
                 replyTo("connect")
@@ -79,8 +79,8 @@ class BellComponent(
         toolbar.post {
             val drawable = BadgeDrawable.create(toolbar.context).apply {
                 this.number = number
-                backgroundColor = Color.parseColor("#F4C430")
-                badgeTextColor = Color.parseColor("#291334")
+                backgroundColor = Palette.terracotta
+                badgeTextColor = Palette.surface
             }
             BadgeUtils.attachBadgeDrawable(drawable, toolbar, bellItemId)
             badge = drawable

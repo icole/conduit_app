@@ -79,7 +79,7 @@ class StreamChatLauncherViewController: UIViewController {
         // Chat icon
         let iconContainer = UIView()
         iconContainer.translatesAutoresizingMaskIntoConstraints = false
-        iconContainer.backgroundColor = .systemBlue
+        iconContainer.backgroundColor = Palette.green
         iconContainer.layer.cornerRadius = 40
         containerView.addSubview(iconContainer)
 

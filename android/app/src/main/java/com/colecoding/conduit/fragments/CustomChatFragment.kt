@@ -39,6 +39,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import com.colecoding.conduit.ui.Palette
 
 class CustomChatFragment : Fragment() {
 
@@ -182,12 +183,12 @@ class CustomChatFragment : Fragment() {
         val title = android.widget.TextView(requireContext()).apply {
             text = "Chat"
             textSize = 28f
-            setTextColor(android.graphics.Color.parseColor("#291334"))
+            setTextColor(Palette.ink)
             setPadding(margin * 2 + margin / 2, margin * 3, margin * 2, margin / 2)
         }
         val column = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(android.graphics.Color.parseColor("#FAF7F5"))
+            setBackgroundColor(Palette.paper)
             addView(title)
             addView(searchInput, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,

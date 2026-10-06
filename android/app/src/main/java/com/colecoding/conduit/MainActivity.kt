@@ -1,6 +1,5 @@
 package com.colecoding.conduit
 
-import android.graphics.Color
 import android.content.res.ColorStateList
 import android.Manifest
 import android.content.Intent
@@ -38,6 +37,7 @@ import dev.hotwire.navigation.navigator.NavigatorConfiguration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.colecoding.conduit.ui.Palette
 
 class MainActivity : HotwireActivity() {
 
@@ -323,15 +323,15 @@ class MainActivity : HotwireActivity() {
         // Material 3 style: every label shown, a soft pill behind the current tab
         val tint = ColorStateList(
             arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
-            intArrayOf(Color.parseColor("#00736B"), Color.parseColor("#5F5863"))
+            intArrayOf(Palette.green, Palette.inactive)
         )
         bottomNavigation.apply {
-            setBackgroundColor(Color.parseColor("#FAF7F5"))
+            setBackgroundColor(Palette.paper)
             itemIconTintList = tint
             itemTextColor = tint
             labelVisibilityMode = NavigationBarView.LABEL_VISIBILITY_LABELED
             isItemActiveIndicatorEnabled = true
-            itemActiveIndicatorColor = ColorStateList.valueOf(Color.parseColor("#D5EDE9"))
+            itemActiveIndicatorColor = ColorStateList.valueOf(Palette.greenTint)
         }
 
         bottomNavigation.setOnItemSelectedListener { item ->

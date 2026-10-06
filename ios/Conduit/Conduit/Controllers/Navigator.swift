@@ -70,7 +70,7 @@ class Navigator: UINavigationController {
         super.viewDidLoad()
 
         navigationBar.prefersLargeTitles = false
-        navigationBar.tintColor = Palette.teal
+        navigationBar.tintColor = Palette.green
 
         // Sheets keep the page's own heading, as on Android
         modalNavigationController.isNavigationBarHidden = true
@@ -325,7 +325,7 @@ extension Navigator: SessionDelegate {
 
     private func openInSafariViewController(_ url: URL) {
         let safariVC = SFSafariViewController(url: url)
-        safariVC.preferredControlTintColor = .systemBlue
+        safariVC.preferredControlTintColor = Palette.green
         topPresenter.present(safariVC, animated: true)
     }
 

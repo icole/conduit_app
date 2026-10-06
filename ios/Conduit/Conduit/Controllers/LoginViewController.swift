@@ -43,7 +43,7 @@ class LoginViewController: UIViewController {
 
         // Logo/Icon
         logoImageView.image = UIImage(systemName: "building.2.fill")
-        logoImageView.tintColor = .systemBlue
+        logoImageView.tintColor = Palette.green
         logoImageView.contentMode = .scaleAspectFit
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -83,14 +83,14 @@ class LoginViewController: UIViewController {
         // Forgot Password Button
         forgotPasswordButton.setTitle("Forgot password?", for: .normal)
         forgotPasswordButton.titleLabel?.font = .systemFont(ofSize: 14)
-        forgotPasswordButton.setTitleColor(.systemBlue, for: .normal)
+        forgotPasswordButton.setTitleColor(Palette.green, for: .normal)
         forgotPasswordButton.contentHorizontalAlignment = .trailing
         forgotPasswordButton.translatesAutoresizingMaskIntoConstraints = false
 
         // Login Button
         loginButton.setTitle("Sign In", for: .normal)
         loginButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        loginButton.backgroundColor = .systemBlue
+        loginButton.backgroundColor = Palette.green
         loginButton.setTitleColor(.white, for: .normal)
         loginButton.layer.cornerRadius = 8
         loginButton.translatesAutoresizingMaskIntoConstraints = false
@@ -137,7 +137,7 @@ class LoginViewController: UIViewController {
         // Switch Community Button
         switchCommunityButton.setTitle("Switch Community", for: .normal)
         switchCommunityButton.titleLabel?.font = .systemFont(ofSize: 16)
-        switchCommunityButton.setTitleColor(.systemBlue, for: .normal)
+        switchCommunityButton.setTitleColor(Palette.green, for: .normal)
         switchCommunityButton.translatesAutoresizingMaskIntoConstraints = false
 
         // Add subviews

@@ -1,6 +1,5 @@
 package com.colecoding.conduit.fragments
 
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -10,6 +9,7 @@ import com.colecoding.conduit.R
 import dev.hotwire.core.turbo.errors.VisitError
 import dev.hotwire.navigation.destinations.HotwireDestinationDeepLink
 import dev.hotwire.navigation.fragments.HotwireWebFragment
+import com.colecoding.conduit.ui.Palette
 
 /**
  * Main web fragment that uses Hotwire Native for Turbo Drive navigation.
@@ -34,10 +34,10 @@ open class WebFragment : HotwireWebFragment() {
 
     // Native chrome in the page's own colours, so it reads as one surface
     private fun styleChrome() {
-        val surface = Color.parseColor("#FAF7F5")
+        val surface = Palette.paper
         toolbarForNavigation()?.apply {
             setBackgroundColor(surface)
-            setTitleTextColor(Color.parseColor("#291334"))
+            setTitleTextColor(Palette.ink)
             (parent as? View)?.apply {
                 setBackgroundColor(surface)
                 elevation = 0f

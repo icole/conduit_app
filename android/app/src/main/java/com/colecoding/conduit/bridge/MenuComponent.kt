@@ -17,6 +17,7 @@ import dev.hotwire.core.bridge.Message
 import dev.hotwire.navigation.destinations.HotwireDestination
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import com.colecoding.conduit.ui.Palette
 
 /**
  * A page's "more" menu as a bottom sheet. Picking an item replies with its
@@ -55,7 +56,7 @@ class MenuComponent(
             orientation = LinearLayout.VERTICAL
             setPadding(0, dp(12), 0, dp(24))
             background = GradientDrawable().apply {
-                setColor(Color.parseColor("#FAF7F5"))
+                setColor(Palette.paper)
                 val radius = dp(28).toFloat()
                 cornerRadii = floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f)
             }
@@ -64,7 +65,7 @@ class MenuComponent(
         // Drag handle
         list.addView(View(context).apply {
             background = GradientDrawable().apply {
-                setColor(Color.parseColor("#D8D2CE"))
+                setColor(Palette.divider)
                 cornerRadius = dp(2).toFloat()
             }
             layoutParams = LinearLayout.LayoutParams(dp(32), dp(4)).apply {
@@ -76,7 +77,7 @@ class MenuComponent(
         list.addView(TextView(context).apply {
             text = title
             textSize = 14f
-            setTextColor(Color.parseColor("#6B6470"))
+            setTextColor(Palette.muted)
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
             setPadding(dp(24), dp(8), dp(24), dp(8))
@@ -86,7 +87,7 @@ class MenuComponent(
             list.addView(TextView(context).apply {
                 text = item.title
                 textSize = 16f
-                setTextColor(Color.parseColor(if (item.destructive) "#B3261E" else "#291334"))
+                setTextColor(if (item.destructive) Palette.destructive else Palette.ink)
                 gravity = Gravity.CENTER_VERTICAL
                 minHeight = dp(56)
                 setPadding(dp(24), 0, dp(24), 0)

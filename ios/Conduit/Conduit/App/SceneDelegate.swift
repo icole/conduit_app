@@ -10,8 +10,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
 
-        // Create window
+        // Create window. Its tint is every system control's default colour
+        // (alert buttons, plain buttons), green like the website's.
         let window = UIWindow(windowScene: windowScene)
+        window.tintColor = Palette.green
         self.window = window
 
         // Notification taps switch to Chat. Registered once here, not on every

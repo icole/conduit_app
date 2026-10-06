@@ -14,4 +14,21 @@ class DesignSystemTest < ActionDispatch::IntegrationTest
     assert_match(/\.btn-primary/, css)
     assert_match(/\.modal-box/, css)
   end
+
+  test "the apps wear the website's palette: there's no second theme for them" do
+    get login_path, headers: { "User-Agent" => "Conduit iOS/2 (Turbo Native)" }
+    assert_select "html[data-theme='conduit-app']"
+
+    css = stylesheet_for(login_path)
+    assert_no_match(/cupcake/, css)
+  end
+
+  private
+
+  def stylesheet_for(path)
+    get path
+    href = css_select("link[rel=stylesheet]").map { |link| link["href"] }.find { |h| h.start_with?("/assets/tailwind") }
+    get href
+    response.body
+  end
 end

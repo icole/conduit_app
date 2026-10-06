@@ -1,7 +1,6 @@
 package com.colecoding.conduit.bridge
 
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
@@ -16,6 +15,7 @@ import dev.hotwire.navigation.destinations.HotwireDestination
 import dev.hotwire.navigation.fragments.HotwireFragment
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import com.colecoding.conduit.ui.Palette
 
 /**
  * A page's main action (e.g. Tasks' "Add") as a native toolbar button.
@@ -39,7 +39,7 @@ class ButtonComponent(
         val menu = toolbar?.menu ?: return
         menu.removeItem(buttonItemId)
         val title = SpannableString(data.title).apply {
-            setSpan(ForegroundColorSpan(Color.parseColor("#00736B")), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(ForegroundColorSpan(Palette.green), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         menu.add(Menu.NONE, buttonItemId, 999, title).apply {
             setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
@@ -47,7 +47,7 @@ class ButtonComponent(
             icons[data.image]?.let { icon ->
                 setIcon(icon)
                 // The page's main action in the brand colour; overflow in the title's
-                iconTintList = ColorStateList.valueOf(Color.parseColor(if (data.image == "more") "#291334" else "#00736B"))
+                iconTintList = ColorStateList.valueOf(if (data.image == "more") Palette.ink else Palette.green)
                 contentDescription = data.title
             }
             setOnMenuItemClickListener {

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<%# The website wears the almanac theme; the apps keep the cupcake look they shipped with %>
-<html lang="en" data-theme="<%= hotwire_native_app? ? "cupcake" : "conduit" %>">
+<%# One palette; the website adds serif headings, the apps keep their system font %>
+<html lang="en" data-theme="<%= hotwire_native_app? ? "conduit-app" : "conduit" %>">
 <head>
   <title><%= content_for(:title) || "Conduit App" %></title>
   <meta name="viewport" content="width=device-width,initial-scale=1">

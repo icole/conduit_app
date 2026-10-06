@@ -117,18 +117,16 @@ html[data-bridge-platform] {
   -webkit-tap-highlight-color: transparent;
   --font-sans: system-ui, -apple-system, "Roboto", "Segoe UI", sans-serif;
   font-family: var(--font-sans);
-  /* Fields as rounded rectangles, hairline borders, flat buttons */
+  /* Fields as rounded rectangles, hairline borders */
   --radius-field: 0.75rem;
   --radius-selector: 0.5rem;
   --radius-box: 1rem;
   --border: 1px;
-  --depth: 0;
-  /* White surfaces (cards, lists, fields) on the cream page, which matches
-     the native toolbar */
-  --color-base-100: #ffffff;
 }
+/* Surfaces (cards, lists, fields) on the paper page, which the native bars
+   match */
 html[data-bridge-platform] body {
-  background-color: #faf7f5;
+  background-color: var(--color-paper);
 }
 /* Cards and bordered panels read as raised surfaces, not outlined boxes; an
    accent edge (border-l-4) stays */
