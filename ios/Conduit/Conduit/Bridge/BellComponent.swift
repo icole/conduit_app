@@ -45,6 +45,16 @@ final class BellComponent: BridgeComponent {
         }
     }
 
+    /// Asks the page for the current count: something may have changed
+    /// while this screen was covered by a sheet or out of sight
+    func refresh() {
+        reply(to: "connect", with: #"{"refresh":true}"#)
+    }
+
+    override func onViewWillAppear() {
+        refresh()
+    }
+
     private var viewController: UIViewController? {
         delegate?.destination as? UIViewController
     }

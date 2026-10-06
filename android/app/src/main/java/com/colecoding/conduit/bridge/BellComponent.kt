@@ -52,6 +52,12 @@ class BellComponent(
         showBadge(toolbar, badgeNumber(data.count))
     }
 
+    // Back on screen (a sheet closed, or back from another screen): ask the
+    // page for the current count, which may have changed meanwhile
+    override fun onStart() {
+        replyTo("connect", """{"refresh":true}""")
+    }
+
     override fun onStop() {
         toolbar?.let { removeBadge(it); it.menu.removeItem(bellItemId) }
     }

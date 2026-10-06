@@ -145,6 +145,7 @@ class Navigator: UINavigationController {
         } else {
             modalNavigationController.setViewControllers([viewController], animated: false)
             modalNavigationController.modalPresentationStyle = .pageSheet
+            modalNavigationController.presentationController?.delegate = self
             modalNavigationController.sheetPresentationController?.prefersGrabberVisible = true
             present(modalNavigationController, animated: true)
         }
@@ -165,7 +166,9 @@ class Navigator: UINavigationController {
         case .pop where !wasShowingModal:
             popViewController(animated: true)
         default:
-            break
+            if wasShowingModal {
+                (topViewController as? HotwireNativeViewController)?.refreshBell()
+            }
         }
     }
 
@@ -246,6 +249,14 @@ class Navigator: UINavigationController {
 }
 
 // MARK: - SessionDelegate
+
+extension Navigator: UIAdaptivePresentationControllerDelegate {
+    // A sheet swiped away: what's in it (Notifications, a form) may have
+    // changed what needs the member
+    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        (topViewController as? HotwireNativeViewController)?.refreshBell()
+    }
+}
 
 extension Navigator: SessionDelegate {
     func session(_ session: Session, didProposeVisit proposal: VisitProposal) {

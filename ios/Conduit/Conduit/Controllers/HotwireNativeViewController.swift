@@ -10,6 +10,12 @@ class HotwireNativeViewController: VisitableViewController, BridgeDestination {
         componentTypes: AppDelegate.bridgeComponentTypes
     )
 
+    /// Freshens the top bar's bell: a sheet over this screen closed, which
+    /// doesn't count as the screen appearing again
+    func refreshBell() {
+        (bridgeDelegate.component() as BellComponent?)?.refresh()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
