@@ -26,6 +26,7 @@ import com.colecoding.conduit.config.AppConfig
 import com.colecoding.conduit.config.CommunityManager
 import com.colecoding.conduit.fragments.AccountFragment
 import com.colecoding.conduit.fragments.CustomChatFragment
+import com.colecoding.conduit.routing.NotificationsSheet
 import com.colecoding.conduit.ui.Edge
 import com.colecoding.conduit.ui.padForSystemBars
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -262,8 +263,21 @@ class MainActivity : HotwireActivity() {
     }
 
     /**
+     * A link in the Notifications sheet for another tab's page
+     * (NotificationTabRouteDecisionHandler): close the sheet, open it there.
+     */
+    fun openFromNotifications(location: String) {
+        val uri = runCatching { java.net.URI(location) }.getOrNull() ?: return
+        val path = uri.rawPath + (uri.rawQuery?.let { "?$it" } ?: "")
+        bottomNavigation.post {
+            delegate.currentNavigator?.pop()
+            openInApp(path)
+        }
+    }
+
+    /**
      * A Conduit link tapped in a chat message (ConduitLinks): switch to the
-     * tab it belongs to and open it there, from that tab's first screen.
+     * tab it belongs to and open it there, on top of that tab's first screen.
      */
     private fun openRequestedPath() {
         // Ours (a chat link, or a reminder shown while the app was open), or
@@ -285,7 +299,10 @@ class MainActivity : HotwireActivity() {
         val url = AppConfig.getBaseUrl(this).trimEnd('/') + path
         host.post {
             val navigator = delegate.currentNavigator ?: return@post
-            navigator.clearAll { navigator.route(url, VisitOptions(action = VisitAction.REPLACE)) }
+            // On top of the tab's first screen, so Back still leads to it
+            val firstScreen = NotificationsSheet.pathOf(navigator.configuration.startLocation) == NotificationsSheet.pathOf(url)
+            val action = if (firstScreen) VisitAction.REPLACE else VisitAction.ADVANCE
+            navigator.clearAll { navigator.route(url, VisitOptions(action = action)) }
         }
     }
 

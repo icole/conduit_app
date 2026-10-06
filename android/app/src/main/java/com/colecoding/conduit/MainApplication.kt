@@ -6,6 +6,7 @@ import android.util.Log
 import android.webkit.CookieManager
 import com.colecoding.conduit.fragments.WebFragment
 import com.colecoding.conduit.fragments.WebModalFragment
+import com.colecoding.conduit.routing.NotificationTabRouteDecisionHandler
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
 import dev.hotwire.core.bridge.BridgeComponentFactory
@@ -15,6 +16,10 @@ import dev.hotwire.core.turbo.config.PathConfiguration
 import dev.hotwire.navigation.config.defaultFragmentDestination
 import dev.hotwire.navigation.config.registerBridgeComponents
 import dev.hotwire.navigation.config.registerFragmentDestinations
+import dev.hotwire.navigation.config.registerRouteDecisionHandlers
+import dev.hotwire.navigation.routing.AppNavigationRouteDecisionHandler
+import dev.hotwire.navigation.routing.BrowserTabRouteDecisionHandler
+import dev.hotwire.navigation.routing.SystemNavigationRouteDecisionHandler
 import com.colecoding.conduit.bridge.BellComponent
 import com.colecoding.conduit.bridge.ButtonComponent
 import com.colecoding.conduit.bridge.MenuComponent
@@ -87,6 +92,14 @@ class MainApplication : Application() {
 
         // Set default fragment
         Hotwire.defaultFragmentDestination = WebFragment::class
+
+        // Ours first; the rest are Hotwire's defaults
+        Hotwire.registerRouteDecisionHandlers(
+            NotificationTabRouteDecisionHandler(),
+            AppNavigationRouteDecisionHandler(),
+            BrowserTabRouteDecisionHandler(),
+            SystemNavigationRouteDecisionHandler()
+        )
 
         // Register bridge components
         Hotwire.registerBridgeComponents(

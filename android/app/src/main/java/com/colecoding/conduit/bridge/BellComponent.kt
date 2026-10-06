@@ -16,6 +16,7 @@ import dev.hotwire.navigation.destinations.HotwireDestination
 import dev.hotwire.navigation.fragments.HotwireFragment
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.util.WeakHashMap
 
 /**
  * The notification bell in the top bar (CON-72). Every page sends the count
@@ -52,10 +53,18 @@ class BellComponent(
         showBadge(toolbar, badgeNumber(data.count))
     }
 
-    // Back on screen (a sheet closed, or back from another screen): ask the
-    // page for the current count, which may have changed meanwhile
-    override fun onStart() {
+    init {
+        live[this] = true
+    }
+
+    /** Asks the page for the current count, which may have changed meanwhile */
+    fun refresh() {
         replyTo("connect", """{"refresh":true}""")
+    }
+
+    // Back on screen, e.g. from another screen or tab
+    override fun onStart() {
+        refresh()
     }
 
     override fun onStop() {
@@ -91,6 +100,12 @@ class BellComponent(
     )
 
     companion object {
+        // Every bell on a page still around (one per screen), held weakly
+        private val live = WeakHashMap<BellComponent, Boolean>()
+
+        /** A sheet closed: freshen every bell, since sheets don't stop the page beneath */
+        fun refreshAll() = live.keys.toList().forEach { it.refresh() }
+
         fun label(title: String, count: Int): String = when {
             count <= 0 -> title
             count == 1 -> "$title, 1 needs you"

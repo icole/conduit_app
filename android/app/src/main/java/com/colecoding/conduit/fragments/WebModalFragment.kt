@@ -1,10 +1,13 @@
 package com.colecoding.conduit.fragments
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.webkit.CookieManager
 import androidx.appcompat.widget.Toolbar
+import com.colecoding.conduit.bridge.BellComponent
+import com.colecoding.conduit.routing.NotificationsSheet
 import dev.hotwire.navigation.destinations.HotwireDestinationDeepLink
 import dev.hotwire.navigation.fragments.HotwireWebBottomSheetFragment
 
@@ -31,6 +34,16 @@ class WebModalFragment : HotwireWebBottomSheetFragment() {
         // Configure cookies
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)
+
+        if (NotificationsSheet.isNotifications(location)) NotificationsSheet.isOpen = true
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        if (NotificationsSheet.isNotifications(location)) NotificationsSheet.isOpen = false
+        // What was done in the sheet (Notifications, a form) may have changed
+        // what needs the member; a sheet doesn't stop the page beneath
+        BellComponent.refreshAll()
     }
 
     override fun onColdBootPageCompleted(location: String) {
