@@ -143,6 +143,20 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Meal created successfully!", flash[:notice]
   end
 
+  # The Sunday dinner moved to Friday's meeting: the new meal says which
+  # schedule's meal it replaces, and takes that Sunday from the schedule
+  test "a new meal can replace a schedule's meal that week" do
+    get new_meal_url
+    assert_select "select[name='meal[replaces_schedule_id]'] option", text: "Sunday Brunch"
+
+    friday = Time.zone.local(2026, 12, 11, 17, 45)
+    post meals_url, params: { meal: { title: "Friday, December 11", scheduled_at: friday, rsvp_deadline: friday - 1.day,
+                                      replaces_schedule_id: meal_schedules(:sunday_brunch).id } }
+
+    meal = Meal.find_by!(title: "Friday, December 11")
+    assert_equal [ meal_schedules(:sunday_brunch), Date.new(2026, 12, 13) ], [ meal.meal_schedule, meal.occurs_on ]
+  end
+
   test "should not create meal with invalid params" do
     assert_no_difference("Meal.count") do
       post meals_url, params: {

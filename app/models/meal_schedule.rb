@@ -36,6 +36,13 @@ class MealSchedule < ApplicationRecord
     from_date + days_until.days
   end
 
+  # The schedule's day closest to date (at most three days away), which is the
+  # one a meal on date replaces: Sunday dinner moved to Friday is that Sunday's
+  def nearest_occurrence(date)
+    days_ahead = (day_of_week - date.wday) % 7
+    date + (days_ahead > 3 ? days_ahead - 7 : days_ahead).days
+  end
+
   def start_time_on(date)
     Time.zone.local(date.year, date.month, date.day, start_time.hour, start_time.min)
   end
@@ -59,6 +66,7 @@ class MealSchedule < ApplicationRecord
     meals.create!(
       title: "#{name} - #{date.strftime('%b %d')}",
       scheduled_at: meal_datetime,
+      occurs_on: date,
       rsvp_deadline: rsvp_deadline_for(meal_datetime),
       location: location,
       status: "upcoming"

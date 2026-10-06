@@ -272,4 +272,27 @@ class MealTest < ActiveSupport::TestCase
       meal.destroy
     end
   end
+
+  test "a meal that replaces a schedule's meal takes that week's date from the schedule" do
+    ActsAsTenant.with_tenant(communities(:crow_woods)) do
+      friday = Time.zone.local(2026, 12, 11, 17, 45)
+      meal = Meal.create!(title: "Friday, December 11", scheduled_at: friday, rsvp_deadline: friday - 1.day,
+                          replaces_schedule_id: meal_schedules(:sunday_brunch).id)
+
+      assert_equal meal_schedules(:sunday_brunch), meal.meal_schedule
+      assert_equal Date.new(2026, 12, 13), meal.occurs_on
+    end
+  end
+
+  test "two meals can't both fill a schedule's date" do
+    ActsAsTenant.with_tenant(communities(:crow_woods)) do
+      friday = Time.zone.local(2026, 12, 11, 17, 45)
+      attrs = { scheduled_at: friday, rsvp_deadline: friday - 1.day, replaces_schedule_id: meal_schedules(:sunday_brunch).id }
+      Meal.create!(title: "Friday dinner", **attrs)
+      second = Meal.new(title: "Saturday dinner", **attrs.merge(scheduled_at: friday + 1.day))
+
+      assert_not second.valid?
+      assert_includes second.errors.full_messages.join, "Sunday Brunch on Sunday, December 13 already has a meal"
+    end
+  end
 end

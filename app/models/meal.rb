@@ -15,12 +15,19 @@ class Meal < ApplicationRecord
   has_many :comments, as: :commentable, dependent: :destroy
   has_many :likes, as: :likeable, dependent: :destroy
 
+  # A hand-made meal that stands in for a schedule's meal that week (the
+  # Sunday dinner moved to Friday's meeting): it takes the schedule's date, so
+  # the schedule doesn't make that meal as well
+  attribute :replaces_schedule_id, :integer
+
   validates :scheduled_at, presence: true
   validates :rsvp_deadline, presence: true
   validates :status, presence: true, inclusion: { in: %w[upcoming rsvps_closed completed cancelled] }
   validate :rsvp_deadline_before_meal
+  validate :schedule_date_free
 
   before_validation :generate_title, if: -> { title.blank? && scheduled_at.present? }
+  before_validation :take_replaced_schedule_date, if: -> { replaces_schedule_id.present? && scheduled_at.present? }
 
   cascade_discard :comments
 
@@ -224,6 +231,19 @@ class Meal < ApplicationRecord
   end
 
   private
+
+  def take_replaced_schedule_date
+    self.meal_schedule = MealSchedule.find(replaces_schedule_id)
+    self.occurs_on = meal_schedule.nearest_occurrence(scheduled_at.to_date)
+  end
+
+  # One live meal per schedule date (the database holds to it too)
+  def schedule_date_free
+    return unless meal_schedule && occurs_on
+    return unless Meal.where(meal_schedule: meal_schedule, occurs_on: occurs_on).where.not(id: id).exists?
+
+    errors.add(:base, "#{meal_schedule.name} on #{occurs_on.strftime('%A, %B %-d')} already has a meal")
+  end
 
   def generate_title
     self.title = scheduled_at.strftime("%A, %B %-d")

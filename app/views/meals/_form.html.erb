@@ -28,6 +28,24 @@
     </div>
   </div>
 
+  <%# A meal that stands in for a schedule's meal that week (Sunday dinner
+      moved to Friday's meeting), so the schedule doesn't make that one too %>
+  <% if @meal.occurs_on && @meal.meal_schedule %>
+    <p class="text-sm text-base-content/70">
+      This is the <%= @meal.meal_schedule.name %> for <%= @meal.occurs_on.strftime("%A, %B %-d") %>. Moving it keeps that week's place, so the schedule won't make another.
+    </p>
+  <% elsif (schedules = MealSchedule.active.ordered).any? %>
+    <div class="form-control">
+      <%= f.label :replaces_schedule_id, class: "label" do %>
+        <span class="label-text font-medium">Replaces a scheduled meal (optional)</span>
+      <% end %>
+      <%= f.select :replaces_schedule_id, schedules.map { |s| [ s.name, s.id ] }, { include_blank: "No, it's an extra meal" }, class: "select select-bordered w-full" %>
+      <label class="label whitespace-normal">
+        <span class="label-text-alt">Moving a scheduled meal to another day? Pick its schedule and this meal takes its place that week, so the schedule won't make it too.</span>
+      </label>
+    </div>
+  <% end %>
+
   <div class="form-control">
     <%= f.label :description, class: "label" do %>
       <span class="label-text font-medium">Description / Menu</span>

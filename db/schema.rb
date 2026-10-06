@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_052249) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_06_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -308,11 +308,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_052249) do
     t.bigint "deleted_by_id"
     t.string "google_event_id"
     t.integer "needs_cook_notices_sent", default: 0, null: false
+    t.date "occurs_on"
     t.index ["community_id"], name: "index_meals_on_community_id"
     t.index ["created_by_id"], name: "index_meals_on_created_by_id"
     t.index ["deleted_by_id"], name: "index_meals_on_deleted_by_id"
     t.index ["discarded_at"], name: "index_meals_on_discarded_at"
     t.index ["google_event_id"], name: "index_meals_on_google_event_id", unique: true
+    t.index ["meal_schedule_id", "occurs_on"], name: "index_meals_one_live_meal_per_schedule_date", unique: true, where: "((discarded_at IS NULL) AND (occurs_on IS NOT NULL))"
     t.index ["meal_schedule_id", "scheduled_at"], name: "index_meals_on_meal_schedule_id_and_scheduled_at"
     t.index ["meal_schedule_id"], name: "index_meals_on_meal_schedule_id"
     t.index ["rsvp_deadline"], name: "index_meals_on_rsvp_deadline"

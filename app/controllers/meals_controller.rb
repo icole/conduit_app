@@ -305,7 +305,7 @@ class MealsController < ApplicationController
   def meal_params
     params.require(:meal).permit(
       :title, :description, :scheduled_at, :rsvp_deadline,
-      :location, :max_attendees, :meal_schedule_id, :cook_notes, :menu
+      :location, :max_attendees, :replaces_schedule_id, :cook_notes, :menu
     )
   end
 

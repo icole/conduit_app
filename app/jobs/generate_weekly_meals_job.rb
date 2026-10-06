@@ -16,7 +16,9 @@ class GenerateWeeklyMealsJob < ApplicationJob
             meal_date = schedule.next_occurrence(Date.current + week_offset.weeks)
             meal_datetime = schedule.start_time_on(meal_date)
 
-            # Skip if ANY meal already exists for this date (including manually created ones)
+            # Skip a date a meal has filled for this schedule, even if that meal
+            # was since moved or deleted, and any date with a meal on it
+            next if Meal.with_discarded.exists?(meal_schedule: schedule, occurs_on: meal_date)
             next if Meal.exists?(
               scheduled_at: meal_datetime.beginning_of_day..meal_datetime.end_of_day
             )
