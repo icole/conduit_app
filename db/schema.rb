@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_05_050939) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_06_052249) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -307,6 +307,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_05_050939) do
     t.bigint "created_by_id"
     t.bigint "deleted_by_id"
     t.string "google_event_id"
+    t.integer "needs_cook_notices_sent", default: 0, null: false
     t.index ["community_id"], name: "index_meals_on_community_id"
     t.index ["created_by_id"], name: "index_meals_on_created_by_id"
     t.index ["deleted_by_id"], name: "index_meals_on_deleted_by_id"

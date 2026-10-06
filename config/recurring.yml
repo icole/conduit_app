@@ -39,6 +39,10 @@ production:
     class: TaskRemindersJob
     schedule: every hour at minute 5
     queue: default
+  meal_needs_cook:
+    class: MealNeedsCookJob
+    schedule: "0 9 * * * America/Los_Angeles"
+    queue: default
 
   email_log_retention:
     class: EmailLogRetentionJob

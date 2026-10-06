@@ -63,6 +63,19 @@ class MealNotificationService
       notify_other_cooks(meal, user, role_name)
     end
 
+    # No head cook yet, two weeks or a week out (MealNeedsCookJob)
+    def needs_cook(meal, user)
+      send_all_channels(
+        user: user,
+        title: "#{meal.title} needs a cook",
+        body: "#{meal.scheduled_at.strftime('%A, %b %-d')}. Nobody's signed up to lead it yet.",
+        url: meal_url(meal),
+        notification_type: "meal_needs_cook",
+        notifiable: meal,
+        skip_email: true
+      )
+    end
+
     def rsvps_closed(meal)
       title = "RSVPs Closed: #{meal.title}"
       body = "RSVPs are now closed. #{meal.total_attendees} people attending."

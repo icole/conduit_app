@@ -6,7 +6,8 @@ module NotificationsHelper
     "rsvps_closed" => "check-circle",
     "task_assigned" => "clipboard-document-check",
     "task_due" => "clipboard-document-check",
-    "task_needs_someone" => "hand-raised"
+    "task_needs_someone" => "hand-raised",
+    "meal_needs_cook" => "hand-raised"
   }.freeze
 
   # What the navbar's bell shows: settled once per request, so dealing with

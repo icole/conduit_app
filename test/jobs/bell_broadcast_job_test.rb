@@ -53,6 +53,14 @@ class BellBroadcastJobTest < ActiveJob::TestCase
     assert_equal "0", count_sent
   end
 
+  test "when someone else signs up to lead a meal that needed a cook, it comes off your bell" do
+    notify("meal_needs_cook", @meal)
+    count_sent
+
+    @meal.meal_cooks.create!(user: users(:three), role: "head_cook")
+    assert_equal "0", count_sent
+  end
+
   test "RSVPs closing takes the reminder off" do
     notify("meal_reminder", @meal)
     count_sent

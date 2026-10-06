@@ -17,6 +17,7 @@ class NotificationKind
     # Both ask for an RSVP, and share one entry per meal (MealNotificationService)
     Kind.new("rsvp_deadline", true, rsvped_or_closed),
     Kind.new("meal_reminder", true, rsvped_or_closed),
+    Kind.new("meal_needs_cook", true, ->(_n, meal) { !meal.needs_head_cook? || meal.cancelled? || meal.scheduled_at.past? }),
     Kind.new("task_assigned", true, task_done_or_not_yours),
     Kind.new("task_due", true, task_done_or_not_yours),
     Kind.new("task_needs_someone", true, ->(_n, task) { task.status == "completed" || task.assignees.any? }),
