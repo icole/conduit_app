@@ -26,7 +26,9 @@ Rails.application.configure do
     policy.object_src  :none
     policy.script_src  :self, :https
     policy.style_src   :self, :https, :unsafe_inline, "fonts.googleapis.com"
-    policy.connect_src :self, :https, :wss
+    # Action Cable's live bell: wss: in production, plain ws: to
+    # http://localhost in development (WebKit may not count it as 'self')
+    policy.connect_src(*[ :self, :https, :wss, (:ws if Rails.env.development?) ].compact)
     policy.frame_src   :none
     policy.base_uri    :self
     # Google sign-in posts here and is redirected to Google, which form-action covers
