@@ -19,6 +19,9 @@ class Task < ApplicationRecord
   belongs_to :completed_by, class_name: "User", optional: true
   belongs_to :released_by, class_name: "User", optional: true
 
+  # Done or deleted settles reminders about it: freshen the apps' bells
+  after_update_commit { BellBroadcastJob.about(self) }
+
   validates :title, presence: true
   validates :status, presence: true, inclusion: { in: %w[backlog active completed] }
   validates :estimated_minutes, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true

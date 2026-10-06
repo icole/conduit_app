@@ -107,6 +107,13 @@ class NotificationBellTest < ActionDispatch::IntegrationTest
     assert_select "#notification-bell", count: 0
   end
 
+  test "in the apps, pages listen for the member's bell, so it updates as things change" do
+    get root_path, headers: { "User-Agent" => "Conduit iOS/2 (Turbo Native) bridge-components: [button menu bell]" }
+
+    assert_select "turbo-cable-stream-source[signed-stream-name='#{Turbo::StreamsChannel.signed_stream_name([ @member, :bell ])}']"
+    assert_select "a#native-bell[data-controller='bridge--bell']"
+  end
+
   test "the website has its own bell, not the bridge one" do
     get root_path
     assert_select "[data-controller='bridge--bell']", count: 0

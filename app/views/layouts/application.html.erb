@@ -33,12 +33,11 @@
   <% if !hotwire_native_app? %>
     <%= render "layouts/navbar" %>
   <% elsif user_signed_in? %>
-    <%# The apps' top bar bell (CON-72): its count is what needs you. Not on
+    <%# The apps' top bar bell (CON-72), kept current over Action Cable. Not on
         Notifications itself, which the apps show as a sheet %>
     <% unless current_page?(notifications_path) %>
-      <%= link_to "Notifications", notifications_path, class: "hidden",
-            data: { controller: "bridge--bell", bridge_title: "Notifications", bridge_count: notification_bell[:count],
-                    bridge_count_url: count_notifications_path(format: :json) } %>
+      <%= turbo_stream_from current_user, :bell %>
+      <%= render "notifications/native_bell", count: notification_bell[:count] %>
     <% end %>
   <% end %>
   <%= render "layouts/community_status_banner" %>

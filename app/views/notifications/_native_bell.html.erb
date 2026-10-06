@@ -1,0 +1,6 @@
+<%# The apps' top bar bell (CON-72): its count is what needs you. Replaced
+    live by BellBroadcastJob when that changes.
+    locals: count %>
+<%= link_to "Notifications", notifications_path, id: "native-bell", class: "hidden",
+      data: { controller: "bridge--bell", bridge_title: "Notifications", bridge_count: count,
+              bridge_count_url: count_notifications_path(format: :json) } %>

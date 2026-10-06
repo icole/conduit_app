@@ -25,6 +25,8 @@ class Meal < ApplicationRecord
   cascade_discard :comments
 
   after_save :sync_to_google_calendar, if: :should_sync_to_calendar?
+  # RSVPs closing settles reminders about it: freshen the apps' bells
+  after_update_commit { BellBroadcastJob.about(self) }
   after_discard :delete_from_google_calendar
 
   scope :upcoming, -> { where(status: %w[upcoming rsvps_closed]).where("scheduled_at > ?", Time.current).order(:scheduled_at) }

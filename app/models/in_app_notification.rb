@@ -5,6 +5,9 @@ class InAppNotification < ApplicationRecord
   validates :title, presence: true
   validates :notification_type, presence: true
 
+  # The apps' bell, live (settle_for's update_columns skip this)
+  after_commit { BellBroadcastJob.for_users([ user_id ]) }
+
   scope :unread, -> { where(read: false) }
   scope :read, -> { where(read: true) }
   scope :recent, -> { order(created_at: :desc).limit(50) }

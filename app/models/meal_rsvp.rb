@@ -2,6 +2,9 @@ class MealRsvp < ApplicationRecord
   belongs_to :meal
   belongs_to :user
 
+  # RSVPing settles their meal reminders: freshen the apps' bell
+  after_commit { BellBroadcastJob.for_users([ user_id ]) }
+
   validates :status, presence: true, inclusion: { in: %w[attending declined maybe late_plate] }
   validates :guests_count, numericality: { greater_than_or_equal_to: 0 }
   validates :user_id, uniqueness: { scope: :meal_id, message: "has already RSVPed" }

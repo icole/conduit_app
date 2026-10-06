@@ -4,6 +4,9 @@ class MealCook < ApplicationRecord
   belongs_to :meal
   belongs_to :user
 
+  # Cooking settles their meal reminders: freshen the apps' bell
+  after_commit { BellBroadcastJob.for_users([ user_id ]) }
+
   validates :role, presence: true, inclusion: { in: %w[head_cook helper] }
   validates :user_id, uniqueness: { scope: :meal_id, message: "is already signed up to cook" }
   validates :guests_count, numericality: { greater_than_or_equal_to: 0 }
