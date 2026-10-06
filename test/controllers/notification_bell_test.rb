@@ -51,6 +51,12 @@ class NotificationBellTest < ActionDispatch::IntegrationTest
     assert_select "#updates a[href=?]", "/phish"
   end
 
+  test "coming back to the list shows it fresh, not a cached copy from before you opened one" do
+    get notifications_path
+
+    assert_select "meta[name='turbo-cache-control'][content='no-cache']"
+  end
+
   test "the full list separates what needs you from updates" do
     get notifications_path
 
