@@ -16,6 +16,9 @@ class NavigationTest < ApplicationSystemTestCase
       assert_selector "a[aria-current='page']", text: "Meals"
     end
 
+    # A fork and knife, like the apps' Meals tab, not a cake
+    assert_selector "nav[aria-label='Sections'] a[href='#{meals_path}'] svg[data-icon='fork-knife']", visible: :all
+
     tab_bar_bottom = page.evaluate_script("document.querySelector(\"nav[aria-label='Sections']\").getBoundingClientRect().bottom")
     assert_in_delta page.evaluate_script("window.innerHeight"), tab_bar_bottom, 1
   end
