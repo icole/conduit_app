@@ -37,7 +37,8 @@
         Notifications itself, which the apps show as a sheet %>
     <% unless current_page?(notifications_path) %>
       <%= link_to "Notifications", notifications_path, class: "hidden",
-            data: { controller: "bridge--bell", bridge_title: "Notifications", bridge_count: notification_bell[:count] } %>
+            data: { controller: "bridge--bell", bridge_title: "Notifications", bridge_count: notification_bell[:count],
+                    bridge_count_url: count_notifications_path(format: :json) } %>
     <% end %>
   <% end %>
   <%= render "layouts/community_status_banner" %>

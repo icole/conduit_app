@@ -5,6 +5,13 @@ class NotificationsController < ApplicationController
     load_list
   end
 
+  # What needs the member now, for the apps to freshen a bell on a page
+  # loaded earlier (after a sheet closes, or coming back to a screen)
+  def count
+    InAppNotification.settle_for(current_user)
+    render json: { count: current_user.in_app_notifications.needs_you.count }
+  end
+
   # Opening one marks it read and goes to what it's about
   def show
     notification = current_user.in_app_notifications.find(params[:id])

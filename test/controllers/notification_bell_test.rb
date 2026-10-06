@@ -90,10 +90,20 @@ class NotificationBellTest < ActionDispatch::IntegrationTest
     assert @update.reload.read?
   end
 
+  test "the apps can ask for the current count, to freshen a bell a page loaded earlier" do
+    get count_notifications_path(format: :json)
+    assert_equal({ "count" => 1 }, response.parsed_body)
+
+    @meal.meal_rsvps.create!(user: @member, status: "attending")
+    get count_notifications_path(format: :json)
+    assert_equal({ "count" => 0 }, response.parsed_body)
+  end
+
   test "in the apps, every page hands the native bell its count" do
     get root_path, headers: { "User-Agent" => "Conduit iOS/2 (Turbo Native) bridge-components: [button menu bell]" }
 
     assert_select "a.hidden[data-controller='bridge--bell'][href='#{notifications_path}'][data-bridge-count='1']"
+    assert_select "a[data-controller='bridge--bell'][data-bridge-count-url='#{count_notifications_path(format: :json)}']"
     assert_select "#notification-bell", count: 0
   end
 
