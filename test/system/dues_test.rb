@@ -15,9 +15,9 @@ class DuesTest < ApplicationSystemTestCase
 
     assert_selector "h1", text: "Monthly Dues"
     assert_text @household.name
-    # Check that month headers are visible
-    assert_text "Jan"
-    assert_text "Dec"
+    # Month headers are visible (set in small capitals)
+    assert_text(/Jan/i)
+    assert_text(/Dec/i)
   end
 
   test "admin can toggle payment status" do

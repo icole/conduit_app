@@ -15,29 +15,29 @@
             <span class="label-text font-medium">Will you be attending?</span>
           </label>
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
-            <label class="label cursor-pointer justify-start gap-2 p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors">
+            <label class="choice">
               <input type="radio" name="meal_rsvp[status]" value="attending"
-                     class="radio radio-primary radio-sm"
+                     class="radio radio-sm"
                      <%= 'checked' if my_rsvp&.attending? || my_rsvp.nil? %>>
-              <span class="label-text text-sm">Yes!</span>
+              <span>Yes!</span>
             </label>
-            <label class="label cursor-pointer justify-start gap-2 p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors">
+            <label class="choice">
               <input type="radio" name="meal_rsvp[status]" value="maybe"
-                     class="radio radio-warning radio-sm"
+                     class="radio radio-sm"
                      <%= 'checked' if my_rsvp&.maybe? %>>
-              <span class="label-text text-sm">Maybe</span>
+              <span>Maybe</span>
             </label>
-            <label class="label cursor-pointer justify-start gap-2 p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors">
+            <label class="choice">
               <input type="radio" name="meal_rsvp[status]" value="late_plate"
-                     class="radio radio-secondary radio-sm"
+                     class="radio radio-sm"
                      <%= 'checked' if my_rsvp&.late_plate? %>>
-              <span class="label-text text-sm">Late Plate</span>
+              <span>Late Plate</span>
             </label>
-            <label class="label cursor-pointer justify-start gap-2 p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors">
+            <label class="choice">
               <input type="radio" name="meal_rsvp[status]" value="declined"
                      class="radio radio-sm"
                      <%= 'checked' if my_rsvp&.declined? %>>
-              <span class="label-text text-sm">Can't make it</span>
+              <span>Can't make it</span>
             </label>
           </div>
           <label class="label whitespace-normal">

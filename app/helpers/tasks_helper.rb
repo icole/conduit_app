@@ -1,6 +1,6 @@
 module TasksHelper
   PRIORITY_BADGE_CLASSES = {
-    "essential" => "badge-error text-on-error",
+    "essential" => "badge-error",
     "important" => "badge-warning",
     "nice_to_have" => "badge-ghost"
   }.freeze

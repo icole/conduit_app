@@ -1,0 +1,115 @@
+/* Colours, radii and type for our two looks. The website wears "conduit" (a
+   community almanac: warm paper, ink, forest green for actions, terracotta for
+   meals); the apps keep "cupcake", the look they shipped with. Each colour
+   gives Tailwind its utilities (bg-primary, text-base-content/70, ...). */
+
+@theme {
+  --color-base-100: oklch(99.3% 0.004 85);
+  --color-base-200: oklch(95.6% 0.012 82);
+  --color-base-300: oklch(91.5% 0.016 80);
+  --color-base-content: oklch(17% 0.018 55);
+  --color-paper: oklch(96.8% 0.011 83);
+  --color-primary: oklch(43% 0.075 158);
+  --color-primary-content: oklch(98.5% 0.01 120);
+  --color-secondary: oklch(52% 0.14 38);
+  --color-secondary-content: oklch(98.5% 0.01 80);
+  --color-accent: oklch(83% 0.11 82);
+  --color-accent-content: oklch(25% 0.04 60);
+  --color-neutral: oklch(27% 0.02 55);
+  --color-neutral-content: oklch(96% 0.01 82);
+  --color-info: oklch(50% 0.09 240);
+  --color-info-content: oklch(98.5% 0.005 240);
+  --color-success: oklch(47% 0.09 155);
+  --color-success-content: oklch(98.5% 0.01 155);
+  --color-warning: oklch(82% 0.13 80);
+  --color-warning-content: oklch(28% 0.05 60);
+  --color-error: oklch(51% 0.17 27);
+  --color-error-content: oklch(98.5% 0.01 27);
+
+  /* Status colours as text on the page and on their own tints (4.5:1) */
+  --color-primary-ink: oklch(43% 0.075 158);
+  --color-secondary-ink: oklch(48% 0.13 38);
+  --color-accent-ink: oklch(45% 0.1 70);
+  --color-info-ink: oklch(46% 0.09 240);
+  --color-success-ink: oklch(42% 0.08 155);
+  --color-warning-ink: oklch(47% 0.1 65);
+  --color-error-ink: oklch(49% 0.17 27);
+
+  --radius-box: 1.125rem;
+  --radius-field: 0.75rem;
+  --radius-selector: 2rem;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  color-scheme: light;
+  --hairline: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+  --radius-button: 999px;
+  --border: 1px;
+}
+
+:root, [data-theme] {
+  background-color: var(--color-base-100);
+  color: var(--color-base-content);
+}
+
+[data-theme="conduit"] {
+  font-feature-settings: "cv11", "ss03";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-theme="conduit"] :is(h1, h2, h3, .card-title, .font-display) {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 560;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+[data-theme="conduit"] p { text-wrap: pretty; }
+
+/* On the linen page the light greys vanish as lines; draw them as hairlines */
+[data-theme="conduit"] :is(.border-base-200, .border-base-300) { border-color: var(--hairline); }
+
+/* Cupcake, adjusted so text meets WCAG AA (4.5:1): the ink is darker, so its
+   60%-faded greys pass; error and success are deeper with white labels. The
+   teal, pink and yellow are fills; as text they use the darker inks. */
+[data-theme="cupcake"] {
+  --color-base-100: oklch(97.788% 0.004 56.375);
+  --color-base-200: oklch(93.982% 0.007 61.449);
+  --color-base-300: oklch(91.586% 0.006 53.44);
+  --color-base-content: oklch(15% 0.05 313.189);
+  --color-primary: oklch(85% 0.138 181.071);
+  --color-primary-content: oklch(35% 0.078 188.216);
+  --color-secondary: oklch(89% 0.061 343.231);
+  --color-secondary-content: oklch(45% 0.187 3.815);
+  --color-accent: oklch(90% 0.076 70.697);
+  --color-accent-content: oklch(47% 0.157 37.304);
+  --color-neutral: oklch(27% 0.006 286.033);
+  --color-neutral-content: oklch(92% 0.004 286.32);
+  --color-info: oklch(68% 0.169 237.323);
+  --color-info-content: oklch(29% 0.066 243.157);
+  --color-success: oklch(47% 0.13 162);
+  --color-success-content: oklch(100% 0 0);
+  --color-warning: oklch(79% 0.184 86.047);
+  --color-warning-content: oklch(28% 0.066 53.813);
+  --color-error: oklch(53% 0.22 20);
+  --color-error-content: oklch(100% 0 0);
+
+  --color-primary-ink: oklch(47% 0.09 183);
+  --color-secondary-ink: oklch(47% 0.16 355);
+  --color-accent-ink: oklch(47% 0.157 37.304);
+  --color-info-ink: oklch(46% 0.13 245);
+  --color-success-ink: oklch(40% 0.1 162);
+  --color-warning-ink: oklch(47% 0.12 65);
+  --color-error-ink: oklch(50% 0.19 22);
+
+  --radius-box: 1rem;
+  --radius-field: 2rem;
+  --radius-selector: 1rem;
+  --radius-button: var(--radius-field);
+  --border: 2px;
+}

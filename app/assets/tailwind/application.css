@@ -1,110 +1,9 @@
 @import "tailwindcss";
 
-@plugin "daisyui" {
-  themes: cupcake;
-}
+@import "./theme.css";
+@import "./components.css";
 
-/* Cupcake, adjusted so text meets WCAG AA (4.5:1):
-   - base-content is darker, so the 60%-faded greys DaisyUI uses for labels,
-     hints and table headers (and our text-base-content/60) pass;
-   - error and success are deeper with white labels, so they read as text on
-     the page and as button/badge fills with a label on them. */
-@plugin "daisyui/theme" {
-  name: "cupcake";
-  default: true;
-  --color-base-content: oklch(15% 0.05 313.189);
-  --color-primary-content: oklch(35% 0.078 188.216);
-  --color-error: oklch(53% 0.22 20);
-  --color-error-content: oklch(100% 0 0);
-  --color-success: oklch(47% 0.13 162);
-  --color-success-content: oklch(100% 0 0);
-}
-/* The cupcake theme's warning/info/success/error colours are fine as fills but
-   too light to read as text on the page (yellow is 1.8:1). These darker shades
-   pass WCAG AA (4.5:1) on the page, grey rows and their own light tints. */
-@theme {
-  --color-warning-ink: oklch(47% 0.12 65);
-  --color-info-ink: oklch(46% 0.13 245);
-  --color-success-ink: oklch(40% 0.1 162);
-  --color-error-ink: oklch(50% 0.19 22);
-  --color-on-error: oklch(100% 0 0);
-  /* Brand teal and pink are fills; as text they need darker shades. */
-  --color-primary-ink: oklch(47% 0.09 183);
-  --color-secondary-ink: oklch(47% 0.16 355);
-}
-
-/* The website's theme: a community almanac. Warm paper, ink, forest green for
-   actions and terracotta for meals. The apps keep cupcake (see the layout). */
-@plugin "daisyui/theme" {
-  name: "conduit";
-  color-scheme: light;
-  --color-base-100: oklch(99.3% 0.004 85);
-  --color-base-200: oklch(95.6% 0.012 82);
-  --color-base-300: oklch(91.5% 0.016 80);
-  --color-base-content: oklch(17% 0.018 55);
-  --color-primary: oklch(43% 0.075 158);
-  --color-primary-content: oklch(98.5% 0.01 120);
-  --color-secondary: oklch(52% 0.14 38);
-  --color-secondary-content: oklch(98.5% 0.01 80);
-  --color-accent: oklch(83% 0.11 82);
-  --color-accent-content: oklch(25% 0.04 60);
-  --color-neutral: oklch(27% 0.02 55);
-  --color-neutral-content: oklch(96% 0.01 82);
-  --color-info: oklch(50% 0.09 240);
-  --color-info-content: oklch(98.5% 0.005 240);
-  --color-success: oklch(47% 0.09 155);
-  --color-success-content: oklch(98.5% 0.01 155);
-  --color-warning: oklch(82% 0.13 80);
-  --color-warning-content: oklch(28% 0.05 60);
-  --color-error: oklch(51% 0.17 27);
-  --color-error-content: oklch(98.5% 0.01 27);
-  --radius-selector: 2rem;
-  --radius-field: 0.625rem;
-  --radius-box: 1.125rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 0;
-  --noise: 0;
-}
-
-@theme {
-  --color-paper: oklch(96.8% 0.011 83);
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-[data-theme="conduit"] {
-  --color-primary-ink: var(--color-primary);
-  --color-secondary-ink: oklch(48% 0.13 38);
-  --color-warning-ink: oklch(47% 0.1 65);
-  --color-info-ink: oklch(46% 0.09 240);
-  --color-success-ink: oklch(42% 0.08 155);
-  --color-error-ink: oklch(49% 0.17 27);
-  --hairline: oklch(19% 0.018 55 / 0.09);
-  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
-  font-feature-settings: "cv11", "ss03";
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
-
-[data-theme="conduit"] :is(h1, h2, h3, .card-title, .font-display) {
-  font-family: var(--font-display);
-  font-optical-sizing: auto;
-  font-weight: 560;
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-}
-[data-theme="conduit"] p { text-wrap: pretty; }
-
-/* Cards are paper on the linen page: a hairline, no heavy drop shadow */
-[data-theme="conduit"] .card {
-  border: 1px solid var(--hairline);
-  box-shadow: 0 1px 2px oklch(19% 0.018 55 / 0.04);
-}
-[data-theme="conduit"] :is(.shadow-lg, .shadow-xl, .shadow-md).card { box-shadow: 0 1px 2px oklch(19% 0.018 55 / 0.04), 0 8px 24px -12px oklch(19% 0.018 55 / 0.12); }
-[data-theme="conduit"] :is(.border-base-200, .border-base-300) { border-color: var(--hairline); }
-
+/* A card you can open rises a little under the pointer */
 @media (hover: hover) {
   [data-theme="conduit"] .lift {
     transition: transform 0.4s var(--ease-out-expo), box-shadow 0.4s var(--ease-out-expo);
@@ -208,12 +107,6 @@
   .nav-link::after, .sheet, .sheet::backdrop, .lift { transition: none; }
 }
 
-/* DaisyUI fades inactive tabs to 50% (3.7:1); 70% matches our other secondary
-   text and passes. Unlayered, so it wins over DaisyUI's component styles. */
-.tabs > .tab:not(.tab-active, [aria-selected="true"], [aria-current="true"], [aria-current="page"]) {
-  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
-}
-
 /* In the iOS/Android apps (Hotwire Native marks <html> with data-bridge-platform).
    bridge-button: the app shows the page's main action in its native toolbar,
    so the page's own header steps aside (older app builds keep it). */
@@ -222,7 +115,8 @@
 
 html[data-bridge-platform] {
   -webkit-tap-highlight-color: transparent;
-  font-family: system-ui, -apple-system, "Roboto", "Segoe UI", sans-serif;
+  --font-sans: system-ui, -apple-system, "Roboto", "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
   /* Fields as rounded rectangles, hairline borders, flat buttons */
   --radius-field: 0.75rem;
   --radius-selector: 0.5rem;
@@ -259,17 +153,6 @@ html[data-bridge-platform] .native-flat {
 html[data-bridge-platform] .native-flat > .card-body {
   padding: 0;
 }
-/* Status colour as a tint with dark ink, not a solid fill: badges and alerts */
-html[data-bridge-platform] :is(.badge, .alert):is(.badge-primary, .badge-success, .badge-info, .badge-warning, .badge-error, .badge-secondary, .alert-success, .alert-info, .alert-warning, .alert-error) {
-  border-color: transparent;
-  box-shadow: none;
-}
-html[data-bridge-platform] :is(.badge-primary) { background: color-mix(in oklab, var(--color-primary) 20%, white); color: var(--color-primary-ink); }
-html[data-bridge-platform] :is(.badge-success, .alert-success) { background: color-mix(in oklab, var(--color-success) 16%, white); color: var(--color-success-ink); }
-html[data-bridge-platform] :is(.badge-info, .alert-info) { background: color-mix(in oklab, var(--color-info) 14%, white); color: var(--color-info-ink); }
-html[data-bridge-platform] :is(.badge-warning, .alert-warning) { background: color-mix(in oklab, var(--color-warning) 22%, white); color: var(--color-warning-ink); }
-html[data-bridge-platform] :is(.badge-error, .alert-error) { background: color-mix(in oklab, var(--color-error) 14%, white); color: var(--color-error-ink); }
-html[data-bridge-platform] :is(.badge-secondary) { background: color-mix(in oklab, var(--color-secondary) 14%, white); color: var(--color-secondary-ink); }
 html[data-bridge-platform] :is(button, .btn, nav a) {
   -webkit-user-select: none;
   user-select: none;
