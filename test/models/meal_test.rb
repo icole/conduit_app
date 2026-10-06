@@ -295,4 +295,24 @@ class MealTest < ActiveSupport::TestCase
       assert_includes second.errors.full_messages.join, "Sunday Brunch on Sunday, December 13 already has a meal"
     end
   end
+
+  test "moving a scheduled meal keeps its schedule date, its RSVP lead and a title on the new date" do
+    ActsAsTenant.with_tenant(communities(:crow_woods)) do
+      sunday = meal_schedules(:sunday_brunch).generate_meal_for_date(Date.new(2026, 12, 13))
+      lead = sunday.scheduled_at - sunday.rsvp_deadline
+
+      sunday.move_to!(Time.zone.local(2026, 12, 11, 17, 45))
+
+      assert_equal Date.new(2026, 12, 13), sunday.occurs_on
+      assert_equal lead, sunday.scheduled_at - sunday.rsvp_deadline
+      assert_equal "Sunday Brunch - Dec 11", sunday.title
+      assert_equal Date.new(2026, 12, 13), sunday.moved_from
+    end
+  end
+
+  test "a meal on its schedule's date wasn't moved" do
+    ActsAsTenant.with_tenant(communities(:crow_woods)) do
+      assert_nil meal_schedules(:sunday_brunch).generate_meal_for_date(Date.new(2026, 12, 13)).moved_from
+    end
+  end
 end

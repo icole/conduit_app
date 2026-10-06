@@ -48,6 +48,8 @@ Rails.application.routes.draw do
       post :reopen_rsvps
       post :complete
       post :cancel
+      get :reschedule
+      patch :move
       patch :update_menu
       # Admin actions for managing other users' cook signups and RSVPs
       post :admin_add_cook

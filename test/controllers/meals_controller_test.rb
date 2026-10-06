@@ -157,6 +157,30 @@ class MealsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ meal_schedules(:sunday_brunch), Date.new(2026, 12, 13) ], [ meal.meal_schedule, meal.occurs_on ]
   end
 
+  # Reschedule: any member can move a meal to a new time, as any member can
+  # edit one; it keeps its place in the schedule, and everyone cooking or
+  # coming hears about it from whoever moved it
+  test "any member reschedules a meal and the people cooking or coming hear about it" do
+    meal = meals(:upcoming_meal)
+    mover = users(:regular_user)
+    delete logout_path
+    sign_in_user(uid: mover.uid, name: mover.name, email: mover.email)
+    get meal_url(meal)
+    assert_select "a[href='#{reschedule_meal_path(meal)}']", text: "Reschedule meal"
+    get reschedule_meal_url(meal)
+    assert_select "input[name='meal[scheduled_at]']"
+
+    new_time = (meal.scheduled_at - 2.days).change(hour: 17, min: 45)
+    patch move_meal_url(meal), params: { meal: { scheduled_at: new_time } }
+
+    assert_redirected_to meal_url(meal)
+    assert_equal new_time, meal.reload.scheduled_at
+    told = InAppNotification.where(notifiable: meal, notification_type: "meal_rescheduled").pluck(:user_id)
+    expected = (meal.meal_rsvps.where.not(status: "declined").pluck(:user_id) + meal.meal_cooks.pluck(:user_id)).uniq - [ mover.id ]
+    assert_not_empty expected
+    assert_equal expected.sort, told.sort
+  end
+
   test "should not create meal with invalid params" do
     assert_no_difference("Meal.count") do
       post meals_url, params: {

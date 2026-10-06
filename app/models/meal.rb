@@ -187,6 +187,20 @@ class Meal < ApplicationRecord
     update!(status: "cancelled")
   end
 
+  # Moves the meal and what's timed from it: the RSVP deadline keeps its lead,
+  # and a title naming the old date ("Sunday Dinner - Dec 13") names the new
+  # one. A scheduled meal keeps the schedule date it fills (occurs_on)
+  def move_to!(time)
+    shift = time - scheduled_at
+    update!(scheduled_at: time, rsvp_deadline: rsvp_deadline + shift,
+      title: title.sub(scheduled_at.strftime("%b %d"), time.strftime("%b %d")))
+  end
+
+  # The schedule date this meal was moved from, if it was
+  def moved_from
+    occurs_on if meal_schedule && occurs_on && occurs_on != scheduled_at.to_date
+  end
+
   def reopen_rsvps!
     new_deadline = rsvp_deadline
     if rsvp_deadline < Time.current

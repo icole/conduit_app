@@ -48,6 +48,7 @@ class InAppNotification < ApplicationRecord
     rsvp_deadline: "rsvp_deadline",
     cook_assigned: "cook_assigned",
     rsvps_closed: "rsvps_closed",
+    meal_rescheduled: "meal_rescheduled",
     general: "general"
   }.freeze
 
@@ -95,6 +96,7 @@ class InAppNotification < ApplicationRecord
     when "rsvp_deadline" then "text-warning"
     when "cook_assigned" then "text-success"
     when "rsvps_closed" then "text-primary"
+    when "meal_rescheduled" then "text-warning"
     else "text-base-content"
     end
   end

@@ -29,6 +29,9 @@
             </label>
             <ul tabindex="0" class="dropdown-content z-10 menu p-2 shadow bg-base-100 rounded-box w-52 bridge-button:hidden">
               <li><%= link_to "Edit Meal", edit_meal_path(@meal), data: { bridge__menu_target: "item" } %></li>
+              <% if @meal.upcoming? %>
+                <li><%= link_to "Reschedule meal", reschedule_meal_path(@meal), data: { bridge__menu_target: "item" } %></li>
+              <% end %>
               <% if @meal.upcoming? && (@meal.user_is_cook?(current_user) || current_user.admin?) %>
                 <li><%= button_to "Close RSVPs", close_rsvps_meal_path(@meal), method: :post, data: { bridge__menu_target: "item" }, form: { data: { turbo_confirm: "Close RSVPs early?" } } %></li>
               <% end %>
@@ -55,6 +58,9 @@
                 </svg>
                 <span class="whitespace-nowrap"><%= @meal.full_display %></span>
               </div>
+              <% if (moved_from = @meal.moved_from) %>
+                <span class="badge badge-lg badge-warning p-3">Moved from <%= moved_from.strftime("%A, %b %-d") %></span>
+              <% end %>
             </div>
           </div>
 

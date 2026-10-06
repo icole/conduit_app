@@ -4,7 +4,7 @@ class MealsController < ApplicationController
                                    :volunteer_cook, :update_cook, :withdraw_cook,
                                    :rsvp, :cancel_rsvp, :close_rsvps, :reopen_rsvps,
                                    :complete, :cancel, :cook, :show_rsvp,
-                                   :update_menu,
+                                   :update_menu, :reschedule, :move,
                                    :admin_add_cook, :admin_remove_cook,
                                    :admin_rsvp, :admin_remove_rsvp ]
   before_action :authorize_rsvp_management!, only: [ :close_rsvps, :reopen_rsvps ]
@@ -197,6 +197,23 @@ class MealsController < ApplicationController
   def cancel
     @meal.cancel!
     redirect_to @meal, notice: "Meal has been cancelled."
+  end
+
+  # GET /meals/:id/reschedule
+  def reschedule
+  end
+
+  # PATCH /meals/:id/move
+  def move
+    time = Time.zone.parse(params.dig(:meal, :scheduled_at).to_s)
+    return redirect_to(reschedule_meal_path(@meal), alert: "Pick a new date and time.") unless time
+
+    from = @meal.scheduled_at
+    @meal.move_to!(time)
+    MealNotificationService.rescheduled(@meal, from: from, by: current_user)
+    redirect_to @meal, notice: "Meal moved to #{time.strftime('%A, %b %-d at %-l:%M %p')}."
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_to reschedule_meal_path(@meal), alert: e.record.errors.full_messages.to_sentence
   end
 
   # PATCH /meals/:id/update_menu

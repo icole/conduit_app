@@ -23,6 +23,7 @@ class NotificationKind
     Kind.new("task_needs_someone", true, ->(_n, task) { task.status == "completed" || task.assignees.any? }),
     Kind.new("cook_assigned", false, nil),
     Kind.new("rsvps_closed", false, nil),
+    Kind.new("meal_rescheduled", false, nil),
     Kind.new("general", false, nil)
   ].index_by(&:key).freeze
 

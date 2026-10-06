@@ -95,6 +95,19 @@ class MealNotificationService
       end
     end
 
+    # Everyone cooking or coming (not declined) hears a meal has moved, except
+    # whoever moved it
+    def rescheduled(meal, from:, by:)
+      title = "Meal moved: #{meal.title}"
+      body = "Now #{meal.scheduled_at.strftime('%A, %b %-d at %-l:%M %p')} (was #{from.strftime('%A, %b %-d')})."
+      people = (meal.cooks.to_a + meal.meal_rsvps.where.not(status: "declined").includes(:user).map(&:user)).uniq - [ by ]
+
+      people.each do |person|
+        send_all_channels(user: person, title: title, body: body, url: meal_url(meal),
+          notification_type: InAppNotification::TYPES[:meal_rescheduled], notifiable: meal)
+      end
+    end
+
     private
 
     def send_all_channels(user:, title:, body:, url:, notification_type:, notifiable:, mailer: nil, skip_email: false, email_delay: 0, batch_service: nil)

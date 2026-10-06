@@ -4,6 +4,7 @@ module NotificationsHelper
     "meal_reminder" => "clock",
     "cook_assigned" => "fire",
     "rsvps_closed" => "check-circle",
+    "meal_rescheduled" => "calendar-days",
     "task_assigned" => "clipboard-document-check",
     "task_due" => "clipboard-document-check",
     "task_needs_someone" => "hand-raised",

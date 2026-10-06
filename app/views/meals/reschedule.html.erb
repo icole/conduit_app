@@ -1,0 +1,41 @@
+<% content_for :title, "Reschedule meal" %>
+<%# In the apps this is a sheet: no back link, no card around the form %>
+<div class="container mx-auto max-w-xl px-4 py-8 native:px-0 native:py-2">
+  <div class="mb-6 bridge-button:hidden">
+    <%= link_to @meal, class: "btn btn-ghost btn-sm gap-2" do %>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      Back to Meal
+    <% end %>
+  </div>
+
+  <div class="card bg-base-100 shadow-xl native-flat">
+    <div class="card-body">
+      <h1 class="card-title text-2xl native:text-lg">Reschedule <%= @meal.display_title %></h1>
+      <p class="text-base-content/70">
+        Now <%= @meal.scheduled_at.strftime("%A, %B %-d at %-l:%M %p") %>.
+        <% if @meal.meal_schedule && @meal.occurs_on %>
+          It stays the <%= @meal.meal_schedule.name %> for <%= @meal.occurs_on.strftime("%A, %B %-d") %>, so the schedule won't make another.
+        <% end %>
+      </p>
+
+      <%= form_with model: @meal, url: move_meal_path(@meal), method: :patch, class: "space-y-5 mt-2" do |f| %>
+        <div class="form-control">
+          <%= f.label :scheduled_at, class: "label" do %>
+            <span class="label-text">New date and time</span>
+          <% end %>
+          <%= f.datetime_local_field :scheduled_at, class: "input w-full", required: true %>
+          <label class="label whitespace-normal">
+            <span class="label-text-alt">RSVPs will close the same time before it as now. Everyone cooking or coming gets a note that it moved.</span>
+          </label>
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <%= link_to "Cancel", @meal, class: "btn btn-ghost" %>
+          <%= f.submit "Move meal", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
