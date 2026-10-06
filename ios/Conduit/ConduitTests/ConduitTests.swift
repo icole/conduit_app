@@ -89,3 +89,17 @@ struct UserAgentTests {
         #expect(AppConfig.userAgent.hasPrefix("Conduit iOS/2 (Turbo Native)"))
     }
 }
+
+struct ConduitLinkTabTests {
+    // A notification opened from another tab goes to the tab it belongs to
+    @Test func aLinkForAnotherTabSaysWhichTab() {
+        #expect(ConduitLink.otherTab(for: "/tasks", from: "/meals") == .tasks)
+        #expect(ConduitLink.otherTab(for: "/meals/5", from: "/") == .meals)
+        #expect(ConduitLink.otherTab(for: "/calendar_events/3", from: "/tasks") == .home)
+    }
+
+    @Test func aLinkForThisTabStaysPut() {
+        #expect(ConduitLink.otherTab(for: "/tasks", from: "/tasks") == nil)
+        #expect(ConduitLink.otherTab(for: "/meals/5", from: "/meals") == nil)
+    }
+}

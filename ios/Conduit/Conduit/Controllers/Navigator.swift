@@ -87,16 +87,23 @@ class Navigator: UINavigationController {
         route(url: url, options: VisitOptions(), properties: properties)
     }
 
-    /// Opens a link from elsewhere in the app (a Conduit link tapped in chat):
-    /// back to this tab's first screen, then the link in its place, so the
-    /// tab doesn't grow a stack of screens.
+    /// Opens a link from elsewhere in the app (a Conduit link tapped in chat,
+    /// or a notification for this tab's pages): back to this tab's first
+    /// screen, then the link on top of it, so the tab doesn't grow a stack of
+    /// screens and Back still leads to its first screen.
     func openLink(_ url: URL) {
         if isShowingModal {
             dismiss(animated: false)
         }
         popToRootViewController(animated: false)
         let properties = session.pathConfiguration?.properties(for: url) ?? PathProperties()
-        route(url: url, options: VisitOptions(action: .replace), properties: properties)
+        let isFirstScreen = rootPath == url.path
+        route(url: url, options: VisitOptions(action: isFirstScreen ? .replace : .advance), properties: properties)
+    }
+
+    /// The path of this tab's first screen (/tasks for Tasks)
+    private var rootPath: String? {
+        (viewControllers.first as? Visitable)?.currentVisitableURL.path
     }
 
     private func route(url: URL, options: VisitOptions, properties: PathProperties) {
@@ -137,6 +144,10 @@ class Navigator: UINavigationController {
         presentedViewController === modalNavigationController && !modalNavigationController.isBeingDismissed
     }
 
+    private var isShowingNotifications: Bool {
+        isShowingModal && (modalNavigationController.topViewController as? Visitable)?.currentVisitableURL.path == "/notifications"
+    }
+
     private func presentModally(_ viewController: UIViewController, options: VisitOptions) {
         visit(viewController, on: modalSession, options: options)
 
@@ -175,6 +186,13 @@ class Navigator: UINavigationController {
     // MARK: - Main stack
 
     private func showInMainStack(_ viewController: UIViewController, url: URL, options: VisitOptions) {
+        // A notification for another tab's page: close the sheet and open it
+        // in that tab (TabBarController), not on top of this one
+        if isShowingNotifications, let rootPath, ConduitLink.otherTab(for: url.path, from: rootPath) != nil {
+            dismiss(animated: true) { _ = ConduitLink.open(url) }
+            return
+        }
+
         // Leaving a modal: a form was saved or its Cancel link was tapped.
         let leavingModal = isShowingModal
         if leavingModal {

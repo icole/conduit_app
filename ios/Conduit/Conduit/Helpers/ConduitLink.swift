@@ -46,6 +46,13 @@ enum ConduitLink {
         return components?.url
     }
 
+    /// The tab a path belongs to, when that's not the tab whose first screen
+    /// is `rootPath`; nil when it belongs there.
+    static func otherTab(for path: String, from rootPath: String) -> Tab? {
+        let target = Self.tab(for: path)
+        return target == Self.tab(for: rootPath) ? nil : target
+    }
+
     static func tab(for path: String) -> Tab {
         func isUnder(_ section: String) -> Bool { path == section || path.hasPrefix(section + "/") }
 
