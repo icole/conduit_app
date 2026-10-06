@@ -37,10 +37,8 @@ class Task < ApplicationRecord
   # Scopes for filtering tasks
   scope :backlog, -> { where(status: "backlog") }
   scope :active, -> { where(status: "active") }
-  scope :pending, -> { where(status: "active") } # Keep for backward compatibility
   scope :completed, -> { where(status: "completed") }
   scope :open, -> { where.not(status: "completed") }
-  scope :prioritized, -> { where(status: "active").order(:priority_order, :created_at) }
   scope :with_due_date, -> { where.not(due_date: nil) }
   scope :overdue, -> { where("tasks.due_date < ? AND tasks.status != 'completed'", Date.current) }
   scope :due_soon, -> { where("tasks.due_date >= ? AND tasks.due_date <= ? AND tasks.status != 'completed'", Date.current, 7.days.from_now) }
@@ -65,17 +63,6 @@ class Task < ApplicationRecord
 
   # Override default scope to use ordered scope
   default_scope { ordered }
-
-  # Move task from backlog to active with priority
-  def prioritize!(priority_order = nil)
-    new_priority = priority_order || next_priority_order
-    update!(status: "active", priority_order: new_priority)
-  end
-
-  # Move task back to backlog
-  def move_to_backlog!
-    update!(status: "backlog", priority_order: nil)
-  end
 
   # The Available queue, essential work first, then soonest due.
   # Governance work only shows to the role's holders.

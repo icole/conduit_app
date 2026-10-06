@@ -96,89 +96,6 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to dashboard_index_url
   end
 
-  test "should filter tasks by view" do
-    # Create a completed task
-    Task.create!(
-      title: "Completed Task",
-      description: "This task is done",
-      status: "completed",
-      user: @user,
-      workstream: workstreams(:general)
-    )
-
-    # Test active filter
-    get tasks_url(view: "active")
-    assert_response :success
-    assert_match(/Active/, response.body)
-
-    # Test completed filter
-    get tasks_url(view: "completed")
-    assert_response :success
-    assert_match(/Completed Task/, response.body)
-
-    # Test backlog filter
-    get tasks_url(view: "backlog")
-    assert_response :success
-    assert_match(/Backlog/, response.body)
-  end
-
-  test "should prioritize task from backlog" do
-    task = Task.create!(
-      title: "Backlog Task",
-      description: "This task is in backlog",
-      status: "backlog",
-      user: @user,
-      workstream: workstreams(:general)
-    )
-
-    assert_equal "backlog", task.status
-    assert_nil task.priority_order
-
-    patch prioritize_task_url(task)
-    assert_redirected_to tasks_url
-
-    task.reload
-    assert_equal "active", task.status
-    assert_not_nil task.priority_order
-  end
-
-  test "should move task back to backlog" do
-    task = Task.create!(
-      title: "Active Task",
-      description: "This task is active",
-      status: "active",
-      priority_order: 1,
-      user: @user,
-      workstream: workstreams(:general)
-    )
-
-    assert_equal "active", task.status
-    assert_equal 1, task.priority_order
-
-    patch move_to_backlog_task_url(task)
-    assert_redirected_to tasks_url
-
-    task.reload
-    assert_equal "backlog", task.status
-    assert_nil task.priority_order
-  end
-
-  test "should reorder tasks" do
-    # Create multiple active tasks
-    task1 = Task.create!(title: "Task 1", status: "active", priority_order: 1, user: @user, workstream: workstreams(:general))
-    task2 = Task.create!(title: "Task 2", status: "active", priority_order: 2, user: @user, workstream: workstreams(:general))
-    task3 = Task.create!(title: "Task 3", status: "active", priority_order: 3, user: @user, workstream: workstreams(:general))
-    task4 = Task.create!(title: "Task 4", status: "active", priority_order: 4, user: @user, workstream: workstreams(:general))
-    task5 = Task.create!(title: "Task 5", status: "active", priority_order: 5, user: @user, workstream: workstreams(:general))
-
-    # Move task1 to position 3
-    patch reorder_task_url(task1), params: { priority_order: 3 }
-    assert_response :success
-
-    task1.reload
-    assert_equal 3, task1.priority_order
-  end
-
   test "creating a task without a workstream is rejected" do
     assert_no_difference("Task.count") do
       post tasks_url, params: { task: { title: "Orphan" } }
@@ -374,12 +291,43 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{new_workstream_path}']"
   end
 
-  test "the backlog and priority board is still reachable from My Tasks" do
-    get tasks_url
-    assert_select "a[href='#{tasks_path(view: "active")}']"
+  # The backlog and priority board is gone; All work's list has every open task
+  test "the old board's address goes to every open task, under All work" do
     get tasks_url(view: "backlog")
-    assert_response :success
+    assert_redirected_to tasks_url(tab: "all", list: "tasks")
+
+    get tasks_url(tab: "my")
+    assert_select "a[href*='view=']", count: 0
+  end
+
+  test "a task nobody is on and with no due date (once 'backlog') is still listed" do
+    get tasks_url(tab: "all", list: "tasks")
     assert_match "Complete Project Documentation", response.body
+  end
+
+  test "deleted tasks can still be found and restored, from All work" do
+    task = tasks(:one)
+    task.discard!
+
+    get tasks_url(tab: "all", list: "tasks")
+    assert_select "a[href='#{tasks_path(tab: "all", list: "deleted")}']", text: /Recently deleted/
+
+    get tasks_url(tab: "all", list: "deleted")
+    assert_match task.title, response.body
+    assert_select "form[action='#{restore_task_path(task)}']"
+
+    get tasks_url(view: "deleted")
+    assert_redirected_to tasks_url(tab: "all", list: "deleted")
+  end
+
+  test "there's no prioritizing, backlogging or hand-ordering any more" do
+    task = tasks(:one)
+    patch "/tasks/#{task.id}/prioritize"
+    assert_response :not_found
+    patch "/tasks/#{task.id}/move_to_backlog"
+    assert_response :not_found
+    patch "/tasks/#{task.id}/reorder", params: { priority_order: 1 }
+    assert_response :not_found
   end
 
   test "releasing your instance sends it to the queue and broadcasts it" do

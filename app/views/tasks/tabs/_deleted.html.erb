@@ -1,0 +1,27 @@
+<%# Deleted tasks, kept 30 days, to restore %>
+<p class="text-sm text-base-content/70 mb-4">
+  Deleted tasks are kept for 30 days.
+  <%= link_to "Back to all tasks", tasks_path(tab: "all", list: "tasks"), class: "link text-primary-ink", data: { turbo_frame: "tasks_content" } %>
+</p>
+
+<section id="deleted-tasks">
+  <% if @deleted_tasks.any? %>
+    <div class="<%= task_list_classes %>">
+      <% @deleted_tasks.each do |task| %>
+        <div id="<%= dom_id task %>" class="sm:rounded-box sm:bg-base-100 sm:border sm:border-base-200">
+          <div class="flex items-start gap-3 px-3 py-3 sm:p-4">
+            <div class="flex-1 min-w-0">
+              <p class="font-medium leading-6"><%= task.title %></p>
+              <p class="mt-0.5 text-xs text-base-content/70">
+                <%= safe_join([ task.workstream&.name, "deleted #{time_ago_in_words(task.discarded_at)} ago" ].compact, " · ") %>
+              </p>
+            </div>
+            <%= button_to "Restore", restore_task_path(task), class: "btn btn-sm" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-sm text-base-content/65">Nothing deleted in the last 30 days.</p>
+  <% end %>
+</section>

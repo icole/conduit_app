@@ -18,30 +18,6 @@ class TaskTest < ActiveSupport::TestCase
     assert_includes task.errors[:status], "is not included in the list"
   end
 
-  test "should prioritize task from backlog" do
-    task = Task.create!(title: "Test Task", user: @user, workstream: @workstream, status: "backlog")
-
-    assert_equal "backlog", task.status
-    assert_nil task.priority_order
-
-    task.prioritize!
-
-    assert_equal "active", task.status
-    assert_not_nil task.priority_order
-  end
-
-  test "should move task to backlog" do
-    task = Task.create!(title: "Test Task", user: @user, workstream: @workstream, status: "active", priority_order: 1)
-
-    assert_equal "active", task.status
-    assert_equal 1, task.priority_order
-
-    task.move_to_backlog!
-
-    assert_equal "backlog", task.status
-    assert_nil task.priority_order
-  end
-
   test "should detect overdue tasks" do
     task = Task.create!(
       title: "Overdue Task",
@@ -78,21 +54,6 @@ class TaskTest < ActiveSupport::TestCase
     assert_not task.overdue?
   end
 
-  test "should assign next priority order when prioritizing" do
-    # Create two existing active tasks
-    task1 = Task.create!(title: "Task 1", user: @user, workstream: @workstream, status: "active", priority_order: 1)
-    task2 = Task.create!(title: "Task 2", user: @user, workstream: @workstream, status: "active", priority_order: 2)
-
-    # Create a backlog task
-    backlog_task = Task.create!(title: "Backlog Task", user: @user, workstream: @workstream, status: "backlog")
-
-    # Prioritize the backlog task
-    backlog_task.prioritize!
-
-    # Should get priority order 3 (next after existing tasks)
-    assert_equal 3, backlog_task.priority_order
-  end
-
   test "should scope tasks correctly" do
     backlog_task = Task.create!(title: "Backlog Task", user: @user, workstream: @workstream, status: "backlog")
     active_task = Task.create!(title: "Active Task", user: @user, workstream: @workstream, status: "active", priority_order: 1)
@@ -109,7 +70,6 @@ class TaskTest < ActiveSupport::TestCase
     assert_includes Task.active, active_task
     assert_includes Task.completed, completed_task
     assert_includes Task.overdue, overdue_task
-    assert_includes Task.prioritized, active_task
   end
 
   test "should auto-activate tasks with assignment or due date" do

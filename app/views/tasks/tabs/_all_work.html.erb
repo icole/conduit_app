@@ -1,4 +1,5 @@
-<%# All work: each workstream and what it covers, or every open task in one list %>
+<%# All work: each workstream and what it covers, every open task in one list,
+    or the recently deleted ones %>
 <% link_data = { turbo_frame: "tasks_content" } %>
 <% link_data[:turbo_action] = "advance" unless hotwire_native_app? %>
 <nav aria-label="Show" class="mb-4">
@@ -14,6 +15,8 @@
 
 <% if @list == "tasks" %>
   <%= render "tasks/tabs/all_tasks" %>
+<% elsif @list == "deleted" %>
+  <%= render "tasks/tabs/deleted" %>
 <% else %>
   <%= render "tasks/tabs/coverage" %>
 <% end %>

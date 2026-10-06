@@ -1,6 +1,6 @@
 class TasksController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_task, only: [ :edit, :update, :destroy, :prioritize, :move_to_backlog, :reorder, :release, :claim, :complete, :reopen ]
+  before_action :set_task, only: [ :edit, :update, :destroy, :release, :claim, :complete, :reopen ]
   before_action :set_discarded_task, only: [ :restore ]
   before_action :set_users, only: [ :index, :new, :edit, :create, :update ]
 
@@ -12,20 +12,19 @@ class TasksController < ApplicationController
   def index
     @task = Task.new
 
-    # The backlog / priority board, reached from My Tasks
+    # The old backlog / priority board's addresses: every open task, or the deleted ones
     if params[:view].present?
-      @tab = "my"
-      load_board
-    else
-      @tab = tab_named(params[:tab]) || remembered_tab || "my"
-      session[:tasks_tab] = @tab if hotwire_native_app?
-      RecurringTask.generate_instances!(Time.current.in_time_zone(current_community.time_zone).to_date)
-      case @tab
-      when "available" then load_available_tab
-      when "all" then load_all_work_tab
-      when "contribution" then load_contribution_tab
-      else load_my_tab
-      end
+      return redirect_to tasks_path(tab: "all", list: params[:view] == "deleted" ? "deleted" : "tasks")
+    end
+
+    @tab = tab_named(params[:tab]) || remembered_tab || "my"
+    session[:tasks_tab] = @tab if hotwire_native_app?
+    RecurringTask.generate_instances!(Time.current.in_time_zone(current_community.time_zone).to_date)
+    case @tab
+    when "available" then load_available_tab
+    when "all" then load_all_work_tab
+    when "contribution" then load_contribution_tab
+    else load_my_tab
     end
   end
 
@@ -140,64 +139,6 @@ class TasksController < ApplicationController
     end
   end
 
-  def prioritize
-    @task.prioritize!
-
-    respond_to do |format|
-      format.html { redirect_to tasks_path, notice: "Task moved to active list." }
-      format.turbo_stream { flash.now[:notice] = "Task moved to active list." }
-    end
-  end
-
-  def move_to_backlog
-    @task.move_to_backlog!
-
-    respond_to do |format|
-      format.html { redirect_to tasks_path, notice: "Task moved to backlog." }
-      format.turbo_stream { flash.now[:notice] = "Task moved to backlog." }
-    end
-  end
-
-  def reorder
-    begin
-      new_order = params[:priority_order].to_i
-
-      if new_order <= 0
-        render json: { success: false, error: "Invalid order" }
-        return
-      end
-
-      # Get all active tasks ordered by priority, excluding current task
-      all_tasks = Task.active.order(:priority_order).to_a
-
-      # Create new ordered list
-      other_tasks = all_tasks.reject { |t| t.id == @task.id }
-
-      # Insert the current task at the new position
-      # Convert to 0-based index and ensure it's within bounds
-      insert_index = [ (new_order - 1), other_tasks.length ].min
-      insert_index = [ insert_index, 0 ].max
-
-      new_task_order = other_tasks.dup
-      new_task_order.insert(insert_index, @task)
-
-      # Update all priorities based on new positions
-      new_task_order.each_with_index do |task, index|
-        new_priority = index + 1
-        if task.priority_order != new_priority
-          task.update_column(:priority_order, new_priority)
-        end
-      end
-
-      @task.reload
-      render json: { success: true, new_order: @task.priority_order }
-    rescue StandardError => e
-      Rails.logger.error "Error in reorder: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-      render json: { success: false, error: e.message }, status: 500
-    end
-  end
-
   private
 
   COMPLETION_REFUSED = "Only the person doing it, or the workstream's owners, can change whether that's done.".freeze
@@ -275,14 +216,19 @@ class TasksController < ApplicationController
     @queue = Task.available_queue(current_user).group_by(&:effective_priority)
   end
 
-  # By workstream (what each area covers), or every open task in one list
+  # By workstream (what each area covers), every open task in one list, or
+  # the recently deleted ones (kept 30 days) to restore
   def load_all_work_tab
-    @list = params[:list] == "tasks" ? "tasks" : "workstreams"
-    return load_coverage_tab if @list == "workstreams"
-
-    @all_tasks = Task.open.joins(:workstream).merge(Workstream.open)
-      .includes(:recurring_task, :assignees, workstream: :owners)
-      .reorder(Arel.sql("tasks.due_date IS NULL, tasks.due_date, tasks.created_at"))
+    @list = %w[tasks deleted].include?(params[:list]) ? params[:list] : "workstreams"
+    case @list
+    when "workstreams" then load_coverage_tab
+    when "deleted" then @deleted_tasks = Task.only_discarded.includes(:workstream).order(discarded_at: :desc)
+    else
+      @all_tasks = Task.open.joins(:workstream).merge(Workstream.open)
+        .includes(:recurring_task, :assignees, workstream: :owners)
+        .reorder(Arel.sql("tasks.due_date IS NULL, tasks.due_date, tasks.created_at"))
+      @deleted_count = Task.only_discarded.count
+    end
   end
 
   def load_coverage_tab
@@ -304,43 +250,6 @@ class TasksController < ApplicationController
     end
     @period = ContributionPeriod.containing([ requested, today ].min, current_community.contribution_period_type)
     @summary = ContributionSummary.new(@period, current_community)
-  end
-
-  def load_board
-    @current_view = params[:view]
-
-    # Build base query with assignment filter
-    base_query = Task.all
-    if params[:assigned_to].present?
-      if params[:assigned_to] == "unassigned"
-        base_query = base_query.where.missing(:task_assignments)
-      else
-        base_query = base_query.assigned_to(params[:assigned_to])
-      end
-    end
-
-    @tasks = case @current_view
-    when "backlog"
-      base_query.backlog
-    when "active"
-      base_query.prioritized
-    when "completed"
-      base_query.completed
-    when "overdue"
-      base_query.overdue
-    when "due_soon"
-      base_query.due_soon
-    when "deleted"
-      Task.only_discarded.order(discarded_at: :desc)
-    else
-      base_query.active
-    end
-
-    # Separate tasks by status for the view (also apply assignment filter)
-    @backlog_tasks = base_query.backlog.limit(10)
-    @active_tasks = base_query.prioritized
-    @completed_tasks = base_query.completed.limit(10)
-    @deleted_count = Task.only_discarded.count
   end
 
   def set_task
@@ -415,12 +324,5 @@ class TasksController < ApplicationController
   # The page the edit came from (e.g. a workstream), if it's on this site.
   def return_to_path
     url_from(params[:return_to]) || tasks_path
-  end
-
-  def reorder_pending_tasks
-    pending_tasks = Task.pending.order(:priority_order)
-    pending_tasks.each_with_index do |task, index|
-      task.update_column(:priority_order, index + 1) if task.priority_order != index + 1
-    end
   end
 end

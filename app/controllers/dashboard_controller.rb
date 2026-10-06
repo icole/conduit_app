@@ -2,8 +2,7 @@ class DashboardController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    @tasks = Task.assigned_to(current_user)
-                 .where(status: "active")
+    @tasks = Task.assigned_to(current_user).open
     @task = Task.new
 
     @calendar_already_shared = begin

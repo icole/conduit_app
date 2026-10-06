@@ -9,6 +9,27 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil assigns(:timeline_items)
   end
 
+  # There's no backlog any more: what's yours and open is what's yours to do
+  test "your open tasks show, whatever their old backlog status, and finished ones don't" do
+    member = users(:two)
+    sign_in_user(uid: member.uid, name: member.name, email: member.email)
+    backlogged = Task.create!(title: "Oil the gate hinges", user: member, workstream: workstreams(:general), status: "backlog")
+    backlogged.assignees << member
+    done = Task.create!(title: "Wash the windows", user: member, workstream: workstreams(:general), status: "completed")
+    done.assignees << member
+
+    get dashboard_index_url
+    assert_includes assigns(:tasks), backlogged
+    assert_not_includes assigns(:tasks), done
+  end
+
+  test "editing a task has no Status menu: done is Mark done, not a setting" do
+    sign_in_user(uid: users(:one).uid, name: users(:one).name, email: users(:one).email)
+    get edit_task_url(tasks(:one))
+
+    assert_select "select[name='task[status]']", count: 0
+  end
+
   test "dashboard timeline includes upcoming meals sorted by date" do
     sign_in_user
     get dashboard_index_url

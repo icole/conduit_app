@@ -1,5 +1,2 @@
 <%= turbo_stream.update "new_task", partial: "tasks/form", locals: { task: Task.new } %>
 <%= turbo_stream.update "flash", partial: "layouts/flash_messages" %>
-<%= turbo_stream.update "status-filters", partial: "tasks/status_filters" %>
-<%= turbo_stream.update "deleted-filter", partial: "tasks/deleted_filter" %>
-<%= turbo_stream.prepend "task-list", partial: "tasks/task_card_mobile", locals: { task: @task, show_move_to_backlog: @task.status == 'active', show_prioritize: @task.status == 'backlog' } %>

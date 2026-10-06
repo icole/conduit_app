@@ -35,18 +35,14 @@
       <%= render "layouts/toasts", ids: false %>
     <% end %>
 
-    <% if @current_view %>
-      <%= render "tasks/board" %>
+    <% if @tab == "available" %>
+      <%= render "tasks/tabs/available" %>
+    <% elsif @tab == "all" %>
+      <%= render "tasks/tabs/all_work" %>
+    <% elsif @tab == "contribution" %>
+      <%= render "tasks/tabs/contribution" %>
     <% else %>
-      <% if @tab == "available" %>
-        <%= render "tasks/tabs/available" %>
-      <% elsif @tab == "all" %>
-        <%= render "tasks/tabs/all_work" %>
-      <% elsif @tab == "contribution" %>
-        <%= render "tasks/tabs/contribution" %>
-      <% else %>
-        <%= render "tasks/tabs/my" %>
-      <% end %>
+      <%= render "tasks/tabs/my" %>
     <% end %>
   <% end %>
 </div>

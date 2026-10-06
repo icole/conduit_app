@@ -32,3 +32,8 @@
     <p class="text-sm text-base-content/65">Nothing open right now.</p>
   <% end %>
 </section>
+
+<% if @deleted_count.positive? %>
+  <%= link_to "Recently deleted (#{@deleted_count})", tasks_path(tab: "all", list: "deleted"),
+        class: "inline-block mt-4 text-sm text-base-content/70 hover:text-base-content", data: { turbo_frame: "tasks_content" } %>
+<% end %>

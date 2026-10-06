@@ -32,52 +32,6 @@ class TasksTest < ApplicationSystemTestCase
     assert_no_text @task.title
   end
 
-  test "viewing tasks index shows all tasks with assignments" do
-    visit tasks_url
-    click_link "All tasks: backlog & priority order"
-
-    # Check backlog tasks
-    click_link "Backlog"
-    assert_text @task.title
-
-    # Check active tasks
-    click_link "Active"
-    assert_text @assigned_task.title
-    assert_text @received_task.title
-
-    # Should see assignment badges for assigned tasks (shows first name only)
-    within "#task_#{@assigned_task.id}" do
-      assert_selector "span", text: @user_two.name.split(" ").first
-    end
-
-    within "#task_#{@received_task.id}" do
-      assert_selector "span", text: @user_one.name.split(" ").first
-    end
-  end
-
-  test "filtering tasks by assignment on tasks index" do
-    # Visit tasks URL, but make sure we see all tasks regardless of status
-    visit tasks_path(view: "active")
-
-    # Ensure the filter dropdown exists (icon button with filter dropdown)
-    assert_selector ".dropdown.dropdown-end"
-
-    # Use direct link to filter by current user instead of dropdown interaction
-    # This avoids issues with dropdown visibility in test environment
-    visit tasks_path(view: "active", assigned_to: @user_one.id)
-
-    # Should see only tasks assigned to current user
-    assert_text @received_task.title
-    assert_no_text @assigned_task.title
-    assert_no_text @task.title
-  end
-
-  test "assignee filter clear control has an accessible label" do
-    visit tasks_path(view: "active", assigned_to: @user_one.id)
-
-    assert_selector "a[aria-label='Clear assignee filter']"
-  end
-
   test "creating a new task with assignment from tasks page" do
     visit tasks_url
 
@@ -126,8 +80,8 @@ class TasksTest < ApplicationSystemTestCase
     # Should be redirected back to the tasks list
     assert_text "Task was successfully updated"
 
-    # It's Mike's now, so it shows on the full board rather than My Tasks
-    visit tasks_path(view: "active")
+    # It's Mike's now, so it shows under All work rather than My Tasks
+    visit tasks_path(tab: "all", list: "tasks")
     assert_selector "#task_#{@task.id}"
 
     # Now verify that the task shows the new assignment (first name only)

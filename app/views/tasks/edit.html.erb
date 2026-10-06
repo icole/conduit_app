@@ -52,11 +52,6 @@
           <%= render "tasks/people_select", name: "task[assignee_ids][]", id: "task_assignee_ids",
                      selected: @task.assignees.to_a, users: @users, label: "Assign to" %>
 
-          <div class="form-control w-full mb-4">
-            <%= form.label :status, class: "label" %>
-            <%= form.select :status, [['Backlog', 'backlog'], ['Active', 'active'], ['Completed', 'completed']], {}, class: "select select-bordered w-full" %>
-          </div>
-
           <div class="flex justify-end gap-2 mt-6">
             <%= link_to "Cancel", @return_to, class: "btn btn-ghost bridge-button:hidden" %>
             <%= form.submit hotwire_native_app? ? "Save" : "Update Task", class: "btn btn-primary bridge-button:w-full bridge-button:h-12 bridge-button:text-base" %>

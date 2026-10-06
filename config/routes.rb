@@ -103,9 +103,6 @@ Rails.application.routes.draw do
   end
   resources :tasks, without: [ :show ] do
     member do
-      patch :prioritize
-      patch :move_to_backlog
-      patch :reorder
       patch :release
       patch :claim
       patch :complete
