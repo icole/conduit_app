@@ -2,33 +2,4 @@
 <%# Coming back after opening one, show what's read and dealt with now %>
 <% turbo_exempts_page_from_cache %>
 
-<div class="max-w-2xl mx-auto space-y-6">
-  <div class="flex items-center justify-between gap-2">
-    <h1 class="text-2xl font-bold native:text-lg native:font-semibold">Notifications</h1>
-    <% if @unread_count.positive? %>
-      <%= button_to "Mark all as read", mark_all_read_notifications_path, method: :post, class: "btn btn-ghost btn-sm" %>
-    <% end %>
-  </div>
-
-  <section id="needs-you">
-    <h2 class="font-semibold mb-2 native:text-sm native:font-medium native:text-base-content/60 native:px-1">Needs you</h2>
-    <% if @needs_you.any? %>
-      <div class="bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200 overflow-hidden">
-        <%= render partial: "notifications/item", collection: @needs_you, as: :notification %>
-      </div>
-    <% else %>
-      <p class="text-sm text-base-content/70 px-1">Nothing waiting on you. Dealt-with reminders clear themselves.</p>
-    <% end %>
-  </section>
-
-  <section id="updates">
-    <h2 class="font-semibold mb-2 native:text-sm native:font-medium native:text-base-content/60 native:px-1">Updates</h2>
-    <% if @updates.any? %>
-      <div class="bg-base-100 rounded-lg border border-base-200 divide-y divide-base-200 overflow-hidden">
-        <%= render partial: "notifications/item", collection: @updates, as: :notification %>
-      </div>
-    <% else %>
-      <p class="text-sm text-base-content/70 px-1">No updates yet.</p>
-    <% end %>
-  </section>
-</div>
+<%= render "notifications/list" %>

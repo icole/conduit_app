@@ -73,6 +73,23 @@ class NotificationBellTest < ActionDispatch::IntegrationTest
 
   # The apps hide the navbar; their top bar shows a native bell instead, fed
   # by this element on every page (the "bell" bridge component)
+  test "in the apps, Notifications itself has no bell: it opens as a sheet over the page" do
+    get notifications_path, headers: { "User-Agent" => "Conduit iOS/2 (Turbo Native) bridge-components: [button menu bell]" }
+
+    assert_select "[data-controller='bridge--bell']", count: 0
+  end
+
+  test "marking all read updates the list in place" do
+    post mark_all_read_notifications_path, headers: { "Accept" => "text/vnd.turbo-stream.html, text/html" }
+
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_select "turbo-stream[action='replace'][target='notifications'] template" do
+      assert_select "#updates", text: /Sam is cooking Friday/
+      assert_select "button", text: "Mark all as read", count: 0
+    end
+    assert @update.reload.read?
+  end
+
   test "in the apps, every page hands the native bell its count" do
     get root_path, headers: { "User-Agent" => "Conduit iOS/2 (Turbo Native) bridge-components: [button menu bell]" }
 

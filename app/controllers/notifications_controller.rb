@@ -2,11 +2,7 @@ class NotificationsController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    InAppNotification.settle_for(current_user)
-    notifications = current_user.in_app_notifications.includes(:notifiable).order(created_at: :desc)
-    @needs_you = notifications.needs_you
-    @updates = notifications.updates.limit(30)
-    @unread_count = current_user.in_app_notifications.unread.count
+    load_list
   end
 
   # Opening one marks it read and goes to what it's about
@@ -35,8 +31,18 @@ class NotificationsController < ApplicationController
 
     respond_to do |format|
       format.html { redirect_to notifications_path, notice: "All notifications marked as read." }
-      format.turbo_stream
+      format.turbo_stream { load_list }
       format.json { head :ok }
     end
+  end
+
+  private
+
+  def load_list
+    InAppNotification.settle_for(current_user)
+    notifications = current_user.in_app_notifications.includes(:notifiable).order(created_at: :desc)
+    @needs_you = notifications.needs_you
+    @updates = notifications.updates.limit(30)
+    @unread_count = current_user.in_app_notifications.unread.count
   end
 end
