@@ -176,6 +176,14 @@ class TaskRemindersJobTest < ActiveJob::TestCase
     assert_equal [ [ "task_due", "Overdue", task ] ], bell(@one)
   end
 
+  test "the due reminder takes over the bell entry for being put on the task" do
+    task = task_due(Date.new(2026, 10, 7))
+    TaskPush.assigned(task, @one, by: users(:two))
+    at_local(7, 8) { TaskRemindersJob.perform_now }
+
+    assert_equal [ [ "task_due", "Due today", task ] ], bell(@one)
+  end
+
   test "people without the app get the bell, not a push" do
     no_phone = users(:two)
     task = task_due(Date.new(2026, 10, 7), people: [ no_phone ])

@@ -59,11 +59,11 @@ class TaskPush
 
   def self.needs_someone(task) = [ "Needs someone", "#{task.title} · due #{task.due_date.strftime('%a %b %-d')}" ]
 
-  # One entry per task and kind: a due task that turns overdue is updated and
-  # shown as unread again, not added twice
+  # One entry per task: a reminder updates the one already waiting (being put
+  # on it, then due, then overdue) and shows it unread again, not adds another
   def self.remember(user, kind, task, title, body, path)
-    notification = user.in_app_notifications.unresolved.find_or_initialize_by(notification_type: kind, notifiable: task)
-    notification.update!(title: title, body: body, action_url: path, read: false, read_at: nil)
+    notification = user.in_app_notifications.needs_you.find_by(notifiable: task) || user.in_app_notifications.new(notifiable: task)
+    notification.update!(notification_type: kind, title: title, body: body, action_url: path, read: false, read_at: nil)
   end
 
   def self.deliver(user, title:, body:, path: MY_TASKS)

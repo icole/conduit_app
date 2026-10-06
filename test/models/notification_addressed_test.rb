@@ -76,6 +76,16 @@ class NotificationAddressedTest < ActiveSupport::TestCase
     assert settled(reminder).resolved_at
   end
 
+  test "a task with two reminders (you're on it, it's due) counts once, showing the newer" do
+    @task.assignees << @member
+    notify("task_assigned", @task)
+    travel(1.minute) { notify("task_due", @task) }
+
+    InAppNotification.settle_for(@member)
+    assert_equal [ "task_due" ], @member.in_app_notifications.needs_you.map(&:notification_type)
+    assert_equal 1, @member.in_app_notifications.needs_you.count
+  end
+
   test "the bell counts what still needs you, not every unread update" do
     notify("rsvp_deadline", @meal)
     @task.assignees << @member

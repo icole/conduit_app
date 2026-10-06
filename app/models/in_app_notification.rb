@@ -14,7 +14,9 @@ class InAppNotification < ApplicationRecord
   scope :for_meals, -> { where(notification_type: %w[meal_reminder rsvp_deadline cook_assigned rsvps_closed]) }
   # Not yet dealt with (CON-72); see NotificationKind
   scope :unresolved, -> { where(resolved_at: nil) }
-  scope :needs_you, -> { unresolved.where(notification_type: NotificationKind.needing_you) }
+  # Once per meal or task: the newest of its reminders ("Due today" over
+  # "You're on a task"), so the bell counts things, not notifications
+  scope :needs_you, -> { unresolved.where(notification_type: NotificationKind.needing_you).newest_per_subject }
   scope :updates, -> { where(notification_type: NotificationKind.updates) }
 
   # Marks as resolved whatever has been dealt with since. Run before showing
@@ -23,6 +25,11 @@ class InAppNotification < ApplicationRecord
     user.in_app_notifications.unresolved.includes(:notifiable).find_each do |notification|
       notification.update_columns(resolved_at: Time.current) if notification.addressed?
     end
+  end
+
+  def self.newest_per_subject
+    where(id: select("DISTINCT ON (notifiable_type, notifiable_id) in_app_notifications.id")
+                .reorder(:notifiable_type, :notifiable_id, created_at: :desc, id: :desc))
   end
 
   def kind = NotificationKind.fetch(notification_type)
