@@ -21,6 +21,11 @@ struct PathConfigurationTests {
         #expect(configuration.properties(for: "/documents/7/edit?return_to=%2Fdocuments").context == .default)
     }
 
+    @Test func notificationsOpenAsASheetSoTheyCloseWhenYouLeave() {
+        #expect(configuration.properties(for: "/notifications").context == .modal)
+        #expect(configuration.properties(for: "/notifications/5").context == .default)
+    }
+
     @Test func savingASheetFormRefreshesTheScreenBeneath() {
         #expect(configuration.properties(for: "/refresh_historical_location").presentation == .refresh)
     }

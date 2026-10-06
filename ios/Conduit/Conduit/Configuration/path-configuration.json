@@ -17,6 +17,13 @@
       }
     },
     {
+      "patterns": ["/notifications(\\?.*)?$"],
+      "properties": {
+        "context": "modal",
+        "pull_to_refresh_enabled": false
+      }
+    },
+    {
       "patterns": ["/documents/[^/]+/edit(\\?.*)?$"],
       "properties": {
         "context": "default",

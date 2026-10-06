@@ -136,3 +136,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
+// PathConfigurationTest reads the path rules from assets; rerun it when they change
+tasks.withType(Test).configureEach {
+    inputs.dir("src/main/assets/json")
+}

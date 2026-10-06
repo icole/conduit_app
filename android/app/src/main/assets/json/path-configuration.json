@@ -25,6 +25,13 @@
       }
     },
     {
+      "patterns": ["/notifications(\\?.*)?$"],
+      "properties": {
+        "uri": "hotwire://fragment/web_modal",
+        "context": "modal"
+      }
+    },
+    {
       "patterns": ["/documents/[^/]+/edit$"],
       "properties": {
         "uri": "hotwire://fragment/web",
