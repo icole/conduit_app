@@ -24,6 +24,13 @@
       }
     },
     {
+      "patterns": ["/meals/[^/]+/(reschedule|cook|rsvp)(\\?.*)?$", "/dues/settings(\\?.*)?$", "/account/delete(\\?.*)?$"],
+      "properties": {
+        "context": "modal",
+        "pull_to_refresh_enabled": false
+      }
+    },
+    {
       "patterns": ["/documents/[^/]+/edit(\\?.*)?$"],
       "properties": {
         "context": "default",

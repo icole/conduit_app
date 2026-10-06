@@ -32,10 +32,18 @@
       }
     },
     {
+      "patterns": ["/meals/[^/]+/(reschedule|cook|rsvp)(\\?.*)?$", "/dues/settings(\\?.*)?$", "/account/delete(\\?.*)?$"],
+      "properties": {
+        "uri": "hotwire://fragment/web_modal",
+        "context": "modal"
+      }
+    },
+    {
       "patterns": ["/documents/[^/]+/edit$"],
       "properties": {
         "uri": "hotwire://fragment/web",
-        "pull_to_refresh_enabled": false
+        "pull_to_refresh_enabled": false,
+        "context": "default"
       }
     }
   ]

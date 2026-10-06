@@ -63,8 +63,11 @@ class DuesTest < ApplicationSystemTestCase
     fill_in "Monthly Dues Amount", with: "350.00"
     click_on "Save Settings"
 
+    # Saving closes the settings (a sheet in the apps) and returns to dues
     assert_text "Dues settings updated successfully"
-    # Verify the value was saved by checking the input field
+    assert_current_path dues_path
+
+    click_on "Settings"
     assert_selector "input[name='community[monthly_dues_amount]'][value='350.0']"
   end
 

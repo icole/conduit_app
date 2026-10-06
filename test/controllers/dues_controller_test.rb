@@ -87,7 +87,7 @@ class DuesControllerTest < ActionDispatch::IntegrationTest
   test "should update settings when admin" do
     sign_in_as(@admin_user)
     patch settings_dues_url, params: { community: { monthly_dues_amount: 250.00 } }
-    assert_redirected_to settings_dues_path
+    assert_redirected_to dues_path
     assert_equal "Dues settings updated successfully.", flash[:notice]
 
     communities(:crow_woods).reload
