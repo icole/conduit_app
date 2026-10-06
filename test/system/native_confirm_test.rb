@@ -44,6 +44,33 @@ class NativeConfirmTest < ApplicationSystemTestCase
     assert_not recurring_tasks(:pantry_restock).reload.discarded?
   end
 
+  # On iOS 26 the app's tab bar floats over the bottom of the page, so a sheet
+  # pinned to the bottom edge was hidden behind it
+  test "the in-page dialog sits clear of the bottom edge, where the tab bar floats" do
+    sign_in_as(users(:admin_user))
+    visit workstream_url(workstreams(:common_house))
+    behave_like_ios_web_view
+
+    within("#recurring_task_#{recurring_tasks(:pantry_restock).id}") { click_button "Remove" }
+    assert_selector "dialog[open]"
+    gap = page.evaluate_script("innerHeight - document.querySelector('dialog[open] .modal-box').getBoundingClientRect().bottom")
+
+    assert_operator gap, :>, 150
+  end
+
+  test "what happened shows at the top in the app, clear of the floating tab bar" do
+    sign_in_as(users(:one))
+    visit tasks_url
+    behave_like_ios_web_view
+
+    within("#my-work") { click_button "Can't do it →" }
+    within("dialog[open]") { click_button "OK" }
+    assert_text "Released to the queue"
+    top = page.evaluate_script("document.querySelector('[data-toast]').getBoundingClientRect().top")
+
+    assert_operator top, :<, 150
+  end
+
   test "Can't do it releases the task from the app" do
     sign_in_as(users(:one))
     visit tasks_url

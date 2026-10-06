@@ -9,7 +9,9 @@ const inNativeApp = /(Turbo|Hotwire) Native/.test(navigator.userAgent)
 function confirmInPage(message) {
   return new Promise((resolve) => {
     const dialog = document.createElement("dialog")
-    dialog.className = "modal modal-bottom sm:modal-middle"
+    // Centred, like an iOS alert: on iOS 26 the tab bar floats over the
+    // bottom of the page and hid a bottom sheet
+    dialog.className = "modal modal-middle"
     dialog.innerHTML = `
       <div class="modal-box">
         <p class="text-base" data-message></p>
