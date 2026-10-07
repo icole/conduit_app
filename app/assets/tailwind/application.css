@@ -128,16 +128,10 @@ html[data-bridge-platform] {
 html[data-bridge-platform] body {
   background-color: var(--color-paper);
 }
-/* Cards and bordered panels read as raised surfaces, not outlined boxes; an
-   accent edge (border-l-4) stays */
+/* Cards and bordered panels: rounder, with the hairline edge and a faint lift */
 html[data-bridge-platform] :is(.card, .rounded-lg.border.bg-base-100):not(.native-flat, .native-plain) {
-  border-block-color: transparent;
-  border-right-color: transparent;
   border-radius: 1rem;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
-}
-html[data-bridge-platform] :is(.card, .rounded-lg.border.bg-base-100):not(.border-l-4) {
-  border-left-color: transparent;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
 }
 /* native-plain: a bordered box that isn't a surface (e.g. a segmented
    control's track), so the rule above leaves it alone.

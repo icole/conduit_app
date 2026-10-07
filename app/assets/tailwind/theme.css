@@ -65,7 +65,7 @@
   -webkit-font-smoothing: antialiased;
 }
 
-[data-theme="conduit"] :is(h1, h2, h3, .card-title, .font-display) {
+[data-theme] :is(h1, h2, h3, .card-title, .font-display) {
   font-family: var(--font-display);
   font-optical-sizing: auto;
   font-weight: 560;
@@ -75,7 +75,7 @@
 [data-theme="conduit"] p { text-wrap: pretty; }
 
 /* On the linen page the light greys vanish as lines; draw them as hairlines */
-[data-theme="conduit"] :is(.border-base-200, .border-base-300) { border-color: var(--hairline); }
+[data-theme] :is(.border-base-200, .border-base-300) { border-color: var(--hairline); }
 
 /* The stock Tailwind blues, yellows and greys a few views and the document
    editor still name (text-blue-600, bg-gray-100) would be the only bright or

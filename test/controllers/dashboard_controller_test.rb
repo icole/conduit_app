@@ -27,6 +27,15 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-testid='week-summary']", text: /3 meals this week\s*·\s*2 still need a cook/
   end
 
+  test "the apps' Home is the almanac too: greeting, the week's meals, and dates by day" do
+    sign_in_user
+    get dashboard_index_url, headers: { "User-Agent" => "Conduit iOS/2 (Turbo Native)" }
+
+    assert_select "h1", text: /\AGood (morning|afternoon|evening), /
+    assert_select "[data-testid='week-summary']"
+    assert_select "#coming-up", text: "Coming up"
+  end
+
   # There's no backlog any more: what's yours and open is what's yours to do
   test "your open tasks show, whatever their old backlog status, and finished ones don't" do
     member = users(:two)

@@ -1,14 +1,14 @@
 <%= turbo_frame_tag "dashboard-documents" do %>
 <section>
-  <div class="flex items-end justify-between pb-3 mb-4 border-b border-base-content/80 native:items-center native:pb-0 native:mb-2 native:px-1 native:border-0">
-    <h3 class="text-2xl flex items-center gap-2 native:text-sm native:font-medium native:text-base-content/60">
+  <div class="flex items-end justify-between pb-3 mb-4 border-b border-base-content/80">
+    <h3 class="text-2xl flex items-center gap-2">
       <svg xmlns="http://www.w3.org/2000/svg" class="hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
       Documents
     </h3>
     <%= link_to documents_path, class: "text-sm text-primary-ink font-medium hover:underline underline-offset-4", data: { turbo_frame: "_top" } do %>
-      <%= hotwire_native_app? ? "View all" : "All docs" %> →
+      All docs →
     <% end %>
   </div>
 

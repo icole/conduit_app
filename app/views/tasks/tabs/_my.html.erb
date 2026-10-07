@@ -4,7 +4,7 @@
 <% if @completed_tasks.any? %>
   <section id="recently-completed" class="mb-4">
     <details>
-      <summary class="font-semibold mb-2 cursor-pointer native:text-sm native:font-medium native:text-base-content/60 native:px-1">Recently completed <span class="text-base-content/65 text-sm font-normal ml-1"><%= @completed_tasks.size %></span></summary>
+      <summary class="font-semibold mb-2 cursor-pointer native:px-1">Recently completed <span class="text-base-content/65 text-sm font-normal ml-1"><%= @completed_tasks.size %></span></summary>
       <div class="<%= task_list_classes %>">
         <% @completed_tasks.each do |task| %>
           <%= render "tasks/completed_row", task: task, return_to: tasks_path(tab: "my") %>
@@ -15,7 +15,7 @@
 <% end %>
 
 <section id="my-work" class="mb-6">
-  <h2 class="font-semibold mb-2 native:text-sm native:font-medium native:text-base-content/60 native:px-1">Your tasks <span class="text-base-content/65 text-sm font-normal ml-1"><%= @my_tasks.size %></span></h2>
+  <h2 class="font-semibold mb-2 native:px-1">Your tasks <span class="text-base-content/65 text-sm font-normal ml-1"><%= @my_tasks.size %></span></h2>
   <div class="<%= task_list_classes %>">
     <% @my_tasks.each do |task| %>
       <%= render "tasks/work_card", task: task, action: (task.recurring? ? :release : nil), return_tab: "my" %>

@@ -1,69 +1,65 @@
 <%# The apps call this tab Home %>
 <% content_for :title, hotwire_native_app? ? "Home" : "Dashboard" %>
 
-<% if hotwire_native_app? %>
-  <%= render "dashboard/native" %>
-<% else %>
-  <section class="max-w-6xl mx-auto mb-10 lg:mb-14">
-    <p class="eyebrow text-base-content/70 rise"><%= Date.current.strftime("%A, %B %-d") %></p>
-    <h1 class="mt-2 text-[clamp(2.5rem,6vw+0.5rem,4.75rem)] leading-[0.95] tracking-[-0.035em] rise" style="--i: 1"><%= greeting_for(current_user) %></h1>
-    <p data-testid="week-summary" class="mt-4 text-lg sm:text-xl text-base-content/75 rise" style="--i: 2"><%= week_summary(@timeline_items) %></p>
+<section class="max-w-6xl mx-auto mb-10 lg:mb-14">
+  <p class="eyebrow text-base-content/70 rise"><%= Date.current.strftime("%A, %B %-d") %></p>
+  <h1 class="mt-2 text-[clamp(2.5rem,6vw+0.5rem,4.75rem)] leading-[0.95] tracking-[-0.035em] rise" style="--i: 1"><%= greeting_for(current_user) %></h1>
+  <p data-testid="week-summary" class="mt-4 text-lg sm:text-xl text-base-content/75 rise" style="--i: 2"><%= week_summary(@timeline_items) %></p>
+</section>
+
+<div class="max-w-6xl mx-auto grid lg:grid-cols-12 gap-x-14 gap-y-12">
+  <section class="lg:col-span-8 min-w-0" aria-labelledby="coming-up">
+    <div class="flex items-end justify-between gap-4 pb-3 border-b border-base-content/80">
+      <h2 id="coming-up" class="text-2xl sm:text-3xl">Coming up</h2>
+      <div class="flex items-center gap-3 text-sm">
+        <span class="native:hidden"><%= render "shared/calendar_subscribe_button", button_class: "btn btn-ghost btn-sm", disabled_class: "btn btn-ghost btn-sm btn-disabled opacity-50" %></span>
+        <%= link_to "Full calendar →", calendar_index_path, class: "font-medium text-primary-ink hover:underline underline-offset-4" %>
+      </div>
+    </div>
+
+    <% if @timeline_items.any? %>
+      <ol>
+        <% @timeline_items.group_by { |item| item[:start_time].to_date }.each_with_index do |(date, items), index| %>
+          <li class="grid grid-cols-[3.75rem_1fr] sm:grid-cols-[5.5rem_1fr] gap-x-4 py-5 border-b border-[var(--hairline)] rise" style="--i: <%= index + 3 %>">
+            <div class="leading-none <%= 'text-secondary-ink' if date == Date.current %>">
+              <div class="eyebrow text-[0.6875rem] text-base-content/70">
+                <%= date == Date.current ? "Today" : (date == Date.current + 1 ? "Tmrw" : date.strftime("%a")) %>
+              </div>
+              <div class="font-display text-[2.75rem] sm:text-5xl tracking-[-0.04em] mt-1"><%= date.day %></div>
+              <div class="text-sm text-base-content/70 mt-0.5"><%= date.strftime("%B") %></div>
+            </div>
+            <div class="space-y-1 min-w-0">
+              <% items.each do |item| %>
+                <% if item[:type] == :meal %>
+                  <%= render "dashboard/meal_row", meal: item[:meal] %>
+                <% else %>
+                  <%= render "dashboard/event_row", event: item[:event] %>
+                <% end %>
+              <% end %>
+            </div>
+          </li>
+        <% end %>
+      </ol>
+    <% else %>
+      <p class="py-16 text-center text-base-content/70">Nothing on the calendar yet. A quiet stretch.</p>
+    <% end %>
   </section>
 
-  <div class="max-w-6xl mx-auto grid lg:grid-cols-12 gap-x-14 gap-y-12">
-    <section class="lg:col-span-8 min-w-0" aria-labelledby="coming-up">
-      <div class="flex items-end justify-between gap-4 pb-3 border-b border-base-content/80">
-        <h2 id="coming-up" class="text-2xl sm:text-3xl">Coming up</h2>
-        <div class="flex items-center gap-3 text-sm">
-          <%= render "shared/calendar_subscribe_button", button_class: "btn btn-ghost btn-sm", disabled_class: "btn btn-ghost btn-sm btn-disabled opacity-50" %>
-          <%= link_to "Full calendar →", calendar_index_path, class: "font-medium text-primary-ink hover:underline underline-offset-4" %>
-        </div>
+  <aside class="lg:col-span-4 space-y-12 min-w-0">
+    <section aria-labelledby="your-tasks">
+      <div class="flex items-end justify-between gap-4 pb-3 mb-4 border-b border-base-content/80">
+        <h2 id="your-tasks" class="text-2xl">Your tasks</h2>
+        <%= link_to "All tasks →", tasks_path, class: "text-sm font-medium text-primary-ink hover:underline underline-offset-4" %>
       </div>
-
-      <% if @timeline_items.any? %>
-        <ol>
-          <% @timeline_items.group_by { |item| item[:start_time].to_date }.each_with_index do |(date, items), index| %>
-            <li class="grid grid-cols-[3.75rem_1fr] sm:grid-cols-[5.5rem_1fr] gap-x-4 py-5 border-b border-[var(--hairline)] rise" style="--i: <%= index + 3 %>">
-              <div class="leading-none <%= 'text-secondary-ink' if date == Date.current %>">
-                <div class="eyebrow text-[0.6875rem] text-base-content/70">
-                  <%= date == Date.current ? "Today" : (date == Date.current + 1 ? "Tmrw" : date.strftime("%a")) %>
-                </div>
-                <div class="font-display text-[2.75rem] sm:text-5xl tracking-[-0.04em] mt-1"><%= date.day %></div>
-                <div class="text-sm text-base-content/70 mt-0.5"><%= date.strftime("%B") %></div>
-              </div>
-              <div class="space-y-1 min-w-0">
-                <% items.each do |item| %>
-                  <% if item[:type] == :meal %>
-                    <%= render "dashboard/meal_row", meal: item[:meal] %>
-                  <% else %>
-                    <%= render "dashboard/event_row", event: item[:event] %>
-                  <% end %>
-                <% end %>
-              </div>
-            </li>
-          <% end %>
-        </ol>
-      <% else %>
-        <p class="py-16 text-center text-base-content/70">Nothing on the calendar yet. A quiet stretch.</p>
-      <% end %>
+      <%= render "dashboard/tasks_section" %>
     </section>
 
-    <aside class="lg:col-span-4 space-y-12 min-w-0">
-      <section aria-labelledby="your-tasks">
-        <div class="flex items-end justify-between gap-4 pb-3 mb-4 border-b border-base-content/80">
-          <h2 id="your-tasks" class="text-2xl">Your tasks</h2>
-          <%= link_to "All tasks →", tasks_path, class: "text-sm font-medium text-primary-ink hover:underline underline-offset-4" %>
-        </div>
-        <%= render "dashboard/tasks_section" %>
-      </section>
-
-      <%= turbo_frame_tag "dashboard-documents", src: documents_section_dashboard_index_path, loading: :lazy, class: "block" do %>
-        <div class="flex items-end justify-between pb-3 mb-4 border-b border-base-content/80">
-          <h3 class="text-2xl">Documents</h3>
-          <%= link_to "All docs →", documents_path, class: "text-sm font-medium text-primary-ink hover:underline underline-offset-4", data: { turbo_frame: "_top" } %>
-        </div>
-        <div class="flex justify-center py-6"><span class="loading loading-dots loading-md text-base-content/40"></span></div>
-      <% end %>
-    </aside>
-  </div>
-<% end %>
+    <%= turbo_frame_tag "dashboard-documents", src: documents_section_dashboard_index_path, loading: :lazy, class: "block" do %>
+      <div class="flex items-end justify-between pb-3 mb-4 border-b border-base-content/80">
+        <h3 class="text-2xl">Documents</h3>
+        <%= link_to "All docs →", documents_path, class: "text-sm font-medium text-primary-ink hover:underline underline-offset-4", data: { turbo_frame: "_top" } %>
+      </div>
+      <div class="flex justify-center py-6"><span class="loading loading-dots loading-md text-base-content/40"></span></div>
+    <% end %>
+  </aside>
+</div>
