@@ -4,6 +4,7 @@ import android.app.Application
 import android.graphics.Color
 import android.util.Log
 import android.webkit.CookieManager
+import androidx.appcompat.app.AppCompatDelegate
 import com.colecoding.conduit.fragments.WebFragment
 import com.colecoding.conduit.fragments.WebModalFragment
 import com.colecoding.conduit.routing.NotificationTabRouteDecisionHandler
@@ -45,6 +46,11 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        // Light, whatever the phone is set to: the website has no dark mode, and
+        // chat's colours are the website's. In dark mode Stream's own night
+        // backgrounds came back under our dark text (LightModeTest)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         // Configure Hotwire Native
         configureHotwire()
