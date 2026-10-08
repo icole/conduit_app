@@ -10,6 +10,18 @@ enum Palette {
     static let paper = UIColor(hex: 0xF8F4EC)
     static let ink = UIColor(hex: 0x160D08)
 
+    // Chat's colours, the same as Android's (Palette.kt)
+    /// Cards and other people's messages on the paper
+    static let surface = UIColor(hex: 0xFEFDFA)
+    /// Secondary text, at the website's 70% ink
+    static let muted = UIColor(hex: 0x6A635D)
+    static let line = UIColor(hex: 0xE9E2D7)
+    /// Your own messages
+    static let greenTint = UIColor(hex: 0xDCE3DB)
+    static let greenWash = UIColor(hex: 0xECEFE9)
+    /// Search fields and quoted messages
+    static let shade = UIColor(hex: 0xF4F0E8)
+
     /// A solid bar for web screens. The website has no dark mode, so neither does its bar.
     static let webBar: UINavigationBarAppearance = {
         let appearance = UINavigationBarAppearance()

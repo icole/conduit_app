@@ -619,6 +619,26 @@ class StreamChatViewController: UIViewController {
             // Create channel list controller
             let channelList = client.channelListController(query: query)
 
+            // Chat in the website's colours, as on Android: paper behind it all,
+            // your messages a soft green, everyone else's on the warm surface
+            var colors = Appearance.default.colorPalette
+            colors.background = Palette.paper
+            colors.background1 = Palette.shade
+            colors.background6 = Palette.greenTint
+            colors.background8 = Palette.surface
+            colors.popoverBackground = Palette.surface
+            colors.text = Palette.ink
+            colors.textLowEmphasis = Palette.muted
+            colors.subtitleText = Palette.muted
+            colors.textLinkColor = Palette.green
+            colors.accentPrimary = Palette.green
+            colors.highlightedAccentBackground = Palette.green
+            colors.highlightedAccentBackground1 = Palette.greenWash
+            colors.highlightedBackground = Palette.line
+            colors.border = Palette.line
+            colors.border3 = Palette.line
+            Appearance.default.colorPalette = colors
+
             // Customize appearance - assign the types, not instances
             Components.default.channelListRouter = ConduitChannelListRouter.self
             // Search across every chat the user is in; results open at the message

@@ -17,6 +17,21 @@ class NativePaletteTest < ActiveSupport::TestCase
     end
   end
 
+  # Chat is drawn by Stream's SDK on each platform; both get the same colours
+  %w[surface muted line greenTint].each do |name|
+    test "iOS and Android chat share the #{name} colour" do
+      android = ANDROID.read[/val #{name} = 0xFF(\h{6})/, 1]
+      assert android, "Palette.kt has no #{name}"
+      assert_match(/#{name}\s*=\s*UIColor\(hex: 0x#{android}\)/, IOS.read, "Palette.swift #{name} should be ##{android}")
+    end
+  end
+
+  # The palette is light only, as the website is: in dark mode Stream's own
+  # night colours would come back under ours (on Android, black names on black)
+  test "the iOS app stays in light mode whatever the phone is set to" do
+    assert_includes Rails.root.join("ios/Conduit/Conduit/App/SceneDelegate.swift").read, "window.overrideUserInterfaceStyle = .light"
+  end
+
   private
 
   def oklch_hex(token)

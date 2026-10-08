@@ -14,6 +14,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // (alert buttons, plain buttons), green like the website's.
         let window = UIWindow(windowScene: windowScene)
         window.tintColor = Palette.green
+        // Light, whatever the phone is set to: the website and chat's colours
+        // have no dark mode, and Stream's dark colours would mix with ours
+        window.overrideUserInterfaceStyle = .light
         self.window = window
 
         // Notification taps switch to Chat. Registered once here, not on every
