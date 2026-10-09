@@ -53,6 +53,28 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes assigns(:tasks), done
   end
 
+  # Your tasks read like Coming up: open rows with a label and a serif title
+  # that opens the task, not a boxed list with edit and delete icons
+  [ [ "website", {} ], [ "apps", { "User-Agent" => "Conduit iOS/2 (Turbo Native)" } ] ].each do |where, headers|
+    test "on the #{where}, your tasks are set like Coming up" do
+      member = users(:two)
+      sign_in_user(uid: member.uid, name: member.name, email: member.email)
+      task = Task.create!(title: "Oil the gate hinges", user: member, workstream: workstreams(:general), due_date: Date.current + 2)
+      task.assignees << member
+
+      get dashboard_index_url, headers: headers
+
+      assert_select "section[aria-labelledby='your-tasks'] ol > li", text: /Oil the gate hinges/ do
+        assert_select ".eyebrow", text: /General/
+        assert_select ".font-display", text: "Oil the gate hinges"
+        assert_select "button[aria-label='Mark “Oil the gate hinges” done']"
+        assert_select "a[href='#{edit_task_path(task)}']", count: 1
+      end
+      assert_select "section[aria-labelledby='your-tasks'] [data-turbo-method='delete'], section[aria-labelledby='your-tasks'] form[action='#{task_path(task)}']", count: 0
+      assert_select "section[aria-labelledby='your-tasks'] .rounded-lg.border", count: 0
+    end
+  end
+
   test "editing a task has no Status menu: done is Mark done, not a setting" do
     sign_in_user(uid: users(:one).uid, name: users(:one).name, email: users(:one).email)
     get edit_task_url(tasks(:one))
@@ -143,6 +165,11 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert assigns(:drive_files).length == 2
     assert_select "turbo-frame#dashboard-documents"
+    # Set like Coming up: open rows with serif names, not a box
+    assert_select "turbo-frame#dashboard-documents ol > li a[href='https://drive.google.com/f1']" do
+      assert_select ".font-display", text: "Meeting Notes"
+    end
+    assert_select "turbo-frame#dashboard-documents .rounded-lg.border", count: 0
     mock_service.verify
   end
 

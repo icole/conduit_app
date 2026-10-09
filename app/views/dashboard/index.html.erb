@@ -46,7 +46,7 @@
 
   <aside class="lg:col-span-4 space-y-12 min-w-0">
     <section aria-labelledby="your-tasks">
-      <div class="flex items-end justify-between gap-4 pb-3 mb-4 border-b border-base-content/80">
+      <div class="flex items-end justify-between gap-4 pb-3 border-b border-base-content/80">
         <h2 id="your-tasks" class="text-2xl">Your tasks</h2>
         <%= link_to "All tasks →", tasks_path, class: "text-sm font-medium text-primary-ink hover:underline underline-offset-4" %>
       </div>
@@ -54,7 +54,7 @@
     </section>
 
     <%= turbo_frame_tag "dashboard-documents", src: documents_section_dashboard_index_path, loading: :lazy, class: "block" do %>
-      <div class="flex items-end justify-between pb-3 mb-4 border-b border-base-content/80">
+      <div class="flex items-end justify-between pb-3 border-b border-base-content/80">
         <h3 class="text-2xl">Documents</h3>
         <%= link_to "All docs →", documents_path, class: "text-sm font-medium text-primary-ink hover:underline underline-offset-4", data: { turbo_frame: "_top" } %>
       </div>

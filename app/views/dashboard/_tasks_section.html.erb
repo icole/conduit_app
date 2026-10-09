@@ -1,16 +1,7 @@
-<%# In the apps: the same rows as My Tasks %>
-<div class="<%= hotwire_native_app? ? task_list_classes : 'bg-base-100 rounded-lg border border-base-200 overflow-hidden' %>">
-  <% if @tasks.any? %>
-    <% @tasks.limit(5).each do |task| %>
-      <% if hotwire_native_app? %>
-        <%= render "tasks/work_card", task: task, action: nil, return_tab: "my", return_to: root_path %>
-      <% else %>
-        <%= render "tasks/task", task: task %>
-      <% end %>
-    <% end %>
-  <% else %>
-    <div class="text-center py-6 text-base-content/65">
-      <p class="text-sm">No active tasks</p>
-    </div>
-  <% end %>
-</div>
+<% if @tasks.any? %>
+  <ol>
+    <%= render partial: "dashboard/task_row", collection: @tasks.limit(5), as: :task %>
+  </ol>
+<% else %>
+  <p class="py-6 text-base-content/65">Nothing on your list.</p>
+<% end %>

@@ -1,0 +1,13 @@
+<%# One of your tasks on Home, set like the meals in Coming up %>
+<li class="flex items-start gap-3 py-4 border-b border-[var(--hairline)]">
+  <%= button_to complete_task_path(task, return_to: root_path), method: :patch, form_class: "flex pt-1",
+        class: "group p-2.5 -m-2.5", title: "Mark done", aria: { label: "Mark “#{task.title}” done" } do %>
+    <span class="block w-6 h-6 border-2 border-base-300 rounded-full group-hover:border-primary transition-colors"></span>
+  <% end %>
+  <%= link_to edit_task_path(task), class: "group min-w-0 flex-1", data: { turbo_frame: "_top" } do %>
+    <p class="eyebrow text-[0.6875rem] text-secondary-ink">
+      <%= task.workstream.name %><% if task.due_date %> · <span class="<%= 'text-error-ink' if task.overdue? %>"><%= due_label(task.due_date) %></span><% end %>
+    </p>
+    <p class="font-display text-lg sm:text-xl leading-tight mt-0.5 group-hover:underline underline-offset-4 decoration-1"><%= task.title %></p>
+  <% end %>
+</li>
