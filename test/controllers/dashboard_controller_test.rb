@@ -53,7 +53,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes assigns(:tasks), done
   end
 
-  # Your tasks read like Coming up: open rows with a label and a serif title
+  # Your tasks read like Coming up: open rows with a label and a display-type title
   # that opens the task, not a boxed list with edit and delete icons
   [ [ "website", {} ], [ "apps", { "User-Agent" => "Conduit iOS/2 (Turbo Native)" } ] ].each do |where, headers|
     test "on the #{where}, your tasks are set like Coming up" do
@@ -165,7 +165,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert assigns(:drive_files).length == 2
     assert_select "turbo-frame#dashboard-documents"
-    # Set like Coming up: open rows with serif names, not a box
+    # Set like Coming up: open rows with display-type names, not a box
     assert_select "turbo-frame#dashboard-documents ol > li a[href='https://drive.google.com/f1']" do
       assert_select ".font-display", text: "Meeting Notes"
     end

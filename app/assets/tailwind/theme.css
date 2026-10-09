@@ -1,10 +1,10 @@
 /* Colours, radii and type. One palette, a community almanac: warm paper, ink,
    forest green for actions, terracotta for meals. The website wears it as
-   "conduit", with serif headings; the apps as "conduit-app", in their system
-   font and shapes (application.css). Each colour gives Tailwind its utilities
-   (bg-primary, text-base-content/70, ...). The apps' native palettes
-   (Palette.kt, Palette.swift) name paper, ink and green in hex; a test keeps
-   them equal to these. */
+   "conduit"; the apps as "conduit-app", in their system font and shapes
+   (application.css). Headings in both are Bricolage Grotesque. Each colour
+   gives Tailwind its utilities (bg-primary, text-base-content/70, ...). The
+   apps' native palettes (Palette.kt, Palette.swift) name paper, ink and green
+   in hex; a test keeps them equal to these. */
 
 @theme {
   --color-base-100: oklch(99.3% 0.004 85);
@@ -43,7 +43,7 @@
   --radius-selector: 2rem;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-display: "Bricolage Grotesque", "Inter", ui-sans-serif, system-ui, sans-serif;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 

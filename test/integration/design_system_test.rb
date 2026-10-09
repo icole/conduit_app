@@ -23,6 +23,19 @@ class DesignSystemTest < ActionDispatch::IntegrationTest
     assert_no_match(/cupcake/, css)
   end
 
+  # Headings are Bricolage Grotesque, a sans like the body text, so moving from
+  # a heading to the rows under it doesn't switch typeface families
+  test "headings are set in Bricolage Grotesque, and pages load it" do
+    get login_path
+    fonts = css_select("link[href^='https://fonts.googleapis.com']").map { |link| link["href"] }.join
+    assert_includes fonts, "family=Bricolage+Grotesque"
+    assert_not_includes fonts, "Fraunces"
+
+    css = stylesheet_for(login_path)
+    assert_match(/--font-display:\s*"Bricolage Grotesque"/, css)
+    assert_no_match(/Fraunces/, css)
+  end
+
   private
 
   def stylesheet_for(path)
