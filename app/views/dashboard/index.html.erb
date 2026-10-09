@@ -2,9 +2,8 @@
 <% content_for :title, hotwire_native_app? ? "Home" : "Dashboard" %>
 
 <section class="max-w-6xl mx-auto mb-10 lg:mb-14">
-  <p class="eyebrow text-base-content/70 rise"><%= Date.current.strftime("%A, %B %-d") %></p>
-  <h1 class="mt-2 text-[clamp(2.5rem,6vw+0.5rem,4.75rem)] leading-[0.95] tracking-[-0.035em] rise" style="--i: 1"><%= greeting_for(current_user) %></h1>
-  <p data-testid="week-summary" class="mt-4 text-lg sm:text-xl text-base-content/75 rise" style="--i: 2"><%= week_summary(@timeline_items) %></p>
+  <h1 class="text-[clamp(2.5rem,6vw+0.5rem,4.75rem)] leading-[0.95] tracking-[-0.035em] rise"><%= Date.current.strftime("%A,") %> <span class="block"><%= Date.current.strftime("%B %-d") %>.</span></h1>
+  <p data-testid="week-summary" class="mt-4 text-lg sm:text-xl text-base-content/75 rise" style="--i: 1"><%= week_summary(@timeline_items) %></p>
 </section>
 
 <div class="max-w-6xl mx-auto grid lg:grid-cols-12 gap-x-14 gap-y-12">

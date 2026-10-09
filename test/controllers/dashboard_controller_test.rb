@@ -9,7 +9,8 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil assigns(:timeline_items)
   end
 
-  test "the dashboard greets you by first name for the time of day" do
+  # The headline is the day, like an almanac page, not a greeting by name
+  test "the dashboard's headline is today's date" do
     member = users(:two)
     sign_in_user(uid: member.uid, name: member.name, email: member.email)
 
@@ -17,7 +18,9 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
       get dashboard_index_url
     end
 
-    assert_select "h1", text: "Good evening, Mike."
+    assert_select "h1", text: "Monday, October 5."
+    assert_no_match(/Good (morning|afternoon|evening)/, response.body)
+    assert_no_match(/#{member.name.split.first}\./, css_select("h1").text)
   end
 
   test "the dashboard sums up the coming week's meals and the ones without a cook" do
@@ -27,11 +30,11 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-testid='week-summary']", text: /3 meals this week\s*·\s*2 still need a cook/
   end
 
-  test "the apps' Home is the almanac too: greeting, the week's meals, and dates by day" do
+  test "the apps' Home is the almanac too: the date, the week's meals, and dates by day" do
     sign_in_user
     get dashboard_index_url, headers: { "User-Agent" => "Conduit iOS/2 (Turbo Native)" }
 
-    assert_select "h1", text: /\AGood (morning|afternoon|evening), /
+    assert_select "h1", text: "#{Date.current.strftime('%A, %B %-d')}."
     assert_select "[data-testid='week-summary']"
     assert_select "#coming-up", text: "Coming up"
   end
