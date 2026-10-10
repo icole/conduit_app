@@ -1,23 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- HTTPS only, for every host. Debug builds swap in
+     src/debug/res/xml/network_security_config.xml to reach a dev server. -->
 <network-security-config>
-    <!-- Allow cleartext for local development -->
-    <domain-config cleartextTrafficPermitted="true">
-        <!-- Android emulator localhost -->
-        <domain includeSubdomains="true">10.0.2.2</domain>
-        <!-- Physical device localhost -->
-        <domain includeSubdomains="true">localhost</domain>
-        <!-- Your local network IP -->
-        <domain includeSubdomains="true">192.168.50.41</domain>
-        <!-- Alternative: Allow entire local subnet -->
-        <domain includeSubdomains="true">192.168.50.0/24</domain>
-    </domain-config>
-
-    <!-- Production domain with HTTPS -->
-    <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">conduit.crowwoods.com</domain>
-    </domain-config>
-
-    <!-- Default configuration for all other domains -->
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />

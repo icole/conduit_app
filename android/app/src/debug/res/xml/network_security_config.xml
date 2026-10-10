@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug builds only: replaces src/main's config so the app can reach a dev
+     server over plain HTTP. Release builds never get this file. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- The emulator's address for the computer running it (BASE_URL in debug) -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
