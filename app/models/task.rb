@@ -30,6 +30,8 @@ class Task < ApplicationRecord
   before_save :auto_set_status_and_priority, if: :new_record?
   before_save :track_completion, if: :status_changed?
   before_create :set_created_by
+  # Reminders are about a due date: moving it brings them back for the new one
+  after_update :forget_reminders, if: :saved_change_to_due_date?
 
   # Default status is 'backlog'
   attribute :status, :string, default: "backlog"
@@ -181,6 +183,11 @@ class Task < ApplicationRecord
       self.completed_at = nil
       self.completed_by = nil
     end
+  end
+
+  def forget_reminders
+    update_column(:unclaimed_reminder_sent_at, nil)
+    task_assignments.update_all(due_reminder_sent_at: nil, overdue_reminder_sent_at: nil)
   end
 
   def set_created_by

@@ -155,6 +155,27 @@ class TaskRemindersJobTest < ActiveJob::TestCase
     assert_equal "/tasks?tab=available", theirs.first.dig("data", "path")
   end
 
+  test "moving a task's due date brings its reminders back for the new date" do
+    task = task_due(Date.new(2026, 10, 6))
+    at_local(6, 8) { TaskRemindersJob.perform_now }
+    at_local(7, 8) { TaskRemindersJob.perform_now }
+    assert_equal [ "Due today", "Overdue" ], pushes.map { |push| push["title"] }
+
+    ActsAsTenant.with_tenant(@community) { task.update!(due_date: Date.new(2026, 10, 9)) }
+    at_local(9, 8) { TaskRemindersJob.perform_now }
+    at_local(10, 8) { TaskRemindersJob.perform_now }
+    assert_equal [ "Due today", "Overdue" ] * 2, pushes.map { |push| push["title"] }
+  end
+
+  test "moving the due date of work nobody is on asks for someone again" do
+    task = task_due(Date.new(2026, 10, 7), people: [])
+    at_local(7, 8) { TaskRemindersJob.perform_now }
+    ActsAsTenant.with_tenant(@community) { task.update!(due_date: Date.new(2026, 10, 20)) }
+    at_local(20, 8) { TaskRemindersJob.perform_now }
+
+    assert_equal [ "Needs someone" ] * 2, pushes.map { |push| push["title"] }
+  end
+
   test "a task that comes due later in the day gets its own push on the next run" do
     at_local(7, 8) { TaskRemindersJob.perform_now }
     assert_empty pushes
