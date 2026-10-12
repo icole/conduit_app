@@ -41,16 +41,15 @@ class ApplicationController < ActionController::Base
       return Community.find_by(slug: "crow-woods")
     end
 
+    # The API domain is the same in every environment: the community comes
+    # from the logged-in user's session
+    return community_from_session if api_domain?(host)
+
     # Handle test environment - use first community or look up by domain
     if Rails.env.test?
       return Community.find_by(domain: host) ||
              Community.find_by(slug: "crow-woods") ||
              Community.first
-    end
-
-    # Handle API domain - determine community from logged-in user's session
-    if api_domain?(host)
-      return community_from_session
     end
 
     Community.find_by(domain: host) || Community.find_by(domain: host.gsub(/^www\./, ""))
