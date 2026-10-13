@@ -75,27 +75,29 @@ class GenerateWeeklyMealsJobTest < ActiveJob::TestCase
   end
 
   test "a meal that replaces the schedule's meal that week stops the schedule making one" do
-    travel_to Time.zone.local(2026, 10, 6, 7, 0) do
+    travel_to Time.zone.local(2025, 10, 7, 7, 0) do
       ActsAsTenant.with_tenant(@community) do
-        friday = Time.zone.local(2026, 10, 16, 18, 0)
+        friday = Time.zone.local(2025, 10, 17, 18, 0)
         Meal.create!(title: "Friday meeting dinner", scheduled_at: friday, rsvp_deadline: friday - 1.day,
                      replaces_schedule_id: meal_schedules(:sunday_brunch).id)
 
         generate_brunches
 
-        assert_not Meal.exists?(scheduled_at: Date.new(2026, 10, 18).all_day)
+        assert_not Meal.exists?(scheduled_at: Date.new(2025, 10, 19).all_day)
       end
     end
   end
 
   private
 
-  # Brunches generated three weeks out (Sundays Oct 11, 18 and 25); yields Oct 18's
+  # Brunches generated three weeks out (Sundays Oct 12, 19 and 26); yields Oct
+  # 19's. In the past, so the meal fixtures, set around the real today, can't
+  # take one of those Sundays.
   def with_brunches
-    travel_to Time.zone.local(2026, 10, 6, 7, 0) do
+    travel_to Time.zone.local(2025, 10, 7, 7, 0) do
       ActsAsTenant.with_tenant(@community) do
         generate_brunches
-        yield Meal.find_by!(scheduled_at: Date.new(2026, 10, 18).all_day)
+        yield Meal.find_by!(scheduled_at: Date.new(2025, 10, 19).all_day)
       end
     end
   end
