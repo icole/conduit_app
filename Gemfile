@@ -70,7 +70,7 @@ gem "google-apis-calendar_v3", "~> 0.58.0"
 
 # Nightly backups to a Cloud Storage bucket (CON-31)
 gem "google-apis-storage_v1"
-gem "icalendar", "~> 2.12"
+gem "icalendar", "~> 2.13"
 
 gem "simple_calendar"
 

@@ -271,11 +271,10 @@ GEM
       http-2 (>= 1.2.0)
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
-    icalendar (2.12.5)
+    icalendar (2.13.0)
       base64
       ice_cube (~> 0.16)
       logger
-      ostruct
     ice_cube (0.17.0)
     image_processing (2.2.0)
     importmap-rails (2.2.3)
@@ -672,7 +671,7 @@ DEPENDENCIES
   google-apis-storage_v1
   googleauth (~> 1.17)
   heroicon
-  icalendar (~> 2.12)
+  icalendar (~> 2.13)
   image_processing (~> 2.2)
   importmap-rails
   jbuilder
