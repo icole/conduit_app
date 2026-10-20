@@ -1,10 +1,11 @@
 # Recurring tasks are set up from the Add task form's "Repeats" choice.
-# Admins, the workstream's owners and whoever set one up can change it.
+# Admins, the workstream's owners and whoever set one up can change it. Its
+# people can hand it off for good, and anyone can take on one handed off.
 class RecurringTasksController < ApplicationController
   before_action :authenticate_user!
   before_action :set_workstream
-  before_action :set_recurring_task, only: [ :edit, :update, :destroy ]
-  before_action :authorize_manager!
+  before_action :set_recurring_task
+  before_action :authorize_manager!, except: [ :hand_off, :take_on ]
   before_action :set_responsible_choices, only: [ :edit, :update ]
 
   def edit
@@ -32,6 +33,24 @@ class RecurringTasksController < ApplicationController
   def destroy
     @recurring_task.discard
     redirect_to @workstream, notice: "Recurring task removed."
+  end
+
+  def hand_off
+    unless @recurring_task.hand_off!(current_user)
+      return redirect_to tasks_path(tab: "my"), alert: "Only someone doing it can hand it off."
+    end
+
+    others = @recurring_task.responsibles.reload.map { |person| person.name.split.first }
+    redirect_to tasks_path(tab: "my"),
+      notice: others.any? ? "You're off it. #{others.to_sentence} #{others.one? ? 'carries' : 'carry'} on." : "Handed off. We've asked who can take it on."
+  end
+
+  def take_on
+    if @recurring_task.take_on!(current_user)
+      redirect_to tasks_path(tab: "available"), notice: "“#{@recurring_task.title}” is yours from now on. Find it under My Tasks."
+    else
+      redirect_to tasks_path(tab: "available"), alert: "Someone already took that one on."
+    end
   end
 
   private

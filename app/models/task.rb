@@ -89,8 +89,9 @@ class Task < ApplicationRecord
   # One person can't do it this time. If others are on it, it stays with
   # them. If they were the last, it goes back to the queue and (except for
   # governance, which stays among the role's holders) a note goes to the
-  # community's coverage chat channel. The recurring task's people are untouched.
-  def release!(by)
+  # community's coverage chat channel. The recurring task's people are
+  # untouched. +announce+ is false when a handoff announces it instead.
+  def release!(by, announce: true)
     assignment = task_assignments.find_by(user_id: by.id)
     return false unless assignment && releasable?
 
@@ -99,7 +100,7 @@ class Task < ApplicationRecord
       assignment.destroy!
       update!(released_by: by, released_at: Time.current) if to_queue
     end
-    CoverageBroadcastJob.perform_later(community_id, id) if to_queue && !workstream.governance?
+    CoverageBroadcastJob.perform_later(community_id, id) if announce && to_queue && !workstream.governance?
     true
   end
 

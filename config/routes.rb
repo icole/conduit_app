@@ -118,7 +118,13 @@ Rails.application.routes.draw do
       patch :reopen
     end
     # Created from the Add task form ("Repeats"); edited and removed here
-    resources :recurring_tasks, only: [ :edit, :update, :destroy ]
+    resources :recurring_tasks, only: [ :edit, :update, :destroy ] do
+      # Handed off for good from My Tasks; taken on from Available
+      member do
+        patch :hand_off
+        patch :take_on
+      end
+    end
   end
 
   resources :document_folders, only: [ :create, :update, :destroy ]

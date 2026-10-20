@@ -1,5 +1,41 @@
 <p class="text-sm text-base-content/70 mb-4 native:hidden">Open work, <strong>essential first</strong>. Grab what you have capacity for.</p>
 
+<%# Recurring jobs whose last person handed them off for good %>
+<% if @handed_off.any? %>
+  <section id="needs-someone-new" class="mb-6">
+    <h2 class="font-semibold native:px-1">Needs someone new <span class="text-base-content/65 text-sm font-normal ml-1"><%= @handed_off.size %></span></h2>
+    <p class="text-sm text-base-content/70 mt-0.5 mb-2 native:px-1">Take one on and it comes to you each time from now on.</p>
+    <div class="<%= task_list_classes %>">
+      <% @handed_off.each do |recurring| %>
+        <div id="<%= dom_id recurring %>" class="sm:rounded-box sm:bg-base-100 sm:border sm:border-base-200">
+          <div class="flex items-start gap-3 px-3 py-3 sm:p-4 native:px-4 native:py-3.5">
+            <div class="flex-1 min-w-0">
+              <p class="font-medium leading-6"><%= recurring.title %></p>
+              <p class="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-base-content/70">
+                <% bits = [ recurring.workstream.name, recurring.frequency_label, recurring.effort, due_label(@this_time[recurring.id]&.due_date),
+                            tag.span("Handed off by #{recurring.handed_off_by&.name&.split&.first}", class: "text-info-ink") ].compact %>
+                <%= safe_join(bits.map { |bit| tag.span(bit, class: "whitespace-nowrap") }, tag.span("·", aria: { hidden: true })) %>
+              </p>
+              <% if recurring.description.present? %>
+                <p class="mt-1 text-sm text-base-content/70 line-clamp-2"><%= recurring.description %></p>
+              <% end %>
+            </div>
+            <div class="flex flex-col items-end gap-1 shrink-0">
+              <%= button_to "Take it on", take_on_workstream_recurring_task_path(recurring.workstream, recurring), method: :patch,
+                    class: "btn btn-primary btn-sm native:bg-primary/15 native:border-0 native:text-primary-ink native:px-4",
+                    form: { data: { turbo_confirm: "Take on “#{recurring.title}”? It comes to you #{recurring.frequency_label.downcase} from now on." } } %>
+              <% if (task = @this_time[recurring.id]) %>
+                <%= button_to "Just this once", claim_task_path(task, return_to: tasks_path(tab: "available")), method: :patch,
+                      class: "btn btn-ghost btn-xs text-base-content/70" %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
 <% Workstream::PRIORITIES.each do |priority| %>
   <% tasks = @queue[priority] %>
   <% next if tasks.blank? %>
@@ -21,7 +57,7 @@
   </section>
 <% end %>
 
-<% if @queue.empty? %>
+<% if @queue.empty? && @handed_off.empty? %>
   <div class="card bg-base-100 border border-base-200">
     <div class="card-body text-center py-8 px-4">
       <p class="font-medium text-base-content/70">Nothing in the queue</p>

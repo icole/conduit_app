@@ -206,14 +206,18 @@ class TasksController < ApplicationController
   def load_my_tab
     # Recurring duties and one-off assignments in one list, soonest due first
     @my_tasks = Task.open.assigned_to(current_user)
-      .includes(:workstream, :recurring_task, :released_by, :assignees, task_assignments: :covering_for).reorder(Arel.sql("tasks.due_date IS NULL, tasks.due_date, tasks.created_at"))
+      .includes(:workstream, { recurring_task: [ :responsibles, :workstream ] }, :released_by, :assignees, task_assignments: :covering_for).reorder(Arel.sql("tasks.due_date IS NULL, tasks.due_date, tasks.created_at"))
     @completed_tasks = Task.completed.where(completed_at: 14.days.ago..)
       .where("tasks.completed_by_id = :id OR tasks.id IN (SELECT task_id FROM task_assignments WHERE user_id = :id)", id: current_user.id)
       .includes(:workstream, :recurring_task).reorder(completed_at: :desc).limit(20)
   end
 
   def load_available_tab
-    @queue = Task.available_queue(current_user).group_by(&:effective_priority)
+    @handed_off = RecurringTask.looking_for_someone.includes(:workstream, :handed_off_by).order(:handed_off_at).to_a
+    # A handed-off job's current task goes on its card, as "Just this once"
+    queue = Task.available_queue(current_user)
+    @this_time = queue.select { |task| task.recurring_task_id.in?(@handed_off.map(&:id)) }.index_by(&:recurring_task_id)
+    @queue = (queue - @this_time.values).group_by(&:effective_priority)
   end
 
   # By workstream (what each area covers), every open task in one list, or

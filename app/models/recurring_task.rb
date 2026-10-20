@@ -16,9 +16,17 @@ class RecurringTask < ApplicationRecord
   has_many :recurring_task_responsibles, dependent: :destroy
   has_many :responsibles, -> { order(:name) }, through: :recurring_task_responsibles, source: :user
   belongs_to :created_by, class_name: "User"
+  # Its last person handed it off for good (not just one period), and nobody
+  # has taken it on yet: Available asks for someone new
+  belongs_to :handed_off_by, class_name: "User", optional: true
   has_many :instances, class_name: "Task", dependent: :nullify
 
   default_scope -> { kept }
+
+  scope :looking_for_someone, -> {
+    where.not(handed_off_at: nil).where.not(id: RecurringTaskResponsible.select(:recurring_task_id))
+      .joins(:workstream).merge(Workstream.open)
+  }
 
   # Its open work goes with it; completed instances stay as contribution history.
   after_discard { instances.open.find_each(&:discard) }
@@ -43,6 +51,42 @@ class RecurringTask < ApplicationRecord
   def covered? = responsibles.any?
 
   # Shorthand for a one-person job: its first person, or just this one
+  def looking_for_someone? = handed_off_at.present? && responsibles.none?
+
+  # Its people can let go, unless that would leave a governance role with
+  # nobody (those change hands among the role's holders).
+  def hand_off_allowed?(user)
+    responsible_ids.include?(user.id) && (responsibles.size > 1 || !workstream.governance?)
+  end
+
+  # +user+ stops doing this from now on, and lets go of the current period's
+  # task too. Anyone sharing it carries on; if they were the last, it's
+  # announced so someone can take it on.
+  def hand_off!(user)
+    return false unless hand_off_allowed?(user)
+
+    last = responsibles.size == 1
+    transaction do
+      recurring_task_responsibles.find_by!(user: user).destroy!
+      update!(handed_off_by: user, handed_off_at: Time.current) if last
+      instances.open.assigned_to(user).each { |task| task.release!(user, announce: false) }
+    end
+    HandoffBroadcastJob.perform_later(community_id, id) if last
+    true
+  end
+
+  # Someone answers the handoff: it's theirs from now on, along with the
+  # current period's task unless someone already picked that up.
+  def take_on!(user)
+    with_lock do
+      return false unless looking_for_someone?
+
+      recurring_task_responsibles.create!(user: user)
+    end
+    instances.open.unassigned.each { |task| task.claim!(user) }
+    true
+  end
+
   def default_responsible_user = responsibles.first
   def default_responsible_user=(user)
     self.responsibles = Array(user)

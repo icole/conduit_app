@@ -21,6 +21,7 @@ class NotificationKind
     Kind.new("task_assigned", true, task_done_or_not_yours),
     Kind.new("task_due", true, task_done_or_not_yours),
     Kind.new("task_needs_someone", true, ->(_n, task) { task.status == "completed" || task.assignees.any? }),
+    Kind.new("job_needs_someone", true, ->(_n, recurring) { !recurring.looking_for_someone? }),
     Kind.new("cook_assigned", false, nil),
     Kind.new("rsvps_closed", false, nil),
     Kind.new("meal_rescheduled", false, nil),

@@ -105,7 +105,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
             </svg>
           </div>
-          <ul tabindex="0" class="dropdown-content z-50 p-2 shadow-lg bg-base-100 text-base-content rounded-box w-44 bridge-button:hidden">
+          <ul tabindex="0" class="dropdown-content z-50 p-2 shadow-lg bg-base-100 text-base-content rounded-box w-56 bridge-button:hidden">
             <li><%= link_to "Edit", edit_task_path(task), data: { turbo_frame: "_top", bridge__menu_target: "item" }, class: "block px-3 py-2 rounded-lg hover:bg-base-200" %></li>
             <% if action == :release %>
               <%# Only the native menu reads this one; the web shows the button on the row %>
@@ -113,6 +113,15 @@
                 <%= button_to "Can't do it this time", release_task_path(task), method: :patch,
                       data: { bridge__menu_target: "item" },
                       form: { data: { turbo_confirm: others.any? ? "Drop out this time? #{others.to_sentence} #{others.one? ? 'stays' : 'stay'} on it." : "Release this one to the queue? You stay responsible for future #{task.recurring_task&.frequency_label&.downcase || 'periods'}; we'll post it in chat so someone can pick it up." } } %>
+              </li>
+            <% end %>
+            <% if task.recurring_task&.hand_off_allowed?(current_user) %>
+              <% sharing = task.recurring_task.responsibles.reject { |person| person.id == current_user.id }.map { |person| person.name.split(" ").first } %>
+              <li>
+                <%= button_to "Hand it off for good", hand_off_workstream_recurring_task_path(task.recurring_task.workstream, task.recurring_task), method: :patch,
+                      class: "block w-full text-left px-3 py-2 rounded-lg hover:bg-base-200",
+                      data: { bridge__menu_target: "item" },
+                      form: { data: { turbo_confirm: sharing.any? ? "Stop doing “#{task.title}” from now on? #{sharing.to_sentence} #{sharing.one? ? 'stays' : 'stay'} on it." : "Hand off “#{task.title}” for good? You come off it from now on, this time included, and we'll ask everyone who can take it on." } } %>
               </li>
             <% end %>
             <% unless task.recurring? %>

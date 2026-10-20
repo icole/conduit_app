@@ -5,7 +5,10 @@ class CoverageBroadcastJob < ApplicationJob
     community = Community.find(community_id)
     ActsAsTenant.with_tenant(community) do
       task = Task.find_by(id: task_id)
-      CoverageBroadcast.new(task).deliver if task
+      return unless task&.assignees&.none?
+
+      CoverageBroadcast.released(task).deliver
+      TaskPush.released(task)
     end
   end
 end

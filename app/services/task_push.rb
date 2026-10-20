@@ -51,18 +51,34 @@ class TaskPush
     deliver(user, title: title, body: task.title)
   end
 
-  def self.unclaimed(task, user)
-    title, body = needs_someone(task)
-    remember(user, "task_needs_someone", task, title, body, AVAILABLE)
-    deliver(user, title: title, body: body, path: AVAILABLE)
+  # Someone can't do it this time and nobody else is on it: everyone else, at
+  # once, rather than waiting for the morning push (which then skips it)
+  def self.released(task)
+    title = "#{task.released_by.name.split.first} can't do this one"
+    body = needs_someone(task).last
+    User.includes(:push_devices).where.not(id: task.released_by_id).find_each do |user|
+      remember(user, "task_needs_someone", task, title, body, AVAILABLE)
+      deliver(user, title: title, body: body, path: AVAILABLE)
+    end
+    task.update_column(:unclaimed_reminder_sent_at, Time.current)
   end
 
-  def self.needs_someone(task) = [ "Needs someone", "#{task.title} · due #{task.due_date.strftime('%a %b %-d')}" ]
+  # A recurring job its last person handed off, to everyone else
+  def self.handed_off(recurring)
+    title = "#{recurring.handed_off_by.name.split.first} is handing off a job"
+    body = "#{recurring.title} · #{recurring.frequency_label.downcase}"
+    User.includes(:push_devices).where.not(id: recurring.handed_off_by_id).find_each do |user|
+      remember(user, "job_needs_someone", recurring, title, body, AVAILABLE)
+      deliver(user, title: title, body: body, path: AVAILABLE)
+    end
+  end
 
-  # One entry per task: a reminder updates the one already waiting (being put
+  def self.needs_someone(task) = [ "Needs someone", [ task.title, task.due_date&.strftime("due %a %b %-d") ].compact.join(" · ") ]
+
+  # One entry per task (or job): a reminder updates the one already waiting (being put
   # on it, then due, then overdue) and shows it unread again, not adds another
-  def self.remember(user, kind, task, title, body, path)
-    notification = user.in_app_notifications.needs_you.find_by(notifiable: task) || user.in_app_notifications.new(notifiable: task)
+  def self.remember(user, kind, subject, title, body, path)
+    notification = user.in_app_notifications.needs_you.find_by(notifiable: subject) || user.in_app_notifications.new(notifiable: subject)
     notification.update!(notification_type: kind, title: title, body: body, action_url: path, read: false, read_at: nil)
   end
 

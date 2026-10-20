@@ -24,7 +24,7 @@ class CoverageBroadcastTest < ActiveSupport::TestCase
 
     StreamChatClient.stub :configured?, true do
       StreamChatClient.stub :client, client do
-        CoverageBroadcast.new(@task).deliver
+        CoverageBroadcast.released(@task).deliver
       end
     end
 
@@ -50,8 +50,16 @@ class CoverageBroadcastTest < ActiveSupport::TestCase
     @community.update!(chat_enabled: false)
     StreamChatClient.stub :configured?, true do
       StreamChatClient.stub :client, -> { flunk "should not talk to Stream" } do
-        assert_nil CoverageBroadcast.new(@task.reload).deliver
+        assert_nil CoverageBroadcast.released(@task.reload).deliver
       end
     end
+  end
+
+  test "a handoff asks who can take the job on, from whoever handed it off" do
+    recurring = recurring_tasks(:garbage_night)
+    recurring.hand_off!(users(:one))
+    broadcast = CoverageBroadcast.handed_off(recurring.reload)
+    assert_equal "Jane is handing off \"Take out garbage & recycling\" (weekly, small job). Can you take it on? " \
+      "http://crowwoods.test/tasks?tab=available", broadcast.send(:message_text)
   end
 end
