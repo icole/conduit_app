@@ -37,7 +37,7 @@ gem "paper_trail", "~> 17.0"
 gem "jwt", "~> 2.10"
 
 # Authentication
-gem "omniauth", "~> 2.1"
+gem "omniauth", "~> 2.3"
 gem "omniauth-google-oauth2", "~> 1.2"
 gem "omniauth-rails_csrf_protection", "~> 2.0"
 
