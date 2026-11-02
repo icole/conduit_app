@@ -75,7 +75,7 @@ gem "icalendar", "~> 2.13"
 gem "simple_calendar"
 
 # Stream Chat for HOA community messaging
-gem "stream-chat-ruby", "~> 3.26"
+gem "stream-chat-ruby", "~> 3.27"
 
 
 # Sentry for error tracking
