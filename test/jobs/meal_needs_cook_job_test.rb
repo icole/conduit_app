@@ -20,8 +20,12 @@ class MealNeedsCookJobTest < ActiveJob::TestCase
 
   def run_on(month, day) = on(month, day) { MealNeedsCookJob.perform_now }
 
+  # This meal's only: fixture meals are dated from the real today, so some
+  # weeks they fall inside these tests' fixed November and get notices too
   def pushes
-    enqueued_jobs.select { |job| job["job_class"] == "ApplicationPushNotificationJob" }.map { |job| job["arguments"][1] }
+    enqueued_jobs.select { |job| job["job_class"] == "ApplicationPushNotificationJob" }
+      .map { |job| job["arguments"][1] }
+      .select { |push| push.dig("data", "path") == "/meals/#{@meal.id}" }
   end
 
   def entries(user = @one) = user.in_app_notifications.where(notifiable: @meal)
