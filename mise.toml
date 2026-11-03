@@ -1,4 +1,4 @@
 [tools]
 node = "lts"
-ruby = "latest"
+ruby = "3.4"
 yarn = "latest"
