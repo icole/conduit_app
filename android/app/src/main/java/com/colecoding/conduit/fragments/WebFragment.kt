@@ -32,15 +32,24 @@ open class WebFragment : HotwireWebFragment() {
         styleChrome()
     }
 
+    // A tab's first screen: the tab strip already names it, so no title
+    private val atTabRoot by lazy { navigator.isAtStartDestination() }
+
+    override fun shouldObserveTitleChanges() = !atTabRoot
+
     // Native chrome in the page's own colours, so it reads as one surface
     private fun styleChrome() {
         val surface = Palette.paper
         toolbarForNavigation()?.apply {
             setBackgroundColor(surface)
             setTitleTextColor(Palette.ink)
+            // Just room for the bell and the page's button
+            if (atTabRoot) minimumHeight = (48 * resources.displayMetrics.density).toInt()
             (parent as? View)?.apply {
                 setBackgroundColor(surface)
                 elevation = 0f
+                // MainActivity already keeps the screen clear of the status bar
+                fitsSystemWindows = false
             }
         }
         // The activity's root shows through behind the status bar
