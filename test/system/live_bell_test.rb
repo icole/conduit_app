@@ -34,11 +34,24 @@ class LiveBellTest < ApplicationSystemTestCase
     sign_in_as(member)
     visit tasks_url(tab: "available")
     assert_selector "#native-bell[data-bridge-count='1']", visible: false
+    wait_for_bell_controller
     page.execute_script("document.querySelectorAll('turbo-cable-stream-source').forEach((source) => source.remove())")
 
     within("#task_#{task.id}") { click_button "Claim" }
 
     assert_text "It's yours"
     assert_selector "#native-bell[data-bridge-count='0']", visible: false
+  end
+
+  # The bell's controller connects a moment after the page shows (it imports
+  # the bridge library from a CDN). On a slow CI runner a claim could finish
+  # before it was listening, leaving the bell at its server-rendered count.
+  def wait_for_bell_controller
+    page.document.synchronize do
+      connected = page.evaluate_script(<<~JS)
+        !!Stimulus.getControllerForElementAndIdentifier(document.getElementById("native-bell"), "bridge--bell")
+      JS
+      raise Capybara::ExpectationNotMet, "the bell's controller never connected" unless connected
+    end
   end
 end
