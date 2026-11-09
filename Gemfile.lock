@@ -144,7 +144,7 @@ GEM
       bigdecimal
       rexml
     crass (1.0.8)
-    csv (3.3.6)
+    csv (3.3.7)
     date (3.6.0)
     debug (1.11.1)
       irb (~> 1.10)
@@ -494,7 +494,7 @@ GEM
       uber (< 0.2.0)
     request_store (1.7.0)
       rack (>= 1.4)
-    resend (1.18.0)
+    resend (1.19.0)
       base64
       httparty (>= 0.22.0)
     retriable (4.2.0)
@@ -691,7 +691,7 @@ DEPENDENCIES
   rack-attack (~> 6.7)
   rails (~> 8.1.4)
   rails-controller-testing
-  resend (~> 1.18)
+  resend (~> 1.19)
   rubocop-rails-omakase
   ruby-vips
   selenium-webdriver
