@@ -113,7 +113,7 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
   gem "rails-controller-testing"
-  gem "minitest", "~> 6.0"
+  gem "minitest", "~> 6.1"
   # Minitest 6 moved minitest/mock into its own gem
   gem "minitest-mock"
   # Tests never reach the network (see test_helper)
