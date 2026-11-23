@@ -263,7 +263,7 @@ GEM
     heroicon (1.0.0)
       rails (>= 5.2)
     http-2 (1.2.3)
-    httparty (0.24.3)
+    httparty (0.25.1)
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
@@ -500,7 +500,7 @@ GEM
       uber (< 0.2.0)
     request_store (1.7.0)
       rack (>= 1.4)
-    resend (1.19.0)
+    resend (1.20.0)
       base64
       httparty (>= 0.22.0)
     retriable (4.2.0)
@@ -697,7 +697,7 @@ DEPENDENCIES
   rack-attack (~> 6.7)
   rails (~> 8.1.4)
   rails-controller-testing
-  resend (~> 1.19)
+  resend (~> 1.20)
   rubocop-rails-omakase
   ruby-vips
   selenium-webdriver
